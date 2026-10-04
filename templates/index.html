@@ -117,7 +117,7 @@
 
 <!-- ============================== BASE ============================== -->
 <section id="about" class="zone" data-zone="about" aria-labelledby="about-title">
-  <header class="zone-head"><span class="zone-n">01</span><h2 id="about-title">{{ c.t.zones["about"].title }}</h2><p>{{ c.t.zones["about"].subtitle }}</p></header>
+  <header class="zone-head"><span class="zone-n">01</span><h2 id="about-title">{{ c.t.zones["about"].title }}</h2><p>{{ c.t.zones["about"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <div class="about-grid">
     <div class="prose">
     {% for p in c.t.about.paragraphs %}<p>{{ p }}</p>{% endfor %}
@@ -159,7 +159,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 
 <!-- ========================= ÁRBOL DE HABILIDADES ========================= -->
 <section id="skills" class="zone" data-zone="skills" aria-labelledby="skills-title">
-  <header class="zone-head"><span class="zone-n">02</span><h2 id="skills-title">{{ c.t.zones["skills"].title }}</h2><p>{{ c.t.zones["skills"].subtitle }}</p></header>
+  <header class="zone-head"><span class="zone-n">02</span><h2 id="skills-title">{{ c.t.zones["skills"].title }}</h2><p>{{ c.t.zones["skills"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <p class="muted js-only">{{ c.ui("filter_hint") }}</p>
   <svg class="tree-svg" viewBox="0 0 1000 110" preserveAspectRatio="none" aria-hidden="true" data-tree-svg>
     <path class="tree-trunk" pathLength="1" d="M500 0 V44"/>
@@ -189,7 +189,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 
 <!-- ============================== MISIONES ============================== -->
 <section id="quests" class="zone" data-zone="quests" aria-labelledby="quests-title">
-  <header class="zone-head"><span class="zone-n">03</span><h2 id="quests-title">{{ c.t.zones["quests"].title }}</h2><p>{{ c.t.zones["quests"].subtitle }}</p></header>
+  <header class="zone-head"><span class="zone-n">03</span><h2 id="quests-title">{{ c.t.zones["quests"].title }}</h2><p>{{ c.t.zones["quests"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <p class="filter-status" data-filter-status hidden>
     <span>{{ c.ui("projects_with") }} <strong data-filter-name></strong></span>
     <button type="button" class="btn btn-ghost btn-sm" data-filter-clear>{{ c.ui("filter_all") }}</button>
@@ -224,7 +224,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 
 <!-- ============================= TRAYECTORIA ============================= -->
 <section id="journey" class="zone" data-zone="journey" aria-labelledby="journey-title">
-  <header class="zone-head"><span class="zone-n">04</span><h2 id="journey-title">{{ c.t.zones["journey"].title }}</h2><p>{{ c.t.zones["journey"].subtitle }}</p></header>
+  <header class="zone-head"><span class="zone-n">04</span><h2 id="journey-title">{{ c.t.zones["journey"].title }}</h2><p>{{ c.t.zones["journey"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <div class="journey-grid">
     <ol class="timeline">
     {% for j in c.t.journey %}
@@ -249,7 +249,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 
 <!-- ============================= LABORATORIO ============================= -->
 <section id="lab" class="zone" data-zone="lab" aria-labelledby="lab-title">
-  <header class="zone-head"><span class="zone-n">05</span><h2 id="lab-title">{{ c.t.zones["lab"].title }}</h2><p>{{ c.t.zones["lab"].subtitle }}</p></header>
+  <header class="zone-head"><span class="zone-n">05</span><h2 id="lab-title">{{ c.t.zones["lab"].title }}</h2><p>{{ c.t.zones["lab"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <p class="muted">{{ c.lab("intro") }}</p>
   <p class="lab-quick-note">{{ c.ui("lab_quick") }} <button type="button" class="btn btn-sm btn-primary" data-quick-exit>{{ c.ui("quick_off") }}</button></p>
   <div class="lab" data-lab>
@@ -359,7 +359,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 
 <!-- ============================= AHORA MISMO ============================= -->
 <section id="now" class="zone" data-zone="now" aria-labelledby="now-title">
-  <header class="zone-head"><span class="zone-n">06</span><h2 id="now-title">{{ c.t.zones["now"].title }}</h2><p>{{ c.t.zones["now"].subtitle }}</p></header>
+  <header class="zone-head"><span class="zone-n">06</span><h2 id="now-title">{{ c.t.zones["now"].title }}</h2><p>{{ c.t.zones["now"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <div class="now-grid">
     <div class="card">
       <p class="muted">{{ c.t.now.intro }}</p>
@@ -384,7 +384,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 
 <!-- ============================== CONTACTO ============================== -->
 <section id="contact" class="zone" data-zone="contact" aria-labelledby="contact-title">
-  <header class="zone-head"><span class="zone-n">07</span><h2 id="contact-title">{{ c.t.zones["contact"].title }}</h2><p>{{ c.t.zones["contact"].subtitle }}</p></header>
+  <header class="zone-head"><span class="zone-n">07</span><h2 id="contact-title">{{ c.t.zones["contact"].title }}</h2><p>{{ c.t.zones["contact"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <div class="contact-grid">
     <form class="card contact-form" method="post" action="/{{ c.lang }}/contact" data-contact-form novalidate>
       <p>{{ c.contact("intro") }}</p>

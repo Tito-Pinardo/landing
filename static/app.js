@@ -1281,6 +1281,7 @@
     doc.classList.toggle("gnomes-off", !on);
     gnomeBtn?.setAttribute("aria-pressed", String(on));
     if (!on) gnomeClear();
+    $$(".rail-climber").forEach((c) => { c.hidden = !on; });
   }
   setGnomes(gnomesOn);
   gnomeBtn?.addEventListener("click", () => {
@@ -1290,6 +1291,171 @@
   if (!reduceMotion) {
     setTimeout(() => gnomeSpawn("walk", { item: "env", dir: 1 }), 2500);
     gnomeSchedule();
+  }
+
+  // ------------------------------------------------------------ enanitos trabajando
+  // La "fábrica": enanitos con su tarea fija en cada servidor del rack, en
+  // las piezas del laboratorio y patrullando entre nodos. Brazos y piernas
+  // con animateTransform (SVG nativo: el giro lleva su propio centro).
+  const rot = (vals, dur, begin = "0s") =>
+    `<animateTransform attributeName="transform" type="rotate" values="${vals}" dur="${dur}" begin="${begin}" repeatCount="indefinite"/>`;
+  const limb = (x, y, inner, anim) => `<g transform="translate(${x} ${y})"><g>${anim}${inner}</g></g>`;
+  const ARM = `<rect class="w-arm" x="-2.2" y="0" width="4.4" height="11" rx="2.2"/><circle class="gn-face" cx="0" cy="11" r="2.4"/>`;
+  const LEG = `<rect class="gn-leg" x="-2.5" y="0" width="5" height="11" rx="2.5"/>`;
+  const HEAD = `<path class="gn-body" d="M9 43 Q20 20 31 43 Z"/><circle class="gn-face" cx="20" cy="24" r="7"/><path class="gn-beard" d="M12.5 25 Q20 42 27.5 25 Q20 31 12.5 25 Z"/><path class="gn-hat" d="M11.5 23 Q19 -3 29 22.5 Q20 19 11.5 23 Z"/><circle class="gn-eye" cx="17.4" cy="23.4" r="1.1"/><circle class="gn-eye" cx="22.6" cy="23.4" r="1.1"/><circle class="gn-nose" cx="20" cy="26.2" r="1.9"/>`;
+  const TOOLS = {
+    hammer: `<rect class="w-tool-wood" x="-1" y="8" width="2" height="13"/><rect class="w-tool-metal" x="-5.5" y="19" width="11" height="5" rx="1"/>`,
+    wrench: `<rect class="w-tool-metal" x="-1.6" y="8" width="3.2" height="11"/><circle cx="0" cy="21" r="3.4" fill="none" stroke="#9ca3af" stroke-width="2.4"/>`,
+    broom: `<rect class="w-tool-wood" x="-1" y="4" width="2" height="26"/><path class="w-tool-wood" d="M-6 30 h12 l3 7 h-18 Z"/>`,
+    mug: `<g transform="translate(-4 9)"><rect width="8" height="9" rx="1.5" fill="#e2e8f0"/><path d="M8 2 q4 2 0 5" fill="none" stroke="#94a3b8" stroke-width="1.5"/></g>`,
+  };
+  function worker(pose) {
+    const still = (deg) => `<animateTransform attributeName="transform" type="rotate" values="${deg}" dur="1s" repeatCount="indefinite"/>`;
+    let legs = limb(15.5, 39, LEG, still("0")) + limb(24.5, 39, LEG, still("0"));
+    let armL = limb(12.5, 31, ARM, still("25"));
+    let armR = limb(27.5, 31, ARM, still("-25"));
+    let extra = "";
+    if (pose === "hammer") {
+      armR = limb(27.5, 31, ARM + TOOLS.hammer, rot("-150;-20;-150", ".7s"));
+      extra = `<g class="w-spark"><circle cx="36" cy="54" r="2.5"><animate attributeName="opacity" values="0;0;1;0" dur=".7s" repeatCount="indefinite"/></circle></g>`;
+    } else if (pose === "wrench") {
+      armR = limb(27.5, 31, ARM + TOOLS.wrench, rot("-80;-20;-80", "1.1s"));
+    } else if (pose === "type") {
+      legs = limb(15.5, 39, LEG, still("-80")) + limb(24.5, 39, LEG, still("-80"));
+      armL = limb(12.5, 31, ARM, rot("-50;-62;-50", ".22s"));
+      armR = limb(27.5, 31, ARM, rot("-62;-50;-62", ".22s"));
+      extra = `<g class="w-laptop"><rect x="18" y="34" width="22" height="3" rx="1"/><rect x="30" y="20" width="3" height="15" rx="1"/><rect class="w-screen" x="31" y="21" width="1.2" height="12"><animate attributeName="opacity" values="1;.4;1" dur="1.3s" repeatCount="indefinite"/></rect></g>`;
+    } else if (pose === "sweep") {
+      armL = limb(12.5, 31, ARM, still("-20"));
+      armR = limb(27.5, 31, ARM + TOOLS.broom, rot("-35;5;-35", "1.2s"));
+      legs = limb(15.5, 39, LEG, rot("-15;15;-15", "1.2s")) + limb(24.5, 39, LEG, rot("15;-15;15", "1.2s"));
+    } else if (pose === "lift") {
+      armL = limb(12.5, 31, ARM, still("165"));
+      armR = limb(27.5, 31, ARM, still("-165"));
+    } else if (pose === "sit") {
+      legs = limb(15.5, 39, LEG, rot("-70;-95;-70", "1.6s")) + limb(24.5, 39, LEG, rot("-95;-70;-95", "1.6s"));
+      armR = limb(27.5, 31, ARM + TOOLS.mug, rot("-30;-30;-150;-150;-30", "5s"));
+    } else if (pose === "carry") {
+      armL = limb(12.5, 31, ARM, still("160"));
+      armR = limb(27.5, 31, ARM, still("-160"));
+      legs = limb(15.5, 39, LEG, rot("-25;25;-25", ".45s")) + limb(24.5, 39, LEG, rot("25;-25;25", ".45s"));
+      extra = `<g class="w-box"><rect x="8" y="-6" width="24" height="14" rx="1.5"/><path d="M8 1 h24 M20 -6 v14" stroke-width="1"/></g>`;
+    } else if (pose === "climb") {
+      armL = limb(12.5, 31, ARM, rot("170;130;170", "1s"));
+      armR = limb(27.5, 31, ARM, rot("-130;-170;-130", "1s"));
+      legs = limb(15.5, 39, LEG, rot("-30;10;-30", "1s")) + limb(24.5, 39, LEG, rot("10;-30;10", "1s"));
+    }
+    return `<g class="worker pose-${pose}">${legs}${armL}${HEAD}${armR}${extra}</g>`;
+  }
+  const workerSvg = (pose) => `<svg viewBox="-12 -16 64 76" aria-hidden="true">${worker(pose)}</svg>`;
+
+  function station(target, pose, place) {
+    if (!target) return;
+    if (getComputedStyle(target).position === "static") target.style.position = "relative";
+    const el = document.createElement("div");
+    el.className = "station";
+    const [hat, tunic] = pickOne(COLORS);
+    el.style.setProperty("--g-hat", hat);
+    el.style.setProperty("--g-tunic", tunic);
+    for (const [k, v] of Object.entries(place)) el.style[k] = v;
+    el.innerHTML = workerSvg(pose);
+    const g = { el };
+    el.addEventListener("pointerdown", (ev) => { ev.preventDefault(); gnomeClick(g); });
+    target.append(el);
+  }
+
+  if (!reduceMotion && world) {
+    // Un enanito con su tarea encima de cada servidor del rack.
+    const ZONE_POSES = { about: "sweep", skills: "carry", quests: "hammer", journey: "sit", lab: "wrench", now: "type", contact: "lift" };
+    for (const [id, pose] of Object.entries(ZONE_POSES)) {
+      station($("#" + id), pose, { top: "-76px", left: pose === "lift" ? "auto" : `${18 + Math.random() * 30}%`, right: pose === "lift" ? "60px" : "auto" });
+    }
+    // En el héroe: uno martillea el nombre y dos sostienen la tarjeta.
+    station($(".hero-text"), "hammer", { top: "70px", right: "-10px" });
+    station($(".player-card"), "sit", { top: "-80px", right: "24px" });
+    station($(".player-card"), "wrench", { top: "-80px", left: "18px" });
+    // Uno sube y baja por el raíl izquierdo.
+    const climber = document.createElement("div");
+    climber.className = "rail-climber gnome-world-item";
+    climber.innerHTML = workerSvg("climb");
+    climber.addEventListener("pointerdown", (ev) => { ev.preventDefault(); gnomeClick({ el: climber }); });
+    document.body.append(climber);
+
+    // En el laboratorio: trabajadores fijos sobre algunas piezas…
+    const LAB_POSES = { hermes: "type", zfs: "sweep", gpu: "hammer", proxmox: "wrench", backup: "sit", iac: "type", traefik: "lift", zabbix: "sit", router: "wrench" };
+    const labSvg = $(".lab-map");
+    const workersLayer = document.createElementNS(SVGNS, "g");
+    workersLayer.setAttribute("class", "lab-workers");
+    for (const [id, pose] of Object.entries(LAB_POSES)) {
+      const n = nodeById[id];
+      if (!n) continue;
+      const g = document.createElementNS(SVGNS, "g");
+      g.setAttribute("class", "lab-worker");
+      const [hat, tunic] = pickOne(COLORS);
+      g.style.setProperty("--g-hat", hat);
+      g.style.setProperty("--g-tunic", tunic);
+      g.setAttribute("transform", `translate(${n.x + 34} ${n.y - 76}) scale(1.05)`);
+      g.innerHTML = worker(pose);
+      g.addEventListener("click", (ev) => { ev.stopPropagation(); typeInto(consoleEl.text, pickOne(G.click)); });
+      workersLayer.append(g);
+    }
+    // …y patrullas que van de pieza en pieza cargando cajas.
+    const ROUTES = [
+      ["traefik", "landing", "postgres", "matrix", "landing"],
+      ["zabbix", "wazuh", "iac", "zfs", "proxmox"],
+      ["plex", "arr", "gpu", "tv", "plex"],
+      ["internet", "cloudflare", "router", "casa", "router"],
+    ];
+    const patrols = ROUTES.map((route) => {
+      const g = document.createElementNS(SVGNS, "g");
+      g.setAttribute("class", "lab-worker");
+      const [hat, tunic] = pickOne(COLORS);
+      g.style.setProperty("--g-hat", hat);
+      g.style.setProperty("--g-tunic", tunic);
+      g.innerHTML = `<g transform="translate(-20 -66) scale(0.95)">${worker("carry")}</g>`;
+      g.addEventListener("click", () => typeInto(consoleEl.text, pickOne(G.click)));
+      workersLayer.append(g);
+      return { g, route, i: 0, t: Math.random() };
+    });
+    labSvg?.insertBefore(workersLayer, $("[data-packet-gnome]"));
+
+    let patrolRaf = 0, patrolLast = 0, labVisible = false;
+    const patrolTick = (t) => {
+      const dt = Math.min(0.05, (t - (patrolLast || t)) / 1000);
+      patrolLast = t;
+      for (const p of patrols) {
+        const a = nodeById[p.route[p.i]], b = nodeById[p.route[(p.i + 1) % p.route.length]];
+        const len = Math.max(1, Math.hypot(b.x - a.x, b.y - a.y));
+        p.t += (55 * dt) / len;
+        if (p.t >= 1) { p.t = 0; p.i = (p.i + 1) % p.route.length; continue; }
+        const x = a.x + (b.x - a.x) * p.t, y = a.y + (b.y - a.y) * p.t - 18;
+        p.g.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${b.x < a.x ? -1 : 1} 1)`);
+      }
+      patrolRaf = labVisible && !document.hidden ? requestAnimationFrame(patrolTick) : 0;
+      if (!patrolRaf) patrolLast = 0;
+    };
+    if ("IntersectionObserver" in window && labSvg) {
+      new IntersectionObserver((es) => {
+        labVisible = es[0].isIntersecting;
+        if (labVisible && !patrolRaf) patrolRaf = requestAnimationFrame(patrolTick);
+      }).observe(labSvg);
+    }
+    document.addEventListener("visibilitychange", () => { if (!document.hidden && labVisible && !patrolRaf) patrolRaf = requestAnimationFrame(patrolTick); });
+  }
+
+  // Los servidores entran en el rack al aparecer.
+  if ("IntersectionObserver" in window && !reduceMotion) {
+    const racked = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        e.target.classList.add("is-racked");
+        racked.unobserve(e.target);
+      }
+    }, { threshold: 0.08 });
+    $$(".zone").forEach((z) => {
+      const r = z.getBoundingClientRect();
+      if (r.top > innerHeight) { z.classList.add("rack-in"); racked.observe(z); }
+    });
   }
 
   // ------------------------------------------------------------ apariciones y contadores

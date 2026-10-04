@@ -781,3 +781,142 @@ details summary:hover { color: var(--text); }
   .map-hint.is-gone { opacity: 0; pointer-events: none; }
 }
 @keyframes nudge { 50% { transform: translateX(calc(-50% + 8px)); } }
+
+/* =====================================================================
+   TEMA RACK: la página es el interior de un armario de servidores.
+   ===================================================================== */
+:root {
+  --rack-bg: #383e48;
+  --rack-bg-2: #2f343d;
+  --rack-hole: rgba(8, 10, 14, .55);
+  --rail: #4a515d;
+  --rail-hi: #6b7380;
+  --chassis-top: #2b313b;
+  --chassis-bot: #1c2129;
+  --chassis-edge: #0c0f14;
+  --chassis-hi: rgba(255, 255, 255, .13);
+  --screw: #9aa3af;
+  --surface: #1f252f;
+  --surface-2: #283039;
+  --border: #353e4b;
+  --border-strong: #46505f;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --rack-bg: #b9c0ca;
+    --rack-bg-2: #aab2bd;
+    --rack-hole: rgba(40, 48, 60, .35);
+    --rail: #8d96a3;
+    --rail-hi: #d5dbe3;
+    --chassis-top: #f3f5f8;
+    --chassis-bot: #dde2e9;
+    --chassis-edge: #8a939f;
+    --chassis-hi: rgba(255, 255, 255, .9);
+    --screw: #6b7481;
+    --surface: #f8fafc;
+    --surface-2: #eef1f5;
+    --border: #c9d0da;
+    --border-strong: #a9b3c0;
+  }
+}
+
+body {
+  background-color: var(--rack-bg);
+  background-image:
+    radial-gradient(var(--rack-hole) 1.7px, transparent 2.2px),
+    linear-gradient(90deg, rgba(255, 255, 255, .025) 50%, transparent 50%),
+    linear-gradient(180deg, var(--rack-bg), var(--rack-bg-2));
+  background-size: 15px 15px, 4px 4px, 100% 100%;
+  background-attachment: fixed;
+}
+
+/* Raíles verticales del armario, con sus agujeros cuadrados. */
+.rack-rail {
+  position: fixed; top: 0; bottom: 0; width: 30px; z-index: 1; pointer-events: none;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 10px, rgba(5, 7, 10, .85) 10px 18px, transparent 18px 26px, rgba(5, 7, 10, .85) 26px 34px, transparent 34px 44px) center / 9px 100% no-repeat,
+    linear-gradient(90deg, var(--rail-hi), var(--rail) 30%, var(--rail) 70%, rgba(0, 0, 0, .35));
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .4), 0 0 18px rgba(0, 0, 0, .35);
+}
+.rack-rail-l { left: 0; }
+.rack-rail-r { right: 0; transform: scaleX(-1); }
+@media (max-width: 760px) { .rack-rail { width: 10px; background: linear-gradient(90deg, var(--rail-hi), var(--rail)); } }
+@media (min-width: 761px) { :root { --gutter: 46px; } }
+
+/* La barra superior es el panel frontal del armario. */
+.topbar {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--chassis-top) 94%, transparent), color-mix(in srgb, var(--chassis-bot) 94%, transparent));
+  border-bottom: 2px solid var(--chassis-edge);
+  box-shadow: inset 0 1px 0 var(--chassis-hi), 0 6px 18px rgba(0, 0, 0, .35);
+}
+
+/* Cada zona es un servidor montado en el rack. */
+.zone {
+  position: relative;
+  margin: 46px auto 0;
+  padding-top: 26px; padding-bottom: 30px;
+  max-width: calc(var(--max) + 2 * var(--gutter) - 40px);
+  background: linear-gradient(180deg, var(--chassis-top), var(--chassis-bot));
+  border: 1px solid var(--chassis-edge);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 0 var(--chassis-hi),
+    inset 0 -3px 0 rgba(0, 0, 0, .35),
+    0 2px 0 var(--chassis-edge),
+    0 9px 0 -1px color-mix(in srgb, var(--chassis-bot) 60%, #000),
+    0 10px 0 -1px var(--chassis-edge),
+    0 30px 40px -14px rgba(0, 0, 0, .7);
+}
+/* Orejas del chasis, atornilladas a los raíles. */
+.zone::before, .zone::after {
+  content: ""; position: absolute; top: 14px; width: 18px; height: 64px; border-radius: 5px;
+  background:
+    radial-gradient(circle at 50% 22%, var(--screw) 2.6px, rgba(0, 0, 0, .55) 3.4px, transparent 4px),
+    radial-gradient(circle at 50% 78%, var(--screw) 2.6px, rgba(0, 0, 0, .55) 3.4px, transparent 4px),
+    linear-gradient(90deg, var(--rail-hi), var(--rail));
+  border: 1px solid var(--chassis-edge);
+}
+.zone::before { left: -19px; }
+.zone::after { right: -19px; transform: scaleX(-1); }
+@media (max-width: 760px) { .zone::before, .zone::after { display: none; } .zone { margin-left: 8px; margin-right: 8px; } }
+
+.zone-head { position: relative; padding-right: 150px; }
+.chassis-leds { position: absolute; right: 0; top: 4px; display: flex; gap: 7px; }
+.chassis-leds i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); animation: led-act 1.7s infinite steps(2, jump-none); }
+.chassis-leds i:nth-child(2) { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation-duration: .9s; }
+.chassis-leds i:nth-child(3) { animation-duration: 2.6s; animation-delay: -.7s; }
+.chassis-leds i:nth-child(4) { background: var(--warn); box-shadow: 0 0 8px var(--warn); animation-duration: 3.3s; }
+@keyframes led-act { 0% { opacity: 1; } 50% { opacity: .25; } }
+.chassis-vent { position: absolute; right: 0; top: 22px; width: 120px; height: 26px; border-radius: 4px; background: repeating-linear-gradient(90deg, rgba(0, 0, 0, .55) 0 4px, transparent 4px 9px); opacity: .7; }
+@media (max-width: 640px) { .zone-head { padding-right: 70px; } .chassis-vent { width: 56px; } }
+.zone-head .zone-n { background: rgba(0, 0, 0, .25); }
+
+/* Entrada en 3D: el servidor se desliza dentro del rack al aparecer. */
+.js .zone.rack-in { opacity: .2; transform: perspective(1400px) rotateX(14deg) translateY(50px) scale(.96); transform-origin: 50% 100%; }
+.js .zone.rack-in.is-racked { opacity: 1; transform: none; transition: transform .9s cubic-bezier(.2, .8, .25, 1), opacity .6s ease; }
+
+/* Tarjetas y paneles: bahías del chasis. */
+.card, .branch, .quest article, .stats li, .quick-card, .lab-console, .ba-pane, .world-tile, .lab-map {
+  box-shadow: inset 0 1px 0 var(--chassis-hi), 0 8px 18px -10px rgba(0, 0, 0, .6);
+}
+.hero { position: relative; }
+
+/* ------------------------------------------------------------ enanitos trabajando */
+.station { position: absolute; z-index: 3; width: 84px; height: 96px; pointer-events: auto; cursor: pointer; }
+.station svg { width: 100%; height: 100%; overflow: visible; }
+.station .gnome-say { bottom: 98px; }
+.gnomes-off .station, .quick-mode .station, .gnomes-off .lab-worker, .quick-mode .lab-worker { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .station, .lab-worker, .rail-climber { display: none !important; } }
+.pose-sweep { animation: sway 2.4s ease-in-out infinite alternate; }
+.pose-lift { animation: strain .18s linear infinite alternate; }
+@keyframes sway { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
+@keyframes strain { from { transform: translateY(0); } to { transform: translateY(1px); } }
+.w-tool-metal { fill: #9ca3af; } .w-tool-wood { fill: #a16207; } .w-arm { fill: var(--g-tunic, #2563eb); }
+.w-spark { fill: #fde047; }
+.w-laptop rect { fill: #334155; } .w-laptop .w-screen { fill: #5eead4; }
+.w-box rect { fill: #b45309; } .w-box path { stroke: #78350f; fill: none; }
+.lab-worker { cursor: pointer; }
+.rail-climber { position: fixed; left: -16px; z-index: 46; width: 62px; height: 72px; animation: climb 46s ease-in-out infinite alternate; pointer-events: auto; }
+@keyframes climb { from { top: 80px; } to { top: calc(100vh - 140px); } }
+@media (max-width: 760px) { .rail-climber { display: none; } }
+.gnomes-off .rail-climber, .quick-mode .rail-climber { display: none !important; }
