@@ -140,7 +140,10 @@
       hermes.tour = -1;
       store.set("hermesTour", -1);
       unlock("companion");
-      hermesSay(H.tour_end, [{ label: T.ui.contact, run: () => scrollTo($("#contact")) }], true);
+      const P = T.personality;
+      const msg = unlocked.size >= T.achievements.length - 2 ? P.tour_end_all
+        : !store.get("flowsDone", []).length ? P.tour_end_lab : H.tour_end;
+      hermesSay(msg, [{ label: T.ui.contact, run: () => scrollTo($("#contact")) }], true);
       return;
     }
     hermes.tour = i;
@@ -372,32 +375,42 @@
     $$(".lab-group").forEach((g) => g.classList.toggle("is-on", groups.has(g.dataset.group)));
   }
 
-  function segment(from, to, animate, done) {
+  // Dos corredores: "a" (el recorrido principal) y "b" (el de comparar).
+  const packetB = $("[data-packet-b]");
+  const packetGlowB = $("[data-packet-glow-b]");
+  function movePacketB(x, y) {
+    for (const c of [packetB, packetGlowB]) { c?.setAttribute("cx", x); c?.setAttribute("cy", y); }
+  }
+  const clearTrails = (which) => $$(`.trail-${which}`, layer).forEach((p) => p.remove());
+
+  function segment(from, to, animate, done, which = "a") {
     const a = nodeById[from], b = nodeById[to];
+    const move = which === "a" ? movePacket : movePacketB;
+    const st = which === "a" ? labState : bState;
     const path = document.createElementNS(SVGNS, "path");
-    path.setAttribute("class", "flow-trail");
+    path.setAttribute("class", `flow-trail trail-${which}`);
     path.setAttribute("d", `M${a.x} ${a.y} L${b.x} ${b.y}`);
-    $$(".flow-trail", layer).forEach((p) => p.classList.add("is-old"));
+    $$(`.trail-${which}`, layer).forEach((p) => p.classList.add("is-old"));
     layer.append(path);
     const len = Math.hypot(b.x - a.x, b.y - a.y);
     if (!animate || reduceMotion || len === 0) {
-      movePacket(b.x, b.y);
+      move(b.x, b.y);
       return done?.();
     }
     path.style.strokeDasharray = `${len}`;
     path.style.strokeDashoffset = `${len}`;
     const dur = Math.min(1300, 450 + len * 1.1);
     const t0 = performance.now();
-    cancelAnimationFrame(labState.anim);
+    cancelAnimationFrame(st.anim);
     const tick = (now) => {
       const k = Math.min(1, (now - t0) / dur);
       const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-      movePacket(a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e);
+      move(a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e);
       path.style.strokeDashoffset = `${len * (1 - e)}`;
-      if (k < 1) labState.anim = requestAnimationFrame(tick);
+      if (k < 1) st.anim = requestAnimationFrame(tick);
       else { path.style.strokeDasharray = ""; path.style.strokeDashoffset = ""; done?.(); }
     };
-    labState.anim = requestAnimationFrame(tick);
+    st.anim = requestAnimationFrame(tick);
   }
 
   function paintTrail(flow, step) {
@@ -431,7 +444,7 @@
     const forward = i === labState.step + 1 && i > 0;
     if (!forward) {
       // Saltar atrás (o reiniciar): se redibuja el camino sin animación.
-      layer.replaceChildren();
+      clearTrails("a");
       labNodes.forEach((n) => n.classList.remove("is-visited"));
       for (let k = 1; k <= i; k++) segment(flow.path[k - 1], flow.path[k], false);
       for (let k = 0; k <= i; k++) labNodes.find((n) => n.dataset.node === flow.path[k])?.classList.add("is-visited");
@@ -461,10 +474,71 @@
     markGroups(flow.path);
     consoleEl.controls.hidden = false;
     setPlaying(true);
-    layer.replaceChildren();
+    clearTrails("a");
     labNodes.forEach((n) => n.classList.remove("is-visited"));
     labStep(0, false);
   }
+
+  // ------------------------------------------------------------ comparar dos recorridos
+  const bState = { flow: null, step: -1, timer: 0, anim: 0 };
+  let compareOn = false;
+  const consoleB = {
+    box: $("[data-console-b]"),
+    title: $("[data-console-b-title]"),
+    step: $("[data-console-b-step]"),
+    text: $("[data-console-b-text]"),
+  };
+
+  function bNarrate() {
+    const f = bState.flow;
+    consoleB.step.textContent = `${T.lab.step} ${bState.step + 1} ${T.lab.of} ${f.path.length}`;
+    consoleB.text.textContent = f.steps[bState.step];
+    labNodes.find((n) => n.dataset.node === f.path[bState.step])?.classList.add("is-visited");
+    clearTimeout(bState.timer);
+    bState.timer = setTimeout(bNext, 2600);
+  }
+  function bNext() {
+    const f = bState.flow;
+    if (!f) return;
+    bState.step += 1;
+    if (bState.step >= f.path.length) {
+      consoleB.step.textContent = "";
+      consoleB.text.textContent = H.flow_done;
+      return;
+    }
+    segment(f.path[bState.step - 1], f.path[bState.step], true, bNarrate, "b");
+  }
+  function bStart(id) {
+    const f = T.flows.find((x) => x.id === id);
+    if (!f) return;
+    bStop();
+    bState.flow = f;
+    bState.step = 0;
+    $(`[data-flow="${id}"]`)?.classList.add("is-b");
+    consoleB.box.hidden = false;
+    consoleB.title.textContent = f.title;
+    const n0 = nodeById[f.path[0]];
+    movePacketB(n0.x, n0.y);
+    const both = new Set([...(labState.flow?.path || []), ...f.path]);
+    labNodes.forEach((n) => n.classList.toggle("is-dim", !both.has(n.dataset.node)));
+    markGroups([...both]);
+    bNarrate();
+  }
+  function bStop() {
+    clearTimeout(bState.timer);
+    cancelAnimationFrame(bState.anim);
+    bState.flow = null;
+    clearTrails("b");
+    movePacketB(-50, -50);
+    if (consoleB.box) consoleB.box.hidden = true;
+    $$(".flow-btn.is-b").forEach((b) => b.classList.remove("is-b"));
+  }
+  $("[data-compare-toggle]")?.addEventListener("click", (ev) => {
+    compareOn = !compareOn;
+    ev.currentTarget.setAttribute("aria-pressed", String(compareOn));
+    $("[data-compare-hint]").hidden = !compareOn;
+    if (!compareOn) bStop();
+  });
 
   function labFinish() {
     const flow = labState.flow;
@@ -489,6 +563,12 @@
 
   $$("[data-flow]").forEach((b) => b.addEventListener("click", (ev) => {
     ev.preventDefault();
+    if (lab.classList.contains("is-incident")) closeIncident();
+    if (compareOn && labState.flow && labState.flow.id !== b.dataset.flow) {
+      bStart(b.dataset.flow);
+      return;
+    }
+    bStop();
     labStartFlow(b.dataset.flow);
     if (hermes.tour < 0) hermesSay(fill(H.flow_start, { flow: b.textContent.trim() }));
     if (!matchMedia("(min-width: 1100px)").matches) scrollTo($("[data-console]"), "center");
@@ -505,15 +585,21 @@
   $("[data-flow-prev]")?.addEventListener("click", () => { setPlaying(false); labStep(labState.step - 1, false); });
 
   // Pulsar una pieza: se para el recorrido y Hermes cuenta qué hace.
-  labNodes.forEach((n) => n.addEventListener("click", (ev) => {
-    ev.preventDefault();
-    const node = nodeById[n.dataset.node];
+  function stopFlows() {
     if (labState.flow) { setPlaying(false); cancelAnimationFrame(labState.anim); clearTimeout(labState.timer); }
     labState.flow = null;
+    bStop();
     $$("[data-flow]").forEach((b) => b.classList.remove("is-active"));
     consoleEl.controls.hidden = true;
     consoleEl.trail.replaceChildren();
     layer.replaceChildren();
+  }
+
+  labNodes.forEach((n) => n.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    if (lab.classList.contains("is-incident")) return incidentCheck(n.dataset.node);
+    const node = nodeById[n.dataset.node];
+    stopFlows();
     markGroups([node.id]);
     setActiveNode(node.id, null);
     movePacket(node.x, node.y);
@@ -524,6 +610,138 @@
     store.set("nodes", [...opened]);
     if (opened.size >= 5) unlock("architect");
   }));
+
+  // ------------------------------------------------------------ modo detective
+  const IU = T.incident_ui;
+  const lab = $("[data-lab]");
+  const incEl = {
+    box: $("[data-incident]"),
+    list: $("[data-incident-list]"),
+    count: $("[data-incident-count]"),
+    found: $("[data-incident-found]"),
+    options: $("[data-incident-options]"),
+    open: $("[data-incident-open]"),
+  };
+  const inc = { cur: null, found: new Set(), solved: false };
+
+  function openIncidents() {
+    stopFlows();
+    lab.classList.add("is-incident");
+    incEl.open.setAttribute("aria-pressed", "true");
+    labNodes.forEach((n) => n.classList.remove("is-clue", "is-checked", "is-dim", "is-active"));
+    markGroups(null);
+    movePacket(-50, -50);
+    inc.cur = null;
+    incEl.box.hidden = false;
+    incEl.list.hidden = false;
+    incEl.found.replaceChildren();
+    incEl.options.replaceChildren();
+    incEl.count.parentElement.hidden = true;
+    consoleEl.title.textContent = IU.title;
+    consoleEl.step.textContent = "";
+    typeInto(consoleEl.text, IU.intro + (matchMedia("(max-width: 899px)").matches ? " " + IU.mobile : ""));
+    incEl.list.replaceChildren(...T.incidents.map((c) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn btn-sm";
+      b.textContent = "🔍 " + c.title;
+      b.addEventListener("click", () => pickIncident(c));
+      li.append(b);
+      return li;
+    }));
+    scrollTo($(".lab-screen"), "start");
+  }
+
+  function pickIncident(c) {
+    inc.cur = c;
+    inc.found = new Set();
+    inc.solved = false;
+    labNodes.forEach((n) => n.classList.remove("is-clue", "is-checked"));
+    incEl.list.hidden = true;
+    incEl.found.replaceChildren();
+    incEl.options.replaceChildren();
+    incEl.count.parentElement.hidden = false;
+    incEl.count.textContent = "0";
+    consoleEl.title.textContent = c.title;
+    typeInto(consoleEl.text, c.intro);
+  }
+
+  function incidentCheck(id) {
+    const c = inc.cur;
+    if (!c || inc.solved) return;
+    const el = labNodes.find((n) => n.dataset.node === id);
+    el?.classList.add("is-checked");
+    setActiveNode(id, null);
+    follow(id);
+    const clue = c.clues[id];
+    if (!clue) return typeInto(consoleEl.text, IU.normal);
+    typeInto(consoleEl.text, clue);
+    if (inc.found.has(id)) return;
+    inc.found.add(id);
+    el?.classList.add("is-clue");
+    const li = document.createElement("li");
+    const strong = document.createElement("strong");
+    strong.textContent = nodeById[id].title.split(" (")[0] + ": ";
+    li.append(strong, clue);
+    incEl.found.append(li);
+    incEl.count.textContent = `${inc.found.size} / ${Object.keys(c.clues).length}`;
+    if (inc.found.size >= 2 && !incEl.options.childElementCount) renderOptions(c);
+  }
+
+  function renderOptions(c) {
+    const label = document.createElement("p");
+    label.innerHTML = "<strong></strong>";
+    label.firstChild.textContent = IU.diagnose;
+    incEl.options.replaceChildren(label, ...c.options.map((text, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn btn-sm";
+      b.textContent = text;
+      b.addEventListener("click", () => {
+        if (inc.solved) return;
+        if (i !== c.answer) {
+          b.classList.add("is-wrong");
+          return typeInto(consoleEl.text, `${IU.wrong} ${c.feedback[i]}`);
+        }
+        inc.solved = true;
+        b.classList.add("is-right");
+        $$("button", incEl.options).forEach((x) => { x.disabled = x !== b; });
+        const res = document.createElement("div");
+        res.className = "incident-result small";
+        const h = document.createElement("p");
+        h.innerHTML = "<strong></strong>";
+        h.firstChild.textContent = IU.solved + " " + c.solution;
+        const l = document.createElement("p");
+        l.innerHTML = "<strong></strong> ";
+        l.firstChild.textContent = IU.lesson + ": ";
+        l.append(c.lesson);
+        res.append(h, l);
+        const again = document.createElement("button");
+        again.type = "button";
+        again.className = "btn btn-sm btn-primary";
+        again.textContent = IU.again;
+        again.addEventListener("click", openIncidents);
+        incEl.options.append(res, again);
+        typeInto(consoleEl.text, IU.solved);
+        unlock("detective");
+        hermesSay(T.personality.detective);
+      });
+      return b;
+    }));
+  }
+
+  function closeIncident() {
+    lab.classList.remove("is-incident");
+    incEl.open?.setAttribute("aria-pressed", "false");
+    incEl.box.hidden = true;
+    inc.cur = null;
+    labNodes.forEach((n) => n.classList.remove("is-clue", "is-checked", "is-active"));
+    consoleEl.title.textContent = H.name;
+    typeInto(consoleEl.text, T.lab.pick_node);
+  }
+  incEl.open?.addEventListener("click", () => (lab.classList.contains("is-incident") ? closeIncident() : openIncidents()));
+  $("[data-incident-exit]")?.addEventListener("click", closeIncident);
 
   // ------------------------------------------------------------ datos en vivo
   let live = null;
@@ -559,6 +777,7 @@
         a.href = ev.url;
         a.textContent = ev.repo;
         a.rel = "noopener";
+        a.target = "_blank";
         const time = document.createElement("time");
         time.dateTime = ev.at;
         time.textContent = ago(ev.at);
@@ -578,6 +797,34 @@
       list.replaceChildren(li);
     }
     const h = data.homelab;
+    if (h?.nodes) {
+      labNodes.forEach((n) => {
+        const st = h.nodes[n.dataset.node];
+        n.classList.remove("st-up", "st-down", "st-off");
+        if (st) n.classList.add("st-" + st);
+      });
+    }
+    const bars = $("[data-uptime-bars]");
+    if (h?.daily?.length && bars) {
+      const w = 300 / h.daily.length;
+      bars.replaceChildren(...h.daily.map((v, i) => {
+        const r = document.createElementNS(SVGNS, "rect");
+        const height = 6 + (Math.max(0, v - 80) / 20) * 30;
+        r.setAttribute("x", (i * w + 1).toFixed(1));
+        r.setAttribute("width", Math.max(1, w - 2).toFixed(1));
+        r.setAttribute("y", (36 - height).toFixed(1));
+        r.setAttribute("height", height.toFixed(1));
+        r.setAttribute("rx", "1.5");
+        if (v < 95) r.classList.add("is-low"); else if (v < 99) r.classList.add("is-mid");
+        r.style.transitionDelay = `${i * 25}ms`;
+        const t = document.createElementNS(SVGNS, "title");
+        t.textContent = `${v.toFixed(2)} %`;
+        r.append(t);
+        return r;
+      }));
+      bars.setAttribute("aria-label", `${T.now.homelab_uptime}: ${h.daily.map((v) => Math.round(v)).join(", ")}`);
+      requestAnimationFrame(() => requestAnimationFrame(() => bars.classList.add("is-in")));
+    }
     if (h) {
       $("[data-live-empty]").hidden = true;
       $("[data-homelab-stats]").hidden = false;
@@ -672,10 +919,41 @@
     $(`#${id}`)?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
   }
 
+  // Servidor de mentira para el reto: la bandera está en un log de Hermes,
+  // codificada en base64. Encontrarla en el código fuente también vale.
+  const TT = T.terminal;
+  const FS_DIRS = {
+    "/": ["etc/", "home/", "var/"],
+    "/etc": ["hostname", "motd"],
+    "/home": ["tito/"],
+    "/home/tito": [".bash_history"],
+    "/var": ["log/"],
+    "/var/log": ["hermes.log"],
+  };
+  const FS_FILES = {
+    "/etc/hostname": ["tito-homelab"],
+    "/etc/motd": TT.motd,
+    "/var/log/hermes.log": TT.log,
+    "/home/tito/.bash_history": ["terraform plan", "ansible-playbook playbooks/landing.yml", "git commit -m \"docs: postmortem\"", "cat /var/log/hermes.log"],
+  };
+  const norm = (p) => "/" + p.split("/").filter(Boolean).join("/");
+  const flagOk = (f) => {
+    const line = TT.log.find((l) => l.includes("->")) || "";
+    try { return f.trim() === atob(line.split("->")[1].trim()); } catch { return false; }
+  };
+
   const commands = {
     help() { for (const [c, d] of T.terminal.help) print(pad(c, 18) + d); },
     whoami() { print(T.terminal.whoami, "t-ok"); },
-    ls() { for (const z of T.zones) print(pad(z.id + "/", 12) + z.title + (found.has(z.id) ? "  ✓" : ""), found.has(z.id) ? "t-ok" : null); },
+    ls(arg) {
+      const path = (arg || "").replace(/^-a\s*/, "");
+      if (path.startsWith("/")) {
+        const dir = FS_DIRS[norm(path)];
+        if (!dir) return print(`ls: ${path}: ${TT.no_such_file}`, "t-err");
+        return print(dir.join("  "));
+      }
+      for (const z of T.zones) print(pad(z.id + "/", 12) + z.title + (found.has(z.id) ? "  ✓" : ""), found.has(z.id) ? "t-ok" : null);
+    },
     cd(arg) {
       const z = T.zones.find((x) => x.id === arg || x.title.toLowerCase() === (arg || "").toLowerCase());
       if (!z) return print(`cd: ${arg || ""}: ${T.terminal.not_found}`, "t-err");
@@ -691,6 +969,11 @@
     },
     projects() { for (const p of T.projects) print(pad(p.id, 14) + p.title); },
     cat(arg) {
+      if ((arg || "").startsWith("/")) {
+        const file = FS_FILES[norm(arg)];
+        if (!file) return print(`cat: ${arg}: ${FS_DIRS[norm(arg)] ? "Is a directory" : TT.no_such_file}`, "t-err");
+        return file.forEach((l) => print(l));
+      }
       const p = T.projects.find((x) => x.id === arg);
       if (!p) return print(`cat: ${arg || ""}: ${T.terminal.not_found}`, "t-err");
       print(p.title, "t-cmd");
@@ -725,6 +1008,23 @@
     clear() { out.replaceChildren(); },
     exit() { closeTerminal(); },
     sudo() { print(T.terminal.sudo, "t-err"); },
+    challenge() { print(TT.challenge, "t-ok"); },
+    reto() { print(TT.challenge, "t-ok"); },
+    base64(arg) {
+      const m = /^-d\s+(\S+)/.exec(arg || "");
+      if (!m) return print("uso: base64 -d <texto>", "t-dim");
+      try { print(atob(m[1])); } catch { print("base64: entrada no válida", "t-err"); }
+    },
+    submit(arg) {
+      if (flagOk(arg || "")) {
+        print(TT.submit_ok, "t-ok");
+        unlock("hacker");
+        closeTerminal();
+        hermesSay(T.personality.hacker);
+      } else {
+        print(TT.submit_bad, "t-err");
+      }
+    },
     hermes() { closeTerminal(); hermesMenu(fill(H.greet_return, { zones: found.size })); },
   };
   commands.quit = commands.exit;
@@ -736,7 +1036,8 @@
     print(`${T.terminal.prompt} ${line}`, "t-cmd");
     unlock("root");
     const fn = commands[cmd.toLowerCase()];
-    if (fn) await fn(args.join(" ").toLowerCase());
+    const raw = args.join(" ");
+    if (fn) await fn(["base64", "submit", "cat", "ls"].includes(cmd.toLowerCase()) ? raw : raw.toLowerCase());
     else print(`${cmd}: ${T.terminal.not_found}`, "t-err");
   }
 
@@ -807,20 +1108,57 @@
   }
 
   // ------------------------------------------------------------ Hermes saluda
+  // Una "visita" nueva si han pasado más de 30 min desde la anterior.
+  const now = Date.now();
+  let visits = store.get("visits", 0);
+  if (now - store.get("lastSeen", 0) > 30 * 60 * 1000) visits += 1;
+  store.set("visits", visits);
+  store.set("lastSeen", now);
+
+  function personalGreeting() {
+    const P = T.personality;
+    const d = new Date(), h = d.getHours();
+    const time = h < 6 ? P.night : h < 13 ? P.morning : h < 21 ? P.afternoon : P.evening;
+    const zones = found.size;
+    let body = visits <= 1 ? H.greet : visits === 2 ? fill(P.visit_2, { zones }) : fill(P.visit_many, { n: visits, zones });
+    let extra = "";
+    if (d.getDay() === 0 || d.getDay() === 6) extra += " " + P.weekend;
+    const pref = (navigator.language || "").slice(0, 2).toLowerCase();
+    if ((pref === "es" || pref === "en") && pref !== T.lang) extra += " " + P.lang_hint;
+    return `${time} ${body}${extra}`;
+  }
+
   setTimeout(() => {
     if (doc.classList.contains("quick-mode")) return;
     const tour = store.get("hermesTour", -1);
     if (!store.get("hermesGreeted", false)) {
       store.set("hermesGreeted", true);
-      hermesMenu(H.greet);
+      hermesMenu(personalGreeting());
     } else if (tour >= 0) {
       hermes.tour = tour;
-      hermesSay(fill(H.greet_return, { zones: found.size }), [
+      hermesSay(personalGreeting(), [
         { label: H.tour_next, run: () => tourGo(tour) },
         { label: H.choice_free, run: hermesFree },
       ], !store.get("hermesMin", false));
     } else if (!store.get("hermesMin", true)) {
-      hermesMenu(fill(H.greet_return, { zones: found.size }));
+      hermesMenu(personalGreeting());
     }
   }, 1400);
+
+  // ------------------------------------------------------------ árbol que crece y antes/después
+  if ("IntersectionObserver" in window && !reduceMotion) {
+    const grow = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        e.target.classList.add("is-grown");
+        grow.unobserve(e.target);
+      }
+    }, { threshold: 0.2 });
+    $$("[data-tree-svg], .tree").forEach((el) => grow.observe(el));
+  } else {
+    $$("[data-tree-svg], .tree").forEach((el) => el.classList.add("is-grown"));
+  }
+  const ba = $("[data-ba] .ba-frame");
+  $("[data-ba-range]")?.addEventListener("input", (ev) => ba.style.setProperty("--ba", `${ev.target.value}%`));
+
 })();

@@ -765,11 +765,19 @@ help = [
   ["lang es", "cambiar a español"],
   ["achievements", "your achievements"],
   ["hermes", "call Hermes, your guide"],
+  ["challenge", "a challenge: find the flag"],
+  ["submit <flag>", "hand in the flag"],
   ["clear", "clear the screen"],
   ["exit", "close the terminal"],
 ]
 whoami = "Tito Pinardo Gutiérrez — systems, IaC and DevOps. Looking for my first role."
 sudo = "Nice try. The only root around here is me."
+challenge = "Challenge: there's a flag hidden in this fake server, in the format flag{...}. Start with: cat /etc/motd. Once you have it: submit flag{...}"
+motd = ["Welcome to tito-homelab (Debian 13).", "Remember: Hermes's logs live in /var/log/."]
+log = ["[07:00] Pitia: daily digest sent.", "[07:05] Argos: certificates up to date.", "[07:12] Hermes: encoding test -> ZmxhZ3t0b2RvX2NvbW9fY29kaWdvfQ==", "[07:13] Hermes: (oops, that shouldn't be in a log)"]
+submit_ok = "Correct! You found the flag."
+submit_bad = "That's not the flag. Keep looking."
+no_such_file = "No such file or directory"
 
 # ---------------------------------------------------------------------------
 
@@ -783,3 +791,129 @@ polyglot = { title = "Polyglot", text = "You switched languages." }
 messenger = { title = "Messenger", text = "You sent a message." }
 navigator = { title = "Navigator", text = "You completed a journey inside the server." }
 companion = { title = "Travel companion", text = "You took the tour with Hermes." }
+detective = { title = "Detective", text = "You solved a detective mode case." }
+hacker = { title = "Ethical hacker", text = "You found the terminal flag." }
+
+[incident_ui]
+button = "Detective mode"
+title = "Detective mode"
+intro = "Pick a failure that really happened on my server. Tap pieces on the map to look for clues and, once you have at least two, decide the cause."
+clues = "Clues"
+normal = "Everything looks normal here. Keep looking."
+diagnose = "What's the cause?"
+need_more = "Find at least two clues before deciding."
+wrong = "That wasn't it."
+solved = "Solved!"
+lesson = "What I learned"
+exit = "Exit"
+again = "Another case"
+mobile = "On mobile, tap the pieces in the list below to look for clues."
+
+[incidents.blackout]
+title = "Everything down after a power cut"
+intro = "The power goes out at home. When it's back, the server boots on its own… but no website answers and not a single alert arrives. What happened?"
+options = [
+  "A disk broke and backups need restoring.",
+  "LVM storage was left half-activated after its automatic check and blocks everything from starting.",
+  "Proxmox lost the containers' configuration.",
+]
+feedback = [
+  "The disks and the RAID are fine: no hardware errors, no damaged data.",
+  "",
+  "The configuration is intact: the containers exist, they just can't start.",
+]
+solution = "After the power cut, LVM checked the storage metadata (65-90 minutes on spinning disks) and left two internal volumes activated on their own. While they stay like that, LVM refuses to activate the storage. Deactivating them by hand and activating the pool fixed everything."
+lesson = "I wrote the postmortem with how to detect it, the exact commands and why it takes so long. And that if monitoring lives on the same server, it goes down with it."
+
+[incidents.blackout.clues]
+internet = "The websites don't answer: requests reach home, but nobody replies."
+traefik = "Traefik isn't even running: its container is stopped."
+proxmox = "The host booted fine, but every container and VM is \"stopped\". The log keeps saying: \"activating LV pve/data failed… prohibited while data_tmeta is active\"."
+zabbix = "Zabbix is down too: it's also a container. That's why no alert arrived."
+zfs = "LVM shows the pool's internal volumes active on their own, and a \"thin_check\" has just finished after more than an hour."
+obsidian = "The documentation won't open either: it runs in another stopped container."
+
+[incidents.slowupdate]
+title = "An update that never ends"
+intro = "I run the update of every container with Ansible. Half an hour later it's still on the same step… and three hours later, too."
+options = [
+  "apt is waiting for someone to answer an on-screen prompt.",
+  "A disk is dying.",
+  "The spinning-disk RAID1 shared by about 16 containers is saturated with writes.",
+]
+feedback = [
+  "There's no prompt: dpkg was progressing at first, then got stuck waiting for the disk.",
+  "SMART says both disks are healthy, with no bad sectors.",
+  "",
+]
+solution = "Both disks had their write cache in \"write through\" mode and the whole system shared one RAID1. Every write waited for the platter. I enabled \"write back\" caching persistently and measured the improvement under real load."
+lesson = "High load with an idle CPU means waiting on disk. And I documented what was measured versus only inferred: deleting the snapshots barely changed I/O pressure."
+
+[incidents.slowupdate.clues]
+iac = "Ansible has been on the \"apt upgrade\" task of the Wazuh container for 30 minutes."
+wazuh = "Inside the container, mandb has been in state D (waiting on disk) for almost an hour. Load 27 with the CPU nearly idle."
+proxmox = "50 % I/O pressure. The md0 RAID is at 100 % utilisation while moving barely 2 MB/s."
+zfs = "SMART: both SAS disks are healthy, zero defects. But their write cache is set to \"write through\"."
+zabbix = "The graphs show I/O wait shooting up since the update started."
+
+[incidents.backup]
+title = "The backup that stopped backing up"
+intro = "Reviewing the documentation I find its Git copy hasn't been updated in 13 days… and nobody noticed."
+options = [
+  "The GitHub credentials expired.",
+  "The server's disk is full.",
+  "The sync plugin stopped running its cycle without raising any error.",
+]
+feedback = [
+  "A manual push from inside the container works first time: the credentials are fine.",
+  "There's plenty of space: the files are on disk, just not pushed.",
+  "",
+]
+solution = "The Obsidian plugin that commits and pushes every 10 minutes stopped silently. I brought the repository up to date by hand (198 files, nothing lost). The exact cause inside the plugin is still unconfirmed, and that's written down as such."
+lesson = "What isn't watched fails silently: a backup only counts if something checks it's up to date. And I wrote it down as mitigated, not solved."
+
+[incidents.backup.clues]
+obsidian = "The last commit is 13 days old, even though the plugin is set to save and push every 10 minutes."
+github = "A manual push from inside the container works first time: the SSH key and GitHub are fine."
+backup = "There are 147 notes on disk; the last commit has 92. Nothing is lost: it just wasn't pushed."
+hermes = "No alert at all: nothing was watching this backup's date."
+
+[compare]
+button = "Compare two"
+hint = "Pick a second journey: they'll run at the same time, each in its own colour."
+second = "Second journey"
+
+[before_after]
+title = "Before and after"
+intro = "Drag to compare setting up a service by hand with how I do it now."
+before = "By hand"
+after = "As code"
+before_items = [
+  "SSH in and install packages as I remember them.",
+  "Edit configs directly on the server.",
+  "What did I change last month? Nobody knows.",
+  "If the container breaks: an afternoon of trial and error.",
+  "Passwords in plain text files.",
+]
+after_items = [
+  "Terraform creates the container and Ansible configures it.",
+  "Every change is a commit reviewed with plan or --diff.",
+  "Git history says what changed, when and why.",
+  "If it breaks: one command and it's back exactly as it was.",
+  "Secrets encrypted with Ansible Vault.",
+]
+handle = "Slide to compare"
+
+[personality]
+night = "Oh, at this hour? Tito sometimes works this late too."
+morning = "Good morning!"
+afternoon = "Good afternoon!"
+evening = "Good evening!"
+weekend = "And on a weekend: you must be really interested."
+visit_2 = "You're back! You've found {zones} of 7 zones. Shall we pick up where you left off?"
+visit_many = "Visit number {n}… I'm starting to think you like me. You've found {zones} of 7 zones."
+lang_hint = "By the way, this site is also in Spanish: the button is up top."
+tour_end_lab = "That's the tour! You're missing the best bit: try a lab journey or detective mode."
+tour_end_all = "That's the tour, and you've explored pretty much everything! If you'd like to talk to Tito, the form is right here."
+detective = "Well spotted! That's how Tito investigates failures: clues first, conclusions after."
+hacker = "Flag found! You've got the makings of a sysadmin."

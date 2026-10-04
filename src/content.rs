@@ -58,6 +58,16 @@ pub struct Site {
     pub groups: Vec<Group>,
     pub nodes: Vec<Node>,
     pub flows: Vec<Flow>,
+    pub incidents: Vec<Incident>,
+}
+
+/// Caso del modo detective: piezas con pista y opción correcta.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Incident {
+    pub id: String,
+    pub clues: Vec<String>,
+    pub answer: usize,
 }
 
 #[derive(Debug, Deserialize)]
@@ -173,6 +183,11 @@ pub struct Texts {
     /// Nombres de las pestañas de recorridos; `all` es "todos".
     pub flow_categories: BTreeMap<String, String>,
     pub hermes: Hermes,
+    pub incident_ui: BTreeMap<String, String>,
+    pub incidents: BTreeMap<String, IncidentText>,
+    pub compare: BTreeMap<String, String>,
+    pub before_after: BeforeAfter,
+    pub personality: BTreeMap<String, String>,
     pub now: Now,
     pub contact: BTreeMap<String, String>,
     pub terminal: Terminal,
@@ -242,6 +257,31 @@ pub struct Fact {
 pub struct TitleText {
     pub title: String,
     pub text: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct IncidentText {
+    pub title: String,
+    pub intro: String,
+    pub options: Vec<String>,
+    /// Por qué cada opción no es la buena (vacío en la correcta).
+    pub feedback: Vec<String>,
+    pub solution: String,
+    pub lesson: String,
+    pub clues: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BeforeAfter {
+    pub title: String,
+    pub intro: String,
+    pub before: String,
+    pub after: String,
+    pub before_items: Vec<String>,
+    pub after_items: Vec<String>,
+    pub handle: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -332,6 +372,12 @@ pub struct Terminal {
     pub help: Vec<[String; 2]>,
     pub whoami: String,
     pub sudo: String,
+    pub challenge: String,
+    pub motd: Vec<String>,
+    pub log: Vec<String>,
+    pub submit_ok: String,
+    pub submit_bad: String,
+    pub no_such_file: String,
 }
 
 // ---------------------------------------------------------------------------
@@ -428,6 +474,36 @@ const HERMES_KEYS: &[&str] = &[
     "achievement",
     "cv",
     "lang",
+];
+const INCIDENT_UI_KEYS: &[&str] = &[
+    "button",
+    "title",
+    "intro",
+    "clues",
+    "normal",
+    "diagnose",
+    "need_more",
+    "wrong",
+    "solved",
+    "lesson",
+    "exit",
+    "again",
+    "mobile",
+];
+const COMPARE_KEYS: &[&str] = &["button", "hint", "second"];
+const PERSONALITY_KEYS: &[&str] = &[
+    "night",
+    "morning",
+    "afternoon",
+    "evening",
+    "weekend",
+    "visit_2",
+    "visit_many",
+    "lang_hint",
+    "tour_end_lab",
+    "tour_end_all",
+    "detective",
+    "hacker",
 ];
 const CONTACT_KEYS: &[&str] = &[
     "intro",
@@ -534,6 +610,15 @@ impl Content {
                 );
             }
         }
+        for i in &site.incidents {
+            for id in &i.clues {
+                ensure!(
+                    nodes.contains(id.as_str()),
+                    "caso {}: pieza desconocida {id}",
+                    i.id
+                );
+            }
+        }
         for [a, b] in &site.links {
             ensure!(
                 nodes.contains(a.as_str()) && nodes.contains(b.as_str()),
@@ -583,6 +668,42 @@ impl Content {
             required(code, "ui", UI_KEYS, &t.ui)?;
             required(code, "lab", LAB_KEYS, &t.lab)?;
             required(code, "hermes", HERMES_KEYS, &t.hermes.text)?;
+            required(code, "incident_ui", INCIDENT_UI_KEYS, &t.incident_ui)?;
+            required(code, "compare", COMPARE_KEYS, &t.compare)?;
+            required(code, "personality", PERSONALITY_KEYS, &t.personality)?;
+            ensure!(
+                t.before_after.before_items.len() == t.before_after.after_items.len(),
+                "{code}.toml [before_after]: las dos listas deben tener la misma longitud"
+            );
+            same_keys(
+                code,
+                "incidents",
+                site.incidents.iter().map(|i| i.id.as_str()),
+                keys(&t.incidents),
+            )?;
+            for i in &site.incidents {
+                let it = &t.incidents[&i.id];
+                same_keys(
+                    code,
+                    &format!("incidents.{}.clues", i.id),
+                    i.clues.iter().map(String::as_str),
+                    keys(&it.clues),
+                )?;
+                ensure!(
+                    it.options.len() >= 2
+                        && it.options.len() == it.feedback.len()
+                        && i.answer < it.options.len(),
+                    "{code}.toml [incidents.{}]: opciones, explicaciones y respuesta no cuadran",
+                    i.id
+                );
+                for (k, f) in it.feedback.iter().enumerate() {
+                    ensure!(
+                        (k == i.answer) == f.is_empty(),
+                        "{code}.toml [incidents.{}]: solo la opción correcta va sin explicación",
+                        i.id
+                    );
+                }
+            }
             same_keys(code, "hermes.zones", ZONES, keys(&t.hermes.zones))?;
             same_keys(
                 code,

@@ -615,3 +615,99 @@ details summary:hover { color: var(--text); }
   .card, .quest article, .branch, .quick-card { box-shadow: none; }
   details > :not(summary) { display: block; }
 }
+
+/* ------------------------------------------------------------ árbol que crece */
+.tree-svg { display: none; width: 100%; height: 90px; margin-bottom: -6px; overflow: visible; }
+@media (min-width: 1100px) { .tree-svg { display: block; } }
+.tree-trunk, .tree-branch { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.tree-branch { stroke-width: 2; opacity: .7; }
+.tree-knot { fill: var(--surface); stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.js .tree-svg path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.2s ease; }
+.js .tree-svg .tree-branch { transition-delay: .5s; }
+.js .tree-svg .tree-knot { opacity: 0; transition: opacity .4s ease 1.4s; }
+.js .tree-svg.is-grown path { stroke-dashoffset: 0; }
+.js .tree-svg.is-grown .tree-knot { opacity: 1; }
+.branch { position: relative; }
+@media (max-width: 1099px) {
+  .tree { padding-left: 18px; position: relative; }
+  .tree::before { content: ""; position: absolute; left: 4px; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: linear-gradient(var(--accent), var(--accent-2)); transform-origin: top; }
+  .js .tree::before { transform: scaleY(0); transition: transform 1.4s ease; }
+  .js .tree.is-grown::before { transform: scaleY(1); }
+  .branch::before { content: ""; position: absolute; left: -15px; top: 26px; width: 14px; height: 3px; background: var(--accent); border-radius: 3px; }
+}
+.skill-meta { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+.fruits { display: inline-flex; gap: 2px; }
+.fruits i { width: 6px; height: 6px; border-radius: 50%; background: var(--xp); opacity: .85; }
+.js .skill .fruits i { transform: scale(0); transition: transform .3s cubic-bezier(.3, 1.6, .5, 1); }
+.js .tree.is-grown .skill .fruits i { transform: scale(1); }
+.skill[aria-pressed="true"] .fruits i { animation: fruit .6s ease; }
+@keyframes fruit { 50% { transform: scale(1.8); } }
+
+/* ------------------------------------------------------------ antes y después */
+.ba { margin-top: 32px; }
+.ba-frame { position: relative; display: grid; gap: 12px; }
+.ba-pane { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.ba-pane ul { margin: 0; padding-left: 1.2em; }
+.ba-pane li { margin-bottom: .35em; }
+.ba-label { font: 800 .8rem/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+.ba-before .ba-label { color: var(--danger); }
+.ba-after .ba-label { color: var(--ok); }
+.ba-before li::marker { color: var(--danger); }
+.ba-after li::marker { color: var(--ok); }
+.ba-after { border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); }
+.ba-code { margin: 0 0 14px; padding: 12px 14px; overflow-x: auto; font: 12.5px/1.55 var(--mono); background: #05080f; color: #cbd5e1; border-radius: 10px; border: 1px solid #1c2840; }
+@media (min-width: 900px) { .ba-frame { grid-template-columns: 1fr 1fr; } }
+/* Con JS y en pantallas anchas: un único marco con deslizador. */
+@media (min-width: 900px) {
+  .js .ba-frame { display: block; height: 340px; overflow: hidden; border-radius: var(--radius); --ba: 50%; }
+  .js .ba-pane { position: absolute; inset: 0; border-radius: var(--radius); }
+  .js .ba-pane > * { max-width: 46%; }
+  .js .ba-after { clip-path: inset(0 0 0 var(--ba)); display: flex; flex-direction: column; align-items: flex-end; text-align: left; }
+  .js .ba-after > * { width: 46%; }
+  .ba-divider { position: absolute; top: 0; bottom: 0; left: var(--ba); width: 3px; margin-left: -1.5px; background: var(--accent); pointer-events: none; }
+  .ba-divider span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 800; box-shadow: var(--shadow); }
+  .ba-range { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+  .ba-range:focus-visible + .ba-divider, .ba-frame:focus-within .ba-divider { box-shadow: 0 0 0 4px var(--accent-soft); }
+}
+@media (max-width: 899px) { .ba-divider, .ba-range { display: none !important; } }
+
+/* ------------------------------------------------------------ modos del laboratorio */
+.lab-modes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.mode-detective { border-color: var(--warn); color: var(--warn); }
+.mode-detective:hover { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.mode-detective[aria-pressed="true"] { background: var(--warn); color: #1c1300; }
+.packet-b { fill: var(--accent-2); }
+.packet-glow.packet-b { fill: var(--accent-2); }
+.flow-trail.trail-b { stroke: var(--accent-2); }
+.flow-btn.is-b { border-color: var(--accent-2); background: var(--accent-2-soft); color: var(--accent-2); }
+.console-b { margin: -4px 0 12px; padding: 10px 12px; border-left: 3px solid var(--accent-2); background: var(--accent-2-soft); border-radius: 8px; }
+.console-b p { margin: 0; }
+.console-b-title { margin-bottom: 4px !important; }
+.dot-b { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--accent-2); margin-right: 6px; }
+
+/* ------------------------------------------------------------ modo detective */
+.incident-list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.incident-list button { width: 100%; text-align: left; }
+.incident-found { margin: 4px 0 10px; padding-left: 1.2em; color: var(--muted); }
+.incident-found li { margin-bottom: .3em; }
+.incident-found li strong { color: var(--text); }
+.incident-options { display: grid; gap: 6px; margin-bottom: 10px; }
+.incident-options .btn { justify-content: flex-start; text-align: left; min-height: 40px; height: auto; padding: 8px 12px; line-height: 1.35; font-size: .85rem; }
+.incident-options .btn.is-wrong { border-color: var(--danger); color: var(--danger); }
+.incident-options .btn.is-right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+.incident-result { padding: 10px 12px; border-radius: 8px; background: color-mix(in srgb, var(--ok) 12%, transparent); margin-bottom: 10px; }
+.lab.is-incident .lab-node.is-clue .node-box { stroke: var(--warn); stroke-width: 3; fill: color-mix(in srgb, var(--warn) 18%, var(--surface)); }
+.lab.is-incident .lab-node.is-checked:not(.is-clue) .node-box { stroke-dasharray: 4 4; }
+.lab.is-incident .lab-map { box-shadow: 0 0 0 2px color-mix(in srgb, var(--warn) 50%, transparent); }
+.lab-info.is-clue { border-color: var(--warn); }
+
+/* ------------------------------------------------------------ estado real */
+.lab-node.st-down .node-led { fill: var(--danger); animation: blink .7s infinite; }
+.lab-node.st-off .node-led { fill: var(--muted); animation: none; opacity: .5; }
+.lab-node.st-up .node-led { fill: var(--ok); }
+.uptime-bars { display: block; width: 100%; height: 36px; grid-column: 1 / -1; }
+.uptime-bars rect { fill: var(--ok); }
+.uptime-bars rect.is-mid { fill: var(--warn); }
+.uptime-bars rect.is-low { fill: var(--danger); }
+.js .uptime-bars rect { transform: scaleY(0); transform-origin: bottom; transform-box: fill-box; transition: transform .5s ease; }
+.js .uptime-bars.is-in rect { transform: scaleY(1); }

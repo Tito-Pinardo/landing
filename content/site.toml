@@ -13,7 +13,7 @@ links = [
 ]
 
 # Logros: se desbloquean en el navegador, sin cuentas ni cookies.
-achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger", "navigator", "companion"]
+achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger", "navigator", "companion", "detective", "hacker"]
 
 # Datos que no dependen del idioma: enlaces, catálogo de tecnologías,
 # piezas del mapa del homelab y qué tecnologías usa cada proyecto.
@@ -688,3 +688,23 @@ path = ["casa", "dns", "casa", "dns", "internet"]
 id = "scan"
 category = "home"
 path = ["casa", "authelia", "paperless", "zfs"]
+
+# ---------------------------------------------------------------------------
+# Modo detective: averías reales. `clues` son las piezas con pista (el texto
+# está en es/en.toml); `answer` es el índice de la opción correcta.
+# ---------------------------------------------------------------------------
+
+[[incidents]]
+id = "blackout"
+clues = ["internet", "traefik", "proxmox", "zabbix", "zfs", "obsidian"]
+answer = 1
+
+[[incidents]]
+id = "slowupdate"
+clues = ["iac", "wazuh", "proxmox", "zfs", "zabbix"]
+answer = 2
+
+[[incidents]]
+id = "backup"
+clues = ["obsidian", "github", "backup", "hermes"]
+answer = 2

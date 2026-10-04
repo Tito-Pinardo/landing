@@ -9,6 +9,8 @@ use std::{
     time::Duration,
 };
 
+use std::collections::BTreeMap;
+
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
@@ -39,6 +41,12 @@ pub struct Homelab {
     pub uptime_30d: f64,
     #[serde(with = "time::serde::rfc3339")]
     pub updated_at: OffsetDateTime,
+    /// Disponibilidad de cada uno de los últimos días (hasta 31), en %.
+    #[serde(default)]
+    pub daily: Vec<f64>,
+    /// Estado por pieza del mapa del laboratorio: "up", "down" u "off".
+    #[serde(default)]
+    pub nodes: BTreeMap<String, String>,
 }
 
 #[derive(Default)]
@@ -153,7 +161,7 @@ impl Live {
 
 async fn read_homelab(path: &PathBuf) -> anyhow::Result<Homelab> {
     let raw = tokio::fs::read(path).await?;
-    anyhow::ensure!(raw.len() < 4096, "fichero de estado demasiado grande");
+    anyhow::ensure!(raw.len() < 8192, "fichero de estado demasiado grande");
     let h: Homelab = serde_json::from_slice(&raw)?;
     anyhow::ensure!(
         h.services_up <= h.services_total,
@@ -163,6 +171,26 @@ async fn read_homelab(path: &PathBuf) -> anyhow::Result<Homelab> {
         (0.0..=100.0).contains(&h.uptime_30d),
         "uptime fuera de rango"
     );
+    anyhow::ensure!(h.daily.len() <= 31, "demasiados días");
+    anyhow::ensure!(
+        h.daily.iter().all(|d| (0.0..=100.0).contains(d)),
+        "día fuera de rango"
+    );
+    anyhow::ensure!(h.nodes.len() <= 64, "demasiadas piezas");
+    for (id, estado) in &h.nodes {
+        anyhow::ensure!(
+            !id.is_empty()
+                && id.len() <= 20
+                && id
+                    .bytes()
+                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit()),
+            "id de pieza no válido"
+        );
+        anyhow::ensure!(
+            matches!(estado.as_str(), "up" | "down" | "off"),
+            "estado de pieza no válido"
+        );
+    }
     Ok(h)
 }
 
@@ -304,6 +332,8 @@ mod tests {
             services_total: 21,
             uptime_30d: 99.9,
             updated_at: OffsetDateTime::now_utc() - time::Duration::hours(3),
+            daily: vec![],
+            nodes: BTreeMap::new(),
         });
         live.publish();
         let v: serde_json::Value = serde_json::from_slice(&live.json()).unwrap();
@@ -341,6 +371,25 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(read_homelab(&path).await.unwrap().services_up, 20);
+        let base = r#""services_up":20,"services_total":21,"uptime_30d":99.0,"updated_at":"2026-10-04T10:00:00Z""#;
+        tokio::fs::write(
+            &path,
+            format!(r#"{{{base},"daily":[99.5,100],"nodes":{{"plex":"up","okd":"off"}}}}"#),
+        )
+        .await
+        .unwrap();
+        let h = read_homelab(&path).await.unwrap();
+        assert_eq!((h.daily.len(), h.nodes["okd"].as_str()), (2, "off"));
+        for malo in [
+            r#""nodes":{"plex":"<script>"}"#,
+            r#""nodes":{"Plex 1":"up"}"#,
+            r#""daily":[101]"#,
+        ] {
+            tokio::fs::write(&path, format!("{{{base},{malo}}}"))
+                .await
+                .unwrap();
+            assert!(read_homelab(&path).await.is_err(), "{malo}");
+        }
         tokio::fs::remove_dir_all(&dir).await.unwrap();
     }
 }

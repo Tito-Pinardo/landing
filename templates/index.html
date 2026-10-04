@@ -43,8 +43,8 @@
     <div class="cta">
       <a class="btn btn-primary" href="{{ c.cv_url }}" download data-cv>{{ c.ui("download_cv") }}</a>
       <a class="btn" href="#contact">{{ c.ui("contact") }}</a>
-      <a class="btn btn-ghost" href="{{ c.linkedin }}" rel="me">LinkedIn</a>
-      <a class="btn btn-ghost" href="{{ c.github }}" rel="me">GitHub</a>
+      <a class="btn btn-ghost" href="{{ c.linkedin }}" rel="me noopener" target="_blank">LinkedIn</a>
+      <a class="btn btn-ghost" href="{{ c.github }}" rel="me noopener" target="_blank">GitHub</a>
     </div>
   </div>
 
@@ -126,12 +126,43 @@
     {% endfor %}
     </ul>
   </div>
+
+  <div class="ba" data-ba>
+    <h3>{{ c.t.before_after.title }}</h3>
+    <p class="muted">{{ c.t.before_after.intro }}</p>
+    <div class="ba-frame">
+      <div class="ba-pane ba-before">
+        <p class="ba-label">✗ {{ c.t.before_after.before }}</p>
+        <pre class="ba-code"><code>$ ssh root@servidor
+# apt install ... (¿qué más hacía falta?)
+# nano /etc/app/config.yml
+# systemctl restart app   # ¿funcionará?</code></pre>
+        <ul>{% for i in c.t.before_after.before_items %}<li>{{ i }}</li>{% endfor %}</ul>
+      </div>
+      <div class="ba-pane ba-after" data-ba-after>
+        <p class="ba-label">✓ {{ c.t.before_after.after }}</p>
+        <pre class="ba-code"><code>resource "proxmox_virtual_environment_container" "landing" {
+  vm_id        = 125
+  unprivileged = true
+}
+$ terraform plan   →  1 to add, 0 to change, 0 to destroy
+$ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
+        <ul>{% for i in c.t.before_after.after_items %}<li>{{ i }}</li>{% endfor %}</ul>
+      </div>
+      <div class="ba-divider js-only" data-ba-divider aria-hidden="true"><span>⇆</span></div>
+      <input class="ba-range js-only" type="range" min="0" max="100" value="50" aria-label="{{ c.t.before_after.handle }}" data-ba-range>
+    </div>
+  </div>
 </section>
 
 <!-- ========================= ÁRBOL DE HABILIDADES ========================= -->
 <section id="skills" class="zone" data-zone="skills" aria-labelledby="skills-title">
   <header class="zone-head"><span class="zone-n">02</span><h2 id="skills-title">{{ c.t.zones["skills"].title }}</h2><p>{{ c.t.zones["skills"].subtitle }}</p></header>
   <p class="muted js-only">{{ c.ui("filter_hint") }}</p>
+  <svg class="tree-svg" viewBox="0 0 1000 130" preserveAspectRatio="none" aria-hidden="true" data-tree-svg>
+    <path class="tree-trunk" d="M500 130 V78" pathLength="1"/>
+    {% for b in branches %}<path class="tree-branch" pathLength="1" d="M500 80 C500 40 {{ loop.index0 * 200 + 100 }} 60 {{ loop.index0 * 200 + 100 }} 8"/><circle class="tree-knot" cx="{{ loop.index0 * 200 + 100 }}" cy="8" r="6"/>{% endfor %}
+  </svg>
   <div class="tree">
   {% for b in branches %}
     <section class="branch" aria-labelledby="branch-{{ b.id }}">
@@ -144,7 +175,7 @@
       {% for x in b.techs %}
         <li><button type="button" class="skill lvl-{{ x.level }}" data-tech="{{ x.id }}" aria-pressed="false" title="{{ x.level_label }}"{% if x.uses == 0 %} data-unused{% endif %}>
           <span class="skill-name">{{ x.name }}</span>
-          <span class="pips" aria-label="{{ x.level_label }}"><i></i><i></i><i></i></span>
+          <span class="skill-meta"><span class="fruits" aria-hidden="true">{% for _f in 0..x.uses %}<i></i>{% endfor %}</span><span class="pips" aria-label="{{ x.level_label }}"><i></i><i></i><i></i></span></span>
         </button></li>
       {% endfor %}
       </ul>
@@ -180,7 +211,7 @@
             <ul class="bullets">{% for b in p.bullets %}<li>{{ b }}</li>{% endfor %}</ul>
             <p class="outcome"><span aria-hidden="true">★</span> {{ p.outcome }}</p>
             {% if let Some(lesson) = p.lesson %}<p class="lesson"><span aria-hidden="true">💡</span> {{ lesson }}</p>{% endif %}
-            {% if let Some(repo) = p.repo %}<p><a class="btn btn-sm" href="{{ repo }}">{{ c.ui("view_code") }} ↗</a></p>{% else %}<p class="muted small">{{ c.ui("private_code") }}</p>{% endif %}
+            {% if let Some(repo) = p.repo %}<p><a class="btn btn-sm" href="{{ repo }}" rel="noopener" target="_blank">{{ c.ui("view_code") }} ↗</a></p>{% else %}<p class="muted small">{{ c.ui("private_code") }}</p>{% endif %}
           </div>
         </details>
       </article>
@@ -221,6 +252,11 @@
   <div class="lab" data-lab>
     <div class="lab-flows">
       <p class="lab-flows-title"><strong>{{ c.lab("flows_title") }}</strong> <span class="muted small">{{ c.lab("flows_hint") }}</span></p>
+      <div class="lab-modes js-only">
+        <button type="button" class="btn btn-sm mode-detective" data-incident-open>🔍 {{ c.t.incident_ui["button"] }}</button>
+        <button type="button" class="btn btn-sm btn-ghost" data-compare-toggle aria-pressed="false">⇄ {{ c.t.compare["button"] }}</button>
+        <span class="muted small" data-compare-hint hidden>{{ c.t.compare["hint"] }}</span>
+      </div>
       <div class="flow-tabs js-only" role="tablist">
       {% for (id, label) in flow_tabs %}<button type="button" role="tab" class="flow-tab" data-flow-tab="{{ id }}" aria-selected="{% if loop.first %}true{% else %}false{% endif %}">{{ label }}</button>{% endfor %}
       </div>
@@ -259,6 +295,8 @@
         {% endfor %}
         <circle class="packet-glow" r="16" cx="-50" cy="-50" data-packet-glow/>
         <circle class="packet" r="7" cx="-50" cy="-50" data-packet/>
+        <circle class="packet-glow packet-b" r="16" cx="-50" cy="-50" data-packet-glow-b/>
+        <circle class="packet packet-b" r="7" cx="-50" cy="-50" data-packet-b/>
       </svg>
       </div>
 
@@ -269,6 +307,17 @@
         </div>
         <p class="console-text" data-console-text>{{ c.lab("pick_node") }}</p>
         <ol class="console-trail" data-console-trail></ol>
+        <div class="console-b" data-console-b hidden>
+          <p class="console-b-title"><span class="dot-b" aria-hidden="true"></span><strong data-console-b-title></strong> <span class="muted small" data-console-b-step></span></p>
+          <p class="console-b-text small" data-console-b-text></p>
+        </div>
+        <div class="incident" data-incident hidden>
+          <ul class="incident-list" data-incident-list></ul>
+          <p class="incident-clues small"><strong>{{ c.t.incident_ui["clues"] }}</strong> <span data-incident-count></span></p>
+          <ol class="incident-found small" data-incident-found></ol>
+          <div class="incident-options" data-incident-options></div>
+          <div class="incident-actions"><button type="button" class="btn btn-sm btn-ghost" data-incident-exit>{{ c.t.incident_ui["exit"] }}</button></div>
+        </div>
         <div class="console-controls" data-console-controls hidden>
           <button type="button" class="btn btn-sm btn-ghost" data-flow-prev>← {{ c.lab("prev") }}</button>
           <button type="button" class="btn btn-sm" data-flow-play>{{ c.lab("pause") }}</button>
@@ -317,6 +366,7 @@
       <div class="homelab-stats" data-homelab-stats hidden>
         <p><strong data-hl-services></strong><span>{{ c.t.now.homelab_services }}</span></p>
         <p><strong data-hl-uptime></strong><span>{{ c.t.now.homelab_uptime }}</span></p>
+        <svg class="uptime-bars" viewBox="0 0 300 36" preserveAspectRatio="none" role="img" data-uptime-bars></svg>
         <p class="muted small">{{ c.t.now.homelab_updated }} <time data-hl-updated></time></p>
       </div>
     </div>
@@ -346,7 +396,7 @@
     <aside class="side">
       <div class="card">
         <p class="muted">{{ c.contact("elsewhere") }}</p>
-        <p class="cta"><a class="btn" href="{{ c.linkedin }}" rel="me">LinkedIn ↗</a> <a class="btn" href="{{ c.github }}" rel="me">GitHub ↗</a></p>
+        <p class="cta"><a class="btn" href="{{ c.linkedin }}" rel="me noopener" target="_blank">LinkedIn ↗</a> <a class="btn" href="{{ c.github }}" rel="me noopener" target="_blank">GitHub ↗</a></p>
         <p><a class="btn btn-primary" href="{{ c.cv_url }}" download data-cv>{{ c.ui("download_cv") }}</a></p>
       </div>
     </aside>

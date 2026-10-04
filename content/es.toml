@@ -775,11 +775,19 @@ help = [
   ["lang en", "switch to English"],
   ["achievements", "tus logros"],
   ["hermes", "llama a Hermes, tu guía"],
+  ["challenge", "un reto: encuentra la bandera"],
+  ["submit <flag>", "entrega la bandera"],
   ["clear", "limpia la pantalla"],
   ["exit", "cierra la terminal"],
 ]
 whoami = "Tito Pinardo Gutiérrez — sistemas, IaC y DevOps. Busco mi primer puesto."
 sudo = "Buen intento. Aquí el único root soy yo."
+challenge = "Reto: en este servidor de mentira hay una bandera escondida con el formato flag{...}. Empieza por: cat /etc/motd. Cuando la tengas: submit flag{...}"
+motd = ["Bienvenido a tito-homelab (Debian 13).", "Recuerda: los logs de Hermes están en /var/log/."]
+log = ["[07:00] Pitia: resumen diario enviado.", "[07:05] Argos: certificados al día.", "[07:12] Hermes: prueba de codificación -> ZmxhZ3t0b2RvX2NvbW9fY29kaWdvfQ==", "[07:13] Hermes: (ups, eso no debería estar en un log)"]
+submit_ok = "¡Correcto! Has encontrado la bandera."
+submit_bad = "Esa no es la bandera. Sigue buscando."
+no_such_file = "No existe el fichero o el directorio"
 
 # ---------------------------------------------------------------------------
 # Logros
@@ -795,3 +803,129 @@ polyglot = { title = "Políglota", text = "Has cambiado de idioma." }
 messenger = { title = "Mensajero", text = "Has enviado un mensaje." }
 navigator = { title = "Navegante", text = "Has completado un recorrido por dentro del servidor." }
 companion = { title = "Compañero de viaje", text = "Has hecho el tour con Hermes." }
+detective = { title = "Detective", text = "Has resuelto un caso del modo detective." }
+hacker = { title = "Hacker ético", text = "Has encontrado la bandera de la terminal." }
+
+[incident_ui]
+button = "Modo detective"
+title = "Modo detective"
+intro = "Elige una avería que pasó de verdad en mi servidor. Pulsa las piezas del mapa para buscar pistas y, cuando tengas al menos dos, decide la causa."
+clues = "Pistas"
+normal = "Aquí todo parece normal. Sigue buscando."
+diagnose = "¿Cuál es la causa?"
+need_more = "Busca al menos dos pistas antes de decidir."
+wrong = "No era eso."
+solved = "¡Resuelto!"
+lesson = "Lo que aprendí"
+exit = "Salir"
+again = "Otro caso"
+mobile = "En el móvil, toca las piezas de la lista de abajo para buscar pistas."
+
+[incidents.blackout]
+title = "Todo caído tras un apagón"
+intro = "Se va la luz en casa. Al volver, el servidor arranca solo… pero ninguna web responde y no llega ni una alerta. ¿Qué ha pasado?"
+options = [
+  "Un disco se ha roto y hay que restaurar copias.",
+  "El almacenamiento LVM quedó a medio activar tras su comprobación automática y bloquea el arranque de todo.",
+  "Proxmox ha perdido la configuración de los contenedores.",
+]
+feedback = [
+  "Los discos y el RAID están bien: no hay ningún error de hardware ni datos dañados.",
+  "",
+  "La configuración está intacta: los contenedores existen, solo que ninguno consigue arrancar.",
+]
+solution = "Tras el apagón, LVM revisó los metadatos del almacenamiento (65-90 minutos en discos mecánicos) y dejó dos volúmenes internos activados por separado. Mientras siguen así, LVM se niega a activar el almacenamiento. Desactivarlos a mano y activar el pool lo arregló todo."
+lesson = "Escribí el postmortem con cómo detectarlo, el comando exacto y por qué tarda tanto. Y que si la monitorización vive en el mismo servidor, cae con él."
+
+[incidents.blackout.clues]
+internet = "Las webs no responden: la petición llega a casa, pero nadie contesta."
+traefik = "Traefik ni siquiera está en marcha: su contenedor está parado."
+proxmox = "El host ha arrancado bien, pero todos los contenedores y máquinas virtuales están en «stopped». El log repite: «activating LV pve/data failed… prohibited while data_tmeta is active»."
+zabbix = "Zabbix tampoco funciona: también es un contenedor. Por eso no ha llegado ninguna alerta."
+zfs = "En LVM aparecen los volúmenes internos del pool activos por separado, y un «thin_check» acaba de terminar tras más de una hora."
+obsidian = "La documentación tampoco se puede abrir: corre en otro contenedor parado."
+
+[incidents.slowupdate]
+title = "Una actualización que no termina"
+intro = "Lanzo la actualización de todos los contenedores con Ansible. Media hora después sigue en el mismo paso… y tres horas después, también."
+options = [
+  "apt está esperando a que alguien responda una pregunta en pantalla.",
+  "Un disco se está muriendo.",
+  "El RAID1 de discos mecánicos, compartido por unos 16 contenedores, está saturado de escrituras.",
+]
+feedback = [
+  "No hay ninguna pregunta: dpkg sí avanzaba al principio y luego se quedó esperando al disco.",
+  "SMART dice que los dos discos están sanos, sin sectores defectuosos.",
+  "",
+]
+solution = "Los dos discos tenían la caché de escritura en modo «write through» y todo el sistema compartía el mismo RAID1. Cada escritura esperaba al plato. Activé la caché «write back» de forma persistente y medí la mejora con carga real."
+lesson = "Carga alta con la CPU ociosa es espera de disco. Y documenté qué estaba medido y qué solo inferido: borrar las instantáneas casi no cambió la presión de I/O."
+
+[incidents.slowupdate.clues]
+iac = "Ansible lleva 30 minutos en la tarea «apt upgrade» del contenedor de Wazuh."
+wazuh = "Dentro del contenedor, mandb lleva casi una hora en estado D (esperando disco). Carga 27 con la CPU casi parada."
+proxmox = "Presión de I/O del 50 %. El RAID md0 está al 100 % de uso moviendo apenas 2 MB/s."
+zfs = "SMART: los dos discos SAS están sanos, cero defectos. Pero su caché de escritura está en «write through»."
+zabbix = "Las gráficas muestran la espera de I/O disparada desde que empezó la actualización."
+
+[incidents.backup]
+title = "La copia que dejó de copiarse"
+intro = "Revisando la documentación descubro que su copia en Git lleva 13 días sin actualizarse… y nadie se había enterado."
+options = [
+  "Las credenciales de GitHub han caducado.",
+  "El disco del servidor está lleno.",
+  "El plugin de sincronización dejó de ejecutar su ciclo sin dar ningún error.",
+]
+feedback = [
+  "El push manual desde dentro del contenedor funciona al primer intento: las credenciales están bien.",
+  "Hay espacio de sobra: los ficheros están en disco, solo que sin subir.",
+  "",
+]
+solution = "El plugin de Obsidian que hace commit y push cada 10 minutos se paró en silencio. Puse el repositorio al día a mano (198 ficheros, sin perder nada). La causa exacta dentro del plugin sigue sin confirmar, y así quedó escrito."
+lesson = "Lo que no se vigila falla en silencio: una copia de seguridad solo cuenta si algo comprueba que sigue al día. Y lo dejé escrito como mitigado, no como resuelto."
+
+[incidents.backup.clues]
+obsidian = "El último commit es de hace 13 días, aunque el plugin está configurado para guardar y subir cada 10 minutos."
+github = "Un push manual desde dentro del contenedor funciona a la primera: la clave SSH y GitHub están bien."
+backup = "En disco hay 147 notas; en el último commit, 92. No se ha perdido nada: falta subirlo."
+hermes = "Ninguna alerta: nada vigilaba la fecha de esta copia."
+
+[compare]
+button = "Comparar dos"
+hint = "Elige un segundo recorrido: correrán a la vez, cada uno con su color."
+second = "Segundo recorrido"
+
+[before_after]
+title = "Antes y después"
+intro = "Arrastra para comparar cómo era montar un servicio a mano con cómo lo hago ahora."
+before = "A mano"
+after = "Como código"
+before_items = [
+  "Entro por SSH y voy instalando paquetes según me acuerdo.",
+  "Edito configuraciones directamente en el servidor.",
+  "¿Qué cambié el mes pasado? Nadie lo sabe.",
+  "Si el contenedor se rompe: una tarde de prueba y error.",
+  "Las contraseñas, en ficheros de texto.",
+]
+after_items = [
+  "Terraform crea el contenedor y Ansible lo configura.",
+  "Cada cambio es un commit revisado con plan o --diff.",
+  "El historial de Git dice qué cambió, cuándo y por qué.",
+  "Si se rompe: un comando y vuelve a estar igual.",
+  "Secretos cifrados con Ansible Vault.",
+]
+handle = "Deslizar para comparar"
+
+[personality]
+night = "Vaya, ¿de madrugada? Tito también trabaja a estas horas a veces."
+morning = "¡Buenos días!"
+afternoon = "¡Buenas tardes!"
+evening = "¡Buenas noches!"
+weekend = "Y en fin de semana: se nota que te interesa."
+visit_2 = "¡Has vuelto! Llevas {zones} de 7 zonas. ¿Seguimos donde lo dejaste?"
+visit_many = "Visita número {n}… empiezo a pensar que te caigo bien. Llevas {zones} de 7 zonas."
+lang_hint = "Por cierto, esta web también está en inglés: tienes el botón arriba."
+tour_end_lab = "¡Fin del tour! Te falta lo mejor: prueba un recorrido del laboratorio o el modo detective."
+tour_end_all = "¡Fin del tour, y lo has explorado prácticamente todo! Si quieres hablar con Tito, el formulario está aquí."
+detective = "¡Bien visto! Así es como Tito investiga las averías: pistas primero, conclusiones después."
+hacker = "¡Bandera encontrada! Tenías madera de sysadmin."

@@ -422,6 +422,17 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
         "nodes": site.nodes.iter().map(|n| serde_json::json!({
             "id": n.id, "x": n.x, "y": n.y, "title": t.nodes[&n.id].title, "text": t.nodes[&n.id].text,
         })).collect::<Vec<_>>(),
+        "incident_ui": t.incident_ui,
+        "compare": t.compare,
+        "personality": t.personality,
+        "incidents": site.incidents.iter().map(|i| {
+            let it = &t.incidents[&i.id];
+            serde_json::json!({
+                "id": i.id, "title": it.title, "intro": it.intro, "options": it.options,
+                "feedback": it.feedback, "answer": i.answer, "solution": it.solution,
+                "lesson": it.lesson, "clues": it.clues,
+            })
+        }).collect::<Vec<_>>(),
         "flows": site.flows.iter().map(|f| serde_json::json!({
             "id": f.id, "category": f.category, "title": t.flows[&f.id].title, "path": f.path, "steps": t.flows[&f.id].steps,
         })).collect::<Vec<_>>(),

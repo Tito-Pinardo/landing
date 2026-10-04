@@ -346,7 +346,8 @@ async fn fake_matrix(fake: FakeMatrix) -> String {
 }
 
 async fn wait_until(mut f: impl AsyncFnMut() -> bool) {
-    for _ in 0..100 {
+    // Margen amplio: con el host cargado de I/O, PostgreSQL tarda más.
+    for _ in 0..600 {
         if f().await {
             return;
         }
