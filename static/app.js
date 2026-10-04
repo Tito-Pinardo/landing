@@ -229,12 +229,17 @@
 
   // ------------------------------------------------------------ vista rápida
   const quickBtn = $("[data-quick-toggle]");
+  // Se recuerda solo 30 min: volver otro día a la página y verla "rota"
+  // por una vista rápida olvidada confundía (visto en Firefox el 04-10).
   function setQuick(on) {
     doc.classList.toggle("quick-mode", on);
     quickBtn?.setAttribute("aria-pressed", String(on));
-    store.set("quick", on);
+    $("[data-quick-banner]").hidden = !on;
+    store.set("quick", on ? Date.now() : 0);
   }
-  setQuick(store.get("quick", false));
+  const quickSince = store.get("quick", 0);
+  setQuick(typeof quickSince === "number" && quickSince > 0 && Date.now() - quickSince < 30 * 60 * 1000);
+  $$("[data-quick-exit]").forEach((b) => b.addEventListener("click", () => setQuick(false)));
   quickBtn?.addEventListener("click", () => {
     const on = !doc.classList.contains("quick-mode");
     setQuick(on);
@@ -352,6 +357,8 @@
 
   const mapWrap = $("[data-map-wrap]");
   // En pantallas estrechas el mapa se desplaza: se centra en la pieza activa.
+  const mapHint = $("[data-map-hint]");
+  mapWrap?.addEventListener("scroll", () => mapHint?.classList.add("is-gone"), { once: true, passive: true });
   function follow(id) {
     const n = nodeById[id];
     if (!mapWrap || !n || mapWrap.scrollWidth <= mapWrap.clientWidth) return;
@@ -359,7 +366,14 @@
     mapWrap.scrollTo({ left: Math.max(0, x), behavior: reduceMotion ? "auto" : "smooth" });
   }
 
+  const packetGnome = $("[data-packet-gnome]");
+  let gnomeX = 0;
   function movePacket(x, y) {
+    if (packetGnome) {
+      const dir = x < gnomeX - 0.5 ? -1 : 1;
+      gnomeX = x;
+      packetGnome.setAttribute("transform", `translate(${x} ${y}) scale(${dir} 1)`);
+    }
     for (const c of [packet, packetGlow]) { c?.setAttribute("cx", x); c?.setAttribute("cy", y); }
   }
 
@@ -402,13 +416,19 @@
     const dur = Math.min(1300, 450 + len * 1.1);
     const t0 = performance.now();
     cancelAnimationFrame(st.anim);
+    if (which === "a") packetGnome?.classList.remove("is-idle");
     const tick = (now) => {
       const k = Math.min(1, (now - t0) / dur);
       const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
       move(a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e);
       path.style.strokeDashoffset = `${len * (1 - e)}`;
       if (k < 1) st.anim = requestAnimationFrame(tick);
-      else { path.style.strokeDasharray = ""; path.style.strokeDashoffset = ""; done?.(); }
+      else {
+        path.style.strokeDasharray = "";
+        path.style.strokeDashoffset = "";
+        if (which === "a") packetGnome?.classList.add("is-idle");
+        done?.();
+      }
     };
     st.anim = requestAnimationFrame(tick);
   }
@@ -1026,6 +1046,8 @@
       }
     },
     hermes() { closeTerminal(); hermesMenu(fill(H.greet_return, { zones: found.size })); },
+    enanos(arg) { setGnomes(arg !== "off"); print(arg === "off" ? "😢" : "⛏️  ✓", "t-ok"); },
+    gnomes(arg) { setGnomes(arg !== "off"); print(arg === "off" ? "😢" : "⛏️  ✓", "t-ok"); },
   };
   commands.quit = commands.exit;
   commands.man = commands.help;
@@ -1070,6 +1092,205 @@
       openTerminal();
     }
   });
+
+  // ------------------------------------------------------------ enanitos
+  // Decoración guionizada: enanitos que llevan paquetes, cables y servidores
+  // por el pie de la pantalla. Un solo bucle de animación, como mucho tres a
+  // la vez, y nada si la pestaña no se ve o se pidió menos movimiento.
+  const G = T.gnomes;
+  const world = $("[data-gnome-world]");
+  const gnomes = [];
+  let gnomesOn = store.get("gnomesOn", true);
+  let gnomeRaf = 0, gnomeLast = 0;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
+  const COLORS = [["#ef4444", "#2563eb"], ["#16a34a", "#7c3aed"], ["#f59e0b", "#0891b2"], ["#db2777", "#15803d"], ["#0ea5e9", "#b45309"]];
+  const GNOME = `<g class="gn-legs"><rect class="gn-leg gn-leg-l" x="13" y="39" width="5" height="11" rx="2.5"/><rect class="gn-leg gn-leg-r" x="22" y="39" width="5" height="11" rx="2.5"/></g><path class="gn-body" d="M9 43 Q20 20 31 43 Z"/><circle class="gn-face" cx="20" cy="24" r="7"/><path class="gn-beard" d="M12.5 25 Q20 42 27.5 25 Q20 31 12.5 25 Z"/><path class="gn-hat" d="M11.5 23 Q19 -3 29 22.5 Q20 19 11.5 23 Z"/><circle class="gn-eye" cx="17.4" cy="23.4" r="1.1"/><circle class="gn-eye" cx="22.6" cy="23.4" r="1.1"/><circle class="gn-nose" cx="20" cy="26.2" r="1.9"/>`;
+  const STARS = `<g class="gn-stars"><text x="6" y="6">✦</text><text x="26" y="2">✧</text><text x="16" y="-4">✦</text></g>`;
+  const ITEMS = {
+    env: `<g class="gn-item-drop"><g class="gn-env" transform="translate(23 29)"><rect width="17" height="12" rx="2"/><path d="M0 1 L8.5 7 L17 1"/></g></g>`,
+    srv: `<g class="gn-item-drop"><g class="gn-srv" transform="translate(5 -13)"><rect width="30" height="12" rx="2"/><circle cx="6" cy="6" r="1.7"/><circle cx="11" cy="6" r="1.7"/></g></g>`,
+    reel: `<path class="gn-cable" d="M9 36 C-8 44 -22 30 -46 48"/><g class="gn-reel" transform="translate(27 33)"><circle r="6.5"/><circle r="2.5"/></g>`,
+    mug: `<g class="gn-item-drop"><g class="gn-mug" transform="translate(26 30)"><rect width="9" height="10" rx="1.5"/><path d="M9 3 q4 2 0 5"/></g></g>`,
+  };
+
+  function gnomeEl(kind, item) {
+    const el = document.createElement("div");
+    el.className = "gnome";
+    const [hat, tunic] = pickOne(COLORS);
+    el.style.setProperty("--g-hat", hat);
+    el.style.setProperty("--g-tunic", tunic);
+    if (kind === "pair") {
+      el.classList.add("is-wide");
+      el.innerHTML = `<svg viewBox="-4 -14 158 66"><g class="gn-flip"><g class="gn-inner">${GNOME}</g><path class="gn-cable" d="M30 33 Q76 62 120 33"/><g transform="translate(108 0)"><g class="gn-inner">${GNOME}</g></g></g></svg>`;
+    } else {
+      el.innerHTML = `<svg viewBox="-10 -14 60 66"><g class="gn-flip"><g class="gn-inner">${GNOME}${ITEMS[item] || ""}</g>${STARS}</g></svg>`;
+    }
+    world.append(el);
+    return el;
+  }
+
+  function gnomeSay(g, text) {
+    g.el.querySelector(".gnome-say")?.remove();
+    const b = document.createElement("div");
+    b.className = "gnome-say";
+    b.textContent = text;
+    g.el.append(b);
+    clearTimeout(g.sayTimer);
+    g.sayTimer = setTimeout(() => b.remove(), 2800);
+  }
+
+  function gnomePlace(g) {
+    g.el.style.transform = `translate(${g.x.toFixed(1)}px, ${g.y}px)`;
+    g.el.querySelector(".gn-flip").setAttribute("transform", g.dir < 0 ? `translate(${g.el.classList.contains("is-wide") ? 150 : 40} 0) scale(-1 1)` : "");
+  }
+
+  function gnomeSpawn(kind, opts = {}) {
+    if (!gnomesOn || !world || gnomes.length >= 3 || doc.classList.contains("quick-mode") || reduceMotion) return;
+    const item = opts.item || pickOne(Object.keys(ITEMS));
+    const el = gnomeEl(kind, item);
+    const w = kind === "pair" ? 240 : 66;
+    const dir = opts.dir || (Math.random() < 0.5 ? 1 : -1);
+    const g = {
+      el, kind, dir, y: 0, state: "walk",
+      x: opts.x ?? (dir > 0 ? -w - 10 : innerWidth + 10),
+      w, speed: kind === "pair" ? rnd(32, 42) : rnd(42, 70),
+      tripAt: kind === "trip" ? rnd(innerWidth * 0.25, innerWidth * 0.75) : null,
+      clicks: 0, scared: false,
+    };
+    el.classList.add("is-walking");
+    el.addEventListener("pointerdown", (ev) => { ev.preventDefault(); gnomeClick(g); });
+    gnomes.push(g);
+    if (kind === "fall") {
+      // Cae desde la barra superior hasta el suelo, se marea y sigue andando.
+      g.state = "fall";
+      g.y = -(innerHeight - 120);
+      el.classList.remove("is-walking");
+      gnomePlace(g);
+      gnomeSay(g, opts.say || pickOne(G.fall));
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        el.classList.add("is-falling");
+        g.y = 0;
+        gnomePlace(g);
+      }));
+      setTimeout(() => {
+        el.classList.remove("is-falling");
+        el.classList.add("is-dizzy");
+        setTimeout(() => { el.classList.remove("is-dizzy"); el.classList.add("is-walking"); g.state = "walk"; }, 1700);
+      }, 1050);
+    }
+    gnomePlace(g);
+    gnomeRun();
+    return g;
+  }
+
+  function gnomeClick(g) {
+    g.el.classList.remove("is-jump");
+    void g.el.offsetWidth;
+    g.el.classList.add("is-jump");
+    gnomeSay(g, pickOne(G.click));
+    const total = store.get("gnomeClicks", 0) + 1;
+    store.set("gnomeClicks", total);
+    if (total === 1) setTimeout(() => hermesSay(G.hermes_reveal), 1200);
+    if (total >= 5) unlock("gnome_friend");
+  }
+
+  function gnomeTrip(g) {
+    g.state = "trip";
+    g.tripAt = null;
+    g.el.classList.remove("is-walking");
+    g.el.classList.add("is-tripped");
+    gnomeSay(g, pickOne(G.trip));
+    setTimeout(() => {
+      g.el.classList.remove("is-tripped");
+      g.el.classList.add("is-walking");
+      g.state = "walk";
+    }, 1500);
+  }
+
+  function gnomeRemove(g) {
+    g.el.remove();
+    gnomes.splice(gnomes.indexOf(g), 1);
+  }
+
+  function gnomeTick(t) {
+    const dt = Math.min(0.05, (t - (gnomeLast || t)) / 1000);
+    gnomeLast = t;
+    for (const g of [...gnomes]) {
+      if (g.state !== "walk") continue;
+      const before = g.x;
+      g.x += g.dir * g.speed * (g.scared ? 2.4 : 1) * dt;
+      if (g.tripAt !== null && (before - g.tripAt) * (g.x - g.tripAt) <= 0) gnomeTrip(g);
+      gnomePlace(g);
+      if (g.x < -g.w - 60 || g.x > innerWidth + 60) gnomeRemove(g);
+    }
+    gnomeRaf = gnomes.length ? requestAnimationFrame(gnomeTick) : 0;
+    if (!gnomeRaf) gnomeLast = 0;
+  }
+  function gnomeRun() { if (!gnomeRaf && !document.hidden) gnomeRaf = requestAnimationFrame(gnomeTick); }
+
+  function gnomeClear() { [...gnomes].forEach(gnomeRemove); }
+
+  // Se apartan si el ratón se acerca.
+  let nearT = 0;
+  addEventListener("pointermove", (ev) => {
+    if (!gnomes.length || ev.timeStamp - nearT < 120) return;
+    nearT = ev.timeStamp;
+    for (const g of gnomes) {
+      if (g.state !== "walk" || g.scared) continue;
+      const r = g.el.getBoundingClientRect();
+      if (Math.hypot(ev.clientX - (r.left + r.width / 2), ev.clientY - (r.top + r.height / 2)) < 75) {
+        g.scared = true;
+        g.el.classList.add("is-running");
+        gnomeSay(g, pickOne(G.near));
+        setTimeout(() => { g.scared = false; g.el.classList.remove("is-running"); }, 1600);
+      }
+    }
+  }, { passive: true });
+
+  // Un scroll muy rápido tira a alguno desde arriba.
+  let lastY = scrollY, lastScrollT = performance.now(), lastFall = 0;
+  addEventListener("scroll", () => {
+    const now = performance.now();
+    const v = Math.abs(scrollY - lastY) / Math.max(1, now - lastScrollT) * 1000;
+    lastY = scrollY;
+    lastScrollT = now;
+    if (v > 4000 && now - lastFall > 6000) {
+      lastFall = now;
+      gnomeSpawn("fall", { x: rnd(60, innerWidth - 100) });
+    }
+  }, { passive: true });
+
+  function gnomeSchedule() {
+    setTimeout(() => {
+      if (!document.hidden) {
+        const r = Math.random();
+        gnomeSpawn(r < 0.2 ? "pair" : r < 0.5 ? "trip" : "walk");
+      }
+      gnomeSchedule();
+    }, rnd(7000, 13000));
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { cancelAnimationFrame(gnomeRaf); gnomeRaf = 0; gnomeLast = 0; } else gnomeRun();
+  });
+
+  const gnomeBtn = $("[data-gnome-toggle]");
+  function setGnomes(on) {
+    gnomesOn = on;
+    store.set("gnomesOn", on);
+    doc.classList.toggle("gnomes-off", !on);
+    gnomeBtn?.setAttribute("aria-pressed", String(on));
+    if (!on) gnomeClear();
+  }
+  setGnomes(gnomesOn);
+  gnomeBtn?.addEventListener("click", () => {
+    setGnomes(!gnomesOn);
+    if (gnomesOn) gnomeSpawn("fall", { x: rnd(80, innerWidth - 120) });
+  });
+  if (!reduceMotion) {
+    setTimeout(() => gnomeSpawn("walk", { item: "env", dir: 1 }), 2500);
+    gnomeSchedule();
+  }
 
   // ------------------------------------------------------------ apariciones y contadores
   if ("IntersectionObserver" in window && !reduceMotion) {

@@ -34,6 +34,9 @@ private_code = "Private code (happy to walk through it in an interview)"
 footer = "Built by me in Rust, served from my own homelab."
 footer_source = "Source code"
 noscript = "This page works without JavaScript; with it you get the interactive map, the terminal and achievements."
+quick_on = "You're in quick view."
+quick_off = "Back to the full view"
+lab_quick = "The interactive server map and its animated journeys are in the full view."
 
 [hero]
 kicker = "Hi, I'm"
@@ -793,6 +796,29 @@ navigator = { title = "Navigator", text = "You completed a journey inside the se
 companion = { title = "Travel companion", text = "You took the tour with Hermes." }
 detective = { title = "Detective", text = "You solved a detective mode case." }
 hacker = { title = "Ethical hacker", text = "You found the terminal flag." }
+
+gnome_friend = { title = "Gnome whisperer", text = "You chatted with five gnomes." }
+
+[gnomes]
+toggle = "Gnomes"
+toggle_title = "Show or hide the server gnomes"
+hermes_reveal = "I'll confess: there are no real gnomes. It's like when your grandma thinks there's someone inside the computer… They don't exist and I'm not a person typing either: it's all code. Cute though, right?"
+mobile_hint = "← swipe the map →"
+click = [
+  "Hey! I'm carrying an urgent packet.",
+  "I'm the DNS gnome. I resolve names. And doubts.",
+  "Looking for Tito? He's in the contact zone.",
+  "Don't touch that cable, it's the production one.",
+  "Haven't rebooted in weeks. Just like the server.",
+  "Shhh… I'm compiling Rust. It takes a while.",
+  "A ping? Pong!",
+  "They say some Hermes does my job with AI. Pfff.",
+  "If you see smoke, it's not a fire: it's the GPU transcoding.",
+  "I'm on backup duty today. Hope nothing fails silently.",
+]
+fall = ["Aaaah!", "Easy on the scrolling!", "Oops!", "I'm falling!"]
+trip = ["Ouch! Who left this cable here?", "Oops… packet lost. Retransmitting…", "This cable wasn't on the diagram."]
+near = ["Careful, you'll step on me!", "Hey, the mouse!", "I'm carrying stuff here!"]
 
 [incident_ui]
 button = "Detective mode"

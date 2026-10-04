@@ -425,6 +425,7 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
         "incident_ui": t.incident_ui,
         "compare": t.compare,
         "personality": t.personality,
+        "gnomes": t.gnomes,
         "incidents": site.incidents.iter().map(|i| {
             let it = &t.incidents[&i.id];
             serde_json::json!({

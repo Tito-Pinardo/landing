@@ -34,6 +34,9 @@ private_code = "Código privado (puedo enseñarlo en una entrevista)"
 footer = "Hecho por mí en Rust, servido desde mi propio homelab."
 footer_source = "Código fuente"
 noscript = "Esta página funciona sin JavaScript; con él tendrás el mapa interactivo, la terminal y los logros."
+quick_on = "Estás en la vista rápida."
+quick_off = "Volver a la vista completa"
+lab_quick = "El mapa interactivo del servidor y sus recorridos animados están en la vista completa."
 
 [hero]
 kicker = "Hola, soy"
@@ -805,6 +808,29 @@ navigator = { title = "Navegante", text = "Has completado un recorrido por dentr
 companion = { title = "Compañero de viaje", text = "Has hecho el tour con Hermes." }
 detective = { title = "Detective", text = "Has resuelto un caso del modo detective." }
 hacker = { title = "Hacker ético", text = "Has encontrado la bandera de la terminal." }
+
+gnome_friend = { title = "Amigo de los enanitos", text = "Has charlado con cinco enanitos." }
+
+[gnomes]
+toggle = "Enanitos"
+toggle_title = "Mostrar u ocultar a los enanitos del servidor"
+hermes_reveal = "Te lo confieso: no hay enanitos de verdad. Es como cuando tu abuela cree que dentro del ordenador hay alguien… Ni ellos existen ni yo soy una persona escribiendo: todo es código. Pero quedan monos, ¿eh?"
+mobile_hint = "← desliza el mapa →"
+click = [
+  "¡Eh! Que llevo un paquete urgente.",
+  "Soy el enanito del DNS. Resuelvo nombres. Y dudas.",
+  "¿Buscas a Tito? Está en la zona de contacto.",
+  "No toques ese cable, que es el de producción.",
+  "Llevo semanas sin reiniciarme. Como el servidor.",
+  "Shhh… estoy compilando Rust. Tarda un poco.",
+  "¿Un ping? ¡Pong!",
+  "Dicen que hay un tal Hermes que hace mi trabajo con IA. Pfff.",
+  "Si ves humo, no es un incendio: es la GPU transcodificando.",
+  "Hoy me toca turno de copias de seguridad. Ojalá nada falle en silencio.",
+]
+fall = ["¡Aaaah!", "¡Más despacio con el scroll!", "¡Uy!", "¡Que me caigo!"]
+trip = ["¡Ay! ¿Quién ha dejado este cable aquí?", "Ups… paquete perdido. Retransmitiendo…", "Este cable no estaba en el diagrama."]
+near = ["¡Cuidado, que me pisas!", "¡Eh, el ratón!", "¡Que voy cargado!"]
 
 [incident_ui]
 button = "Modo detective"

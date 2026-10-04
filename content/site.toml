@@ -13,7 +13,7 @@ links = [
 ]
 
 # Logros: se desbloquean en el navegador, sin cuentas ni cookies.
-achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger", "navigator", "companion", "detective", "hacker"]
+achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger", "navigator", "companion", "detective", "hacker", "gnome_friend"]
 
 # Datos que no dependen del idioma: enlaces, catálogo de tecnologías,
 # piezas del mapa del homelab y qué tecnologías usa cada proyecto.

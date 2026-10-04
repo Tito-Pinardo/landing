@@ -708,3 +708,76 @@ details summary:hover { color: var(--text); }
 .uptime-bars rect.is-low { fill: var(--danger); }
 .js .uptime-bars rect { transform: scaleY(0); transform-origin: bottom; transform-box: fill-box; transition: transform .5s ease; }
 .js .uptime-bars.is-in rect { transform: scaleY(1); }
+
+/* ------------------------------------------------------------ vista rápida: aviso */
+.quick-banner { position: sticky; top: 64px; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; padding: 8px var(--gutter); background: var(--accent-2-soft); border-bottom: 1px solid var(--accent-2); font-weight: 600; backdrop-filter: blur(8px); }
+.quick-mode .quick-banner[hidden] { display: flex !important; }
+.lab-quick-note { display: none; padding: 12px 14px; border-radius: 10px; border: 1px dashed var(--accent-2); background: var(--accent-2-soft); }
+.quick-mode .lab-quick-note { display: block; }
+
+/* ------------------------------------------------------------ enanitos */
+.gn-body { fill: var(--g-tunic, #2563eb); }
+.gn-face { fill: #f5c9a8; }
+.gn-beard { fill: #f8fafc; }
+.gn-hat { fill: var(--g-hat, #ef4444); }
+.gn-eye { fill: #1e293b; }
+.gn-nose { fill: #e8927c; }
+.gn-leg { fill: #78350f; transform-box: fill-box; transform-origin: top center; }
+.gnome-toggle svg { width: 22px; height: 28px; }
+.gnome-toggle[aria-pressed="false"] svg { filter: grayscale(1); opacity: .45; }
+
+.gnome-world { position: fixed; left: 0; right: 0; bottom: 0; height: 0; z-index: 45; pointer-events: none; }
+.gnome { position: fixed; left: 0; bottom: 4px; width: 66px; height: 86px; pointer-events: auto; cursor: pointer; will-change: transform; user-select: none; -webkit-user-select: none; }
+.gnome svg { width: 100%; height: 100%; overflow: visible; }
+.gnome.is-wide { width: 240px; }
+.gnome .gn-inner { transform-origin: 50% 100%; transition: transform .25s; }
+.gnome.is-walking .gn-leg-l { animation: leg .38s ease-in-out infinite alternate; }
+.gnome.is-walking .gn-leg-r { animation: leg .38s ease-in-out infinite alternate-reverse; }
+.gnome.is-walking .gn-inner { animation: bobwalk .38s ease-in-out infinite alternate; }
+.gnome.is-running .gn-leg-l, .gnome.is-running .gn-leg-r, .gnome.is-running .gn-inner { animation-duration: .18s; }
+.gnome.is-jump .gn-inner { animation: gjump .5s cubic-bezier(.3, 1.5, .5, 1); }
+.gnome.is-tripped .gn-inner { transform: rotate(78deg) translateY(6px); }
+.gnome.is-dizzy .gn-stars { opacity: 1; }
+.gnome.is-falling { transition: transform 1s cubic-bezier(.5, 0, .9, .6); }
+.gnome.is-falling .gn-inner { animation: spin 1s linear; }
+.gn-stars { opacity: 0; transition: opacity .2s; }
+.gn-stars text { font-size: 10px; animation: stars 1s linear infinite; transform-box: fill-box; transform-origin: center; }
+.gn-item-drop { transition: transform .5s cubic-bezier(.3, 1.5, .6, 1); }
+.gnome.is-tripped .gn-item-drop { transform: translate(26px, 14px) rotate(40deg); }
+.gn-env rect, .pg-env rect { fill: #fef3c7; stroke: #b45309; stroke-width: 1.2; }
+.gn-env path, .pg-env path { fill: none; stroke: #b45309; stroke-width: 1.2; }
+.gn-env text { font: 700 6px var(--mono); fill: #92400e; }
+.gn-srv rect { fill: #334155; stroke: #0f172a; }
+.gn-srv circle { fill: #4ade80; animation: blink 1s infinite; }
+.gn-cable { fill: none; stroke: #f59e0b; stroke-width: 3; stroke-linecap: round; }
+.gn-reel circle { fill: #92400e; } .gn-reel circle + circle { fill: #f59e0b; }
+.gn-mug rect { fill: #e2e8f0; } .gn-mug path { fill: none; stroke: #94a3b8; stroke-width: 1.5; }
+.gnome-say {
+  position: absolute; bottom: 90px; left: 50%; transform: translateX(-50%); width: max-content; max-width: 230px;
+  padding: 7px 10px; font: 600 12.5px/1.35 var(--font); color: var(--text); background: var(--surface); border: 1px solid var(--accent);
+  border-radius: 12px 12px 12px 3px; box-shadow: var(--shadow); animation: rise .25s ease; pointer-events: none; white-space: normal;
+}
+@keyframes leg { from { transform: rotate(-24deg); } to { transform: rotate(24deg); } }
+@keyframes bobwalk { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+@keyframes gjump { 40% { transform: translateY(-26px) rotate(-8deg); } }
+@keyframes spin { to { transform: rotate(720deg); } }
+@keyframes stars { to { transform: rotate(360deg); } }
+.quick-mode .gnome-world, .gnomes-off .gnome-world { display: none; }
+@media (prefers-reduced-motion: reduce) { .gnome-world, .packet-gnome { display: none !important; } }
+@media print { .gnome-world { display: none !important; } }
+
+/* El enanito mensajero del laboratorio */
+.packet-gnome { pointer-events: none; transition: opacity .3s; }
+.packet-gnome .gn-leg-l { animation: leg .3s ease-in-out infinite alternate; }
+.packet-gnome .gn-leg-r { animation: leg .3s ease-in-out infinite alternate-reverse; }
+.packet-gnome.is-idle .gn-leg-l, .packet-gnome.is-idle .gn-leg-r { animation: none; }
+.gnomes-off .packet-gnome { display: none; }
+
+/* Pista para deslizar el mapa en pantallas estrechas */
+.lab-map-wrap { position: relative; }
+.map-hint { display: none; }
+@media (max-width: 899px) {
+  .map-hint { display: block; position: sticky; left: 50%; top: 10px; z-index: 2; width: max-content; margin: 0 auto -32px; transform: translateX(-50%); padding: 6px 12px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font: 700 .8rem/1.2 var(--font); box-shadow: var(--shadow); animation: nudge 1.4s ease-in-out infinite; transition: opacity .4s; }
+  .map-hint.is-gone { opacity: 0; pointer-events: none; }
+}
+@keyframes nudge { 50% { transform: translateX(calc(-50% + 8px)); } }

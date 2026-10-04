@@ -188,6 +188,7 @@ pub struct Texts {
     pub compare: BTreeMap<String, String>,
     pub before_after: BeforeAfter,
     pub personality: BTreeMap<String, String>,
+    pub gnomes: Gnomes,
     pub now: Now,
     pub contact: BTreeMap<String, String>,
     pub terminal: Terminal,
@@ -270,6 +271,20 @@ pub struct IncidentText {
     pub solution: String,
     pub lesson: String,
     pub clues: BTreeMap<String, String>,
+}
+
+/// Frases de los enanitos que pasean por la página.
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Gnomes {
+    pub toggle: String,
+    pub toggle_title: String,
+    pub hermes_reveal: String,
+    pub mobile_hint: String,
+    pub click: Vec<String>,
+    pub fall: Vec<String>,
+    pub trip: Vec<String>,
+    pub near: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -423,6 +438,9 @@ const UI_KEYS: &[&str] = &[
     "footer",
     "footer_source",
     "noscript",
+    "quick_on",
+    "quick_off",
+    "lab_quick",
 ];
 const LAB_KEYS: &[&str] = &[
     "intro",
@@ -671,6 +689,13 @@ impl Content {
             required(code, "incident_ui", INCIDENT_UI_KEYS, &t.incident_ui)?;
             required(code, "compare", COMPARE_KEYS, &t.compare)?;
             required(code, "personality", PERSONALITY_KEYS, &t.personality)?;
+            let g = &t.gnomes;
+            ensure!(
+                [&g.click, &g.fall, &g.trip, &g.near]
+                    .iter()
+                    .all(|l| !l.is_empty()),
+                "{code}.toml [gnomes]: ninguna lista de frases puede ir vacía"
+            );
             ensure!(
                 t.before_after.before_items.len() == t.before_after.after_items.len(),
                 "{code}.toml [before_after]: las dos listas deben tener la misma longitud"
