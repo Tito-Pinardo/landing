@@ -1,0 +1,349 @@
+# Datos que no dependen del idioma: enlaces, catálogo de tecnologías,
+# piezas del mapa del homelab y qué tecnologías usa cada proyecto.
+# Los textos traducibles viven en es.toml / en.toml con los mismos `id`.
+
+# Claves sueltas: tienen que ir antes de la primera tabla, si no TOML las
+# mete dentro de la última.
+
+# Conexiones del mapa del homelab (pares de ids de [[nodes]]).
+links = [
+  ["internet", "router"],
+  ["router", "traefik"],
+  ["router", "dns"],
+  ["traefik", "landing"],
+  ["router", "proxmox"],
+  ["iac", "proxmox"],
+  ["proxmox", "docker"],
+  ["proxmox", "okd"],
+  ["proxmox", "monitoring"],
+  ["proxmox", "hermes"],
+  ["proxmox", "gpu"],
+  ["proxmox", "landing"],
+  ["monitoring", "hermes"],
+]
+
+# Logros: se desbloquean en el navegador, sin cuentas ni cookies.
+achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger"]
+
+[person]
+name = "Tito Pinardo Gutiérrez"
+github = "https://github.com/Tito-Pinardo"
+linkedin = "https://www.linkedin.com/in/tito-pinardo-gutierrez-b7341b293"
+github_user = "Tito-Pinardo"
+cv_es = "/static/cv/Tito_Pinardo_CV_ES.pdf"
+cv_en = "/static/cv/Tito_Pinardo_CV_EN.pdf"
+
+# ---------------------------------------------------------------------------
+# Árbol de habilidades: cada tecnología pertenece a una rama.
+# `level` (1-3) es la profundidad real de uso: 3 = lo uso a diario en
+# producción, 2 = lo he desplegado y mantenido, 1 = lo he usado en un proyecto.
+# ---------------------------------------------------------------------------
+
+[[branches]]
+id = "iac"
+icon = "layers"
+
+[[branches]]
+id = "containers"
+icon = "box"
+
+[[branches]]
+id = "network"
+icon = "network"
+
+[[branches]]
+id = "observability"
+icon = "shield"
+
+[[branches]]
+id = "dev"
+icon = "code"
+
+[[tech]]
+id = "terraform"
+name = "Terraform"
+branch = "iac"
+level = 3
+
+[[tech]]
+id = "ansible"
+name = "Ansible"
+branch = "iac"
+level = 3
+
+[[tech]]
+id = "proxmox"
+name = "Proxmox VE"
+branch = "iac"
+level = 3
+
+[[tech]]
+id = "lxc"
+name = "LXC"
+branch = "iac"
+level = 3
+
+[[tech]]
+id = "zfs"
+name = "ZFS"
+branch = "iac"
+level = 2
+
+[[tech]]
+id = "docker"
+name = "Docker"
+branch = "containers"
+level = 3
+
+[[tech]]
+id = "kubernetes"
+name = "Kubernetes / K3s"
+branch = "containers"
+level = 2
+
+[[tech]]
+id = "openshift"
+name = "OpenShift (OKD)"
+branch = "containers"
+level = 1
+
+[[tech]]
+id = "argocd"
+name = "Argo CD"
+branch = "containers"
+level = 2
+
+[[tech]]
+id = "gitlab-ci"
+name = "GitLab CI/CD"
+branch = "containers"
+level = 2
+
+[[tech]]
+id = "git"
+name = "Git"
+branch = "containers"
+level = 3
+
+[[tech]]
+id = "linux"
+name = "Linux (Debian, Alpine, Arch)"
+branch = "network"
+level = 3
+
+[[tech]]
+id = "mikrotik"
+name = "MikroTik"
+branch = "network"
+level = 2
+
+[[tech]]
+id = "vlan"
+name = "VLANs"
+branch = "network"
+level = 2
+
+[[tech]]
+id = "wireguard"
+name = "WireGuard"
+branch = "network"
+level = 2
+
+[[tech]]
+id = "traefik"
+name = "Traefik"
+branch = "network"
+level = 3
+
+[[tech]]
+id = "dns"
+name = "Technitium DNS"
+branch = "network"
+level = 2
+
+[[tech]]
+id = "zabbix"
+name = "Zabbix"
+branch = "observability"
+level = 2
+
+[[tech]]
+id = "wazuh"
+name = "Wazuh"
+branch = "observability"
+level = 2
+
+[[tech]]
+id = "prometheus"
+name = "Prometheus · Grafana · Loki"
+branch = "observability"
+level = 1
+
+[[tech]]
+id = "hardening"
+name = "Linux / SSH hardening"
+branch = "observability"
+level = 2
+
+[[tech]]
+id = "python"
+name = "Python"
+branch = "dev"
+level = 3
+
+[[tech]]
+id = "typescript"
+name = "JavaScript / TypeScript"
+branch = "dev"
+level = 2
+
+[[tech]]
+id = "nestjs"
+name = "NestJS"
+branch = "dev"
+level = 2
+
+[[tech]]
+id = "nextjs"
+name = "Next.js"
+branch = "dev"
+level = 1
+
+[[tech]]
+id = "postgresql"
+name = "PostgreSQL"
+branch = "dev"
+level = 2
+
+[[tech]]
+id = "keycloak"
+name = "Keycloak"
+branch = "dev"
+level = 1
+
+[[tech]]
+id = "php"
+name = "PHP"
+branch = "dev"
+level = 1
+
+[[tech]]
+id = "rust"
+name = "Rust"
+branch = "dev"
+level = 1
+
+[[tech]]
+id = "llm"
+name = "LLM locales (Ollama, Qdrant, RAG)"
+branch = "dev"
+level = 2
+
+# ---------------------------------------------------------------------------
+# Misiones (proyectos). `status`: done | live | ongoing
+# ---------------------------------------------------------------------------
+
+[[projects]]
+id = "homelab-iac"
+status = "ongoing"
+featured = true
+tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "linux", "traefik", "dns", "hardening"]
+repo = "https://github.com/Tito-Pinardo/homelab-infra"
+
+[[projects]]
+id = "hermes"
+status = "live"
+featured = true
+tech = ["python", "llm", "linux", "ansible"]
+
+[[projects]]
+id = "xpify"
+status = "done"
+featured = true
+tech = ["nestjs", "typescript", "nextjs", "postgresql", "keycloak", "kubernetes", "argocd", "gitlab-ci", "prometheus", "docker"]
+
+[[projects]]
+id = "security"
+status = "ongoing"
+tech = ["wazuh", "zabbix", "hardening", "mikrotik", "vlan", "wireguard", "ansible"]
+
+[[projects]]
+id = "okd"
+status = "done"
+tech = ["openshift", "kubernetes", "terraform", "ansible", "proxmox", "dns"]
+
+[[projects]]
+id = "paperless"
+status = "done"
+tech = ["python", "docker"]
+
+[[projects]]
+id = "landing"
+status = "live"
+tech = ["rust", "postgresql", "traefik", "terraform", "ansible", "git"]
+repo = "https://github.com/Tito-Pinardo/landing"
+
+# ---------------------------------------------------------------------------
+# Mapa del homelab: nodos y conexiones (las coordenadas las pone el frontend).
+# Sin IPs, nombres internos ni puertos: solo qué hace cada pieza.
+# ---------------------------------------------------------------------------
+
+[[nodes]]
+id = "internet"
+kind = "edge"
+tech = []
+
+[[nodes]]
+id = "router"
+kind = "network"
+tech = ["mikrotik", "vlan", "wireguard"]
+
+[[nodes]]
+id = "traefik"
+kind = "network"
+tech = ["traefik"]
+
+[[nodes]]
+id = "dns"
+kind = "network"
+tech = ["dns"]
+
+[[nodes]]
+id = "proxmox"
+kind = "compute"
+tech = ["proxmox", "lxc", "zfs"]
+
+[[nodes]]
+id = "iac"
+kind = "control"
+tech = ["terraform", "ansible", "git"]
+
+[[nodes]]
+id = "docker"
+kind = "compute"
+tech = ["docker"]
+
+[[nodes]]
+id = "okd"
+kind = "compute"
+tech = ["openshift", "kubernetes"]
+
+[[nodes]]
+id = "monitoring"
+kind = "observability"
+tech = ["zabbix", "wazuh"]
+
+[[nodes]]
+id = "hermes"
+kind = "ai"
+tech = ["python", "llm"]
+
+[[nodes]]
+id = "gpu"
+kind = "compute"
+tech = ["proxmox"]
+
+[[nodes]]
+id = "landing"
+kind = "app"
+tech = ["rust", "postgresql"]

@@ -1,0 +1,419 @@
+# Textos en español. Los `id` coinciden con los de site.toml.
+
+[meta]
+lang = "es"
+title = "Tito Pinardo Gutiérrez · Sistemas, Infraestructura como Código y DevOps"
+description = "Administrador de sistemas junior especializado en Linux, Infraestructura como Código y DevOps. Terraform, Ansible, Proxmox, Kubernetes. Proyectos reales en producción."
+og_image_alt = "Tito Pinardo Gutiérrez, administración de sistemas y DevOps"
+
+[ui]
+skip = "Saltar al contenido"
+nav_quick = "Vista rápida"
+nav_explore = "Explorar"
+lang_switch = "English"
+download_cv = "Descargar CV"
+contact = "Contactar"
+quick_hint = "¿Tienes prisa? La vista rápida lo resume en un minuto."
+explore_hint = "O explora el mapa: cada zona desbloquea una parte de mi trabajo."
+progress = "Exploración"
+zones_found = "zonas descubiertas"
+achievement_unlocked = "Logro desbloqueado"
+back_to_map = "Volver al mapa"
+close = "Cerrar"
+filter_all = "Todas"
+filter_hint = "Elige una habilidad para ver dónde la he usado."
+projects_with = "Misiones con"
+level_1 = "La he usado en un proyecto"
+level_2 = "La he desplegado y mantenido"
+level_3 = "La uso a diario en producción"
+status_done = "Completada"
+status_live = "En producción"
+status_ongoing = "En curso"
+view_code = "Ver código"
+private_code = "Código privado (puedo enseñarlo en una entrevista)"
+footer = "Hecho por mí en Rust, servido desde mi propio homelab."
+footer_source = "Código fuente"
+noscript = "Esta página funciona sin JavaScript; con él tendrás el mapa interactivo, la terminal y los logros."
+
+[hero]
+kicker = "Hola, soy"
+name = "Tito Pinardo Gutiérrez"
+role = "Administración de Sistemas · Infraestructura como Código · DevOps"
+pitch = "Técnico Superior en ASIR + DAW. Gestiono infraestructura real con Terraform y Ansible, despliego con Kubernetes y GitOps, y me obsesiona entender por qué falla algo antes de arreglarlo."
+looking = "Busco mi primer puesto como administrador de sistemas, DevOps o SRE junior."
+location = "Alcalá de Henares, Madrid"
+stats = [
+  { value = "152", label = "commits de infraestructura como código" },
+  { value = "25", label = "roles de Ansible reutilizables" },
+  { value = "22", label = "contenedores y VMs gestionados con Terraform" },
+  { value = "10/10", label = "nota del proyecto final, desplegado en producción" },
+]
+
+# ---------------------------------------------------------------------------
+# Zonas del mapa principal (secciones de la página)
+# ---------------------------------------------------------------------------
+
+[zones.about]
+title = "Base"
+subtitle = "Quién soy"
+
+[zones.skills]
+title = "Árbol de habilidades"
+subtitle = "Qué sé hacer"
+
+[zones.quests]
+title = "Misiones"
+subtitle = "Proyectos reales"
+
+[zones.journey]
+title = "Trayectoria"
+subtitle = "Experiencia y formación"
+
+[zones.lab]
+title = "Laboratorio"
+subtitle = "Mi homelab, por dentro"
+
+[zones.now]
+title = "Ahora mismo"
+subtitle = "En qué estoy trabajando"
+
+[zones.contact]
+title = "Contacto"
+subtitle = "Hablemos"
+
+# ---------------------------------------------------------------------------
+
+[about]
+paragraphs = [
+  "Acabo de terminar el Grado Superior combinado de ASIR + DAW, así que tengo las dos mitades: sé administrar sistemas y redes, y sé programar las herramientas que los automatizan.",
+  "Fuera de clase mantengo un homelab que no es un juguete: da servicio a diario a mi casa y está definido entero como código. Si un servidor desaparece, Terraform lo vuelve a crear y Ansible lo deja configurado igual que estaba.",
+  "Mi forma de trabajar: medir antes de cambiar, un cambio cada vez, comprobarlo en producción y dejarlo documentado, incluido lo que no funcionó. Prefiero convertir un arreglo manual en automatización mantenible a repetirlo dos veces.",
+  "He trabajado en inglés con clientes y con un equipo técnico durante unas prácticas internacionales en Malta.",
+]
+values = [
+  { title = "Causa, no síntoma", text = "Busco por qué falla algo antes de tocarlo. Mis postmortems explican la causa raíz y cómo detectarla la próxima vez." },
+  { title = "Todo como código", text = "Infraestructura versionada, secretos cifrados y cambios revisados con plan/diff antes de aplicarlos." },
+  { title = "Medir, no suponer", text = "Una medición no es un resultado. Comparo con una base, repito y separo lo medido de lo estimado." },
+]
+
+[quick]
+title = "Vista rápida"
+intro = "Lo esencial para una primera criba, en un minuto."
+summary = "Técnico Superior en ASIR + DAW (2026), orientado a sistemas Linux, redes y DevOps. Experiencia en prácticas desarrollando software interno en un centro universitario y como técnico informático en Malta, trabajando íntegramente en inglés. Mantengo un homelab de producción gestionado como código con Terraform, Ansible y Proxmox."
+facts = [
+  { label = "Puesto que busco", value = "Administrador de sistemas, DevOps o SRE junior" },
+  { label = "Ubicación", value = "Alcalá de Henares, Madrid" },
+  { label = "Formación", value = "CFGS ASIR + DAW (2023–2026) · CFGM SMR (2021–2023)" },
+  { label = "Idiomas", value = "Español nativo · Inglés C1 comprensión, B2 expresión" },
+  { label = "Fuertes en", value = "Linux, Terraform, Ansible, Proxmox, Docker, Kubernetes, redes" },
+]
+
+# ---------------------------------------------------------------------------
+# Ramas del árbol de habilidades
+# ---------------------------------------------------------------------------
+
+[branches]
+iac = { title = "Infraestructura como código", text = "Aprovisionar y configurar sin pasos a mano." }
+containers = { title = "Contenedores y entrega", text = "Empaquetar, desplegar y mantener aplicaciones." }
+network = { title = "Linux y redes", text = "La base sobre la que corre todo lo demás." }
+observability = { title = "Observabilidad y seguridad", text = "Saber qué pasa y reducir la superficie de ataque." }
+dev = { title = "Desarrollo y datos", text = "Programar las herramientas que automatizan el resto." }
+
+# ---------------------------------------------------------------------------
+# Misiones
+# ---------------------------------------------------------------------------
+
+[projects.homelab-iac]
+title = "Homelab como código"
+tagline = "Mi infraestructura de casa, definida entera en Terraform y Ansible."
+context = "Proyecto personal en curso, en producción a diario."
+problem = "Los servicios de casa se habían montado a mano durante años: nadie (ni yo) sabía exactamente cómo reconstruir uno si se rompía."
+bullets = [
+  "Migré los servicios a infraestructura como código: Terraform crea los contenedores y VMs en Proxmox y roles de Ansible reutilizables configuran el sistema y las aplicaciones.",
+  "Secretos cifrados con Ansible Vault, todo versionado en Git con copia de respaldo automática, y cada cambio revisado con plan o --check --diff antes de aplicarlo.",
+  "Red MikroTik segmentada por VLANs, acceso remoto con WireGuard, Traefik como única entrada pública con certificados automáticos y DNS propio con Technitium.",
+  "Almacenamiento ZFS y RAID por software, y passthrough de GPU NVIDIA para cargas aceleradas por hardware.",
+  "Publiqué una copia saneada y pública del repositorio: sin IPs reales, secretos ni reglas de firewall.",
+]
+outcome = "Reconstruir un servicio pasa de ser una tarde de prueba y error a un comando."
+lesson = "Tras un corte de luz que dejó el almacenamiento LVM inactivo y todos los servicios caídos, escribí el postmortem con la causa raíz, cómo detectarlo y el arreglo exacto."
+
+[projects.hermes]
+title = "Hermes · asistente de IA local"
+tagline = "Un asistente en el chat que conoce el estado de mis servidores, y nada sale de mi red."
+context = "Proyecto personal, en producción desde septiembre de 2026."
+problem = "Saber si el homelab está sano obligaba a abrir varios paneles distintos (monitorización, seguridad, almacenamiento, copias)."
+bullets = [
+  "Bot conversacional en Matrix, por texto y por voz, con el modelo de lenguaje funcionando en local con Ollama.",
+  "RAG sobre mi documentación de Obsidian con Qdrant como base vectorial, combinado con instantáneas de Zabbix y Wazuh para contextualizar incidencias.",
+  "Herramientas de estado del homelab (copias, certificados, almacenamiento, actualizaciones, uso anómalo, accesos fallidos, red) que avisan solo cuando encuentran algo anormal, más un resumen diario.",
+  "Batería de evaluación con varias semillas: la versión final pasa 107 de 111 casos sin regresiones, y los cambios que empeoraban el resultado se descartaron con datos.",
+]
+outcome = "El estado del homelab se consulta con una pregunta en lenguaje natural en vez de abriendo paneles."
+lesson = "Lo que se puede calcular en código no se le pide al modelo: fechas, sumas y vencimientos fallaban mientras los hacía el LLM y dejaron de fallar al pasarlos a código."
+
+[projects.xpify]
+title = "XPIFY · e-learning gamificado"
+tagline = "Plataforma de aprendizaje con juegos y chat en tiempo real. Proyecto final con un 10/10."
+context = "Proyecto final de ASIR + DAW, desplegado en producción y evaluado funcionando."
+problem = "Hacía falta una plataforma educativa que motivara con mecánicas de juego y que se pudiera evaluar en producción real, no en una demo local."
+bullets = [
+  "Me encargué del backend, de toda la infraestructura y de la automatización del despliegue, y contribuí al frontend en Next.js.",
+  "API REST en NestJS con PostgreSQL, autenticación con Keycloak y control de acceso por roles.",
+  "Chat y eventos de juego en tiempo real con Socket.io.",
+  "Desplegada en Kubernetes (K3s) con GitOps mediante Argo CD y GitLab CI/CD, con métricas y logs en Prometheus, Grafana y Loki.",
+]
+outcome = "Calificación de 10/10, evaluada con la plataforma funcionando en producción."
+
+[projects.security]
+title = "Seguridad y monitorización"
+tagline = "Saber qué pasa en cada máquina y cerrar lo que no debería estar abierto."
+context = "Proyecto personal en curso dentro del homelab."
+problem = "Con más de veinte contenedores y VMs, revisar a mano la seguridad y el estado de cada uno no escala."
+bullets = [
+  "Despliegue automatizado con Ansible de agentes de Zabbix y Wazuh, con avisos por correo y chat probados de extremo a extremo.",
+  "Revisión de vulnerabilidades con Wazuh: se corrigieron las 430 entradas que tenían arreglo publicado y se documentaron los residuos y sus límites.",
+  "Hardening reutilizable de Linux y SSH aplicado como rol de Ansible, y auditoría de red con correcciones en el router y el cortafuegos.",
+  "Retirada de internet de todo panel que no necesitaba estar público: solo queda expuesto lo imprescindible.",
+]
+outcome = "Menos superficie expuesta y avisos que llegan solos en vez de revisiones manuales."
+lesson = "Documento qué no demuestra una auditoría tanto como lo que demuestra: 'sin hallazgos' no es 'sin vulnerabilidades'."
+
+[projects.okd]
+title = "Clúster OpenShift (OKD)"
+tagline = "Clúster de tres nodos sobre Proxmox para practicar administración de OpenShift."
+context = "Laboratorio personal, instalación completada y verificada."
+problem = "Quería practicar OpenShift de verdad, con sus problemas de instalación reales, no con un tutorial guiado."
+bullets = [
+  "Tres nodos definidos con Terraform, DNS preparado e instalación con el Agent-Based Installer.",
+  "Resueltos los problemas reales del camino: una ISO con fallo de arranque, RAM insuficiente, orden de arranque tras instalar y latencia de etcd en discos mecánicos.",
+  "Resultado verificado: 3/3 nodos Ready y 33/33 operadores sanos, con una aplicación de prueba desplegada mediante Ansible.",
+]
+outcome = "Un clúster OpenShift funcionando y un historial de instalación con cada fallo y su solución."
+lesson = "etcd no perdona los discos lentos: la latencia de almacenamiento se nota antes en el plano de control que en las aplicaciones."
+
+[projects.paperless]
+title = "Clasificación automática de documentos"
+tagline = "Scripts en Python que clasifican y asignan documentos de alumnos solos."
+context = "Prácticas en el Centro Universitario Cardenal Cisneros."
+problem = "Los documentos de alumnos se clasificaban y asignaban a mano."
+bullets = [
+  "Scripts en Python sobre la API de Paperless-ngx que clasifican y asignan los documentos automáticamente.",
+  "Investigación de IA y reconocimiento de escritura manuscrita para apoyar respuestas automáticas a consultas de alumnos.",
+]
+outcome = "Menos trabajo manual repetitivo para el personal del centro."
+
+[projects.landing]
+title = "Esta web"
+tagline = "Rust, PostgreSQL y mi propio homelab, sin plantillas ni constructores de webs."
+context = "Proyecto personal, en producción."
+problem = "Quería una forma de enseñar mi trabajo que fuera, en sí misma, una muestra de cómo trabajo."
+bullets = [
+  "Servidor en Rust con Axum y plantillas compiladas; PostgreSQL con consultas comprobadas en compilación.",
+  "Páginas pre-renderizadas detrás de Cloudflare: casi ninguna visita llega al servidor.",
+  "Desplegada con Terraform y Ansible en mi homelab, detrás de Traefik y con monitorización.",
+  "Funciona sin JavaScript; el mapa, la terminal y los logros son una mejora encima.",
+]
+outcome = "Lo que estás viendo."
+lesson = "La parte rápida de una web no es el lenguaje del servidor, es no tener que llamarlo."
+
+# ---------------------------------------------------------------------------
+# Trayectoria
+# ---------------------------------------------------------------------------
+
+[[journey]]
+kind = "work"
+title = "Técnico de Desarrollo de Software · Prácticas"
+org = "Centro Universitario Cardenal Cisneros"
+place = "Alcalá de Henares"
+period = "Sept. 2025 – Jun. 2026"
+bullets = [
+  "Desarrollé y mantuve software interno y utilidades para el personal universitario.",
+  "Rediseñé bases de datos relacionales para mejorar la organización, el acceso a datos y los flujos automatizados.",
+  "Migré el sitio web y el ecosistema de aplicaciones del centro a una versión más reciente.",
+  "Desarrollé scripts en Python para clasificar y asignar documentos de alumnos con Paperless-ngx.",
+]
+
+[[journey]]
+kind = "education"
+title = "CFGS ASIR + DAW"
+org = "GSD International School Buitrago"
+place = "Madrid"
+period = "Sept. 2023 – Jun. 2026"
+bullets = [
+  "Administración de Sistemas Informáticos en Red y Desarrollo de Aplicaciones Web, en un programa combinado.",
+  "Proyecto final: XPIFY, calificado con 10/10.",
+]
+
+[[journey]]
+kind = "work"
+title = "Técnico Informático · Prácticas internacionales"
+org = "Micro Technology Consultancy Ltd"
+place = "Ħaż-Żebbuġ, Malta"
+period = "Abr. – Jun. 2023"
+bullets = [
+  "Trabajé íntegramente en inglés, coordinando al equipo técnico local en proyectos de clientes.",
+  "Lideré la implantación de cargadores dobles para tablets y el software del cliente en una flota de 250 taxis.",
+  "Participé en el despliegue de 700 teléfonos IP en un hotel, incluida la configuración de la centralita.",
+]
+
+[[journey]]
+kind = "education"
+title = "CFGM Sistemas Microinformáticos y Redes"
+org = "GSD International School Buitrago"
+place = "Madrid"
+period = "Sept. 2021 – Jun. 2023"
+bullets = []
+
+[languages]
+items = [
+  { name = "Español", level = "Nativo" },
+  { name = "Inglés", level = "C1 comprensión · B2 expresión" },
+]
+
+[interests]
+items = ["Self-hosting y automatización", "Pádel", "Senderismo", "Juegos de mesa y escape rooms"]
+
+# ---------------------------------------------------------------------------
+# Laboratorio: nodos del mapa del homelab
+# ---------------------------------------------------------------------------
+
+[lab]
+intro = "Así está montado mi homelab. Pulsa cada pieza para ver qué hace y qué problema resolvió."
+legend_edge = "Entrada"
+legend_network = "Red"
+legend_compute = "Cómputo"
+legend_control = "Control"
+legend_observability = "Observabilidad"
+legend_ai = "IA"
+legend_app = "Aplicación"
+disclaimer = "Vista simplificada: sin direcciones, puertos ni nombres internos."
+
+[nodes.internet]
+title = "Internet"
+text = "Todo el tráfico de fuera entra por Cloudflare, que oculta la IP de casa y filtra antes de llegar."
+
+[nodes.router]
+title = "Router MikroTik"
+text = "Red segmentada por VLANs, cortafuegos auditado y acceso remoto con WireGuard. Sustituyó al router de la operadora conectándose directamente a la fibra."
+
+[nodes.traefik]
+title = "Traefik"
+text = "La única puerta de entrada pública. Certificados TLS automáticos y cabeceras de seguridad; los paneles internos no pasan por aquí."
+
+[nodes.dns]
+title = "DNS propio"
+text = "Technitium resuelve los nombres internos y bloquea publicidad y rastreadores. Migré desde Pi-hole sin perder ni una consulta durante el cambio."
+
+[nodes.proxmox]
+title = "Proxmox VE"
+text = "Servidor físico que aloja todos los contenedores LXC y máquinas virtuales, con ZFS y RAID por software."
+
+[nodes.iac]
+title = "Nodo de control IaC"
+text = "Desde aquí Terraform crea las máquinas y Ansible las configura. Nada se cambia a mano en producción."
+
+[nodes.docker]
+title = "Aplicaciones en Docker"
+text = "Las aplicaciones de casa, en stacks de Docker con actualizaciones vigiladas: el sistema avisa cuando hay una imagen nueva y la actualización espera a que el servicio esté sano."
+
+[nodes.okd]
+title = "Clúster OpenShift"
+text = "Tres nodos OKD para practicar OpenShift: 3/3 nodos Ready y 33/33 operadores sanos."
+
+[nodes.monitoring]
+title = "Zabbix y Wazuh"
+text = "Métricas, alertas y seguridad de cada máquina, con agentes desplegados por Ansible."
+
+[nodes.hermes]
+title = "Hermes (IA local)"
+text = "Asistente que responde sobre el estado del homelab en lenguaje natural, con el modelo funcionando en local."
+
+[nodes.gpu]
+title = "GPU passthrough"
+text = "GPU NVIDIA asignada a un contenedor para transcodificación por hardware."
+
+[nodes.landing]
+title = "Esta web"
+text = "Un binario de Rust con PostgreSQL en su propio contenedor sin privilegios, detrás de Traefik."
+
+# ---------------------------------------------------------------------------
+# Ahora mismo
+# ---------------------------------------------------------------------------
+
+[now]
+intro = "Lo que estoy haciendo estos días, con datos en vivo."
+focus = [
+  "Buscando mi primer puesto como administrador de sistemas o DevOps.",
+  "Mejorando Hermes, mi asistente de IA local, con evaluaciones medidas.",
+  "Ampliando el homelab como código: actualizaciones vigiladas de contenedores y monitorización.",
+  "Aprendiendo Rust construyendo esta web.",
+]
+github_title = "Actividad reciente en GitHub"
+github_empty = "No hay actividad pública reciente."
+homelab_title = "Estado del homelab"
+homelab_services = "servicios en marcha"
+homelab_uptime = "disponibilidad (30 días)"
+homelab_updated = "Actualizado"
+live_unavailable = "Los datos en vivo no están disponibles ahora mismo."
+
+# ---------------------------------------------------------------------------
+# Contacto
+# ---------------------------------------------------------------------------
+
+[contact]
+intro = "¿Tienes una vacante, una pregunta o quieres hablar de infraestructura? Escríbeme y te respondo lo antes posible."
+name = "Nombre"
+email = "Email"
+company = "Empresa (opcional)"
+message = "Mensaje"
+send = "Enviar mensaje"
+sending = "Enviando…"
+ok = "¡Mensaje enviado! Te responderé pronto."
+error = "No se ha podido enviar. Inténtalo de nuevo en unos minutos o escríbeme por LinkedIn."
+rate_limited = "Has enviado varios mensajes seguidos. Espera un poco antes de volver a intentarlo."
+invalid = "Revisa los campos marcados."
+privacy = "Solo uso tus datos para responderte. No los comparto ni los uso para nada más."
+elsewhere = "También me encuentras en"
+
+# ---------------------------------------------------------------------------
+# Terminal
+# ---------------------------------------------------------------------------
+
+[terminal]
+title = "Terminal"
+open = "Abrir terminal"
+welcome = "Bienvenido. Escribe 'help' para ver los comandos."
+prompt = "visitante@tito:~$"
+not_found = "comando no encontrado. Prueba 'help'."
+help = [
+  ["help", "muestra esta ayuda"],
+  ["whoami", "quién soy"],
+  ["ls", "lista las zonas"],
+  ["cd <zona>", "ve a una zona"],
+  ["skills [rama]", "árbol de habilidades"],
+  ["projects", "lista de misiones"],
+  ["cat <misión>", "detalle de una misión"],
+  ["status", "estado del homelab en vivo"],
+  ["cv", "descarga mi CV"],
+  ["contact", "abre el formulario de contacto"],
+  ["lang en", "switch to English"],
+  ["achievements", "tus logros"],
+  ["clear", "limpia la pantalla"],
+  ["exit", "cierra la terminal"],
+]
+whoami = "Tito Pinardo Gutiérrez — sistemas, IaC y DevOps. Busco mi primer puesto."
+sudo = "Buen intento. Aquí el único root soy yo."
+
+# ---------------------------------------------------------------------------
+# Logros
+# ---------------------------------------------------------------------------
+
+[achievements]
+explorer = { title = "Explorador", text = "Has visitado todas las zonas." }
+root = { title = "Acceso root", text = "Has usado la terminal." }
+architect = { title = "Arquitecto", text = "Has abierto cinco piezas del homelab." }
+skill_hunter = { title = "Cazador de habilidades", text = "Has filtrado por tres habilidades distintas." }
+recruiter = { title = "Reclutador", text = "Has descargado el CV." }
+polyglot = { title = "Políglota", text = "Has cambiado de idioma." }
+messenger = { title = "Mensajero", text = "Has enviado un mensaje." }

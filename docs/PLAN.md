@@ -38,11 +38,11 @@ Visitante ─▶ Cloudflare (caché en el borde, Turnstile) ─▶ Traefik (CT 1
 
 ## Fases
 
-0. **Contenido**: textos ES/EN a partir de los CV y de Obsidian → revisión.
+0. **Contenido** ✅ (04-10): `content/site.toml` (datos neutros), `content/es.toml` y `content/en.toml` (mismas claves), CV en `static/cv/`. 
 1. **Diseño y frontend**: sistema visual, mapa, árbol de habilidades, terminal y vista rápida.
 2. **Servidor en Rust**: rutas, idiomas, plantillas, API de contacto, BD, tests, `clippy` y `rustfmt`.
 3. **Infraestructura** (en mi repositorio de infraestructura): CT con Terraform, rol `landing` de Ansible, ruta en Traefik y monitorización.
-   - Comprobar el certificado: el token Cloudflare de Traefik no llega a la zona `titopinardogutierrez.com` (DNS-01). Opciones: ampliar el token o usar un certificado de origen de Cloudflare.
+   - Certificado: el token de Cloudflare en uso llega a los 3 dominios. Comprobarlo en el primer despliegue.
 4. **Datos en vivo**: actividad pública de GitHub y estado agregado del homelab.
 5. **Lanzamiento**: reglas de caché de Cloudflare, SEO (Open Graph, JSON-LD `Person`, sitemap) y enlazarla desde LinkedIn y GitHub.
 
