@@ -100,10 +100,27 @@ pub struct NodeView {
     pub x: u32,
     pub y: u32,
     pub kind: String,
+    pub group: String,
     pub short: String,
     pub title: String,
     pub text: String,
     pub tech: Vec<String>,
+}
+
+pub struct GroupView {
+    pub id: String,
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
+    pub label: String,
+}
+
+pub struct FlowView {
+    pub id: String,
+    pub title: String,
+    /// (título de la pieza, texto del paso)
+    pub steps: Vec<(String, String)>,
 }
 
 pub struct LinkView {
@@ -123,6 +140,8 @@ pub struct IndexTpl<'a> {
     pub branches: Vec<BranchView>,
     pub projects: Vec<ProjectView>,
     pub nodes: Vec<NodeView>,
+    pub groups: Vec<GroupView>,
+    pub flows: Vec<FlowView>,
     pub links: Vec<LinkView>,
     pub legend: Vec<(&'static str, String)>,
     pub turnstile_site_key: Option<&'a str>,
@@ -275,6 +294,7 @@ pub fn index(
             x: n.x,
             y: n.y,
             kind: n.kind.clone(),
+            group: n.group.clone(),
             short: t.nodes[&n.id].short.clone(),
             title: t.nodes[&n.id].title.clone(),
             text: t.nodes[&n.id].text.clone(),
@@ -303,6 +323,32 @@ pub fn index(
             }
         })
         .collect();
+    let groups = site
+        .groups
+        .iter()
+        .map(|g| GroupView {
+            id: g.id.clone(),
+            x: g.x,
+            y: g.y,
+            w: g.w,
+            h: g.h,
+            label: t.groups[&g.id].clone(),
+        })
+        .collect();
+    let flows = site
+        .flows
+        .iter()
+        .map(|f| FlowView {
+            id: f.id.clone(),
+            title: t.flows[&f.id].title.clone(),
+            steps: f
+                .path
+                .iter()
+                .zip(&t.flows[&f.id].steps)
+                .map(|(node, text)| (t.nodes[node].title.clone(), text.clone()))
+                .collect(),
+        })
+        .collect();
     let legend = [
         "edge",
         "network",
@@ -324,6 +370,8 @@ pub fn index(
         branches,
         projects,
         nodes,
+        groups,
+        flows,
         links,
         legend,
         turnstile_site_key,
@@ -357,6 +405,14 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
         })).collect::<Vec<_>>(),
         "now": t.now,
         "contact": t.contact,
+        "lab": t.lab,
+        "hermes": t.hermes,
+        "nodes": site.nodes.iter().map(|n| serde_json::json!({
+            "id": n.id, "x": n.x, "y": n.y, "title": t.nodes[&n.id].title, "text": t.nodes[&n.id].text,
+        })).collect::<Vec<_>>(),
+        "flows": site.flows.iter().map(|f| serde_json::json!({
+            "id": f.id, "title": t.flows[&f.id].title, "path": f.path, "steps": t.flows[&f.id].steps,
+        })).collect::<Vec<_>>(),
     })
 }
 

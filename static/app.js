@@ -23,6 +23,171 @@
     },
   };
 
+  // ------------------------------------------------------------ utilidades
+  const scrollTo = (el, block = "start") => el?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block });
+  const fill = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : `{${k}}`));
+
+  // Escribe el texto letra a letra (o de golpe con movimiento reducido).
+  function typeInto(el, text, done) {
+    clearInterval(el._typing);
+    el.classList.remove("is-typing");
+    if (reduceMotion || text.length > 400) {
+      el.textContent = text;
+      done?.();
+      return;
+    }
+    el.textContent = "";
+    el.classList.add("is-typing");
+    let i = 0;
+    el._typing = setInterval(() => {
+      i += 2;
+      el.textContent = text.slice(0, i);
+      if (i >= text.length) {
+        clearInterval(el._typing);
+        el.classList.remove("is-typing");
+        done?.();
+      }
+    }, 16);
+  }
+
+  // ------------------------------------------------------------ Hermes, el guía
+  // Guionizado: no hay IA aquí, solo reacciones a lo que hace el visitante.
+  const H = T.hermes;
+  const hermes = {
+    root: $("[data-hermes]"),
+    bubble: $("[data-hermes-bubble]"),
+    text: $("[data-hermes-text]"),
+    choices: $("[data-hermes-choices]"),
+    toggle: $("[data-hermes-toggle]"),
+    badge: $("[data-hermes-badge]"),
+    pending: null,
+    tour: -1,
+    idleTimer: 0,
+    idleCount: 0,
+  };
+  const tipsSeen = new Set(store.get("hermesTips", []));
+
+  function hermesIsOpen() { return !hermes.bubble.hidden; }
+
+  function hermesShow(open) {
+    hermes.bubble.hidden = !open;
+    hermes.toggle.setAttribute("aria-expanded", String(open));
+    store.set("hermesMin", !open);
+    if (open) hermes.badge.hidden = true;
+  }
+
+  // choices: [{label, run}] o [{label, href, download}]
+  function hermesSay(msg, choices = [], force = false) {
+    if (doc.classList.contains("quick-mode")) return;
+    if (!hermesIsOpen() && !force) {
+      hermes.pending = { msg, choices };
+      hermes.badge.hidden = false;
+      return;
+    }
+    hermes.pending = null;
+    hermesShow(true);
+    hermes.root.classList.add("is-talking");
+    hermes.choices.replaceChildren();
+    typeInto(hermes.text, msg, () => {
+      hermes.root.classList.remove("is-talking");
+      hermes.choices.replaceChildren(...choices.map((c, i) => {
+        const el = document.createElement(c.href ? "a" : "button");
+        el.className = "btn btn-sm" + (i === 0 ? " btn-primary" : "");
+        el.textContent = c.label;
+        if (c.href) {
+          el.href = c.href;
+          if (c.download) el.setAttribute("download", "");
+          el.addEventListener("click", () => c.run?.());
+        } else {
+          el.type = "button";
+          el.addEventListener("click", c.run);
+        }
+        return el;
+      }));
+    });
+    hermesIdleReset();
+  }
+
+  function hermesMenu(greeting) {
+    hermesSay(greeting, [
+      { label: H.choice_tour, run: () => tourGo(Math.max(0, hermes.tour)) },
+      { label: H.choice_hr, run: hermesHr },
+      { label: H.choice_lab, run: hermesLab },
+      { label: H.choice_free, run: hermesFree },
+    ], true);
+  }
+  function hermesHr() {
+    scrollTo($("#quick"));
+    hermesSay(H.hr_text, [
+      { label: T.ui.download_cv, href: T.cv, download: true, run: () => unlock("recruiter") },
+      { label: T.ui.contact, run: () => scrollTo($("#contact")) },
+    ], true);
+  }
+  function hermesLab() {
+    scrollTo($("#lab"));
+    hermesSay(H.zones.lab, [], true);
+    setTimeout(() => labStartFlow("visit"), 900);
+  }
+  function hermesFree() {
+    hermesSay(H.free_text, [], true);
+    setTimeout(() => { if (hermes.tour < 0) hermesShow(false); }, 5000);
+  }
+
+  // Tour guiado por las zonas, en orden.
+  function tourGo(i) {
+    const zones = T.zones;
+    if (i >= zones.length) {
+      hermes.tour = -1;
+      store.set("hermesTour", -1);
+      unlock("companion");
+      hermesSay(H.tour_end, [{ label: T.ui.contact, run: () => scrollTo($("#contact")) }], true);
+      return;
+    }
+    hermes.tour = i;
+    store.set("hermesTour", i);
+    const z = zones[i];
+    const section = $("#" + z.id);
+    scrollTo(section);
+    $$(".zone.is-spotlight").forEach((x) => x.classList.remove("is-spotlight"));
+    section?.classList.add("is-spotlight");
+    setTimeout(() => section?.classList.remove("is-spotlight"), 2600);
+    tipsSeen.add(z.id);
+    store.set("hermesTips", [...tipsSeen]);
+    const choices = [{ label: `${H.tour_next} (${i + 1}/${zones.length})`, run: () => tourGo(i + 1) }];
+    if (i > 0) choices.push({ label: H.tour_prev, run: () => tourGo(i - 1) });
+    choices.push({ label: H.tour_exit, run: () => { hermes.tour = -1; store.set("hermesTour", -1); hermesFree(); } });
+    hermesSay(H.zones[z.id], choices, true);
+    if (z.id === "lab") setTimeout(() => labStartFlow("visit"), 1200);
+  }
+
+  // Comentario al entrar por primera vez en una zona (fuera del tour).
+  function hermesZone(id) {
+    if (hermes.tour >= 0 || tipsSeen.has(id) || !H.zones[id]) return;
+    tipsSeen.add(id);
+    store.set("hermesTips", [...tipsSeen]);
+    hermesSay(H.zones[id]);
+  }
+
+  // Pistas si el visitante se queda quieto con el guía abierto.
+  function hermesIdleReset() {
+    clearTimeout(hermes.idleTimer);
+    hermes.idleTimer = setTimeout(() => {
+      if (!hermesIsOpen() || hermes.tour >= 0 || hermes.idleCount >= 3 || labState.playing) return;
+      const tip = H.idle[(store.get("hermesIdle", 0) + hermes.idleCount) % H.idle.length];
+      hermes.idleCount += 1;
+      store.set("hermesIdle", store.get("hermesIdle", 0) + 1);
+      hermesSay(tip);
+    }, 45000);
+  }
+  ["scroll", "pointerdown", "keydown"].forEach((ev) => addEventListener(ev, hermesIdleReset, { passive: true }));
+
+  hermes.toggle?.addEventListener("click", () => {
+    if (hermesIsOpen()) return hermesShow(false);
+    if (hermes.pending) return hermesSay(hermes.pending.msg, hermes.pending.choices, true);
+    hermesMenu(fill(H.greet_return, { zones: store.get("zones", []).length }));
+  });
+  $("[data-hermes-min]")?.addEventListener("click", () => hermesShow(false));
+
   // ------------------------------------------------------------ logros
   const unlocked = new Set(store.get("achievements", []));
   const toasts = $("[data-toasts]");
@@ -34,6 +199,9 @@
     unlocked.add(id);
     store.set("achievements", [...unlocked]);
     if (doc.classList.contains("quick-mode")) return;
+    if (hermesIsOpen() && hermes.tour < 0 && !["companion", "navigator"].includes(id)) {
+      setTimeout(() => hermesSay(fill(H.achievement, { title: a.title })), 1200);
+    }
     const el = document.createElement("div");
     el.className = "toast";
     el.setAttribute("role", "status");
@@ -54,7 +222,7 @@
     setTimeout(() => unlock("polyglot"), 600);
   }
   $$("[data-lang-switch]").forEach((a) => a.addEventListener("click", () => store.set("pendingPolyglot", true)));
-  $$("[data-cv]").forEach((a) => a.addEventListener("click", () => unlock("recruiter")));
+  $$("[data-cv]").forEach((a) => a.addEventListener("click", () => { unlock("recruiter"); hermesSay(H.cv); }));
 
   // ------------------------------------------------------------ vista rápida
   const quickBtn = $("[data-quick-toggle]");
@@ -99,6 +267,11 @@
           if (found.size === zoneIds.length) unlock("explorer");
         }
         if (id === "now") loadLive();
+        hermesZone(id);
+        if (id === "lab" && !labState.autoplayed && !reduceMotion) {
+          labState.autoplayed = true;
+          setTimeout(() => { if (!labState.flow) labStartFlow("visit"); }, 700);
+        }
       }
     }, { threshold: 0.25 });
     $$("[data-zone]").forEach((z) => seen.observe(z));
@@ -144,39 +317,206 @@
     if (b.hasAttribute("data-unused")) return;
     const tech = b.dataset.tech;
     if (activeTech === tech) return filterBy(null);
-    filterBy(tech, $(".skill-name", b).textContent);
-    $("#quests").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    const name = $(".skill-name", b).textContent;
+    filterBy(tech, name);
+    const n = quests.filter((q) => q.dataset.tech.split(" ").includes(tech)).length;
+    hermesSay(n ? fill(H.skill, { skill: name, n, missions: n === 1 ? H.mission_one : H.mission_many }) : fill(H.skill_none, { skill: name }));
+    scrollTo($("#quests"));
   }));
   $("[data-filter-clear]")?.addEventListener("click", () => filterBy(null));
 
-  // ------------------------------------------------------------ mapa del homelab
-  const lab = $(".lab");
+  // ------------------------------------------------------------ laboratorio
+  // Recorridos animados: un paquete viaja de pieza en pieza por el camino
+  // real y Hermes narra cada paso en la consola.
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const nodeById = Object.fromEntries(T.nodes.map((n) => [n.id, n]));
   const labNodes = $$(".lab-node");
+  const layer = $("[data-flow-layer]");
+  const packet = $("[data-packet]");
+  const packetGlow = $("[data-packet-glow]");
+  const consoleEl = {
+    title: $("[data-console-title]"),
+    step: $("[data-console-step]"),
+    text: $("[data-console-text]"),
+    trail: $("[data-console-trail]"),
+    controls: $("[data-console-controls]"),
+    play: $("[data-flow-play]"),
+  };
   const opened = new Set(store.get("nodes", []));
-  const wide = matchMedia("(min-width: 700px)");
+  const flowsDone = new Set(store.get("flowsDone", []));
+  const labState = { flow: null, step: -1, playing: false, timer: 0, anim: 0, autoplayed: false };
+  $$("[data-flow]").forEach((b) => b.classList.toggle("is-done", flowsDone.has(b.dataset.flow)));
 
-  function selectNode(id, focusPanel) {
-    labNodes.forEach((n) => n.classList.toggle("is-active", n.dataset.node === id));
-    labNodes.forEach((n) => n.classList.toggle("is-seen", opened.has(n.dataset.node)));
-    $$(".lab-link").forEach((l) => l.classList.toggle("is-on", l.dataset.a === id || l.dataset.b === id));
-    $$("[data-node-info]").forEach((i) => i.classList.toggle("is-active", i.dataset.nodeInfo === id));
-    opened.add(id);
+  const mapWrap = $("[data-map-wrap]");
+  // En pantallas estrechas el mapa se desplaza: se centra en la pieza activa.
+  function follow(id) {
+    const n = nodeById[id];
+    if (!mapWrap || !n || mapWrap.scrollWidth <= mapWrap.clientWidth) return;
+    const x = (n.x / 1200) * mapWrap.scrollWidth - mapWrap.clientWidth / 2;
+    mapWrap.scrollTo({ left: Math.max(0, x), behavior: reduceMotion ? "auto" : "smooth" });
+  }
+
+  function movePacket(x, y) {
+    for (const c of [packet, packetGlow]) { c?.setAttribute("cx", x); c?.setAttribute("cy", y); }
+  }
+
+  function setActiveNode(id, inPath) {
+    labNodes.forEach((n) => {
+      n.classList.toggle("is-active", n.dataset.node === id);
+      n.classList.toggle("is-dim", inPath ? !inPath.includes(n.dataset.node) : false);
+    });
+  }
+
+  function markGroups(path) {
+    const groups = new Set(path ? labNodes.filter((n) => path.includes(n.dataset.node)).map((n) => n.dataset.group) : []);
+    $$(".lab-group").forEach((g) => g.classList.toggle("is-on", groups.has(g.dataset.group)));
+  }
+
+  function segment(from, to, animate, done) {
+    const a = nodeById[from], b = nodeById[to];
+    const path = document.createElementNS(SVGNS, "path");
+    path.setAttribute("class", "flow-trail");
+    path.setAttribute("d", `M${a.x} ${a.y} L${b.x} ${b.y}`);
+    $$(".flow-trail", layer).forEach((p) => p.classList.add("is-old"));
+    layer.append(path);
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    if (!animate || reduceMotion || len === 0) {
+      movePacket(b.x, b.y);
+      return done?.();
+    }
+    path.style.strokeDasharray = `${len}`;
+    path.style.strokeDashoffset = `${len}`;
+    const dur = Math.min(1300, 450 + len * 1.1);
+    const t0 = performance.now();
+    cancelAnimationFrame(labState.anim);
+    const tick = (now) => {
+      const k = Math.min(1, (now - t0) / dur);
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      movePacket(a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e);
+      path.style.strokeDashoffset = `${len * (1 - e)}`;
+      if (k < 1) labState.anim = requestAnimationFrame(tick);
+      else { path.style.strokeDasharray = ""; path.style.strokeDashoffset = ""; done?.(); }
+    };
+    labState.anim = requestAnimationFrame(tick);
+  }
+
+  function paintTrail(flow, step) {
+    consoleEl.trail.replaceChildren(...flow.path.map((id, i) => {
+      const li = document.createElement("li");
+      li.textContent = nodeById[id].title.split(" (")[0];
+      li.className = i < step ? "is-done" : i === step ? "is-now" : "";
+      return li;
+    }));
+  }
+
+  function narrate(flow, step) {
+    consoleEl.title.textContent = flow.title;
+    consoleEl.step.textContent = `${T.lab.step} ${step + 1} ${T.lab.of} ${flow.path.length}`;
+    paintTrail(flow, step);
+    setActiveNode(flow.path[step], flow.path);
+    follow(flow.path[step]);
+    labNodes.find((n) => n.dataset.node === flow.path[step])?.classList.add("is-visited");
+    typeInto(consoleEl.text, flow.steps[step], () => {
+      clearTimeout(labState.timer);
+      if (labState.playing) labState.timer = setTimeout(() => labStep(step + 1, true), 1500);
+    });
+  }
+
+  function labStep(i, animate) {
+    const flow = labState.flow;
+    if (!flow) return;
+    clearTimeout(labState.timer);
+    if (i >= flow.path.length) return labFinish();
+    if (i < 0) i = 0;
+    const forward = i === labState.step + 1 && i > 0;
+    if (!forward) {
+      // Saltar atrás (o reiniciar): se redibuja el camino sin animación.
+      layer.replaceChildren();
+      labNodes.forEach((n) => n.classList.remove("is-visited"));
+      for (let k = 1; k <= i; k++) segment(flow.path[k - 1], flow.path[k], false);
+      for (let k = 0; k <= i; k++) labNodes.find((n) => n.dataset.node === flow.path[k])?.classList.add("is-visited");
+      const n0 = nodeById[flow.path[i]];
+      movePacket(n0.x, n0.y);
+      labState.step = i;
+      return narrate(flow, i);
+    }
+    labState.step = i;
+    follow(flow.path[i]);
+    segment(flow.path[i - 1], flow.path[i], animate, () => narrate(flow, i));
+  }
+
+  function setPlaying(on) {
+    labState.playing = on;
+    consoleEl.play.textContent = on ? T.lab.pause : T.lab.play;
+  }
+
+  function labStartFlow(id) {
+    const flow = T.flows.find((f) => f.id === id);
+    if (!flow || !layer) return;
+    cancelAnimationFrame(labState.anim);
+    clearTimeout(labState.timer);
+    labState.flow = flow;
+    labState.step = -1;
+    $$("[data-flow]").forEach((b) => b.classList.toggle("is-active", b.dataset.flow === id));
+    markGroups(flow.path);
+    consoleEl.controls.hidden = false;
+    setPlaying(true);
+    layer.replaceChildren();
+    labNodes.forEach((n) => n.classList.remove("is-visited"));
+    labStep(0, false);
+  }
+
+  function labFinish() {
+    const flow = labState.flow;
+    setPlaying(false);
+    consoleEl.play.textContent = T.lab.replay;
+    labState.step = flow.path.length;
+    paintTrail(flow, flow.path.length);
+    typeInto(consoleEl.text, H.flow_done);
+    flowsDone.add(flow.id);
+    store.set("flowsDone", [...flowsDone]);
+    $(`[data-flow="${flow.id}"]`)?.classList.add("is-done");
+    $(`[data-flow="${flow.id}"]`)?.classList.remove("is-active");
+    unlock("navigator");
+  }
+
+  $$("[data-flow]").forEach((b) => b.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    labStartFlow(b.dataset.flow);
+    if (hermes.tour < 0) hermesSay(fill(H.flow_start, { flow: b.textContent.trim() }));
+    if (!matchMedia("(min-width: 1100px)").matches) scrollTo($("[data-console]"), "center");
+  }));
+  consoleEl.play?.addEventListener("click", () => {
+    const flow = labState.flow;
+    if (!flow) return;
+    if (labState.step >= flow.path.length) return labStartFlow(flow.id);
+    setPlaying(!labState.playing);
+    if (labState.playing) labStep(labState.step + 1, true);
+    else clearTimeout(labState.timer);
+  });
+  $("[data-flow-next]")?.addEventListener("click", () => { setPlaying(false); labStep(labState.step + 1, true); });
+  $("[data-flow-prev]")?.addEventListener("click", () => { setPlaying(false); labStep(labState.step - 1, false); });
+
+  // Pulsar una pieza: se para el recorrido y Hermes cuenta qué hace.
+  labNodes.forEach((n) => n.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    const node = nodeById[n.dataset.node];
+    if (labState.flow) { setPlaying(false); cancelAnimationFrame(labState.anim); clearTimeout(labState.timer); }
+    labState.flow = null;
+    $$("[data-flow]").forEach((b) => b.classList.remove("is-active"));
+    consoleEl.controls.hidden = true;
+    consoleEl.trail.replaceChildren();
+    layer.replaceChildren();
+    markGroups([node.id]);
+    setActiveNode(node.id, null);
+    movePacket(node.x, node.y);
+    consoleEl.title.textContent = node.title;
+    consoleEl.step.textContent = "";
+    typeInto(consoleEl.text, node.text);
+    opened.add(node.id);
     store.set("nodes", [...opened]);
     if (opened.size >= 5) unlock("architect");
-    if (focusPanel && !wide.matches) $(`#node-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-  if (lab && labNodes.length) {
-    lab.classList.add("has-panel");
-    labNodes.forEach((n) => n.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      selectNode(n.dataset.node, true);
-    }));
-    // Al cargar se muestra el servidor central, sin contar como "abierto".
-    const first = "proxmox";
-    labNodes.forEach((n) => n.classList.toggle("is-active", n.dataset.node === first));
-    $$(".lab-link").forEach((l) => l.classList.toggle("is-on", l.dataset.a === first || l.dataset.b === first));
-    $$("[data-node-info]").forEach((i) => i.classList.toggle("is-active", i.dataset.nodeInfo === first));
-  }
+  }));
 
   // ------------------------------------------------------------ datos en vivo
   let live = null;
@@ -378,6 +718,7 @@
     clear() { out.replaceChildren(); },
     exit() { closeTerminal(); },
     sudo() { print(T.terminal.sudo, "t-err"); },
+    hermes() { closeTerminal(); hermesMenu(fill(H.greet_return, { zones: found.size })); },
   };
   commands.quit = commands.exit;
   commands.man = commands.help;
@@ -421,4 +762,58 @@
       openTerminal();
     }
   });
+
+  // ------------------------------------------------------------ apariciones y contadores
+  if ("IntersectionObserver" in window && !reduceMotion) {
+    const reveal = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        e.target.classList.add("is-in");
+        reveal.unobserve(e.target);
+      }
+    }, { threshold: 0.12 });
+    const groups = [".values > li", ".branch", ".quest", ".timeline > li", ".world-tile", ".now-grid > .card", ".side > .card", ".flow-buttons > li"];
+    for (const sel of groups) {
+      $$(sel).forEach((el, i) => {
+        el.classList.add("reveal");
+        el.style.transitionDelay = `${Math.min(i, 6) * 70}ms`;
+        reveal.observe(el);
+      });
+    }
+
+    const counters = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        counters.unobserve(e.target);
+        const m = /^(\d+)(.*)$/.exec(e.target.textContent.trim());
+        if (!m) continue;
+        const target = Number(m[1]), rest = m[2], t0 = performance.now();
+        const tick = (now) => {
+          const k = Math.min(1, (now - t0) / 1200);
+          e.target.textContent = Math.round(target * (1 - Math.pow(1 - k, 3))) + rest;
+          if (k < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.6 });
+    $$(".stats strong").forEach((el) => counters.observe(el));
+  }
+
+  // ------------------------------------------------------------ Hermes saluda
+  setTimeout(() => {
+    if (doc.classList.contains("quick-mode")) return;
+    const tour = store.get("hermesTour", -1);
+    if (!store.get("hermesGreeted", false)) {
+      store.set("hermesGreeted", true);
+      hermesMenu(H.greet);
+    } else if (tour >= 0) {
+      hermes.tour = tour;
+      hermesSay(fill(H.greet_return, { zones: found.size }), [
+        { label: H.tour_next, run: () => tourGo(tour) },
+        { label: H.choice_free, run: hermesFree },
+      ], !store.get("hermesMin", false));
+    } else if (!store.get("hermesMin", true)) {
+      hermesMenu(fill(H.greet_return, { zones: found.size }));
+    }
+  }, 1400);
 })();

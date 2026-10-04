@@ -279,75 +279,316 @@ items = ["Self-hosting y automatización", "Pádel", "Senderismo", "Juegos de me
 # ---------------------------------------------------------------------------
 
 [lab]
-intro = "Así está montado mi homelab. Pulsa cada pieza para ver qué hace y qué problema resolvió."
-legend_edge = "Entrada"
+intro = "Así es mi servidor por dentro. Elige un recorrido y mira el camino que hace cada cosa de verdad, o pulsa cualquier pieza para ver qué hace."
+server_title = "Servidor Proxmox"
+server_specs = "48 núcleos · 251 GB de RAM · ZFS · GPU NVIDIA"
+outside = "Fuera del servidor"
+flows_title = "Recorridos"
+flows_hint = "Pulsa uno y sigue el paquete."
+play = "Reproducir"
+pause = "Pausa"
+prev = "Anterior"
+next = "Siguiente"
+replay = "Otra vez"
+step = "Paso"
+of = "de"
+pick_node = "Pulsa una pieza del servidor o elige un recorrido."
+legend_edge = "Fuera"
 legend_network = "Red"
-legend_compute = "Cómputo"
+legend_compute = "Cómputo y multimedia"
 legend_control = "Control"
 legend_observability = "Observabilidad"
 legend_ai = "IA"
 legend_app = "Aplicación"
 disclaimer = "Vista simplificada: sin direcciones, puertos ni nombres internos."
 
+[groups]
+edge = "Entrada y red"
+apps = "Aplicaciones"
+media = "Multimedia"
+ai = "IA local"
+observability = "Observabilidad y seguridad"
+platform = "Plataforma"
+lab = "Hipervisor y laboratorio"
+
 [nodes.internet]
 short = "Internet"
 title = "Internet"
-text = "Todo el tráfico de fuera entra por Cloudflare, que oculta la IP de casa y filtra antes de llegar."
+text = "Cualquier visitante, en cualquier parte del mundo."
+
+[nodes.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "Primera parada de todo el tráfico de fuera: oculta la IP de casa, filtra ataques y guarda copias en caché cerca del visitante."
+
+[nodes.movil]
+short = "Mi móvil"
+title = "Mi móvil (Element)"
+text = "Desde Element hablo con Hermes y recibo avisos y mensajes, esté donde esté."
 
 [nodes.router]
 short = "MikroTik"
 title = "Router MikroTik"
-text = "Red segmentada por VLANs, cortafuegos auditado y acceso remoto con WireGuard. Sustituyó al router de la operadora conectándose directamente a la fibra."
+text = "Conectado directamente a la fibra. Red separada por VLANs, cortafuegos auditado y VPN WireGuard para entrar desde fuera."
+
+[nodes.pc]
+short = "PC con GPU"
+title = "PC con GPU (Ollama)"
+text = "El modelo de lenguaje de Hermes corre aquí, en local: nada sale de mi red. Si el PC está apagado, las preguntas esperan en cola."
+
+[nodes.github]
+short = "Git"
+title = "Repositorio Git"
+text = "Toda la infraestructura vive como código versionado. Cada cambio empieza aquí."
 
 [nodes.traefik]
 short = "Traefik"
 title = "Traefik"
-text = "La única puerta de entrada pública. Certificados TLS automáticos y cabeceras de seguridad; los paneles internos no pasan por aquí."
+text = "La única puerta pública del servidor: certificados TLS automáticos y una ruta por servicio publicado. Los paneles internos no pasan por aquí."
+
+[nodes.authelia]
+short = "SSO + 2FA"
+title = "Caddy + Authelia"
+text = "Entrada a los paneles internos, solo desde casa o la VPN, con inicio de sesión único y doble factor."
 
 [nodes.dns]
 short = "DNS"
-title = "DNS propio"
-text = "Technitium resuelve los nombres internos y bloquea publicidad y rastreadores. Migré desde Pi-hole sin perder ni una consulta durante el cambio."
-
-[nodes.proxmox]
-short = "Proxmox VE"
-title = "Proxmox VE"
-text = "Servidor físico que aloja todos los contenedores LXC y máquinas virtuales, con ZFS y RAID por software."
-
-[nodes.iac]
-short = "Control IaC"
-title = "Nodo de control IaC"
-text = "Desde aquí Terraform crea las máquinas y Ansible las configura. Nada se cambia a mano en producción."
-
-[nodes.docker]
-short = "Docker"
-title = "Aplicaciones en Docker"
-text = "Las aplicaciones de casa, en stacks de Docker con actualizaciones vigiladas: el sistema avisa cuando hay una imagen nueva y la actualización espera a que el servicio esté sano."
-
-[nodes.okd]
-short = "OpenShift"
-title = "Clúster OpenShift"
-text = "Tres nodos OKD para practicar OpenShift: 3/3 nodos Ready y 33/33 operadores sanos."
-
-[nodes.monitoring]
-short = "Zabbix + Wazuh"
-title = "Zabbix y Wazuh"
-text = "Métricas, alertas y seguridad de cada máquina, con agentes desplegados por Ansible."
-
-[nodes.hermes]
-short = "Hermes (IA)"
-title = "Hermes (IA local)"
-text = "Asistente que responde sobre el estado del homelab en lenguaje natural, con el modelo funcionando en local."
-
-[nodes.gpu]
-short = "GPU"
-title = "GPU passthrough"
-text = "GPU NVIDIA asignada a un contenedor para transcodificación por hardware."
+title = "Technitium DNS"
+text = "Resuelve los nombres internos y bloquea publicidad y rastreadores en toda la casa. Migrado desde Pi-hole sin perder una consulta."
 
 [nodes.landing]
 short = "Esta web"
 title = "Esta web"
-text = "Un binario de Rust con PostgreSQL en su propio contenedor sin privilegios, detrás de Traefik."
+text = "Un binario de Rust de 11 MB que usa unos 12 MB de RAM, en su propio contenedor sin privilegios y con el cortafuegos más estricto del servidor."
+
+[nodes.postgres]
+short = "PostgreSQL"
+title = "PostgreSQL"
+text = "Guarda los mensajes del formulario. Sin red: solo se le habla por el socket local."
+
+[nodes.matrix]
+short = "Matrix"
+title = "Matrix (Synapse + Element)"
+text = "Mi propio servidor de mensajería. Aquí viven Hermes, los avisos del servidor y los mensajes de esta web."
+
+[nodes.paperless]
+short = "Paperless"
+title = "Paperless-ngx"
+text = "Digitaliza y clasifica documentos con OCR. Aislado del resto a propósito: guarda papeles personales."
+
+[nodes.obsidian]
+short = "Obsidian"
+title = "Obsidian"
+text = "La documentación del homelab: procedimientos, incidentes y postmortems. Hermes la consulta para responder."
+
+[nodes.n8n]
+short = "n8n"
+title = "n8n"
+text = "Automatizaciones entre servicios: tareas programadas y avisos."
+
+[nodes.homepage]
+short = "Homepage"
+title = "Homepage"
+text = "El panel de entrada a todos los servicios, generado por Ansible desde la misma lista que usa Traefik."
+
+[nodes.amp]
+short = "Juegos"
+title = "Servidores de juegos (AMP)"
+text = "Servidores de juegos para amigos, con apertura automática del cortafuegos solo mientras están encendidos."
+
+[nodes.plex]
+short = "Plex"
+title = "Plex"
+text = "El servidor multimedia de la casa, con transcodificación por hardware."
+
+[nodes.arr]
+short = "Biblioteca"
+title = "Biblioteca automatizada (*arr)"
+text = "Un conjunto de servicios que mantiene la biblioteca ordenada sola: nombres, metadatos, subtítulos y la calidad que elijo."
+
+[nodes.tv]
+short = "TV en directo"
+title = "TV en directo"
+text = "Canales públicos de TDT con su guía de programación, servidos a Plex como si fuera un sintonizador."
+
+[nodes.gpu]
+short = "GPU NVIDIA"
+title = "GPU passthrough"
+text = "Una GPU NVIDIA asignada al contenedor de Plex para convertir vídeo por hardware sin cargar la CPU."
+
+[nodes.hermes]
+short = "Hermes"
+title = "Hermes (asistente de IA)"
+text = "El bot que responde sobre el estado del servidor en lenguaje natural. El de esta página es su versión sin IA."
+
+[nodes.qdrant]
+short = "Qdrant"
+title = "Qdrant"
+text = "Base de datos vectorial: guarda la documentación y las conversaciones para que Hermes encuentre lo relevante (RAG)."
+
+[nodes.zabbix]
+short = "Zabbix"
+title = "Zabbix"
+text = "Métricas y alertas de cada máquina: CPU, discos, RAID, ZFS, contenedores Docker."
+
+[nodes.wazuh]
+short = "Wazuh"
+title = "Wazuh"
+text = "Seguridad: vulnerabilidades, inicios de sesión sospechosos y comprobaciones CIS en todos los contenedores."
+
+[nodes.iac]
+short = "Control IaC"
+title = "Nodo de control IaC"
+text = "Desde aquí Terraform crea las máquinas y Ansible las configura. También corren aquí los agentes de IA con los que trabajo."
+
+[nodes.zfs]
+short = "ZFS + RAID"
+title = "Almacenamiento ZFS"
+text = "Pools ZFS y RAID por software para los sistemas y la biblioteca, vigilados por Zabbix."
+
+[nodes.proxmox]
+short = "Proxmox VE"
+title = "Proxmox VE"
+text = "El hipervisor: unos veinte contenedores LXC y las máquinas virtuales del laboratorio."
+
+[nodes.okd]
+short = "OpenShift"
+title = "Clúster OpenShift (OKD)"
+text = "Tres nodos para practicar OpenShift: 3/3 Ready y 33/33 operadores sanos."
+
+[nodes.backup]
+short = "Respaldo Git"
+title = "Respaldo del repositorio"
+text = "Un segundo repositorio que se actualiza solo en cada commit de la infraestructura."
+
+[flows.visit]
+title = "Tu visita a esta web"
+steps = [
+  "Escribes titopinardogutierrez.com en el navegador.",
+  "Cloudflare recibe la petición, comprueba que no es un ataque y la reenvía a mi casa.",
+  "El router MikroTik solo deja pasar el tráfico web hacia Traefik.",
+  "Traefik termina el TLS y sabe, por el dominio, que va para esta web.",
+  "El binario de Rust ya tiene la página renderizada en memoria: responde en microsegundos.",
+  "La respuesta vuelve por Cloudflare, que guarda una copia de lo que se puede cachear.",
+  "Y ya la estás viendo. Todo el viaje, en milisegundos.",
+]
+
+[flows.contact]
+title = "Cuando me escribes"
+steps = [
+  "Rellenas el formulario de contacto y pulsas enviar.",
+  "Cloudflare filtra el tráfico automatizado.",
+  "El router lo deja pasar hacia Traefik.",
+  "Traefik lo entrega a la web.",
+  "La web valida los campos, mira el campo trampa y comprueba el límite de envíos por IP.",
+  "Primero se guarda en PostgreSQL: si algo falla después, el mensaje no se pierde.",
+  "Un trabajador en segundo plano recoge los mensajes pendientes de avisar.",
+  "Lo publica en mi sala de Matrix y no lo da por entregado hasta recibir su identificador.",
+  "Me llega al móvil. Te respondo yo, en persona.",
+]
+
+[flows.ask]
+title = "Pregunto a Hermes"
+steps = [
+  "Escribo a Hermes desde el móvil: «¿cómo están los discos?».",
+  "El mensaje entra por Cloudflare.",
+  "Llega a mi servidor de Matrix.",
+  "Hermes decide qué herramientas necesita para responder.",
+  "Busca en Qdrant la documentación relevante de Obsidian.",
+  "Pide a Zabbix el estado real de los discos y del ZFS.",
+  "El modelo local, en el PC con GPU, redacta la respuesta. Nada sale de casa.",
+  "Hermes comprueba la respuesta: lo que se puede calcular, lo calcula el código, no el modelo.",
+  "La respuesta vuelve por Matrix.",
+  "Y la leo en el móvil.",
+]
+
+[flows.alert]
+title = "Algo se rompe"
+steps = [
+  "Un servicio empieza a fallar: por ejemplo, Plex se queda sin espacio temporal.",
+  "Zabbix lo detecta con sus comprobaciones.",
+  "Hermes recibe el problema y lo explica en lenguaje claro, con contexto de la documentación.",
+  "Lo publica en la sala de avisos de Matrix.",
+  "Me entero antes que nadie de la casa.",
+]
+
+[flows.deploy]
+title = "Despliego un servicio"
+steps = [
+  "Todo empieza con un commit: el servicio nuevo se describe como código.",
+  "En el nodo de control, Terraform calcula el plan: qué se crea, qué cambia y qué no se toca.",
+  "Proxmox crea el contenedor exactamente como dice el código.",
+  "El servicio arranca en su contenedor nuevo.",
+  "Ansible lo configura: hardening, cortafuegos, aplicación y comprobación de que responde.",
+  "El agente de Zabbix empieza a enviar métricas.",
+  "Wazuh empieza a vigilar su seguridad.",
+  "Y el cambio queda guardado también en el repositorio de respaldo.",
+]
+
+[flows.media]
+title = "Una noche de película"
+steps = [
+  "La biblioteca se organiza sola: nombres, metadatos y subtítulos.",
+  "Todo se guarda en los pools ZFS, con redundancia.",
+  "Plex lo presenta con carátulas y sinopsis.",
+  "Si el dispositivo no soporta el formato, la GPU lo convierte por hardware.",
+  "Plex sirve el vídeo ya adaptado.",
+  "Sale por el router.",
+  "Y se ve en cualquier pantalla, en casa o fuera.",
+]
+
+[flows.remote]
+title = "Entro desde fuera"
+steps = [
+  "Estoy fuera de casa y necesito un documento.",
+  "Me conecto a la VPN WireGuard del router: los paneles no están en internet.",
+  "El DNS interno resuelve el nombre del servicio.",
+  "Authelia me pide usuario y segundo factor.",
+  "Y entro en Paperless como si estuviera en casa.",
+]
+
+[hermes]
+name = "Hermes"
+role = "Tu guía (sin IA, lo prometo)"
+open = "Hablar con Hermes"
+minimize = "Minimizar"
+greet = "¡Hola! Soy Hermes, el mensajero de este servidor. En la versión de verdad respondo con IA; aquí solo soy tu guía. ¿Cómo quieres ver a Tito?"
+greet_return = "¡Has vuelto! Llevas {zones} de 7 zonas descubiertas. ¿Seguimos?"
+choice_tour = "Hazme un tour"
+choice_hr = "Soy de RR. HH., al grano"
+choice_free = "Exploro a mi aire"
+choice_lab = "Enséñame el servidor"
+hr_text = "Perfecto. Lo esencial está en la vista rápida: perfil, formación, idiomas y el CV para descargar. Si te encaja, el formulario de contacto le llega al móvil al momento."
+free_text = "Vale, aquí estaré. Pulsa sobre mí cuando quieras; iré comentando lo que encuentres."
+tour_next = "Siguiente"
+tour_prev = "Atrás"
+tour_exit = "Salir del tour"
+tour_end = "¡Fin del tour! Has visto todo. Si quieres hablar con Tito, el formulario está justo aquí."
+idle = [
+  "Pista: pulsa una habilidad en el árbol y verás en qué proyectos la ha usado.",
+  "En el laboratorio puedes seguir el camino de un mensaje por dentro del servidor.",
+  "¿Sabías que hay una terminal? Prueba la tecla ` o el botón >_ arriba.",
+  "Cada proyecto se despliega: pulsa el + para ver el problema, lo que hizo y lo que aprendió.",
+  "Los logros se guardan solo en tu navegador. Nada de cookies.",
+]
+skill = "{skill} aparece en {n} {missions}. Te las he resaltado."
+mission_one = "misión"
+mission_many = "misiones"
+skill_none = "{skill} no está en ninguna misión pública todavía."
+flow_start = "Te narro el recorrido «{flow}» en el laboratorio."
+flow_done = "¡Recorrido completado! Prueba otro: cada uno enseña una parte distinta del servidor."
+achievement = "¡Logro desbloqueado: {title}!"
+cv = "Buena elección. El CV tiene todo en dos páginas."
+lang = "Cambiando de idioma… ¡nos vemos al otro lado!"
+
+[hermes.zones]
+about = "Esta es la base: quién es Tito y cómo trabaja. Fíjate en las tres reglas de la derecha, las aplica de verdad."
+skills = "El árbol de habilidades. Los puntos indican la profundidad real: tres es «lo usa a diario en producción». Pulsa cualquiera para filtrar."
+quests = "Las misiones son proyectos reales, no ejercicios. Despliega cualquiera para ver el problema, lo que hizo y lo que aprendió."
+journey = "La trayectoria: prácticas en la universidad, unas prácticas en Malta trabajando en inglés y la formación."
+lab = "¡Mi casa! Este es el servidor por dentro. Elige un recorrido y te cuento el camino que hace cada cosa."
+now = "Esto se actualiza solo: actividad pública en GitHub y lo que tiene entre manos."
+contact = "Si escribes aquí, el mensaje se guarda primero y luego se lo llevo yo al móvil. Literalmente: soy el mensajero."
 
 # ---------------------------------------------------------------------------
 # Ahora mismo
@@ -411,6 +652,7 @@ help = [
   ["contact", "abre el formulario de contacto"],
   ["lang en", "switch to English"],
   ["achievements", "tus logros"],
+  ["hermes", "llama a Hermes, tu guía"],
   ["clear", "limpia la pantalla"],
   ["exit", "cierra la terminal"],
 ]
@@ -429,3 +671,5 @@ skill_hunter = { title = "Cazador de habilidades", text = "Has filtrado por tres
 recruiter = { title = "Reclutador", text = "Has descargado el CV." }
 polyglot = { title = "Políglota", text = "Has cambiado de idioma." }
 messenger = { title = "Mensajero", text = "Has enviado un mensaje." }
+navigator = { title = "Navegante", text = "Has completado un recorrido por dentro del servidor." }
+companion = { title = "Compañero de viaje", text = "Has hecho el tour con Hermes." }

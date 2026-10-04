@@ -1,6 +1,6 @@
 # titopinardogutierrez.com
 
-Mi web personal: quién soy, qué sé hacer y en qué trabajo, en español e inglés. Tiene un mapa interactivo de mi homelab, un árbol de habilidades que filtra los proyectos, una terminal, logros y un formulario de contacto. Para quien tenga prisa hay una **vista rápida** con lo esencial.
+Mi web personal: quién soy, qué sé hacer y en qué trabajo, en español e inglés. Te guía **Hermes**, un compañero sin IA (guionizado) que ofrece un tour, un atajo para RR. HH. y comentarios según lo que haces. El **laboratorio** enseña mi servidor por dentro: siete recorridos animados (tu visita, un mensaje de contacto, una pregunta a mi asistente de IA, una alerta, un despliegue…) en los que un paquete viaja de pieza en pieza mientras Hermes narra cada paso. Además: árbol de habilidades que filtra los proyectos, terminal, logros y formulario de contacto. Para quien tenga prisa hay una **vista rápida** con lo esencial.
 
 ## Cómo está hecha
 
@@ -14,9 +14,9 @@ Mi web personal: quién soy, qué sé hacer y en qué trabajo, en español e ing
 
 | Ruta | Qué hay |
 |---|---|
-| `content/site.toml` | Datos que no dependen del idioma: tecnologías, proyectos y nodos del homelab |
+| `content/site.toml` | Datos que no dependen del idioma: tecnologías, proyectos, piezas y grupos del servidor y recorridos |
 | `content/es.toml`, `content/en.toml` | Textos, con las mismas claves (el servidor no arranca si falta alguna) |
-| `templates/` | Plantillas HTML |
+| `templates/` | Plantillas HTML (y el avatar de Hermes en SVG) |
 | `static/` | CSS, JS, imágenes y CV (se compilan dentro del binario) |
 | `migrations/` | Esquema de PostgreSQL |
 | `src/` | Servidor |

@@ -43,6 +43,7 @@ Visitante ─▶ Cloudflare (caché en el borde, Turnstile) ─▶ Traefik (CT 1
 2. **Servidor en Rust** ✅ (04-10): 35 pruebas (unitarias y de extremo a extremo contra PostgreSQL y un Matrix simulado), clippy sin avisos, CI en `.github/workflows/ci.yml`.
 3. **Infraestructura** (en mi repositorio de infraestructura): ✅ un contenedor LXC propio con Terraform, rol `landing`, hardening, Zabbix y Wazuh, desplegado y sano. ⏳ Falta la ruta pública en Traefik.
    - Certificado: el token de Cloudflare en uso llega a los 3 dominios. Comprobarlo en el primer despliegue.
+3b. **Más interactividad** ✅ (04-10): Hermes como guía guionizado (tour, modo RR. HH., consejos por zona, reacciones), laboratorio con el servidor por dentro (30 piezas en 7 grupos) y 7 recorridos animados con narración; apariciones al hacer scroll y contadores.
 4. **Datos en vivo**: actividad pública de GitHub y estado agregado del homelab.
 5. **Lanzamiento**: reglas de caché de Cloudflare, SEO (Open Graph, JSON-LD `Person`, sitemap) y enlazarla desde LinkedIn y GitHub.
 

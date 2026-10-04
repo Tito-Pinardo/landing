@@ -55,7 +55,9 @@ pub struct Site {
     pub branches: Vec<Branch>,
     pub tech: Vec<Tech>,
     pub projects: Vec<Project>,
+    pub groups: Vec<Group>,
     pub nodes: Vec<Node>,
+    pub flows: Vec<Flow>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -120,7 +122,28 @@ pub struct Node {
     pub x: u32,
     pub y: u32,
     pub kind: String,
+    /// Grupo dentro del servidor; vacío si la pieza está fuera.
+    pub group: String,
     pub tech: Vec<String>,
+}
+
+/// Zona rectangular del servidor en el mapa del laboratorio.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Group {
+    pub id: String,
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
+}
+
+/// Recorrido animado: la lista de piezas por las que pasa algo de verdad.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Flow {
+    pub id: String,
+    pub path: Vec<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -142,7 +165,10 @@ pub struct Texts {
     pub languages: Items<LanguageItem>,
     pub interests: Items<String>,
     pub lab: BTreeMap<String, String>,
+    pub groups: BTreeMap<String, String>,
     pub nodes: BTreeMap<String, NodeText>,
+    pub flows: BTreeMap<String, FlowText>,
+    pub hermes: Hermes,
     pub now: Now,
     pub contact: BTreeMap<String, String>,
     pub terminal: Terminal,
@@ -212,6 +238,24 @@ pub struct Fact {
 pub struct TitleText {
     pub title: String,
     pub text: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FlowText {
+    pub title: String,
+    /// Un texto por pieza del recorrido (mismo número que `path`).
+    pub steps: Vec<String>,
+}
+
+/// Textos del guía. Los mensajes sueltos van en `text` (se validan contra
+/// `HERMES_KEYS`); las listas, aparte.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Hermes {
+    pub idle: Vec<String>,
+    pub zones: BTreeMap<String, String>,
+    #[serde(flatten)]
+    pub text: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -332,6 +376,19 @@ const UI_KEYS: &[&str] = &[
 ];
 const LAB_KEYS: &[&str] = &[
     "intro",
+    "server_title",
+    "server_specs",
+    "outside",
+    "flows_title",
+    "flows_hint",
+    "play",
+    "pause",
+    "prev",
+    "next",
+    "replay",
+    "step",
+    "of",
+    "pick_node",
     "legend_edge",
     "legend_network",
     "legend_compute",
@@ -340,6 +397,33 @@ const LAB_KEYS: &[&str] = &[
     "legend_ai",
     "legend_app",
     "disclaimer",
+];
+const HERMES_KEYS: &[&str] = &[
+    "name",
+    "role",
+    "open",
+    "minimize",
+    "greet",
+    "greet_return",
+    "choice_tour",
+    "choice_hr",
+    "choice_free",
+    "choice_lab",
+    "hr_text",
+    "free_text",
+    "tour_next",
+    "tour_prev",
+    "tour_exit",
+    "tour_end",
+    "skill",
+    "mission_one",
+    "mission_many",
+    "skill_none",
+    "flow_start",
+    "flow_done",
+    "achievement",
+    "cv",
+    "lang",
 ];
 const CONTACT_KEYS: &[&str] = &[
     "intro",
@@ -410,12 +494,39 @@ impl Content {
             }
         }
         for n in &site.nodes {
-            ensure!(n.x <= 1000 && n.y <= 520, "nodo {} fuera del lienzo", n.id);
+            ensure!(n.x <= 1200 && n.y <= 800, "nodo {} fuera del lienzo", n.id);
+            ensure!(
+                n.group.is_empty() || site.groups.iter().any(|g| g.id == n.group),
+                "nodo {}: grupo desconocido {}",
+                n.id,
+                n.group
+            );
             for t in &n.tech {
                 ensure!(
                     tech.contains(t.as_str()),
                     "nodo {}: tecnología desconocida {t}",
                     n.id
+                );
+            }
+        }
+        for g in &site.groups {
+            ensure!(
+                g.x + g.w <= 1200 && g.y + g.h <= 800,
+                "grupo {} fuera del lienzo",
+                g.id
+            );
+        }
+        for f in &site.flows {
+            ensure!(
+                f.path.len() >= 2,
+                "recorrido {}: hacen falta al menos dos pasos",
+                f.id
+            );
+            for id in &f.path {
+                ensure!(
+                    nodes.contains(id.as_str()),
+                    "recorrido {}: pieza desconocida {id}",
+                    f.id
                 );
             }
         }
@@ -467,6 +578,29 @@ impl Content {
             }
             required(code, "ui", UI_KEYS, &t.ui)?;
             required(code, "lab", LAB_KEYS, &t.lab)?;
+            required(code, "hermes", HERMES_KEYS, &t.hermes.text)?;
+            same_keys(code, "hermes.zones", ZONES, keys(&t.hermes.zones))?;
+            same_keys(
+                code,
+                "groups",
+                site.groups.iter().map(|g| g.id.as_str()),
+                keys(&t.groups),
+            )?;
+            same_keys(
+                code,
+                "flows",
+                site.flows.iter().map(|f| f.id.as_str()),
+                keys(&t.flows),
+            )?;
+            for f in &site.flows {
+                let n = t.flows[&f.id].steps.len();
+                ensure!(
+                    n == f.path.len(),
+                    "{code}.toml [flows.{}]: {n} pasos de texto para {} piezas",
+                    f.id,
+                    f.path.len()
+                );
+            }
             required(code, "contact", CONTACT_KEYS, &t.contact)?;
         }
         Ok(())
@@ -517,6 +651,21 @@ mod tests {
             include_str!("../content/en.toml").replace("[projects.okd]", "[projects.okd-typo]");
         let err = Content::parse(site, es, &en).err().expect("debe fallar");
         assert!(err.to_string().contains("projects"), "{err}");
+    }
+
+    #[test]
+    fn flow_steps_must_match_path() {
+        let site = include_str!("../content/site.toml");
+        let es = include_str!("../content/es.toml");
+        let en = include_str!("../content/en.toml")
+            .replace("  \"I'm away from home and need a document.\",\n", "");
+        assert_ne!(
+            en,
+            include_str!("../content/en.toml"),
+            "la prueba debe quitar un paso"
+        );
+        let err = Content::parse(site, es, &en).err().expect("debe fallar");
+        assert!(err.to_string().contains("flows.remote"), "{err}");
     }
 
     #[test]

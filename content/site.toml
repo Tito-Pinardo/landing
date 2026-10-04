@@ -1,29 +1,26 @@
+# Claves sueltas: tienen que ir antes de la primera tabla, si no TOML las
+# mete dentro de la última.
+
+# Conexiones fijas del mapa (la "columna vertebral"). Los recorridos dibujan
+# su propio camino encima.
+links = [
+  ["internet", "cloudflare"],
+  ["cloudflare", "router"],
+  ["movil", "cloudflare"],
+  ["router", "traefik"],
+  ["router", "pc"],
+  ["router", "dns"],
+]
+
+# Logros: se desbloquean en el navegador, sin cuentas ni cookies.
+achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger", "navigator", "companion"]
+
 # Datos que no dependen del idioma: enlaces, catálogo de tecnologías,
 # piezas del mapa del homelab y qué tecnologías usa cada proyecto.
 # Los textos traducibles viven en es.toml / en.toml con los mismos `id`.
 
 # Claves sueltas: tienen que ir antes de la primera tabla, si no TOML las
 # mete dentro de la última.
-
-# Conexiones del mapa del homelab (pares de ids de [[nodes]]).
-links = [
-  ["internet", "router"],
-  ["router", "traefik"],
-  ["router", "dns"],
-  ["traefik", "landing"],
-  ["router", "proxmox"],
-  ["iac", "proxmox"],
-  ["proxmox", "docker"],
-  ["proxmox", "okd"],
-  ["proxmox", "monitoring"],
-  ["proxmox", "hermes"],
-  ["proxmox", "gpu"],
-  ["proxmox", "landing"],
-  ["monitoring", "hermes"],
-]
-
-# Logros: se desbloquean en el navegador, sin cuentas ni cookies.
-achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger"]
 
 [person]
 name = "Tito Pinardo Gutiérrez"
@@ -283,90 +280,337 @@ tech = ["rust", "postgresql", "traefik", "terraform", "ansible", "git"]
 repo = "https://github.com/Tito-Pinardo/landing"
 
 # ---------------------------------------------------------------------------
-# Mapa del homelab: nodos y conexiones. x/y en un lienzo de 1000x520.
-# Sin IPs, nombres internos ni puertos: solo qué hace cada pieza.
+# Laboratorio: el servidor por dentro. Lienzo de 1200x800.
+# Sin IPs, puertos ni nombres internos: solo qué hace cada pieza.
+# `group` vacío = fuera del servidor (internet, router, PC...).
 # ---------------------------------------------------------------------------
 
+[[groups]]
+id = "edge"
+x = 420
+y = 86
+w = 760
+h = 104
+
+[[groups]]
+id = "apps"
+x = 420
+y = 214
+w = 360
+h = 262
+
+[[groups]]
+id = "media"
+x = 800
+y = 214
+w = 380
+h = 152
+
+[[groups]]
+id = "ai"
+x = 800
+y = 386
+w = 380
+h = 90
+
+[[groups]]
+id = "observability"
+x = 420
+y = 500
+w = 360
+h = 90
+
+[[groups]]
+id = "platform"
+x = 800
+y = 500
+w = 380
+h = 90
+
+[[groups]]
+id = "lab"
+x = 420
+y = 614
+w = 760
+h = 90
+
+# Fuera del servidor
 [[nodes]]
 id = "internet"
-x = 500
-y = 60
+x = 100
+y = 110
 kind = "edge"
+group = ""
+tech = []
+
+[[nodes]]
+id = "cloudflare"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[nodes]]
+id = "movil"
+x = 100
+y = 420
+kind = "edge"
+group = ""
 tech = []
 
 [[nodes]]
 id = "router"
-x = 500
-y = 170
+x = 290
+y = 250
 kind = "network"
+group = ""
 tech = ["mikrotik", "vlan", "wireguard"]
 
 [[nodes]]
+id = "pc"
+x = 290
+y = 560
+kind = "ai"
+group = ""
+tech = ["llm"]
+
+[[nodes]]
+id = "github"
+x = 100
+y = 680
+kind = "control"
+group = ""
+tech = ["git"]
+
+# Entrada y red
+[[nodes]]
 id = "traefik"
-x = 750
-y = 170
+x = 530
+y = 146
 kind = "network"
+group = "edge"
 tech = ["traefik"]
 
 [[nodes]]
-id = "dns"
-x = 250
-y = 170
+id = "authelia"
+x = 760
+y = 146
 kind = "network"
+group = "edge"
+tech = ["hardening"]
+
+[[nodes]]
+id = "dns"
+x = 990
+y = 146
+kind = "network"
+group = "edge"
 tech = ["dns"]
 
+# Aplicaciones
 [[nodes]]
-id = "proxmox"
-x = 500
-y = 300
-kind = "compute"
-tech = ["proxmox", "lxc", "zfs"]
+id = "landing"
+x = 510
+y = 262
+kind = "app"
+group = "apps"
+tech = ["rust", "postgresql"]
 
 [[nodes]]
-id = "iac"
-x = 140
-y = 300
-kind = "control"
-tech = ["terraform", "ansible", "git"]
+id = "postgres"
+x = 690
+y = 262
+kind = "app"
+group = "apps"
+tech = ["postgresql"]
 
 [[nodes]]
-id = "docker"
-x = 180
-y = 440
-kind = "compute"
+id = "matrix"
+x = 510
+y = 326
+kind = "app"
+group = "apps"
+tech = []
+
+[[nodes]]
+id = "paperless"
+x = 690
+y = 326
+kind = "app"
+group = "apps"
+tech = ["python", "docker"]
+
+[[nodes]]
+id = "obsidian"
+x = 510
+y = 390
+kind = "app"
+group = "apps"
 tech = ["docker"]
 
 [[nodes]]
-id = "okd"
-x = 340
-y = 440
+id = "n8n"
+x = 690
+y = 390
+kind = "app"
+group = "apps"
+tech = ["docker"]
+
+[[nodes]]
+id = "homepage"
+x = 510
+y = 450
+kind = "app"
+group = "apps"
+tech = ["ansible"]
+
+[[nodes]]
+id = "amp"
+x = 690
+y = 450
+kind = "app"
+group = "apps"
+tech = []
+
+# Multimedia
+[[nodes]]
+id = "plex"
+x = 900
+y = 262
 kind = "compute"
-tech = ["openshift", "kubernetes"]
-
-[[nodes]]
-id = "monitoring"
-x = 660
-y = 440
-kind = "observability"
-tech = ["zabbix", "wazuh"]
-
-[[nodes]]
-id = "hermes"
-x = 820
-y = 440
-kind = "ai"
-tech = ["python", "llm"]
-
-[[nodes]]
-id = "gpu"
-x = 500
-y = 440
-kind = "compute"
+group = "media"
 tech = ["proxmox"]
 
 [[nodes]]
-id = "landing"
-x = 860
-y = 300
-kind = "app"
-tech = ["rust", "postgresql"]
+id = "arr"
+x = 1080
+y = 262
+kind = "compute"
+group = "media"
+tech = ["docker"]
+
+[[nodes]]
+id = "tv"
+x = 900
+y = 326
+kind = "compute"
+group = "media"
+tech = ["docker"]
+
+[[nodes]]
+id = "gpu"
+x = 1080
+y = 326
+kind = "compute"
+group = "media"
+tech = ["proxmox"]
+
+# IA
+[[nodes]]
+id = "hermes"
+x = 900
+y = 438
+kind = "ai"
+group = "ai"
+tech = ["python", "llm"]
+
+[[nodes]]
+id = "qdrant"
+x = 1080
+y = 438
+kind = "ai"
+group = "ai"
+tech = ["llm"]
+
+# Observabilidad y seguridad
+[[nodes]]
+id = "zabbix"
+x = 510
+y = 552
+kind = "observability"
+group = "observability"
+tech = ["zabbix"]
+
+[[nodes]]
+id = "wazuh"
+x = 690
+y = 552
+kind = "observability"
+group = "observability"
+tech = ["wazuh"]
+
+# Plataforma
+[[nodes]]
+id = "iac"
+x = 900
+y = 552
+kind = "control"
+group = "platform"
+tech = ["terraform", "ansible"]
+
+[[nodes]]
+id = "zfs"
+x = 1080
+y = 552
+kind = "compute"
+group = "platform"
+tech = ["zfs"]
+
+# Laboratorio
+[[nodes]]
+id = "proxmox"
+x = 560
+y = 666
+kind = "control"
+group = "lab"
+tech = ["proxmox", "lxc"]
+
+[[nodes]]
+id = "okd"
+x = 800
+y = 666
+kind = "compute"
+group = "lab"
+tech = ["openshift", "kubernetes"]
+
+[[nodes]]
+id = "backup"
+x = 1040
+y = 666
+kind = "control"
+group = "lab"
+tech = ["git"]
+
+# ---------------------------------------------------------------------------
+# Recorridos: el camino que hace algo de verdad por dentro del servidor.
+# Cada paso de `path` tiene su texto en es/en.toml (mismo número de pasos).
+# ---------------------------------------------------------------------------
+
+[[flows]]
+id = "visit"
+path = ["internet", "cloudflare", "router", "traefik", "landing", "cloudflare", "internet"]
+
+[[flows]]
+id = "contact"
+path = ["internet", "cloudflare", "router", "traefik", "landing", "postgres", "landing", "matrix", "movil"]
+
+[[flows]]
+id = "ask"
+path = ["movil", "cloudflare", "matrix", "hermes", "qdrant", "zabbix", "pc", "hermes", "matrix", "movil"]
+
+[[flows]]
+id = "alert"
+path = ["plex", "zabbix", "hermes", "matrix", "movil"]
+
+[[flows]]
+id = "deploy"
+path = ["github", "iac", "proxmox", "landing", "iac", "zabbix", "wazuh", "backup"]
+
+[[flows]]
+id = "media"
+path = ["arr", "zfs", "plex", "gpu", "plex", "router", "movil"]
+
+[[flows]]
+id = "remote"
+path = ["movil", "router", "dns", "authelia", "paperless"]

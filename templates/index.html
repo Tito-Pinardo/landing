@@ -218,23 +218,75 @@
 <section id="lab" class="zone" data-zone="lab" aria-labelledby="lab-title">
   <header class="zone-head"><span class="zone-n">05</span><h2 id="lab-title">{{ c.t.zones["lab"].title }}</h2><p>{{ c.t.zones["lab"].subtitle }}</p></header>
   <p class="muted">{{ c.lab("intro") }}</p>
-  <div class="lab">
-    <svg class="lab-map" viewBox="0 0 1000 520" role="group" aria-label="{{ c.t.zones["lab"].title }}">
-      <defs>
-        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="grid-line"/></pattern>
-      </defs>
-      <rect width="1000" height="520" fill="url(#grid)"/>
-      {% for l in links %}<line class="lab-link" data-a="{{ l.a }}" data-b="{{ l.b }}" x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}"/>{% endfor %}
-      {% for n in nodes %}
-      <a class="lab-node kind-{{ n.kind }}" href="#node-{{ n.id }}" data-node="{{ n.id }}" aria-label="{{ n.title }}">
-        <rect x="{{ n.x - 74 }}" y="{{ n.y - 24 }}" width="148" height="48" rx="12"/>
-        <text x="{{ n.x }}" y="{{ n.y + 6 }}" text-anchor="middle">{{ n.short }}</text>
-      </a>
-      {% endfor %}
-    </svg>
+  <div class="lab" data-lab>
+    <div class="lab-flows">
+      <p class="lab-flows-title"><strong>{{ c.lab("flows_title") }}</strong> <span class="muted small">{{ c.lab("flows_hint") }}</span></p>
+      <ul class="flow-buttons">
+      {% for f in flows %}<li><a class="flow-btn" href="#flow-{{ f.id }}" data-flow="{{ f.id }}"><span class="flow-dot" aria-hidden="true"></span>{{ f.title }}</a></li>{% endfor %}
+      </ul>
+    </div>
+
+    <div class="lab-screen">
+      <div class="lab-map-wrap" data-map-wrap>
+      <svg class="lab-map" viewBox="0 0 1200 760" role="group" aria-label="{{ c.lab("server_title") }}">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="grid-line"/></pattern>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <rect width="1200" height="760" fill="url(#grid)"/>
+        <text class="lab-outside" x="20" y="56">{{ c.lab("outside") }}</text>
+        <rect class="lab-server" x="400" y="34" width="790" height="690" rx="22"/>
+        <text class="lab-server-title" x="424" y="66">{{ c.lab("server_title") }}</text>
+        <text class="lab-server-specs" x="1166" y="66" text-anchor="end">{{ c.lab("server_specs") }}</text>
+        {% for g in groups %}
+        <g class="lab-group" data-group="{{ g.id }}">
+          <rect x="{{ g.x }}" y="{{ g.y }}" width="{{ g.w }}" height="{{ g.h }}" rx="14"/>
+          <text x="{{ g.x + 14 }}" y="{{ g.y + 20 }}">{{ g.label }}</text>
+        </g>
+        {% endfor %}
+        {% for l in links %}<line class="lab-link" data-a="{{ l.a }}" data-b="{{ l.b }}" x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}"/>{% endfor %}
+        <g class="flow-layer" data-flow-layer></g>
+        {% for n in nodes %}
+        <a class="lab-node kind-{{ n.kind }}" href="#node-{{ n.id }}" data-node="{{ n.id }}" data-group="{{ n.group }}" aria-label="{{ n.title }}">
+          <rect class="node-halo" x="{{ n.x - 86 }}" y="{{ n.y - 26 }}" width="172" height="52" rx="16"/>
+          <rect class="node-box" x="{{ n.x - 80 }}" y="{{ n.y - 20 }}" width="160" height="40" rx="11"/>
+          <circle class="node-led" cx="{{ n.x - 64 }}" cy="{{ n.y }}" r="4"/>
+          <text x="{{ n.x + 6 }}" y="{{ n.y + 5 }}" text-anchor="middle">{{ n.short }}</text>
+        </a>
+        {% endfor %}
+        <circle class="packet-glow" r="16" cx="-50" cy="-50" data-packet-glow/>
+        <circle class="packet" r="7" cx="-50" cy="-50" data-packet/>
+      </svg>
+      </div>
+
+      <div class="lab-console js-only" data-console aria-live="polite">
+        <div class="console-head">
+          <span class="mini-hermes" aria-hidden="true">{% include "hermes.svg" %}</span>
+          <div class="console-title"><strong data-console-title>{{ c.t.hermes.text["name"] }}</strong><span class="muted small" data-console-step></span></div>
+        </div>
+        <p class="console-text" data-console-text>{{ c.lab("pick_node") }}</p>
+        <ol class="console-trail" data-console-trail></ol>
+        <div class="console-controls" data-console-controls hidden>
+          <button type="button" class="btn btn-sm btn-ghost" data-flow-prev>← {{ c.lab("prev") }}</button>
+          <button type="button" class="btn btn-sm" data-flow-play>{{ c.lab("pause") }}</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-flow-next>{{ c.lab("next") }} →</button>
+        </div>
+      </div>
+    </div>
+
     <ul class="lab-legend">
     {% for (k, label) in legend %}<li class="kind-{{ k }}"><i></i>{{ label }}</li>{% endfor %}
     </ul>
+
+    <div class="flow-lists" data-flow-lists>
+    {% for f in flows %}
+      <details id="flow-{{ f.id }}" class="flow-list">
+        <summary>{{ f.title }}</summary>
+        <ol>{% for (node, text) in f.steps %}<li><strong>{{ node }}</strong> — {{ text }}</li>{% endfor %}</ol>
+      </details>
+    {% endfor %}
+    </div>
+
     <ol class="lab-nodes" data-lab-list>
     {% for n in nodes %}
       <li id="node-{{ n.id }}" class="lab-info kind-{{ n.kind }}" data-node-info="{{ n.id }}">
@@ -315,6 +367,22 @@
 </dialog>
 
 <div class="toasts" data-toasts aria-live="polite"></div>
+
+<!-- =============================== HERMES =============================== -->
+<aside class="hermes js-only" data-hermes aria-label="{{ c.t.hermes.text["name"] }}">
+  <div class="hermes-bubble" data-hermes-bubble role="status" aria-live="polite" hidden>
+    <div class="hermes-head">
+      <div><strong>{{ c.t.hermes.text["name"] }}</strong><span class="muted small">{{ c.t.hermes.text["role"] }}</span></div>
+      <button type="button" class="btn btn-ghost btn-sm" data-hermes-min aria-label="{{ c.t.hermes.text["minimize"] }}">–</button>
+    </div>
+    <p class="hermes-text" data-hermes-text></p>
+    <div class="hermes-choices" data-hermes-choices></div>
+  </div>
+  <button type="button" class="hermes-avatar" data-hermes-toggle aria-expanded="false" aria-label="{{ c.t.hermes.text["open"] }}">
+    {% include "hermes.svg" %}
+    <span class="hermes-badge" data-hermes-badge hidden></span>
+  </button>
+</aside>
 {% endblock %}
 
 {% block scripts %}
