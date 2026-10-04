@@ -143,6 +143,8 @@ pub struct Group {
 #[serde(deny_unknown_fields)]
 pub struct Flow {
     pub id: String,
+    /// Pestaña en la que aparece (`[flow_categories]` en es/en.toml).
+    pub category: String,
     pub path: Vec<String>,
 }
 
@@ -168,6 +170,8 @@ pub struct Texts {
     pub groups: BTreeMap<String, String>,
     pub nodes: BTreeMap<String, NodeText>,
     pub flows: BTreeMap<String, FlowText>,
+    /// Nombres de las pestañas de recorridos; `all` es "todos".
+    pub flow_categories: BTreeMap<String, String>,
     pub hermes: Hermes,
     pub now: Now,
     pub contact: BTreeMap<String, String>,
@@ -592,6 +596,9 @@ impl Content {
                 site.flows.iter().map(|f| f.id.as_str()),
                 keys(&t.flows),
             )?;
+            let mut cats: HashSet<&str> = site.flows.iter().map(|f| f.category.as_str()).collect();
+            cats.insert("all");
+            same_keys(code, "flow_categories", cats, keys(&t.flow_categories))?;
             for f in &site.flows {
                 let n = t.flows[&f.id].steps.len();
                 ensure!(

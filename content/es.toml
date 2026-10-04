@@ -356,6 +356,16 @@ short = "DNS"
 title = "Technitium DNS"
 text = "Resuelve los nombres internos y bloquea publicidad y rastreadores en toda la casa. Migrado desde Pi-hole sin perder una consulta."
 
+[nodes.dnssync]
+short = "IP dinámica"
+title = "Sincronizador de IP"
+text = "Mi conexión no tiene IP fija: cada 5 minutos comprueba la IP pública y, si cambia, actualiza Cloudflare para que los dominios sigan apuntando a casa."
+
+[nodes.casa]
+short = "Casa"
+title = "Dispositivos de casa"
+text = "Portátiles, la tele, los móviles: todo lo que se conecta a la red de casa, separado por VLANs."
+
 [nodes.landing]
 short = "Esta web"
 title = "Esta web"
@@ -460,6 +470,118 @@ text = "Tres nodos para practicar OpenShift: 3/3 Ready y 33/33 operadores sanos.
 short = "Respaldo Git"
 title = "Respaldo del repositorio"
 text = "Un segundo repositorio que se actualiza solo en cada commit de la infraestructura."
+
+[flow_categories]
+all = "Todos"
+visitors = "Tú y esta web"
+ops = "Operación"
+security = "Seguridad"
+ai = "IA"
+home = "Casa"
+
+[flows.update]
+title = "Actualizo contenedores"
+steps = [
+  "Hermes nota que hay imágenes nuevas de varios contenedores Docker.",
+  "Me lo cuenta en Matrix, con cuáles y desde cuándo.",
+  "Lo leo en el móvil y decido cuándo actualizar.",
+  "Lanzo el playbook de actualización desde el nodo de control.",
+  "Cada contenedor se actualiza y Ansible espera a que su healthcheck esté en verde antes de seguir.",
+  "Zabbix confirma que todo vuelve a estar sano.",
+]
+
+[flows.cert]
+title = "Renuevo certificados"
+steps = [
+  "Un certificado TLS está a punto de caducar: Traefik lo detecta solo.",
+  "Pide uno nuevo a Let's Encrypt demostrando que el dominio es mío con un registro DNS en Cloudflare (DNS-01).",
+  "Traefik recibe el certificado nuevo y lo usa sin reiniciar nada.",
+  "Hermes revisa a diario la caducidad de certificados y dominios.",
+  "Solo si algo va mal, avisa en Matrix.",
+  "Si llega aviso, lo veo en el móvil. Normalmente, ni me entero.",
+]
+
+[flows.ipchange]
+title = "Cambia mi IP"
+steps = [
+  "La operadora me cambia la IP pública sin avisar.",
+  "En menos de 5 minutos el sincronizador detecta la IP nueva.",
+  "Actualiza el registro de cada dominio en Cloudflare por su API.",
+  "Los visitantes siguen llegando como si nada.",
+]
+
+[flows.docs]
+title = "Hermes aprende solo"
+steps = [
+  "Después de cada intervención escribo una nota: qué pasó, cómo se midió y qué no funcionó.",
+  "La nota queda en Obsidian, la documentación del homelab.",
+  "Cada 15 minutos se trocea y se indexa en Qdrant como vectores.",
+  "Desde ese momento Hermes puede citarla para responder.",
+]
+
+[flows.okd]
+title = "Despliego en OpenShift"
+steps = [
+  "La aplicación y su despliegue están descritos como código.",
+  "Ansible aplica los manifiestos contra el clúster.",
+  "OpenShift reparte los pods entre sus tres nodos y expone una ruta.",
+  "El DNS interno resuelve el dominio de las aplicaciones del clúster.",
+  "Y la aplicación se abre desde cualquier equipo de casa.",
+]
+
+[flows.intrusion]
+title = "Un intento de intrusión"
+steps = [
+  "Un bot recorre internet buscando servidores mal configurados.",
+  "Cloudflare frena gran parte del tráfico automatizado.",
+  "El cortafuegos del router descarta todo lo que no sea la web; SSH ni siquiera se ve desde fuera.",
+  "Los agentes de Wazuh registran cualquier inicio de sesión fallido dentro de los contenedores.",
+  "Hermes repasa los inicios de sesión fallidos y los resume.",
+  "Si hay algo raro, lo publica en su sala de Matrix.",
+  "Y me llega al móvil.",
+]
+
+[flows.digest]
+title = "El resumen de cada mañana"
+steps = [
+  "A las 7:00 Hermes prepara el resumen del día.",
+  "Pregunta a Zabbix por problemas abiertos y recursos.",
+  "Pregunta a Wazuh por la seguridad: agentes y accesos fallidos.",
+  "Comprueba que el repositorio de respaldo se ha actualizado.",
+  "Lo junta todo en un único mensaje en Matrix.",
+  "Y lo leo con el café.",
+]
+
+[flows.game]
+title = "Noche de juegos"
+steps = [
+  "Desde el móvil abro el panel de servidores de juegos.",
+  "Entra por Cloudflare, como el resto de webs.",
+  "Traefik lo lleva al panel.",
+  "Arranco el servidor del juego que toque esa noche.",
+  "El cortafuegos del router abre su puerto automáticamente, solo mientras está encendido.",
+  "Mis amigos se conectan desde sus casas.",
+  "Zabbix vigila la CPU y la memoria mientras jugamos.",
+]
+
+[flows.adblock]
+title = "Navegar sin anuncios"
+steps = [
+  "La tele de casa intenta cargar un anuncio.",
+  "Pregunta al DNS de casa, que tiene el dominio en una lista de bloqueo.",
+  "No recibe respuesta: el anuncio no se carga. Ni en la tele ni en ningún equipo.",
+  "Una web normal sí se resuelve, y además queda en caché para la siguiente vez.",
+  "La página carga más rápido y sin rastreadores.",
+]
+
+[flows.scan]
+title = "Un papel nuevo"
+steps = [
+  "Escaneo un documento desde casa.",
+  "Authelia comprueba que soy yo, con segundo factor.",
+  "Paperless le pasa OCR, lo clasifica y le pone etiquetas.",
+  "El original y el texto quedan guardados en ZFS, con redundancia.",
+]
 
 [flows.visit]
 title = "Tu visita a esta web"

@@ -118,6 +118,7 @@ pub struct GroupView {
 
 pub struct FlowView {
     pub id: String,
+    pub category: String,
     pub title: String,
     /// (título de la pieza, texto del paso)
     pub steps: Vec<(String, String)>,
@@ -142,6 +143,7 @@ pub struct IndexTpl<'a> {
     pub nodes: Vec<NodeView>,
     pub groups: Vec<GroupView>,
     pub flows: Vec<FlowView>,
+    pub flow_tabs: Vec<(String, String)>,
     pub links: Vec<LinkView>,
     pub legend: Vec<(&'static str, String)>,
     pub turnstile_site_key: Option<&'a str>,
@@ -340,6 +342,7 @@ pub fn index(
         .iter()
         .map(|f| FlowView {
             id: f.id.clone(),
+            category: f.category.clone(),
             title: t.flows[&f.id].title.clone(),
             steps: f
                 .path
@@ -349,6 +352,14 @@ pub fn index(
                 .collect(),
         })
         .collect();
+    // Pestañas en el orden en que aparecen los recorridos, con "todos" primero.
+    let mut flow_tabs: Vec<(String, String)> =
+        vec![("all".into(), t.flow_categories["all"].clone())];
+    for f in &site.flows {
+        if !flow_tabs.iter().any(|(id, _)| *id == f.category) {
+            flow_tabs.push((f.category.clone(), t.flow_categories[&f.category].clone()));
+        }
+    }
     let legend = [
         "edge",
         "network",
@@ -372,6 +383,7 @@ pub fn index(
         nodes,
         groups,
         flows,
+        flow_tabs,
         links,
         legend,
         turnstile_site_key,
@@ -411,7 +423,7 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
             "id": n.id, "x": n.x, "y": n.y, "title": t.nodes[&n.id].title, "text": t.nodes[&n.id].text,
         })).collect::<Vec<_>>(),
         "flows": site.flows.iter().map(|f| serde_json::json!({
-            "id": f.id, "title": t.flows[&f.id].title, "path": f.path, "steps": t.flows[&f.id].steps,
+            "id": f.id, "category": f.category, "title": t.flows[&f.id].title, "path": f.path, "steps": t.flows[&f.id].steps,
         })).collect::<Vec<_>>(),
     })
 }

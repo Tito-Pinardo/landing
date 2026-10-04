@@ -352,6 +352,16 @@ short = "DNS"
 title = "Technitium DNS"
 text = "Resolves internal names and blocks ads and trackers for the whole house. Migrated from Pi-hole without losing a single query."
 
+[nodes.dnssync]
+short = "Dynamic IP"
+title = "IP sync"
+text = "My connection has no fixed IP: every 5 minutes it checks the public IP and, if it changed, updates Cloudflare so the domains keep pointing home."
+
+[nodes.casa]
+short = "Home"
+title = "Home devices"
+text = "Laptops, the TV, phones: everything on the home network, split into VLANs."
+
 [nodes.landing]
 short = "This site"
 title = "This website"
@@ -456,6 +466,118 @@ text = "Three nodes to practise OpenShift: 3/3 Ready and 33/33 healthy operators
 short = "Git backup"
 title = "Repository backup"
 text = "A second repository that updates itself on every infrastructure commit."
+
+[flow_categories]
+all = "All"
+visitors = "You & this site"
+ops = "Operations"
+security = "Security"
+ai = "AI"
+home = "Home"
+
+[flows.update]
+title = "Updating containers"
+steps = [
+  "Hermes notices there are new images for several Docker containers.",
+  "It tells me on Matrix: which ones and since when.",
+  "I read it on my phone and decide when to update.",
+  "I run the update playbook from the control node.",
+  "Each container is updated and Ansible waits for its healthcheck to go green before moving on.",
+  "Zabbix confirms everything is healthy again.",
+]
+
+[flows.cert]
+title = "Renewing certificates"
+steps = [
+  "A TLS certificate is about to expire: Traefik notices on its own.",
+  "It asks Let's Encrypt for a new one, proving the domain is mine with a DNS record in Cloudflare (DNS-01).",
+  "Traefik gets the new certificate and uses it without restarting anything.",
+  "Hermes checks certificate and domain expiry every day.",
+  "Only if something goes wrong does it post to Matrix.",
+  "If an alert comes in, I see it on my phone. Usually I don't even notice.",
+]
+
+[flows.ipchange]
+title = "My IP changes"
+steps = [
+  "The ISP changes my public IP without warning.",
+  "Within 5 minutes the sync job spots the new IP.",
+  "It updates each domain's record in Cloudflare through its API.",
+  "Visitors keep arriving as if nothing happened.",
+]
+
+[flows.docs]
+title = "Hermes learns by itself"
+steps = [
+  "After every change I write a note: what happened, how it was measured and what didn't work.",
+  "The note goes into Obsidian, the homelab's documentation.",
+  "Every 15 minutes it's chunked and indexed into Qdrant as vectors.",
+  "From then on Hermes can cite it in its answers.",
+]
+
+[flows.okd]
+title = "Deploying on OpenShift"
+steps = [
+  "The application and its deployment are described as code.",
+  "Ansible applies the manifests to the cluster.",
+  "OpenShift spreads the pods across its three nodes and exposes a route.",
+  "The internal DNS resolves the cluster's application domain.",
+  "And the app opens from any device at home.",
+]
+
+[flows.intrusion]
+title = "An intrusion attempt"
+steps = [
+  "A bot crawls the internet looking for misconfigured servers.",
+  "Cloudflare stops much of the automated traffic.",
+  "The router firewall drops anything that isn't the website; SSH isn't even visible from outside.",
+  "Wazuh agents record any failed login inside the containers.",
+  "Hermes reviews failed logins and sums them up.",
+  "If something looks off, it posts it to its Matrix room.",
+  "And it reaches my phone.",
+]
+
+[flows.digest]
+title = "The morning digest"
+steps = [
+  "At 7:00 Hermes prepares the daily digest.",
+  "It asks Zabbix about open problems and resources.",
+  "It asks Wazuh about security: agents and failed logins.",
+  "It checks the backup repository has been updated.",
+  "It puts it all into a single Matrix message.",
+  "And I read it over coffee.",
+]
+
+[flows.game]
+title = "Game night"
+steps = [
+  "From my phone I open the game server panel.",
+  "It comes in through Cloudflare, like the other sites.",
+  "Traefik takes it to the panel.",
+  "I start tonight's game server.",
+  "The router firewall opens its port automatically, only while it's running.",
+  "My friends connect from their homes.",
+  "Zabbix watches CPU and memory while we play.",
+]
+
+[flows.adblock]
+title = "Browsing without ads"
+steps = [
+  "The TV at home tries to load an ad.",
+  "It asks the home DNS, which has that domain on a blocklist.",
+  "No answer: the ad never loads. Not on the TV, not on any device.",
+  "A normal website does resolve, and gets cached for next time.",
+  "The page loads faster and without trackers.",
+]
+
+[flows.scan]
+title = "A new piece of paper"
+steps = [
+  "I scan a document at home.",
+  "Authelia checks it's me, with a second factor.",
+  "Paperless runs OCR, classifies it and tags it.",
+  "The original and its text are stored on ZFS, with redundancy.",
+]
 
 [flows.visit]
 title = "Your visit to this site"

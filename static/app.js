@@ -480,6 +480,13 @@
     unlock("navigator");
   }
 
+  // Pestañas de categorías de recorridos.
+  $$("[data-flow-tab]").forEach((tab) => tab.addEventListener("click", () => {
+    const cat = tab.dataset.flowTab;
+    $$("[data-flow-tab]").forEach((x) => x.setAttribute("aria-selected", String(x === tab)));
+    $$("[data-flow-cat]").forEach((li) => { li.hidden = cat !== "all" && li.dataset.flowCat !== cat; });
+  }));
+
   $$("[data-flow]").forEach((b) => b.addEventListener("click", (ev) => {
     ev.preventDefault();
     labStartFlow(b.dataset.flow);

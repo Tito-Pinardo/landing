@@ -221,8 +221,11 @@
   <div class="lab" data-lab>
     <div class="lab-flows">
       <p class="lab-flows-title"><strong>{{ c.lab("flows_title") }}</strong> <span class="muted small">{{ c.lab("flows_hint") }}</span></p>
+      <div class="flow-tabs js-only" role="tablist">
+      {% for (id, label) in flow_tabs %}<button type="button" role="tab" class="flow-tab" data-flow-tab="{{ id }}" aria-selected="{% if loop.first %}true{% else %}false{% endif %}">{{ label }}</button>{% endfor %}
+      </div>
       <ul class="flow-buttons">
-      {% for f in flows %}<li><a class="flow-btn" href="#flow-{{ f.id }}" data-flow="{{ f.id }}"><span class="flow-dot" aria-hidden="true"></span>{{ f.title }}</a></li>{% endfor %}
+      {% for f in flows %}<li data-flow-cat="{{ f.category }}"><a class="flow-btn" href="#flow-{{ f.id }}" data-flow="{{ f.id }}"><span class="flow-dot" aria-hidden="true"></span>{{ f.title }}</a></li>{% endfor %}
       </ul>
     </div>
 

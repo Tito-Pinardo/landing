@@ -368,6 +368,14 @@ group = ""
 tech = ["mikrotik", "vlan", "wireguard"]
 
 [[nodes]]
+id = "casa"
+x = 290
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[nodes]]
 id = "pc"
 x = 290
 y = 560
@@ -386,7 +394,7 @@ tech = ["git"]
 # Entrada y red
 [[nodes]]
 id = "traefik"
-x = 530
+x = 515
 y = 146
 kind = "network"
 group = "edge"
@@ -394,7 +402,7 @@ tech = ["traefik"]
 
 [[nodes]]
 id = "authelia"
-x = 760
+x = 700
 y = 146
 kind = "network"
 group = "edge"
@@ -402,7 +410,15 @@ tech = ["hardening"]
 
 [[nodes]]
 id = "dns"
-x = 990
+x = 885
+y = 146
+kind = "network"
+group = "edge"
+tech = ["dns"]
+
+[[nodes]]
+id = "dnssync"
+x = 1070
 y = 146
 kind = "network"
 group = "edge"
@@ -584,33 +600,91 @@ tech = ["git"]
 
 # ---------------------------------------------------------------------------
 # Recorridos: el camino que hace algo de verdad por dentro del servidor.
-# Cada paso de `path` tiene su texto en es/en.toml (mismo número de pasos).
+# Cada paso de `path` tiene su texto en es/en.toml (mismo número de pasos);
+# `category` agrupa los botones en pestañas.
 # ---------------------------------------------------------------------------
 
 [[flows]]
 id = "visit"
+category = "visitors"
 path = ["internet", "cloudflare", "router", "traefik", "landing", "cloudflare", "internet"]
 
 [[flows]]
 id = "contact"
+category = "visitors"
 path = ["internet", "cloudflare", "router", "traefik", "landing", "postgres", "landing", "matrix", "movil"]
 
 [[flows]]
-id = "ask"
-path = ["movil", "cloudflare", "matrix", "hermes", "qdrant", "zabbix", "pc", "hermes", "matrix", "movil"]
-
-[[flows]]
-id = "alert"
-path = ["plex", "zabbix", "hermes", "matrix", "movil"]
-
-[[flows]]
 id = "deploy"
+category = "ops"
 path = ["github", "iac", "proxmox", "landing", "iac", "zabbix", "wazuh", "backup"]
 
 [[flows]]
-id = "media"
-path = ["arr", "zfs", "plex", "gpu", "plex", "router", "movil"]
+id = "update"
+category = "ops"
+path = ["hermes", "matrix", "movil", "iac", "n8n", "zabbix"]
+
+[[flows]]
+id = "cert"
+category = "ops"
+path = ["traefik", "cloudflare", "traefik", "hermes", "matrix", "movil"]
+
+[[flows]]
+id = "ipchange"
+category = "ops"
+path = ["router", "dnssync", "cloudflare", "internet"]
+
+[[flows]]
+id = "docs"
+category = "ops"
+path = ["iac", "obsidian", "qdrant", "hermes"]
+
+[[flows]]
+id = "okd"
+category = "ops"
+path = ["github", "iac", "okd", "dns", "casa"]
+
+[[flows]]
+id = "intrusion"
+category = "security"
+path = ["internet", "cloudflare", "router", "wazuh", "hermes", "matrix", "movil"]
+
+[[flows]]
+id = "alert"
+category = "security"
+path = ["plex", "zabbix", "hermes", "matrix", "movil"]
 
 [[flows]]
 id = "remote"
+category = "security"
 path = ["movil", "router", "dns", "authelia", "paperless"]
+
+[[flows]]
+id = "ask"
+category = "ai"
+path = ["movil", "cloudflare", "matrix", "hermes", "qdrant", "zabbix", "pc", "hermes", "matrix", "movil"]
+
+[[flows]]
+id = "digest"
+category = "ai"
+path = ["hermes", "zabbix", "wazuh", "backup", "matrix", "movil"]
+
+[[flows]]
+id = "media"
+category = "home"
+path = ["arr", "zfs", "plex", "gpu", "plex", "router", "movil"]
+
+[[flows]]
+id = "game"
+category = "home"
+path = ["movil", "cloudflare", "traefik", "amp", "router", "internet", "zabbix"]
+
+[[flows]]
+id = "adblock"
+category = "home"
+path = ["casa", "dns", "casa", "dns", "internet"]
+
+[[flows]]
+id = "scan"
+category = "home"
+path = ["casa", "authelia", "paperless", "zfs"]
