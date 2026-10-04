@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT notified_at FROM contact_messages",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "notified_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "notified_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "9e083abbf563a7ea806cdc0062ff894a43b78191a3daf77e47e0e9ffa8897f83"
+}

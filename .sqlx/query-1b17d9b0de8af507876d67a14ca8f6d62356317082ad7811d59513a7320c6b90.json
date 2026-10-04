@@ -1,0 +1,74 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT name, company, lang, ip_hash, notified_at FROM contact_messages",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "company",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "company"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "lang",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "lang"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "ip_hash",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "ip_hash"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "notified_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "notified_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "1b17d9b0de8af507876d67a14ca8f6d62356317082ad7811d59513a7320c6b90"
+}

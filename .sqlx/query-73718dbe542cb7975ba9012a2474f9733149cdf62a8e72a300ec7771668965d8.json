@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT notify_attempts FROM contact_messages",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "notify_attempts",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "notify_attempts"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "73718dbe542cb7975ba9012a2474f9733149cdf62a8e72a300ec7771668965d8"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT lang FROM contact_messages",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "lang",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "lang"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "fe0094d3a154a9d6d2762f58db8aae730208e4c8929bfc21c2521a86e3cf5aaa"
+}

@@ -1,6 +1,8 @@
 //! Servidor de titopinardogutierrez.com.
 
 mod app;
+#[cfg(test)]
+mod app_tests;
 mod config;
 mod contact;
 mod content;
