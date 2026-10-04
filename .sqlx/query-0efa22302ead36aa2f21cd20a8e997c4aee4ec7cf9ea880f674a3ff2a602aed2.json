@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM contact_messages WHERE created_at < now() - interval '365 days' AND notified_at IS NOT NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "0efa22302ead36aa2f21cd20a8e997c4aee4ec7cf9ea880f674a3ff2a602aed2"
+}

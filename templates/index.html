@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="canonical" href="{{ c.public_url }}/{{ c.lang }}/">
+<link rel="alternate" hreflang="es" href="{{ c.public_url }}/es/">
+<link rel="alternate" hreflang="en" href="{{ c.public_url }}/en/">
+<link rel="alternate" hreflang="x-default" href="{{ c.public_url }}/">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="{{ c.t.meta.title }}">
+<meta property="og:description" content="{{ c.t.meta.description }}">
+<meta property="og:url" content="{{ c.public_url }}/{{ c.lang }}/">
+<meta property="og:image" content="{{ c.public_url }}/static/og.png">
+<meta property="og:image:alt" content="{{ c.t.meta.og_image_alt }}">
+<meta property="og:locale" content="{% if c.lang == "es" %}es_ES{% else %}en_GB{% endif %}">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{{ jsonld|safe }}</script>
+{% endblock %}
+
+{% block nav %}
+<nav class="zone-nav" aria-label="{{ c.ui("nav_explore") }}">
+  <ol>
+  {% for z in zones %}
+    <li><a href="#{{ z.id }}" data-zone-link="{{ z.id }}"><span class="zone-n">0{{ z.n }}</span>{{ z.title }}</a></li>
+  {% endfor %}
+  </ol>
+</nav>
+{% endblock %}
+
+{% block actions %}
+<button class="btn btn-ghost js-only" type="button" data-quick-toggle aria-pressed="false">{{ c.ui("nav_quick") }}</button>
+<button class="btn btn-ghost btn-icon js-only" type="button" data-terminal-open aria-label="{{ c.t.terminal.open }}" title="{{ c.t.terminal.open }}"><span aria-hidden="true">&gt;_</span></button>
+{% endblock %}
+
+{% block main %}
+<!-- ============================== HÉROE ============================== -->
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-text">
+    <p class="kicker">{{ c.t.hero.kicker }}</p>
+    <h1 id="hero-title">{{ c.t.hero.name }}</h1>
+    <p class="role">{{ c.t.hero.role }}</p>
+    <p class="lead">{{ c.t.hero.pitch }}</p>
+    <p class="looking"><span class="pulse" aria-hidden="true"></span>{{ c.t.hero.looking }}</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="{{ c.cv_url }}" download data-cv>{{ c.ui("download_cv") }}</a>
+      <a class="btn" href="#contact">{{ c.ui("contact") }}</a>
+      <a class="btn btn-ghost" href="{{ c.linkedin }}" rel="me">LinkedIn</a>
+      <a class="btn btn-ghost" href="{{ c.github }}" rel="me">GitHub</a>
+    </div>
+  </div>
+
+  <aside class="player-card" aria-label="{{ c.t.zones["skills"].title }}">
+    <div class="pc-head">
+      <div class="pc-avatar" aria-hidden="true">TP</div>
+      <div>
+        <p class="pc-name">{{ c.name }}</p>
+        <p class="pc-class">{{ c.t.hero.location }}</p>
+      </div>
+    </div>
+    <ul class="pc-bars">
+    {% for b in branches %}
+      <li>
+        <span class="pc-bar-label">{{ b.title }}</span>
+        <svg class="pc-bar" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect class="pc-bar-bg" width="100" height="6" rx="3"/><rect class="pc-bar-fg" width="{{ b.power }}" height="6" rx="3"/></svg>
+      </li>
+    {% endfor %}
+    </ul>
+    <div class="pc-xp js-only" aria-live="polite">
+      <span>{{ c.ui("progress") }}</span>
+      <svg class="pc-bar" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect class="pc-bar-bg" width="100" height="6" rx="3"/><rect class="pc-bar-xp" width="0" height="6" rx="3" data-xp-bar/></svg>
+      <span class="pc-xp-count"><span data-xp-count>0</span>/{{ zones.len() }} {{ c.ui("zones_found") }}</span>
+    </div>
+  </aside>
+
+  <ul class="stats">
+  {% for s in c.t.hero.stats %}
+    <li><strong>{{ s.value }}</strong><span>{{ s.label }}</span></li>
+  {% endfor %}
+  </ul>
+</section>
+
+<!-- ============================ VISTA RÁPIDA ============================ -->
+<section id="quick" class="quick" aria-labelledby="quick-title">
+  <div class="quick-card">
+    <header>
+      <h2 id="quick-title">{{ c.t.quick.title }}</h2>
+      <p class="muted">{{ c.t.quick.intro }}</p>
+    </header>
+    <p>{{ c.t.quick.summary }}</p>
+    <dl class="facts">
+    {% for f in c.t.quick.facts %}
+      <div><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></div>
+    {% endfor %}
+    </dl>
+    <p class="cta">
+      <a class="btn btn-primary" href="{{ c.cv_url }}" download data-cv>{{ c.ui("download_cv") }}</a>
+      <a class="btn" href="#contact">{{ c.ui("contact") }}</a>
+    </p>
+  </div>
+  <p class="hint game-only">{{ c.ui("explore_hint") }}</p>
+</section>
+
+<!-- ============================== MAPA ============================== -->
+<nav class="world game-only" aria-label="{{ c.ui("nav_explore") }}">
+  <ol class="world-grid">
+  {% for z in zones %}
+    <li><a class="world-tile" href="#{{ z.id }}" data-tile="{{ z.id }}">
+      <span class="zone-n">0{{ z.n }}</span>
+      <strong>{{ z.title }}</strong>
+      <span class="muted">{{ z.subtitle }}</span>
+      <span class="tile-state" aria-hidden="true"></span>
+    </a></li>
+  {% endfor %}
+  </ol>
+</nav>
+
+<!-- ============================== BASE ============================== -->
+<section id="about" class="zone" data-zone="about" aria-labelledby="about-title">
+  <header class="zone-head"><span class="zone-n">01</span><h2 id="about-title">{{ c.t.zones["about"].title }}</h2><p>{{ c.t.zones["about"].subtitle }}</p></header>
+  <div class="about-grid">
+    <div class="prose">
+    {% for p in c.t.about.paragraphs %}<p>{{ p }}</p>{% endfor %}
+    </div>
+    <ul class="values">
+    {% for v in c.t.about.values %}
+      <li class="card"><h3>{{ v.title }}</h3><p>{{ v.text }}</p></li>
+    {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<!-- ========================= ÁRBOL DE HABILIDADES ========================= -->
+<section id="skills" class="zone" data-zone="skills" aria-labelledby="skills-title">
+  <header class="zone-head"><span class="zone-n">02</span><h2 id="skills-title">{{ c.t.zones["skills"].title }}</h2><p>{{ c.t.zones["skills"].subtitle }}</p></header>
+  <p class="muted js-only">{{ c.ui("filter_hint") }}</p>
+  <div class="tree">
+  {% for b in branches %}
+    <section class="branch" aria-labelledby="branch-{{ b.id }}">
+      <header>
+        <svg class="branch-icon" viewBox="0 0 24 24" aria-hidden="true">{{ b.icon|safe }}</svg>
+        <h3 id="branch-{{ b.id }}">{{ b.title }}</h3>
+        <p class="muted">{{ b.text }}</p>
+      </header>
+      <ul class="skills">
+      {% for x in b.techs %}
+        <li><button type="button" class="skill lvl-{{ x.level }}" data-tech="{{ x.id }}" aria-pressed="false" title="{{ x.level_label }}"{% if x.uses == 0 %} data-unused{% endif %}>
+          <span class="skill-name">{{ x.name }}</span>
+          <span class="pips" aria-label="{{ x.level_label }}"><i></i><i></i><i></i></span>
+        </button></li>
+      {% endfor %}
+      </ul>
+    </section>
+  {% endfor %}
+  </div>
+  <p class="legend muted"><span class="pips lvl-3"><i></i><i></i><i></i></span> {{ c.ui("level_3") }} · <span class="pips lvl-2"><i></i><i></i><i></i></span> {{ c.ui("level_2") }} · <span class="pips lvl-1"><i></i><i></i><i></i></span> {{ c.ui("level_1") }}</p>
+</section>
+
+<!-- ============================== MISIONES ============================== -->
+<section id="quests" class="zone" data-zone="quests" aria-labelledby="quests-title">
+  <header class="zone-head"><span class="zone-n">03</span><h2 id="quests-title">{{ c.t.zones["quests"].title }}</h2><p>{{ c.t.zones["quests"].subtitle }}</p></header>
+  <p class="filter-status" data-filter-status hidden>
+    <span>{{ c.ui("projects_with") }} <strong data-filter-name></strong></span>
+    <button type="button" class="btn btn-ghost btn-sm" data-filter-clear>{{ c.ui("filter_all") }}</button>
+  </p>
+  <ol class="quests">
+  {% for p in projects %}
+    <li id="quest-{{ p.id }}" class="quest{% if p.featured %} is-featured{% endif %}" data-tech="{{ p.tech_ids }}">
+      <article>
+        <header>
+          <span class="badge badge-{{ p.status }}">{{ p.status_label }}</span>
+          <h3>{{ p.title }}</h3>
+          <p class="tagline">{{ p.tagline }}</p>
+        </header>
+        <ul class="chips" aria-label="Stack">
+        {% for (id, name) in p.tech %}<li data-chip="{{ id }}">{{ name }}</li>{% endfor %}
+        </ul>
+        <details>
+          <summary>{{ p.context }}</summary>
+          <div class="quest-body">
+            <p class="problem">{{ p.problem }}</p>
+            <ul class="bullets">{% for b in p.bullets %}<li>{{ b }}</li>{% endfor %}</ul>
+            <p class="outcome"><span aria-hidden="true">★</span> {{ p.outcome }}</p>
+            {% if let Some(lesson) = p.lesson %}<p class="lesson"><span aria-hidden="true">💡</span> {{ lesson }}</p>{% endif %}
+            {% if let Some(repo) = p.repo %}<p><a class="btn btn-sm" href="{{ repo }}">{{ c.ui("view_code") }} ↗</a></p>{% else %}<p class="muted small">{{ c.ui("private_code") }}</p>{% endif %}
+          </div>
+        </details>
+      </article>
+    </li>
+  {% endfor %}
+  </ol>
+</section>
+
+<!-- ============================= TRAYECTORIA ============================= -->
+<section id="journey" class="zone" data-zone="journey" aria-labelledby="journey-title">
+  <header class="zone-head"><span class="zone-n">04</span><h2 id="journey-title">{{ c.t.zones["journey"].title }}</h2><p>{{ c.t.zones["journey"].subtitle }}</p></header>
+  <div class="journey-grid">
+    <ol class="timeline">
+    {% for j in c.t.journey %}
+      <li class="tl-{{ j.kind }}">
+        <p class="tl-period">{{ j.period }}</p>
+        <h3>{{ j.title }}</h3>
+        <p class="muted">{{ j.org }} · {{ j.place }}</p>
+        {% if !j.bullets.is_empty() %}<ul class="bullets">{% for b in j.bullets %}<li>{{ b }}</li>{% endfor %}</ul>{% endif %}
+      </li>
+    {% endfor %}
+    </ol>
+    <aside class="side">
+      <div class="card">
+        <ul class="langs">{% for l in c.t.languages.items %}<li><strong>{{ l.name }}</strong><span>{{ l.level }}</span></li>{% endfor %}</ul>
+      </div>
+      <div class="card">
+        <ul class="chips">{% for i in c.t.interests.items %}<li>{{ i }}</li>{% endfor %}</ul>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============================= LABORATORIO ============================= -->
+<section id="lab" class="zone" data-zone="lab" aria-labelledby="lab-title">
+  <header class="zone-head"><span class="zone-n">05</span><h2 id="lab-title">{{ c.t.zones["lab"].title }}</h2><p>{{ c.t.zones["lab"].subtitle }}</p></header>
+  <p class="muted">{{ c.lab("intro") }}</p>
+  <div class="lab">
+    <svg class="lab-map" viewBox="0 0 1000 520" role="group" aria-label="{{ c.t.zones["lab"].title }}">
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="grid-line"/></pattern>
+      </defs>
+      <rect width="1000" height="520" fill="url(#grid)"/>
+      {% for l in links %}<line class="lab-link" data-a="{{ l.a }}" data-b="{{ l.b }}" x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}"/>{% endfor %}
+      {% for n in nodes %}
+      <a class="lab-node kind-{{ n.kind }}" href="#node-{{ n.id }}" data-node="{{ n.id }}" aria-label="{{ n.title }}">
+        <rect x="{{ n.x - 70 }}" y="{{ n.y - 24 }}" width="140" height="48" rx="12"/>
+        <text x="{{ n.x }}" y="{{ n.y + 5 }}" text-anchor="middle">{{ n.title }}</text>
+      </a>
+      {% endfor %}
+    </svg>
+    <ul class="lab-legend">
+    {% for (k, label) in legend %}<li class="kind-{{ k }}"><i></i>{{ label }}</li>{% endfor %}
+    </ul>
+    <ol class="lab-nodes" data-lab-list>
+    {% for n in nodes %}
+      <li id="node-{{ n.id }}" class="lab-info kind-{{ n.kind }}" data-node-info="{{ n.id }}">
+        <h3>{{ n.title }}</h3>
+        <p>{{ n.text }}</p>
+        {% if !n.tech.is_empty() %}<ul class="chips">{% for x in n.tech %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}
+      </li>
+    {% endfor %}
+    </ol>
+    <p class="muted small">{{ c.lab("disclaimer") }}</p>
+  </div>
+</section>
+
+<!-- ============================= AHORA MISMO ============================= -->
+<section id="now" class="zone" data-zone="now" aria-labelledby="now-title">
+  <header class="zone-head"><span class="zone-n">06</span><h2 id="now-title">{{ c.t.zones["now"].title }}</h2><p>{{ c.t.zones["now"].subtitle }}</p></header>
+  <div class="now-grid">
+    <div class="card">
+      <p class="muted">{{ c.t.now.intro }}</p>
+      <ul class="focus">{% for f in c.t.now.focus %}<li>{{ f }}</li>{% endfor %}</ul>
+    </div>
+    <div class="card" data-homelab>
+      <h3>{{ c.t.now.homelab_title }}</h3>
+      <p class="muted small" data-live-empty>{{ c.t.now.live_unavailable }}</p>
+      <div class="homelab-stats" data-homelab-stats hidden>
+        <p><strong data-hl-services></strong><span>{{ c.t.now.homelab_services }}</span></p>
+        <p><strong data-hl-uptime></strong><span>{{ c.t.now.homelab_uptime }}</span></p>
+        <p class="muted small">{{ c.t.now.homelab_updated }} <time data-hl-updated></time></p>
+      </div>
+    </div>
+    <div class="card card-wide">
+      <h3>{{ c.t.now.github_title }}</h3>
+      <ol class="activity" data-activity><li class="muted small">{{ c.t.now.live_unavailable }}</li></ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CONTACTO ============================== -->
+<section id="contact" class="zone" data-zone="contact" aria-labelledby="contact-title">
+  <header class="zone-head"><span class="zone-n">07</span><h2 id="contact-title">{{ c.t.zones["contact"].title }}</h2><p>{{ c.t.zones["contact"].subtitle }}</p></header>
+  <div class="contact-grid">
+    <form class="card contact-form" method="post" action="/{{ c.lang }}/contact" data-contact-form novalidate>
+      <p>{{ c.contact("intro") }}</p>
+      <div class="field"><label for="cf-name">{{ c.contact("name") }}</label><input id="cf-name" name="name" required maxlength="100" autocomplete="name"></div>
+      <div class="field"><label for="cf-email">{{ c.contact("email") }}</label><input id="cf-email" name="email" type="email" required maxlength="254" autocomplete="email"></div>
+      <div class="field"><label for="cf-company">{{ c.contact("company") }}</label><input id="cf-company" name="company" maxlength="120" autocomplete="organization"></div>
+      <div class="field"><label for="cf-message">{{ c.contact("message") }}</label><textarea id="cf-message" name="message" required minlength="10" maxlength="5000" rows="6"></textarea></div>
+      <div class="hp" aria-hidden="true"><label for="cf-website">Website</label><input id="cf-website" name="website" tabindex="-1" autocomplete="off"></div>
+      {% if let Some(key) = turnstile_site_key %}<div class="cf-turnstile" data-sitekey="{{ key }}" data-theme="auto" data-language="{{ c.lang }}"></div>{% endif %}
+      <p class="small muted">{{ c.contact("privacy") }}</p>
+      <button class="btn btn-primary" type="submit" data-send>{{ c.contact("send") }}</button>
+      <p class="form-status" role="status" aria-live="polite" data-form-status></p>
+    </form>
+    <aside class="side">
+      <div class="card">
+        <p class="muted">{{ c.contact("elsewhere") }}</p>
+        <p class="cta"><a class="btn" href="{{ c.linkedin }}" rel="me">LinkedIn ↗</a> <a class="btn" href="{{ c.github }}" rel="me">GitHub ↗</a></p>
+        <p><a class="btn btn-primary" href="{{ c.cv_url }}" download data-cv>{{ c.ui("download_cv") }}</a></p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<noscript><p class="section narrow muted small">{{ c.ui("noscript") }}</p></noscript>
+
+<!-- ============================== TERMINAL ============================== -->
+<dialog class="terminal" data-terminal aria-labelledby="term-title">
+  <div class="term-bar">
+    <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    <h2 id="term-title">{{ c.t.terminal.title }}</h2>
+    <button type="button" class="btn btn-ghost btn-sm" data-terminal-close>{{ c.ui("close") }}</button>
+  </div>
+  <div class="term-out" data-term-out role="log" aria-live="polite"></div>
+  <form class="term-in" data-term-form>
+    <label for="term-input" class="term-prompt">{{ c.t.terminal.prompt }}</label>
+    <input id="term-input" data-term-input autocomplete="off" autocapitalize="off" spellcheck="false">
+  </form>
+</dialog>
+
+<div class="toasts" data-toasts aria-live="polite"></div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/json" id="i18n">{{ i18n_json|safe }}</script>
+<script src="/static/app.js?v={{ c.asset_v }}" defer></script>
+{% if turnstile_site_key.is_some() %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
+{% endblock %}

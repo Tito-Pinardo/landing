@@ -29,7 +29,6 @@ achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "p
 name = "Tito Pinardo Gutiérrez"
 github = "https://github.com/Tito-Pinardo"
 linkedin = "https://www.linkedin.com/in/tito-pinardo-gutierrez-b7341b293"
-github_user = "Tito-Pinardo"
 cv_es = "/static/cv/Tito_Pinardo_CV_ES.pdf"
 cv_en = "/static/cv/Tito_Pinardo_CV_EN.pdf"
 
@@ -284,66 +283,90 @@ tech = ["rust", "postgresql", "traefik", "terraform", "ansible", "git"]
 repo = "https://github.com/Tito-Pinardo/landing"
 
 # ---------------------------------------------------------------------------
-# Mapa del homelab: nodos y conexiones (las coordenadas las pone el frontend).
+# Mapa del homelab: nodos y conexiones. x/y en un lienzo de 1000x520.
 # Sin IPs, nombres internos ni puertos: solo qué hace cada pieza.
 # ---------------------------------------------------------------------------
 
 [[nodes]]
 id = "internet"
+x = 500
+y = 60
 kind = "edge"
 tech = []
 
 [[nodes]]
 id = "router"
+x = 500
+y = 170
 kind = "network"
 tech = ["mikrotik", "vlan", "wireguard"]
 
 [[nodes]]
 id = "traefik"
+x = 750
+y = 170
 kind = "network"
 tech = ["traefik"]
 
 [[nodes]]
 id = "dns"
+x = 250
+y = 170
 kind = "network"
 tech = ["dns"]
 
 [[nodes]]
 id = "proxmox"
+x = 500
+y = 300
 kind = "compute"
 tech = ["proxmox", "lxc", "zfs"]
 
 [[nodes]]
 id = "iac"
+x = 140
+y = 300
 kind = "control"
 tech = ["terraform", "ansible", "git"]
 
 [[nodes]]
 id = "docker"
+x = 180
+y = 440
 kind = "compute"
 tech = ["docker"]
 
 [[nodes]]
 id = "okd"
+x = 340
+y = 440
 kind = "compute"
 tech = ["openshift", "kubernetes"]
 
 [[nodes]]
 id = "monitoring"
+x = 660
+y = 440
 kind = "observability"
 tech = ["zabbix", "wazuh"]
 
 [[nodes]]
 id = "hermes"
+x = 820
+y = 440
 kind = "ai"
 tech = ["python", "llm"]
 
 [[nodes]]
 id = "gpu"
+x = 500
+y = 440
 kind = "compute"
 tech = ["proxmox"]
 
 [[nodes]]
 id = "landing"
+x = 860
+y = 300
 kind = "app"
 tech = ["rust", "postgresql"]

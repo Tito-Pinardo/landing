@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="{{ c.lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ c.t.meta.title }}{% endblock %}</title>
+<meta name="description" content="{{ c.t.meta.description }}">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0a0e17">
+<link rel="icon" href="/static/favicon.svg?v={{ c.asset_v }}" type="image/svg+xml">
+<link rel="stylesheet" href="/static/app.css?v={{ c.asset_v }}">
+{% block head %}{% endblock %}
+</head>
+<body>
+<a class="skip" href="#main">{{ c.ui("skip") }}</a>
+<header class="topbar">
+  <a class="brand" href="/{{ c.lang }}/" aria-label="{{ c.name }}"><span class="brand-mark">TP</span><span class="brand-name">{{ c.name }}</span></a>
+  {% block nav %}{% endblock %}
+  <div class="topbar-actions">
+    {% block actions %}{% endblock %}
+    <a class="btn btn-ghost" href="/{{ c.other }}/" hreflang="{{ c.other }}" lang="{{ c.other }}" data-lang-switch>{{ c.ui("lang_switch") }}</a>
+  </div>
+</header>
+<main id="main">
+{% block main %}{% endblock %}
+</main>
+<footer class="footer">
+  <p>{{ c.ui("footer") }} · <a href="https://github.com/Tito-Pinardo/landing">{{ c.ui("footer_source") }}</a></p>
+  <p class="footer-links"><a href="{{ c.linkedin }}" rel="me">LinkedIn</a> · <a href="{{ c.github }}" rel="me">GitHub</a></p>
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

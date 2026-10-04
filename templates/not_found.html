@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}404 · {{ c.name }}{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block main %}
+<section class="section narrow result is-error">
+  <h1 class="glitch">404</h1>
+  <p class="lead"><code>cd: no such zone</code></p>
+  <p><a class="btn btn-primary" href="/{{ c.lang }}/">{{ c.ui("back_to_map") }}</a></p>
+</section>
+{% endblock %}

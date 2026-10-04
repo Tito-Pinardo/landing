@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block main %}
+<section class="section narrow result {% if ok %}is-ok{% else %}is-error{% endif %}">
+  <h1>{% if ok %}✓{% else %}!{% endif %}</h1>
+  <p class="lead">{{ message }}</p>
+  <p><a class="btn btn-primary" href="/{{ c.lang }}/#contact">{{ c.ui("back_to_map") }}</a></p>
+</section>
+{% endblock %}
