@@ -286,50 +286,62 @@ legend_app = "Application"
 disclaimer = "Simplified view: no addresses, ports or internal names."
 
 [nodes.internet]
+short = "Internet"
 title = "Internet"
 text = "All outside traffic comes in through Cloudflare, which hides my home IP and filters before anything reaches it."
 
 [nodes.router]
+short = "MikroTik"
 title = "MikroTik router"
 text = "Network segmented with VLANs, audited firewall and remote access over WireGuard. It replaced the ISP router, connecting straight to the fibre."
 
 [nodes.traefik]
+short = "Traefik"
 title = "Traefik"
 text = "The single public entry point. Automatic TLS certificates and security headers; internal dashboards never go through it."
 
 [nodes.dns]
+short = "DNS"
 title = "Self-hosted DNS"
 text = "Technitium resolves internal names and blocks ads and trackers. I migrated from Pi-hole without losing a single query during the switch."
 
 [nodes.proxmox]
+short = "Proxmox VE"
 title = "Proxmox VE"
 text = "The physical server hosting every LXC container and virtual machine, with ZFS and software RAID."
 
 [nodes.iac]
+short = "IaC control"
 title = "IaC control node"
 text = "From here Terraform creates the machines and Ansible configures them. Nothing is changed by hand in production."
 
 [nodes.docker]
+short = "Docker"
 title = "Docker applications"
 text = "Household apps in Docker stacks with watched updates: the system flags new images, and an update waits until the service reports healthy."
 
 [nodes.okd]
+short = "OpenShift"
 title = "OpenShift cluster"
 text = "Three OKD nodes to practise OpenShift: 3/3 nodes Ready and 33/33 healthy operators."
 
 [nodes.monitoring]
+short = "Zabbix + Wazuh"
 title = "Zabbix & Wazuh"
 text = "Metrics, alerts and security for every machine, with agents rolled out by Ansible."
 
 [nodes.hermes]
+short = "Hermes (AI)"
 title = "Hermes (local AI)"
 text = "An assistant that answers questions about the homelab's health in natural language, with the model running locally."
 
 [nodes.gpu]
+short = "GPU"
 title = "GPU passthrough"
 text = "An NVIDIA GPU assigned to a container for hardware transcoding."
 
 [nodes.landing]
+short = "This site"
 title = "This website"
 text = "A Rust binary with PostgreSQL in its own unprivileged container, behind Traefik."
 

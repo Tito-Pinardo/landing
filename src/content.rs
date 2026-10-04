@@ -142,7 +142,7 @@ pub struct Texts {
     pub languages: Items<LanguageItem>,
     pub interests: Items<String>,
     pub lab: BTreeMap<String, String>,
-    pub nodes: BTreeMap<String, TitleText>,
+    pub nodes: BTreeMap<String, NodeText>,
     pub now: Now,
     pub contact: BTreeMap<String, String>,
     pub terminal: Terminal,
@@ -210,6 +210,15 @@ pub struct Fact {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TitleText {
+    pub title: String,
+    pub text: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct NodeText {
+    /// Etiqueta del mapa: tiene que caber en la caja del nodo.
+    pub short: String,
     pub title: String,
     pub text: String,
 }
@@ -450,6 +459,12 @@ impl Content {
                 keys(&t.achievements),
             )?;
             same_keys(code, "zones", ZONES, keys(&t.zones))?;
+            for (id, n) in &t.nodes {
+                ensure!(
+                    n.short.chars().count() <= 16,
+                    "{code}.toml [nodes.{id}]: short demasiado largo"
+                );
+            }
             required(code, "ui", UI_KEYS, &t.ui)?;
             required(code, "lab", LAB_KEYS, &t.lab)?;
             required(code, "contact", CONTACT_KEYS, &t.contact)?;
