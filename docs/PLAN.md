@@ -39,9 +39,9 @@ Visitante ─▶ Cloudflare (caché en el borde, Turnstile) ─▶ Traefik (CT 1
 ## Fases
 
 0. **Contenido** ✅ (04-10): `content/site.toml` (datos neutros), `content/es.toml` y `content/en.toml` (mismas claves), CV en `static/cv/`. 
-1. **Diseño y frontend**: sistema visual, mapa, árbol de habilidades, terminal y vista rápida.
-2. **Servidor en Rust**: rutas, idiomas, plantillas, API de contacto, BD, tests, `clippy` y `rustfmt`.
-3. **Infraestructura** (en mi repositorio de infraestructura): CT con Terraform, rol `landing` de Ansible, ruta en Traefik y monitorización.
+1. **Diseño y frontend** ✅ (04-10): HUD sobrio, tarjeta de jugador, mapa de zonas, árbol de habilidades que filtra misiones, mapa del homelab, terminal, logros y vista rápida. Unos 28 KB con brotli, sin errores de JS ni scroll horizontal en móvil (comprobado con Playwright).
+2. **Servidor en Rust** ✅ (04-10): 35 pruebas (unitarias y de extremo a extremo contra PostgreSQL y un Matrix simulado), clippy sin avisos, CI en `.github/workflows/ci.yml`.
+3. **Infraestructura** (en mi repositorio de infraestructura): ✅ un contenedor LXC propio con Terraform, rol `landing`, hardening, Zabbix y Wazuh, desplegado y sano. ⏳ Falta la ruta pública en Traefik.
    - Certificado: el token de Cloudflare en uso llega a los 3 dominios. Comprobarlo en el primer despliegue.
 4. **Datos en vivo**: actividad pública de GitHub y estado agregado del homelab.
 5. **Lanzamiento**: reglas de caché de Cloudflare, SEO (Open Graph, JSON-LD `Person`, sitemap) y enlazarla desde LinkedIn y GitHub.
