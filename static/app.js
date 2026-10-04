@@ -1125,6 +1125,8 @@
     if (d.getDay() === 0 || d.getDay() === 6) extra += " " + P.weekend;
     const pref = (navigator.language || "").slice(0, 2).toLowerCase();
     if ((pref === "es" || pref === "en") && pref !== T.lang) extra += " " + P.lang_hint;
+    // Si ya saludamos por la hora, sobra el "¡Hola!" del principio.
+    body = body.replace(/^(¡Hola!|Hi!)\s*/, "");
     return `${time} ${body}${extra}`;
   }
 

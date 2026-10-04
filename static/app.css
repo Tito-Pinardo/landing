@@ -617,16 +617,13 @@ details summary:hover { color: var(--text); }
 }
 
 /* ------------------------------------------------------------ árbol que crece */
-.tree-svg { display: none; width: 100%; height: 90px; margin-bottom: -6px; overflow: visible; }
+.tree-svg { display: none; width: 100%; height: 70px; margin-bottom: -2px; overflow: visible; }
 @media (min-width: 1100px) { .tree-svg { display: block; } }
-.tree-trunk, .tree-branch { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.tree-trunk, .tree-branch { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
 .tree-branch { stroke-width: 2; opacity: .7; }
-.tree-knot { fill: var(--surface); stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .js .tree-svg path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.2s ease; }
 .js .tree-svg .tree-branch { transition-delay: .5s; }
-.js .tree-svg .tree-knot { opacity: 0; transition: opacity .4s ease 1.4s; }
 .js .tree-svg.is-grown path { stroke-dashoffset: 0; }
-.js .tree-svg.is-grown .tree-knot { opacity: 1; }
 .branch { position: relative; }
 @media (max-width: 1099px) {
   .tree { padding-left: 18px; position: relative; }

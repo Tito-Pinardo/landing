@@ -159,9 +159,9 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 <section id="skills" class="zone" data-zone="skills" aria-labelledby="skills-title">
   <header class="zone-head"><span class="zone-n">02</span><h2 id="skills-title">{{ c.t.zones["skills"].title }}</h2><p>{{ c.t.zones["skills"].subtitle }}</p></header>
   <p class="muted js-only">{{ c.ui("filter_hint") }}</p>
-  <svg class="tree-svg" viewBox="0 0 1000 130" preserveAspectRatio="none" aria-hidden="true" data-tree-svg>
-    <path class="tree-trunk" d="M500 130 V78" pathLength="1"/>
-    {% for b in branches %}<path class="tree-branch" pathLength="1" d="M500 80 C500 40 {{ loop.index0 * 200 + 100 }} 60 {{ loop.index0 * 200 + 100 }} 8"/><circle class="tree-knot" cx="{{ loop.index0 * 200 + 100 }}" cy="8" r="6"/>{% endfor %}
+  <svg class="tree-svg" viewBox="0 0 1000 110" preserveAspectRatio="none" aria-hidden="true" data-tree-svg>
+    <path class="tree-trunk" pathLength="1" d="M500 0 V44"/>
+    {% for b in branches %}<path class="tree-branch" pathLength="1" d="M500 40 C500 95 {{ loop.index0 * 200 + 100 }} 45 {{ loop.index0 * 200 + 100 }} 110"/>{% endfor %}
   </svg>
   <div class="tree">
   {% for b in branches %}
