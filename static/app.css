@@ -1543,3 +1543,30 @@ html[data-night] .lab-link { filter: drop-shadow(0 0 3px var(--accent-soft)); }
 .bf-status { margin: 0; font-size: .88rem; color: var(--muted); display: flex; align-items: center; gap: 10px; min-height: 32px; }
 .post-card[hidden] { display: none; }
 @media (max-width: 600px) { .bf-row, .post-sheet dl { grid-template-columns: 1fr; } }
+
+/* ------------------------------------------------------------ entrar y salir del rack (prefs.js) */
+@view-transition { navigation: auto; }
+html:active-view-transition-type(rack-in) .unit-face,
+html:active-view-transition-type(rack-out) .unit-face { view-transition-name: unit-face; }
+::view-transition-group(unit-face) { animation-duration: .6s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .6s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); transform-origin: 50% 30%; }
+/* Entrar: el rack se hunde y la unidad sale hacia ti como un cajón. */
+html:active-view-transition-type(rack-in)::view-transition-old(root) { animation-name: vt-rack-sink; }
+html:active-view-transition-type(rack-in)::view-transition-new(root) { animation-name: vt-drawer-out; }
+/* Salir: la unidad vuelve a su hueco y el rack se acerca. */
+html:active-view-transition-type(rack-out)::view-transition-old(root) { animation-name: vt-drawer-in; }
+html:active-view-transition-type(rack-out)::view-transition-new(root) { animation-name: vt-rack-rise; }
+/* Entre unidades vecinas: las bandejas se deslizan arriba o abajo. */
+html:active-view-transition-type(unit-next)::view-transition-old(root) { animation-name: vt-tray-up-out; }
+html:active-view-transition-type(unit-next)::view-transition-new(root) { animation-name: vt-tray-up-in; }
+html:active-view-transition-type(unit-prev)::view-transition-old(root) { animation-name: vt-tray-down-out; }
+html:active-view-transition-type(unit-prev)::view-transition-new(root) { animation-name: vt-tray-down-in; }
+@keyframes vt-rack-sink { to { transform: perspective(1400px) translateZ(-260px) rotateX(10deg); opacity: 0; filter: brightness(.6); } }
+@keyframes vt-drawer-out { from { transform: perspective(1400px) translateZ(-420px) rotateX(-14deg); opacity: 0; } }
+@keyframes vt-drawer-in { to { transform: perspective(1400px) translateZ(-420px) rotateX(-14deg); opacity: 0; } }
+@keyframes vt-rack-rise { from { transform: perspective(1400px) translateZ(-260px) rotateX(10deg); opacity: 0; filter: brightness(.6); } }
+@keyframes vt-tray-up-out { to { transform: perspective(1400px) translateY(-18%) rotateX(16deg); opacity: 0; } }
+@keyframes vt-tray-up-in { from { transform: perspective(1400px) translateY(18%) rotateX(-16deg); opacity: 0; } }
+@keyframes vt-tray-down-out { to { transform: perspective(1400px) translateY(18%) rotateX(-16deg); opacity: 0; } }
+@keyframes vt-tray-down-in { from { transform: perspective(1400px) translateY(-18%) rotateX(16deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }

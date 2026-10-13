@@ -4,6 +4,7 @@
 {% block description %}{{ t.meta.description }}{% endblock %}
 
 {% block head %}
+<link rel="expect" href="#unit-face" blocking="render">
 <link rel="canonical" href="{{ url }}">
 <link rel="alternate" hreflang="es" href="{{ c.public_url }}/es/{{ id }}/">
 <link rel="alternate" hreflang="en" href="{{ c.public_url }}/en/{{ id }}/">
@@ -36,7 +37,7 @@
 <div class="unit status-{{ status }}" data-unit>
 
 <!-- =========================== FRONTAL DE LA UNIDAD =========================== -->
-<div class="unit-face" data-unit-face>
+<div class="unit-face" id="unit-face" data-unit-face>
   <span class="uf-ear" aria-hidden="true"><i></i><i></i></span>
   <span class="uf-leds" aria-hidden="true"><i class="led-pwr"></i><i class="led-act"></i><i class="led-net"></i></span>
   <span class="uf-label"><strong>{{ ui("slot") }}</strong><span>{{ ui("face_specs") }}</span></span>

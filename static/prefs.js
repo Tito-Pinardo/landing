@@ -34,6 +34,82 @@
 
   window.tpPrefs = { motionOff, night };
 
+  // ---------------------------------------------------------- entrar y salir del rack
+  // Transiciones entre páginas (View Transitions entre documentos): al entrar
+  // en una unidad, su frontal 1U del rack se convierte en el frontal de la
+  // página y la unidad sale hacia ti como un cajón mientras el rack se hunde;
+  // al volver, al revés; entre unidades vecinas, las bandejas se deslizan.
+  // Sin soporte, o con «Animaciones: no», se navega sin más.
+  const LANG = "(?:es|en)";
+  const isRack = (u) => new RegExp(`^/${LANG}/$`).test(u.pathname);
+  const isUnit = (u) => new RegExp(`^/${LANG}/(?!blog/)[a-z0-9-]+/$`).test(u.pathname);
+  const pathOf = (u) => u.pathname;
+  let lastClick = null;
+  addEventListener("click", (ev) => { lastClick = ev.target.closest?.("a[href]") || null; }, { capture: true });
+
+  function kindOf(from, to) {
+    if (!from || !to || from.origin !== to.origin) return null;
+    if (isRack(from) && isUnit(to)) return "rack-in";
+    if (isUnit(from) && isRack(to)) return "rack-out";
+    if (isUnit(from) && isUnit(to)) {
+      const next = document.querySelector('a[rel="next"]');
+      const prev = document.querySelector('a[rel="prev"]');
+      if (next && new URL(next.href).pathname === to.pathname) return "unit-next";
+      if (prev && new URL(prev.href).pathname === to.pathname) return "unit-prev";
+      return "unit-next";
+    }
+    return null;
+  }
+  // El frontal del rack que corresponde a una unidad (por su enlace).
+  function rackFace(unitPath) {
+    if (lastClick && new URL(lastClick.href, location.href).pathname === unitPath) {
+      return lastClick.closest(".rack-unit") || lastClick;
+    }
+    for (const a of document.querySelectorAll(".rack-unit a[href]")) {
+      if (new URL(a.href, location.href).pathname === unitPath) return a.closest(".rack-unit");
+    }
+    return null;
+  }
+  function name(el) {
+    if (!el) return;
+    el.style.viewTransitionName = "unit-face";
+    // Que no se quede puesto al volver con el botón de atrás (bfcache).
+    setTimeout(() => { el.style.viewTransitionName = ""; }, 1500);
+  }
+
+  addEventListener("pageswap", (ev) => {
+    const vt = ev.viewTransition;
+    if (!vt) return;
+    if (motionOff()) { vt.skipTransition(); return; }
+    const to = ev.activation?.entry?.url ? new URL(ev.activation.entry.url) : null;
+    const kind = kindOf(new URL(location.href), to);
+    if (!kind) { vt.skipTransition(); return; }
+    vt.types.add(kind);
+    // El frontal de la unidad se nombra en el CSS según el tipo; aquí, el del rack.
+    if (kind === "rack-in") name(rackFace(pathOf(to)));
+  });
+  addEventListener("pagereveal", (ev) => {
+    const vt = ev.viewTransition;
+    if (!vt) return;
+    if (motionOff()) { vt.skipTransition(); return; }
+    const from = navigation?.activation?.from?.url ? new URL(navigation.activation.from.url) : null;
+    const here = new URL(location.href);
+    let kind = null;
+    if (from && isRack(from) && isUnit(here)) kind = "rack-in";
+    else if (from && isUnit(from) && isRack(here)) kind = "rack-out";
+    else if (from && isUnit(from) && isUnit(here)) kind = sessionStorage.getItem("tp:vt") || "unit-next";
+    if (!kind) { vt.skipTransition(); return; }
+    vt.types.add(kind);
+    // Al volver al rack, su frontal recibe la unidad si ya está en el DOM.
+    if (kind === "rack-out") name(rackFace(from.pathname));
+  });
+  // Entre unidades, la página nueva no sabe si se fue hacia arriba o abajo.
+  addEventListener("pageswap", (ev) => {
+    const to = ev.activation?.entry?.url ? new URL(ev.activation.entry.url) : null;
+    const kind = kindOf(new URL(location.href), to);
+    try { if (kind?.startsWith("unit-")) sessionStorage.setItem("tp:vt", kind); } catch { /* sin almacenamiento */ }
+  });
+
   document.addEventListener("DOMContentLoaded", () => {
     const btn = document.querySelector("[data-prefs-toggle]");
     const panel = document.querySelector("[data-prefs-panel]");
