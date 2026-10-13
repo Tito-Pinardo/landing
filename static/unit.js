@@ -80,6 +80,15 @@
       .catch(() => {});
   }
 
+  // El enanito que tira de la unidad también responde si lo pulsas.
+  const faceGnome = $(".uf-gnome");
+  faceGnome?.addEventListener("pointerdown", () => {
+    window.tpSound?.gnome();
+    faceGnome.classList.remove("is-poked");
+    void faceGnome.offsetWidth;
+    faceGnome.classList.add("is-poked");
+  });
+
   // Las bahías se encienden al llegar a ellas.
   if (!reduceMotion && "IntersectionObserver" in window) {
     const io = new IntersectionObserver((entries) => {

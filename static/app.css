@@ -1340,3 +1340,9 @@ main { overflow-x: clip; }
 .unit.live-off .uf-fans i { animation: none; }
 .unit.live-down .uf-state { color: var(--danger); }
 .unit.live-down .uf-leds .led-pwr { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+/* El enanito del frontal se puede pinchar. */
+.uf-gnome { cursor: pointer; }
+.unit-face .uf-gnome.is-poked { animation: gnome-poke .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes gnome-poke { 30% { transform: translateY(-12px) rotate(-10deg); } 60% { transform: translateY(-4px) rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .unit-face .uf-gnome.is-poked { animation: none; } }

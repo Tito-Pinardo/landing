@@ -1301,6 +1301,7 @@
     g.el.classList.remove("is-jump");
     void g.el.offsetWidth;
     g.el.classList.add("is-jump");
+    window.tpSound?.gnome();
     gnomeSay(g, pickOne(G.click));
     const total = store.get("gnomeClicks", 0) + 1;
     store.set("gnomeClicks", total);
@@ -1313,6 +1314,7 @@
     g.tripAt = null;
     g.el.classList.remove("is-walking");
     g.el.classList.add("is-tripped");
+    window.tpSound?.play("oops");
     gnomeSay(g, pickOne(G.trip));
     setTimeout(() => {
       g.el.classList.remove("is-tripped");

@@ -165,6 +165,55 @@
     tick(t) { burst(t, 0.006, 3500, 0.025); },
     ok(t) { tone(880, t, 0.09, "square", 0.03); tone(1320, t + 0.1, 0.14, "square", 0.03); },
     err(t) { tone(150, t, 0.22, "sawtooth", 0.05); },
+    // Enanitos: cada clic, una voz distinta (ver gnome() más abajo).
+    // Muelle: un «boing» que sube y vibra.
+    boing(t) {
+      const o = ctx.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(180, t);
+      o.frequency.exponentialRampToValueAtTime(620, t + 0.12);
+      o.frequency.exponentialRampToValueAtTime(300, t + 0.45);
+      const lfo = ctx.createOscillator();
+      lfo.frequency.value = 22;
+      const depth = ctx.createGain();
+      depth.gain.value = 40;
+      lfo.connect(depth).connect(o.frequency);
+      const g = ctx.createGain();
+      env(g, t, 0.09, 0.01, 0.45);
+      o.connect(g).connect(master);
+      for (const n of [o, lfo]) { n.start(t); n.stop(t + 0.5); }
+    },
+    // Chillido agudo hacia arriba.
+    squeak(t) { tone(900, t, 0.09, "triangle", 0.06, 2100); tone(1500, t + 0.1, 0.07, "triangle", 0.04, 2600); },
+    // «¡Ai-ho!»: dos notas silbadas, como de canción de mina.
+    hiho(t) { tone(660, t, 0.14, "sine", 0.07, 700); tone(990, t + 0.17, 0.22, "sine", 0.07, 940); },
+    // Risita: blips rápidos que bajan.
+    giggle(t) { [1400, 1250, 1350, 1150, 1250, 1000].forEach((f, i) => tone(f, t + i * 0.055, 0.045, "square", 0.025, f * 0.85)); },
+    // Pico contra la roca: golpe metálico con eco.
+    clink(t) {
+      tone(2350, t, 0.25, "triangle", 0.05);
+      tone(3520, t, 0.18, "sine", 0.03);
+      burst(t, 0.03, 4000, 0.12);
+      tone(2350, t + 0.22, 0.2, "triangle", 0.015);
+    },
+    // Refunfuño grave: «hmpf».
+    grumble(t) {
+      const o = ctx.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(95, t + 0.32);
+      const f = ctx.createBiquadFilter();
+      f.type = "bandpass";
+      f.frequency.value = 520;
+      f.Q.value = 3;
+      const g = ctx.createGain();
+      env(g, t, 0.12, 0.02, 0.32);
+      o.connect(f).connect(g).connect(master);
+      o.start(t);
+      o.stop(t + 0.4);
+    },
+    // Tropezón: caída que baja y golpe sordo.
+    oops(t) { tone(700, t, 0.22, "sine", 0.06, 160); burst(t + 0.22, 0.09, 220, 0.25, "lowpass"); },
     // Logro: tres notas que suben.
     achievement(t) { [784, 988, 1319].forEach((f, i) => tone(f, t + i * 0.09, 0.12, "triangle", 0.05)); },
   };
@@ -187,6 +236,15 @@
       lastTick = t;
     }
     sounds[name](t);
+  }
+
+  // Voz de enanito al pulsarlo: nunca la misma dos veces seguidas.
+  const voices = ["boing", "squeak", "hiho", "giggle", "clink", "grumble"];
+  let lastVoice = "";
+  function gnome() {
+    const pool = voices.filter((v) => v !== lastVoice);
+    lastVoice = pool[Math.floor(Math.random() * pool.length)];
+    play(lastVoice);
   }
 
   function set(on) {
@@ -237,5 +295,5 @@
     for (const b of btns()) b.addEventListener("click", () => set(!enabled));
   });
 
-  window.tpSound = { play, set, get enabled() { return enabled; } };
+  window.tpSound = { play, set, gnome, get enabled() { return enabled; } };
 })();
