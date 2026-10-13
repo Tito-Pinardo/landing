@@ -10,6 +10,7 @@ links = [
   ["git", "services"],
   ["laptop", "caddy"],
 ]
+code = ["ansible/roles/homepage", "environments/homelab/lxc-homepage.tf"]
 
 [[groups]]
 id = "source"

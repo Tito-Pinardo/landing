@@ -59,6 +59,10 @@ pub struct Unit {
     /// Tecnologías de la propia máquina (se ilumina el marco de la VM).
     pub host_tech: Vec<String>,
     pub links: Vec<[String; 2]>,
+    /// Carpetas o ficheros de esta pieza en el repositorio público de la
+    /// infraestructura (`homelab-infra`), relativos a su raíz.
+    #[serde(default)]
+    pub code: Vec<String>,
     /// Solo XPIFY: el cálculo de XP del backend.
     #[serde(default)]
     pub xp: Option<XpRules>,
@@ -309,6 +313,8 @@ pub const COMMON_KEYS: &[&str] = &[
     "live_up",
     "live_off",
     "live_down",
+    "code_title",
+    "code_note",
 ];
 
 /// Claves que solo hacen falta si la unidad tiene calculadora de XP.
@@ -360,6 +366,18 @@ impl Unit {
     }
 
     pub fn validate(&self, site: &Site) -> Result<()> {
+        for path in &self.code {
+            ensure!(
+                !path.is_empty()
+                    && !path.starts_with('/')
+                    && !path.contains("..")
+                    && path
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || b"/._-".contains(&b)),
+                "unidad {}: ruta de código rara «{path}»",
+                self.id
+            );
+        }
         let id = &self.id;
         let ctx = |what: &str| format!("unidad {id}: {what}");
         ensure!(

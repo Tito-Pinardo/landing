@@ -669,6 +669,16 @@ impl Content {
                 u.id
             );
             u.validate(&self.site)?;
+            ensure!(
+                u.code.is_empty()
+                    || self
+                        .site
+                        .project(crate::render::CODE_PROJECT)
+                        .is_some_and(|p| p.repo.is_some()),
+                "unidad {}: enlaza código pero la misión {} no tiene repositorio",
+                u.id,
+                crate::render::CODE_PROJECT
+            );
         }
         for n in &self.site.nodes {
             if let Some(id) = &n.unit {

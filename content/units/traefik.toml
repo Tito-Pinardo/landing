@@ -12,6 +12,7 @@ links = [
   ["letsencrypt", "acme"],
   ["git", "ansible"],
 ]
+code = ["ansible/roles/traefik", "environments/homelab/lxc-traefik.tf"]
 
 [[groups]]
 id = "entry"

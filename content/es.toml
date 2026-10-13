@@ -1018,6 +1018,8 @@ hacker = "¡Bandera encontrada! Tenías madera de sysadmin."
 # unidad puede sobrescribir cualquiera en su `[text.es.ui]`.
 # ---------------------------------------------------------------------------
 [unit_ui]
+code_title = "Su código, en abierto"
+code_note = "Versión pública del repositorio: sin IPs ni secretos."
 live_up = "En marcha"
 live_off = "Apagada"
 live_down = "Caída"

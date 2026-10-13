@@ -12,6 +12,7 @@ links = [
   ["control", "api"],
   ["power", "boot"],
 ]
+code = ["environments/homelab/providers.tf", "environments/homelab/locals.tf"]
 
 [[groups]]
 id = "manage"

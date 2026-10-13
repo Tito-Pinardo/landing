@@ -13,6 +13,7 @@ links = [
   ["me", "matrix"],
   ["router", "server"],
 ]
+code = ["ansible/roles/monitoring", "scripts/register_monitoring.py"]
 
 [[groups]]
 id = "agents"

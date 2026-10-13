@@ -1389,3 +1389,15 @@ main { overflow-x: clip; }
 
 /* Marcador invisible que dispara la entrada de cada zona en el rack. */
 .rack-mark { height: 1px; margin-bottom: -1px; pointer-events: none; }
+
+/* Código de la unidad en el repositorio público */
+.unit-code { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border-strong); }
+.unit-code p { margin: 0 0 8px; }
+.unit-code ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.unit-code a {
+  display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--border-strong); text-decoration: none; font-size: .85rem;
+  max-width: 100%; overflow-wrap: anywhere;
+}
+.unit-code a:hover { border-color: var(--accent); }
+

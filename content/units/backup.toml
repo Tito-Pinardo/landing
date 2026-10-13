@@ -11,6 +11,7 @@ links = [
   ["laptop", "central"],
   ["central", "github"],
 ]
+code = ["ansible/roles/git_backup"]
 
 [[groups]]
 id = "code"

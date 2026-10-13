@@ -11,6 +11,7 @@ links = [
   ["phone", "traefik"],
   ["gpu", "devices"],
 ]
+code = ["ansible/roles/plex", "environments/homelab/lxc-plex.tf"]
 
 [[groups]]
 id = "watch"

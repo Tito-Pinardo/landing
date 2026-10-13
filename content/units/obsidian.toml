@@ -12,6 +12,7 @@ links = [
   ["github", "mirror"],
   ["hermes", "qdrant"],
 ]
+code = ["ansible/roles/obsidian"]
 
 [[groups]]
 id = "app"

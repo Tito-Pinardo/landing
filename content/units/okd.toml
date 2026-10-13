@@ -12,6 +12,7 @@ links = [
   ["dns", "apivip"],
   ["dns", "appsvip"],
 ]
+code = ["environments/homelab/vm-okd.tf", "ansible/roles/okd_dashboard"]
 
 [[groups]]
 id = "prep"

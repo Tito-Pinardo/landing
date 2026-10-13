@@ -12,6 +12,7 @@ links = [
   ["me", "matrix"],
   ["host", "agent"],
 ]
+code = ["docs/wazuh.md", "ansible/roles/hardening"]
 
 [[groups]]
 id = "agents"

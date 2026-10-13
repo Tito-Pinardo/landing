@@ -70,6 +70,12 @@
     <li><strong>{{ s.value }}</strong><span>{{ s.label }}</span></li>
   {% endfor %}
   </ul>
+  {% if !code.is_empty() %}
+  <div class="unit-code">
+    <p><strong>{{ ui("code_title") }}</strong> <span class="muted small">{{ ui("code_note") }}</span></p>
+    <ul>{% for (path, href) in code %}<li><a href="{{ href }}" rel="noopener" target="_blank"><code>{{ path }}</code> ↗</a></li>{% endfor %}</ul>
+  </div>
+  {% endif %}
 </section>
 
 <!-- ================================ MAPA ================================ -->

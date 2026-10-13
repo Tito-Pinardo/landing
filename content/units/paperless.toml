@@ -11,6 +11,7 @@ links = [
   ["caddy", "authelia"],
   ["pc", "ollama"],
 ]
+code = ["ansible/roles/paperless", "environments/homelab/lxc-paperless.tf"]
 
 [[groups]]
 id = "door"

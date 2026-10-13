@@ -13,6 +13,7 @@ links = [
   ["zabbix", "relay"],
   ["wazuh", "relay"],
 ]
+code = ["ansible/roles/synapse", "ansible/roles/element", "environments/homelab/lxc-synapse.tf"]
 
 [[groups]]
 id = "front"

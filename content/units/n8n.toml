@@ -12,6 +12,7 @@ links = [
   ["target", "confirm"],
   ["zabbix", "memory"],
 ]
+code = ["environments/homelab/lxc-n8n.tf"]
 
 [[groups]]
 id = "flow"

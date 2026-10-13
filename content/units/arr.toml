@@ -11,6 +11,7 @@ links = [
   ["family", "requests"],
   ["plex", "stats"],
 ]
+code = ["ansible/roles/arr_stack", "ansible/roles/seerr", "ansible/roles/tautulli"]
 
 [[groups]]
 id = "ask"

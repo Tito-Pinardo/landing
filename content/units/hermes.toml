@@ -15,6 +15,7 @@ links = [
   ["mail", "embed"],
   ["calendar", "relay"],
 ]
+code = ["ansible/roles/ia_asistente", "ansible/roles/qdrant", "docs/hermes-voz.md"]
 
 # Simulador de VRAM con las medidas del 22-09-2026 (nvidia-smi y /api/ps).
 [vram]

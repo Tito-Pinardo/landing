@@ -550,6 +550,8 @@ pub struct UnitTpl<'a> {
     /// Rótulo de cada bahía, numeradas según las que tenga la unidad.
     pub bays: BTreeMap<&'static str, String>,
     pub posts: Vec<ArticleCard>,
+    /// Enlaces a su código en el repositorio público: (ruta, url).
+    pub code: Vec<(String, String)>,
     pub jsonld: String,
     pub host_tech: String,
     pub map_w: u32,
@@ -766,6 +768,11 @@ pub fn unit(
         posts: content
             .unit_articles(&unit.id)
             .map(|a| article_card(content, a, lang))
+            .collect(),
+        code: unit
+            .code
+            .iter()
+            .map(|path| (path.clone(), code_url(content, path)))
             .collect(),
         jsonld: script_json(&unit_jsonld(content, unit, lang, public_url))?,
         host_tech: unit.host_tech.join(" "),
@@ -1100,6 +1107,25 @@ fn icon(name: &str) -> &'static str {
         _ => r#"<path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/><path d="m14 4-4 16"/>"#,
     }
 }
+
+/// Dónde está una ruta en el repositorio público de la infraestructura:
+/// las carpetas se abren como árbol y los ficheros como fichero.
+fn code_url(content: &Content, path: &str) -> String {
+    let repo = content
+        .site
+        .project(CODE_PROJECT)
+        .and_then(|p| p.repo.as_deref())
+        .unwrap_or_default();
+    let kind = if path.rsplit('/').next().is_some_and(|f| f.contains('.')) {
+        "blob"
+    } else {
+        "tree"
+    };
+    format!("{repo}/{kind}/main/{path}")
+}
+
+/// La misión cuyo repositorio es el de la infraestructura.
+pub const CODE_PROJECT: &str = "homelab-iac";
 
 #[cfg(test)]
 mod tests {

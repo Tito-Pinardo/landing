@@ -1006,6 +1006,8 @@ hacker = "Flag found! You've got the makings of a sysadmin."
 # in its own `[text.en.ui]`.
 # ---------------------------------------------------------------------------
 [unit_ui]
+code_title = "Its code, in the open"
+code_note = "Public version of the repo: no IPs or secrets."
 live_up = "Running"
 live_off = "Switched off"
 live_down = "Down"

@@ -12,6 +12,7 @@ links = [
   ["router", "proxy"],
   ["discord", "bot"],
 ]
+code = ["ansible/roles/amp", "ansible/roles/battlepros_status", "environments/homelab/lxc-amp.tf"]
 
 [[groups]]
 id = "entry"

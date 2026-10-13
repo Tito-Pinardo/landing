@@ -13,6 +13,7 @@ links = [
   ["repo", "backup"],
   ["repo", "public"],
 ]
+code = ["environments/homelab", "ansible/playbooks", "ansible/roles"]
 
 [[groups]]
 id = "control"

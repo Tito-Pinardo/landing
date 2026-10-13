@@ -11,6 +11,7 @@ links = [
   ["upstream", "doh"],
   ["cloudflare", "sync"],
 ]
+code = ["ansible/roles/technitium", "ansible/roles/dns_sync", "environments/homelab/lxc-technitium.tf"]
 
 [[groups]]
 id = "resolve"
