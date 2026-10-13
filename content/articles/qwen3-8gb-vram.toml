@@ -2,8 +2,11 @@ slug = "qwen3-8gb-vram"
 date = "2026-09-22"
 unit = "hermes"
 tech = ["llm", "linux"]
+kind = "improvement"
 
 [text.es]
+impact = "141 segundos por pregunta y fallos en casos que por la mañana pasaban."
+detected = "Una línea de log por llamada al modelo, con el reparto entre GPU y CPU."
 title = "qwen3:8b en una GPU de 8 GB: de 17 a 73 tokens por segundo sin cambiar de modelo"
 description = "Por qué un modelo de 8B iba lento en Ollama con una GPU de 8 GB: el escritorio se comía la VRAM. Caché KV q8_0, flash attention y el modelo entero en GPU."
 summary = "Mi asistente local tardaba 141 segundos en una pregunta y fallaba casos que por la mañana pasaba. No era el modelo ni el prompt: solo cabía en la GPU el 66 % del modelo, y el resto corría en la CPU."
@@ -50,6 +53,8 @@ paragraphs = [
 ]
 
 [text.en]
+impact = "141 seconds per question and failures in cases that passed in the morning."
+detected = "One log line per model call, with the GPU/CPU split."
 title = "qwen3:8b on an 8 GB GPU: from 17 to 73 tokens per second without changing model"
 description = "Why an 8B model was slow on Ollama with an 8 GB GPU: the desktop was eating the VRAM. q8_0 KV cache, flash attention and the whole model on the GPU."
 summary = "My local assistant took 141 seconds for one question and failed cases that passed in the morning. It wasn't the model or the prompt: only 66 % of the model fitted on the GPU, and the rest ran on the CPU."

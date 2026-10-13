@@ -36,17 +36,31 @@
 {% block main %}
 <article class="section post">
   <header class="post-head">
-    <p class="post-meta">{{ c.t.blog["published"] }} <time datetime="{{ date }}">{{ date_label }}</time> · <a href="{{ unit_url }}">{{ unit_slot }}</a></p>
+    <p class="post-meta"><span class="kind-badge kind-{{ kind }}">{{ kind_label }}</span> {{ c.t.blog["published"] }} <time datetime="{{ date }}">{{ date_label }}</time> · <a href="{{ unit_url }}">{{ unit_slot }}</a></p>
     <h1>{{ t.title }}</h1>
     <p class="lead">{{ t.summary }}</p>
     <ul class="chips">{% for x in tech %}<li>{{ x }}</li>{% endfor %}</ul>
   </header>
+  {% if postmortem %}
+  <aside class="post-sheet card kind-{{ kind }}" aria-labelledby="sheet-title">
+    <p class="kicker" id="sheet-title">{{ c.t.blog["sheet"] }}</p>
+    <dl>
+      <div><dt>{{ c.t.blog["kind"] }}</dt><dd>{{ kind_label }}</dd></div>
+      <div><dt>{{ c.t.blog["unit"] }}</dt><dd><a href="{{ unit_url }}">{{ unit_slot }}</a></dd></div>
+      {% if let Some(x) = t.impact %}<div class="wide"><dt>{{ c.t.blog["impact"] }}</dt><dd>{{ x }}</dd></div>{% endif %}
+      {% if let Some(x) = t.detected %}<div class="wide"><dt>{{ c.t.blog["detected"] }}</dt><dd>{{ x }}</dd></div>{% endif %}
+      {% if let Some(x) = t.downtime %}<div class="wide"><dt>{{ c.t.blog["downtime"] }}</dt><dd>{{ x }}</dd></div>{% endif %}
+      <div class="wide"><dt>{{ c.t.blog["lesson"] }}</dt><dd>{{ t.lesson }}</dd></div>
+    </dl>
+  </aside>
+  {% endif %}
   {% for s in t.sections %}
   <section class="post-section">
     <h2>{{ s.heading }}</h2>
     {% for p in s.paragraphs %}<p>{{ p }}</p>{% endfor %}
     {% if !s.list.is_empty() %}<ul class="bullets">{% for x in s.list %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}
     {% if let Some(code) = s.code %}<pre class="post-code"><code>{{ code }}</code></pre>{% endif %}
+    {% if !s.links.is_empty() %}<ul class="post-sources">{% for l in s.links %}<li><a href="{{ l.url }}" rel="noopener" target="_blank">{{ l.title }}</a> <span class="muted small">· {{ l.source }} ↗</span></li>{% endfor %}</ul>{% endif %}
   </section>
   {% endfor %}
   <aside class="post-lesson card">

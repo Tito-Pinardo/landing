@@ -2,8 +2,11 @@ slug = "chrome-huerfanos"
 date = "2026-09-05"
 unit = "n8n"
 tech = ["typescript", "docker", "linux"]
+kind = "incident"
 
 [text.es]
+impact = "El contenedor de las automatizaciones, a 154 MB de quedarse sin memoria. No llegó a caerse."
+detected = "Un aviso de memoria de la monitorización."
 title = "2.104 Chrome sin cabeza huérfanos: una fuga de memoria con Puppeteer"
 description = "Un contenedor con 31 GB de 32 en uso y n8n gastando 264 MB: el culpable era una API con Puppeteer que soltaba el navegador sin cerrarlo en cada error."
 summary = "El contenedor de las automatizaciones estaba a punto de quedarse sin memoria. n8n solo usaba 264 MB. Lo demás eran 2.104 procesos de Chrome sin cabeza acumulados durante 22 días."
@@ -42,6 +45,8 @@ list = [
 ]
 
 [text.en]
+impact = "The automations container, 154 MB away from running out of memory. It never went down."
+detected = "A memory alert from monitoring."
 title = "2,104 orphaned headless Chromes: a memory leak with Puppeteer"
 description = "A container using 31 GB of 32 while n8n used 264 MB: the culprit was a Puppeteer API that dropped the browser without closing it on every error."
 summary = "The automation container was about to run out of memory. n8n was only using 264 MB. The rest was 2,104 headless Chrome processes piled up over 22 days."

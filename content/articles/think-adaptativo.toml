@@ -2,8 +2,11 @@ slug = "think-adaptativo"
 date = "2026-09-22"
 unit = "hermes"
 tech = ["llm", "python"]
+kind = "improvement"
 
 [text.es]
+impact = "96 de los 141 segundos de un turno se iban en razonar una respuesta que ya estaba resuelta."
+detected = "Contando los tokens de cada llamada al modelo."
 title = "Razonar solo donde aporta: un modelo local de 8B, de 4,7 a 0,7 segundos al redactar"
 description = "Cuándo encender y apagar el razonamiento (think) de qwen3 en un asistente con herramientas: elegir herramienta lo necesita, redactar con los datos delante no."
 summary = "En un turno real, la llamada que solo redactaba la respuesta generó 954 tokens de razonamiento: 96 de los 141 segundos. Apagar el razonamiento justo ahí bajó esa llamada de 4,7 a 0,7 s, pero hubo que volver a encenderlo en dos casos concretos."
@@ -43,6 +46,8 @@ paragraphs = [
 ]
 
 [text.en]
+impact = "96 of a turn's 141 seconds went on reasoning about an answer that was already settled."
+detected = "Counting the tokens of each model call."
 title = "Reason only where it helps: a local 8B model, from 4.7 to 0.7 seconds when writing"
 description = "When to switch qwen3's reasoning (think) on and off in a tool-using assistant: choosing a tool needs it, writing with the data in front of it doesn't."
 summary = "In a real turn, the call that only wrote the answer generated 954 reasoning tokens: 96 of the 141 seconds. Switching reasoning off right there cut that call from 4.7 to 0.7 s, but it had to be switched back on in two specific cases."

@@ -2,8 +2,11 @@ slug = "terraform-forcenew"
 date = "2026-09-16"
 unit = "iac"
 tech = ["terraform", "proxmox"]
+kind = "near_miss"
 
 [text.es]
+impact = "Ninguno: el plan quería recrear la mensajería y la puerta de las webs, y no se aplicó."
+detected = "Leyendo el terraform plan antes de aplicar."
 title = "Terraform y Proxmox: un cambio de claves SSH que iba a destruir cuatro contenedores"
 description = "En el proveedor bpg/proxmox, cambiar user_account.keys obliga a recrear el contenedor (ForceNew). Cómo lo frenó el plan y qué hacer en su lugar."
 summary = "Quería añadir la clave SSH del portátil a todos los contenedores desde una lista común. El plan dijo «4 to add, 4 to destroy». Entre ellos, la mensajería con toda su base de datos y la puerta pública de las webs."
@@ -42,6 +45,8 @@ paragraphs = [
 ]
 
 [text.en]
+impact = "None: the plan wanted to recreate the messaging server and the web gateway, and it wasn't applied."
+detected = "Reading the terraform plan before applying."
 title = "Terraform and Proxmox: an SSH key change that was going to destroy four containers"
 description = "In the bpg/proxmox provider, changing user_account.keys forces the container to be recreated (ForceNew). How the plan caught it and what to do instead."
 summary = "I wanted to add my laptop's SSH key to every container from a common list. The plan said «4 to add, 4 to destroy». Among them, messaging with its whole database and the public door to the websites."

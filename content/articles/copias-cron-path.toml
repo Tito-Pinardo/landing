@@ -2,8 +2,11 @@ slug = "copias-cron-path"
 date = "2026-08-02"
 unit = "amp"
 tech = ["linux", "proxmox"]
+kind = "incident"
 
 [text.es]
+impact = "Las cuentas del panel de juegos, borradas por un corte de luz, y 17 días de copias vacías."
+detected = "Al ir a restaurar: todas las copias eran de 0 bytes."
 title = "17 días de copias de seguridad vacías: el PATH de cron no tiene /usr/sbin"
 description = "Un script de copias que funcionaba a mano y fallaba en silencio desde cron: el PATH mínimo no incluye /usr/sbin, donde vive pct. Cómo detectarlo y validar cada copia."
 summary = "Tras un corte de luz, el fichero de cuentas del panel de los servidores de juego volvió a quedarse vacío. Fui a restaurar la copia que se hacía cada 30 minutos… y las de 17 días eran todas de 0 bytes."
@@ -42,6 +45,8 @@ paragraphs = [
 ]
 
 [text.en]
+impact = "The games panel accounts, wiped by a power cut, and 17 days of empty backups."
+detected = "When I went to restore: every backup was 0 bytes."
 title = "17 days of empty backups: cron's PATH has no /usr/sbin"
 description = "A backup script that worked by hand and failed silently under cron: the minimal PATH lacks /usr/sbin, where pct lives. How it was found and how to validate every copy."
 summary = "After a power cut, the game servers panel's accounts file was empty again. I went to restore the copy made every 30 minutes… and 17 days of them were all 0 bytes."

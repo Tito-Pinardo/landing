@@ -44,6 +44,8 @@ struct Inner {
     /// Unidades del rack: (id, página en cada idioma).
     units: Vec<(String, [Page; 2])>,
     blog: [Page; 2],
+    /// Índice de búsqueda del blog (JSON), por idioma.
+    blog_index: [Page; 2],
     /// Artículos: (slug, fecha, página en cada idioma).
     articles: Vec<(String, String, [Page; 2])>,
     not_found: [Page; 2],
@@ -76,6 +78,10 @@ impl AppState {
                 Ok((u.id.clone(), [page(Lang::Es)?, page(Lang::En)?]))
             })
             .collect::<anyhow::Result<_>>()?;
+        let blog_index = [
+            Page::from_bytes(render::blog_index(&content, Lang::Es)?),
+            Page::from_bytes(render::blog_index(&content, Lang::En)?),
+        ];
         let blog = [
             render::blog(&content, Lang::Es, &asset_v, &cfg.public_url)?,
             render::blog(&content, Lang::En, &asset_v, &cfg.public_url)?,
@@ -104,6 +110,7 @@ impl AppState {
             pages,
             units,
             blog,
+            blog_index,
             articles,
             not_found,
             db,
@@ -143,6 +150,7 @@ pub fn router(state: AppState) -> Router {
         .route("/{lang}/contact", post(contact_form))
         .route("/{lang}/blog", get(blog_no_slash))
         .route("/{lang}/blog/", get(blog_page))
+        .route("/{lang}/blog/index.json", get(blog_index))
         .route("/{lang}/blog/{slug}", get(article_no_slash))
         .route("/{lang}/blog/{slug}/", get(article_page))
         .route("/{lang}/{unit}", get(unit_no_slash))
@@ -270,6 +278,28 @@ async fn blog_page(
     }
 }
 
+async fn blog_index(
+    State(st): State<AppState>,
+    Path(lang): Path<String>,
+    headers: HeaderMap,
+) -> Response {
+    match Lang::from_code(&lang) {
+        Some(l) => {
+            let mut res = serve_page(
+                &st.0.blog_index[l as usize],
+                &headers,
+                "public, max-age=300, s-maxage=600",
+            );
+            res.headers_mut().insert(
+                header::CONTENT_TYPE,
+                HeaderValue::from_static("application/json"),
+            );
+            res
+        }
+        None => not_found(State(st), headers).await,
+    }
+}
+
 async fn article_page(
     State(st): State<AppState>,
     Path((lang, slug)): Path<(String, String)>,
@@ -335,7 +365,9 @@ async fn not_found(State(st): State<AppState>, headers: HeaderMap) -> Response {
 /// pueden cachear "para siempre" con `?v=`.
 fn asset_version() -> String {
     let mut h = Sha256::new();
-    for name in ["app.css", "app.js", "unit.js", "sound.js", "prefs.js"] {
+    for name in [
+        "app.css", "app.js", "unit.js", "sound.js", "prefs.js", "blog.js",
+    ] {
         if let Some(f) = Assets::get(name) {
             h.update(f.metadata.sha256_hash());
         }

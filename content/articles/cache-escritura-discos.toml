@@ -2,8 +2,11 @@ slug = "cache-escritura-discos"
 date = "2026-10-06"
 unit = "zfs"
 tech = ["zfs", "linux"]
+kind = "improvement"
 
 [text.es]
+impact = "Escrituras con fsync muy lentas en los dos pools grandes: 95 y 108 por segundo."
+detected = "Midiendo con fio antes de pensar en comprar un SSD."
 title = "Discos SAS con la caché de escritura apagada de fábrica: ×13 en escrituras con ZFS"
 description = "Cómo comprobar y activar la caché de escritura (WCE) de discos SAS y SATA tras una bandeja con sdparm, por qué es segura con ZFS y cuánto se gana medido con fio."
 summary = "Un pool ZFS de cinco discos hacía 95 escrituras con fsync por segundo, y un espejo de cuatro, 108. Varios discos venían con la caché de escritura desactivada. Activándola, sin comprar nada: 1.237 y 946."
@@ -45,6 +48,8 @@ list = [
 ]
 
 [text.en]
+impact = "Very slow fsync writes on the two big pools: 95 and 108 per second."
+detected = "Measuring with fio before thinking about buying an SSD."
 title = "SAS disks shipped with write cache off: ×13 on writes with ZFS"
 description = "How to check and enable the write cache (WCE) on SAS disks and SATA disks behind a shelf with sdparm, why it's safe with ZFS and how much it gains, measured with fio."
 summary = "A five-disk ZFS pool managed 95 fsync writes per second, and a four-disk mirror, 108. Several disks came with write cache disabled. Turning it on, without buying anything: 1,237 and 946."

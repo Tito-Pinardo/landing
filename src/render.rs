@@ -20,6 +20,11 @@ pub struct Page {
 }
 
 impl Page {
+    pub fn from_bytes(body: Bytes) -> Page {
+        let etag = format!("\"{}\"", &hex::encode(Sha256::digest(&body))[..16]);
+        Page { body, etag }
+    }
+
     pub fn new(html: String) -> Page {
         let etag = format!(
             "\"{}\"",
@@ -154,12 +159,25 @@ pub struct RackView {
 /// Un artículo en una lista (índice, portada o su unidad).
 pub struct ArticleCard {
     pub url: String,
+    pub slug: String,
     pub date: String,
     pub date_label: String,
     pub title: String,
     pub description: String,
+    pub unit: String,
     pub unit_slot: String,
     pub tech: Vec<String>,
+    /// Ids de las tecnologías separados por espacios, para filtrar.
+    pub tech_ids: String,
+    pub kind: String,
+    pub kind_label: String,
+}
+
+/// Una opción de filtro del índice del blog: (id, texto, cuántos artículos).
+pub struct FilterOpt {
+    pub id: String,
+    pub label: String,
+    pub count: usize,
 }
 
 #[derive(Template)]
@@ -168,6 +186,9 @@ pub struct BlogTpl<'a> {
     pub c: Ctx<'a>,
     pub url: String,
     pub articles: Vec<ArticleCard>,
+    pub kinds: Vec<FilterOpt>,
+    pub techs: Vec<FilterOpt>,
+    pub units: Vec<FilterOpt>,
     pub jsonld: String,
 }
 
@@ -181,6 +202,9 @@ pub struct ArticleTpl<'a> {
     pub date_label: String,
     pub t: &'a ArticleText,
     pub tech: Vec<String>,
+    pub kind: &'a str,
+    pub kind_label: String,
+    pub postmortem: bool,
     pub unit_url: String,
     pub unit_slot: String,
     pub jsonld: String,
@@ -852,13 +876,69 @@ fn article_card(content: &Content, a: &Article, lang: Lang) -> ArticleCard {
     let t = a.texts(lang);
     ArticleCard {
         url: article_url(lang, &a.slug),
+        slug: a.slug.clone(),
         date: a.date.clone(),
         date_label: date_label(&a.date, lang),
         title: t.title.clone(),
         description: t.description.clone(),
+        unit: a.unit.clone(),
         unit_slot: unit_slot(content, &a.unit, lang),
         tech: tech_names(&content.site, &a.tech),
+        tech_ids: a.tech.join(" "),
+        kind: a.kind.clone(),
+        kind_label: kind_label(content, &a.kind, lang),
     }
+}
+
+fn kind_label(content: &Content, kind: &str, lang: Lang) -> String {
+    content.texts(lang).blog[&format!("kind_{kind}")].clone()
+}
+
+/// Cuenta cuántas veces sale cada id, en el orden en que aparece primero.
+fn count_opts<'a>(
+    ids: impl Iterator<Item = &'a str>,
+    label: impl Fn(&str) -> String,
+) -> Vec<FilterOpt> {
+    let mut out: Vec<FilterOpt> = Vec::new();
+    for id in ids {
+        match out.iter_mut().find(|o| o.id == id) {
+            Some(o) => o.count += 1,
+            None => out.push(FilterOpt {
+                id: id.to_owned(),
+                label: label(id),
+                count: 1,
+            }),
+        }
+    }
+    out
+}
+
+/// Índice de búsqueda del blog: todo el texto de cada artículo en minúsculas,
+/// para que el navegador busque sin servidor. Se pide al empezar a escribir.
+pub fn blog_index(content: &Content, lang: Lang) -> anyhow::Result<Bytes> {
+    let items: Vec<serde_json::Value> = content
+        .articles
+        .iter()
+        .map(|a| {
+            let t = a.texts(lang);
+            let mut text = vec![t.title.as_str(), &t.description, &t.summary, &t.lesson];
+            text.extend(t.impact.as_deref());
+            text.extend(t.detected.as_deref());
+            for s in &t.sections {
+                text.push(&s.heading);
+                text.extend(s.paragraphs.iter().map(String::as_str));
+                text.extend(s.list.iter().map(String::as_str));
+                text.extend(s.code.as_deref());
+                for l in &s.links {
+                    text.push(&l.title);
+                    text.push(&l.source);
+                }
+            }
+            let tech = tech_names(&content.site, &a.tech).join(" ");
+            serde_json::json!({ "slug": a.slug, "text": format!("{} {tech}", text.join(" ")).to_lowercase() })
+        })
+        .collect();
+    Ok(Bytes::from(serde_json::to_vec(&items)?))
 }
 
 fn author(content: &Content, public_url: &str) -> serde_json::Value {
@@ -945,10 +1025,27 @@ pub fn blog(
             ]),
         ],
     });
+    let kinds = count_opts(content.articles.iter().map(|a| a.kind.as_str()), |k| {
+        kind_label(content, k, lang)
+    });
+    let mut techs = count_opts(
+        content
+            .articles
+            .iter()
+            .flat_map(|a| a.tech.iter().map(String::as_str)),
+        |id| tech_names(&content.site, &[id.to_owned()]).join(""),
+    );
+    techs.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.label.cmp(&b.label)));
+    let units = count_opts(content.articles.iter().map(|a| a.unit.as_str()), |u| {
+        unit_slot(content, u, lang)
+    });
     let tpl = BlogTpl {
         jsonld: script_json(&jsonld)?,
         url,
         articles,
+        kinds,
+        techs,
+        units,
         c,
     };
     Ok(Page::new(tpl.render()?))
@@ -998,6 +1095,9 @@ pub fn article(
         date_label: date_label(&a.date, lang),
         t,
         tech,
+        kind: &a.kind,
+        kind_label: kind_label(content, &a.kind, lang),
+        postmortem: a.is_postmortem(),
         unit_url: unit_url(lang, &a.unit),
         unit_slot: unit_slot(content, &a.unit, lang),
         c,

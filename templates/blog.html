@@ -32,11 +32,24 @@
   <p class="kicker">{{ c.t.blog["nav"] }}</p>
   <h1>{{ c.t.blog["title"] }}</h1>
   <p class="lead">{{ c.t.blog["intro"] }}</p>
-  <ol class="post-list">
+  <form class="blog-filters card js-only" data-blog-filters role="search" aria-label="{{ c.t.blog["search"] }}">
+    <div class="field bf-search"><label for="bf-q">{{ c.t.blog["search"] }}</label><input id="bf-q" type="search" name="q" autocomplete="off" placeholder="{{ c.t.blog["search_hint"] }}" data-bf-q></div>
+    <fieldset class="bf-group"><legend>{{ c.t.blog["filter_kind"] }}</legend><div class="bf-chips">
+      <label><input type="radio" name="kind" value="" checked><span>{{ c.t.blog["filter_all"] }}</span></label>
+      {% for k in kinds %}<label><input type="radio" name="kind" value="{{ k.id }}"><span class="kind-dot kind-{{ k.id }}">{{ k.label }} <small>{{ k.count }}</small></span></label>{% endfor %}
+    </div></fieldset>
+    <div class="bf-row">
+      <div class="field"><label for="bf-tech">{{ c.t.blog["filter_tech"] }}</label><select id="bf-tech" name="tech"><option value="">{{ c.t.blog["filter_all"] }}</option>{% for t in techs %}<option value="{{ t.id }}">{{ t.label }} ({{ t.count }})</option>{% endfor %}</select></div>
+      <div class="field"><label for="bf-unit">{{ c.t.blog["filter_unit"] }}</label><select id="bf-unit" name="unit"><option value="">{{ c.t.blog["filter_all"] }}</option>{% for u in units %}<option value="{{ u.id }}">{{ u.label }} ({{ u.count }})</option>{% endfor %}</select></div>
+    </div>
+    <p class="bf-status" role="status" aria-live="polite"><span data-bf-count data-template="{{ c.t.blog["results"] }}"></span> <button type="reset" class="btn btn-sm btn-ghost" data-bf-clear hidden>{{ c.t.blog["clear"] }}</button></p>
+  </form>
+  <p class="bf-empty muted" data-bf-empty hidden>{{ c.t.blog["no_results"] }}</p>
+  <ol class="post-list" data-post-list>
   {% for a in articles %}
-    <li class="post-card">
+    <li class="post-card" data-slug="{{ a.slug }}" data-kind="{{ a.kind }}" data-tech="{{ a.tech_ids }}" data-unit="{{ a.unit }}">
       <a href="{{ a.url }}">
-        <p class="post-meta"><time datetime="{{ a.date }}">{{ a.date_label }}</time> · <span>{{ a.unit_slot }}</span></p>
+        <p class="post-meta"><span class="kind-badge kind-{{ a.kind }}">{{ a.kind_label }}</span> <time datetime="{{ a.date }}">{{ a.date_label }}</time> · <span>{{ a.unit_slot }}</span></p>
         <h2>{{ a.title }}</h2>
         <p>{{ a.description }}</p>
         <ul class="chips">{% for t in a.tech %}<li>{{ t }}</li>{% endfor %}</ul>
@@ -46,4 +59,8 @@
   {% endfor %}
   </ol>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/blog.js?v={{ c.asset_v }}" defer></script>
 {% endblock %}

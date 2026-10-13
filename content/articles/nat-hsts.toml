@@ -2,8 +2,11 @@ slug = "nat-hsts"
 date = "2026-06-19"
 unit = "router"
 tech = ["mikrotik", "traefik"]
+kind = "incident"
 
 [text.es]
+impact = "Webs con HSTS, como Spotify, imposibles de abrir desde la red de casa."
+detected = "Un error de certificado autofirmado en Firefox que con los datos del móvil no pasaba."
 title = "Certificado autofirmado en toda la casa: una regla de NAT de MikroTik sin interfaz de entrada"
 description = "Por qué una regla dstnat del puerto 443 sin in-interface-list=WAN interceptaba el HTTPS de dentro de casa y rompía las webs con HSTS, y cómo se arregla."
 summary = "Desde casa, webs como Spotify daban error de certificado autofirmado y Firefox ni dejaba añadir una excepción. Desde fuera iban bien. La culpa era una regla de NAT del router demasiado amplia."
@@ -39,6 +42,8 @@ code = """/ip firewall nat set [find comment="HTTPS"] in-interface-list=WAN
 /ip firewall connection remove [find]"""
 
 [text.en]
+impact = "HSTS sites such as Spotify impossible to open from the home network."
+detected = "A self-signed certificate error in Firefox that didn't happen on mobile data."
 title = "A self-signed certificate across the house: a MikroTik NAT rule with no inbound interface"
 description = "Why a dstnat rule for port 443 without in-interface-list=WAN intercepted HTTPS from inside the house and broke HSTS sites, and how to fix it."
 summary = "From home, sites like Spotify showed a self-signed certificate error and Firefox wouldn't even allow an exception. From outside they were fine. The culprit was an overly broad NAT rule on the router."

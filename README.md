@@ -4,7 +4,7 @@ Mi web personal: quién soy, qué sé hacer y en qué trabajo, en español e ing
 
 Cada pieza del servidor tiene su propia **unidad del rack**: una página a la que se entra como si sacaras un servidor de 1U (`/es/<pieza>/`, 23 en total, del router a los discos). Cada una enseña su mapa por dentro con recorridos animados, qué uso de cada habilidad, sus averías reales como adivinanza, cómo se construyó y por qué. La de **XPIFY** (mi proyecto final) trae además el cálculo de XP real para jugar con él, y la de **Hermes** un simulador de VRAM con las medidas reales y el turno de chat fase a fase. Se llega desde su pieza del laboratorio, desde la lista «El rack, unidad a unidad» de la portada (que se enciende al filtrar por habilidad), desde su misión, pasando de una unidad a la de arriba o la de abajo, o con `ssh <pieza>` en la terminal. Todo suena a sala de servidores (Web Audio sintetizado, sin ficheros), con un botón para silenciarlo y `sound on|off` en la terminal.
 
-Los postmortems más útiles del homelab están además como **artículos** (`/es/blog/`): síntoma, diagnóstico paso a paso, causa, arreglo y lección, cada uno con su fecha, datos estructurados (TechArticle) y enlace a la unidad donde pasó. La portada enseña los tres últimos y cada unidad enlaza los suyos.
+Los postmortems más útiles del homelab están además como **artículos** (`/es/blog/`): síntoma, diagnóstico paso a paso, causa, arreglo y lección, cada uno con su fecha, datos estructurados (TechArticle) y enlace a la unidad donde pasó. La portada enseña los tres últimos y cada unidad enlaza los suyos. Cada artículo tiene un **tipo** (avería, casi, mejora medida, montaje, resumen semanal o cambios del mes) y los postmortems llevan una **ficha** con impacto, cómo se detectó, tiempo caído y lección. El índice se filtra por tipo, tecnología y unidad, y se busca en el texto entero con `/{lang}/blog/index.json`, que se pide al empezar a escribir. Los filtros viajan en la URL.
 
 ## Cómo está hecha
 
@@ -20,7 +20,7 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 |---|---|
 | `content/site.toml` | Datos que no dependen del idioma: tecnologías, proyectos, piezas y grupos del servidor y recorridos |
 | `content/es.toml`, `content/en.toml` | Textos, con las mismas claves (el servidor no arranca si falta alguna) |
-| `content/articles/*.toml` | Artículos (postmortems): fecha, unidad, tecnologías y textos ES/EN por secciones; el orden está en `src/article.rs` |
+| `content/articles/*.toml` | Artículos: fecha, unidad, tecnologías, `kind` y textos ES/EN por secciones (con `impact`/`detected`/`downtime` en los postmortems y `links` a fuentes de fuera); el orden está en `src/article.rs` |
 | `content/units/*.toml` | Unidades del rack (una por pieza del servidor): mapa, recorridos, averías y textos ES/EN; se validan contra `site.toml` y el orden del rack está en `src/unit.rs` |
 | `templates/` | Plantillas HTML (y el avatar de Hermes en SVG) |
 | `static/` | CSS, JS (`app.js` para la portada, `unit.js` para las unidades, `sound.js` para el sonido, `prefs.js` para el panel de vista: tema, animaciones, enanitos y la noche en casa), imágenes y CV (se compilan dentro del binario) |

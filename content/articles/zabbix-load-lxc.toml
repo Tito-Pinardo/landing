@@ -2,8 +2,11 @@ slug = "zabbix-load-lxc"
 date = "2026-10-05"
 unit = "zabbix"
 tech = ["zabbix", "lxc", "wazuh"]
+kind = "improvement"
 
 [text.es]
+impact = "178 avisos de Zabbix y 9.517 de Wazuh en una semana: tantos que se dejaban de leer."
+detected = "Contando una semana entera de avisos antes de tocar nada."
 title = "Falsas alertas de carga en contenedores LXC: el load average es el del host"
 description = "Por qué Zabbix avisaba de «load average per CPU above 3» en ocho contenedores LXC a la vez sin carga real, y cómo pasé de 9.500 avisos a la semana a un centenar."
 summary = "Los avisos de monitorización y seguridad eran «súper pesados». Antes de tocar nada medí una semana entera. El 82 % de los avisos de Zabbix salían de un solo trigger que en un contenedor no mide lo que parece, y Wazuh mandaba miles de sesiones rutinarias."
@@ -38,6 +41,8 @@ list = [
 ]
 
 [text.en]
+impact = "178 Zabbix alerts and 9,517 from Wazuh in a week: so many they stopped being read."
+detected = "Counting a whole week of alerts before touching anything."
 title = "False load alerts in LXC containers: the load average is the host's"
 description = "Why Zabbix warned «load average per CPU above 3» on eight LXC containers at once with no real load, and how alerts went from 9,500 a week to about a hundred."
 summary = "Monitoring and security alerts were «unbearable». Before touching anything I measured a whole week. 82 % of Zabbix alerts came from a single trigger that doesn't measure what it seems inside a container, and Wazuh was sending thousands of routine sessions."

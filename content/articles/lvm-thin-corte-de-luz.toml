@@ -2,8 +2,12 @@ slug = "lvm-thin-corte-de-luz"
 date = "2026-08-07"
 unit = "proxmox"
 tech = ["proxmox", "linux"]
+kind = "incident"
 
 [text.es]
+impact = "Todos los contenedores y VMs parados tras un corte de luz, la documentación incluida."
+detected = "Los servicios no volvían y el registro repetía el mismo mensaje cada diez segundos."
+downtime = "Más de una hora: solo la comprobación del almacenamiento tardó entre 65 y 90 minutos."
 title = "Proxmox no arranca ningún contenedor tras un corte de luz: el LVM-thin a medio activar"
 description = "«Activation of logical volume pve/data is prohibited while pve/data_tmeta is active»: qué pasa con LVM-thin tras un apagado brusco y cómo activarlo sin esperar dos veces."
 summary = "Tras un corte de luz, el servidor arrancó solo pero ningún contenedor ni VM llegó a iniciarse. El almacenamiento de los contenedores se había quedado a medio activar después de su comprobación, y el arranque automático de Proxmox no lo reintenta."
@@ -51,6 +55,9 @@ paragraphs = [
 ]
 
 [text.en]
+impact = "Every container and VM stopped after a power cut, documentation included."
+detected = "Services weren't coming back and the log repeated the same message every ten seconds."
+downtime = "Over an hour: the storage check alone took 65 to 90 minutes."
 title = "Proxmox starts no containers after a power cut: LVM-thin left half-activated"
 description = "«Activation of logical volume pve/data is prohibited while pve/data_tmeta is active»: why LVM-thin breaks after a power cut and how to bring it up."
 summary = "After a power cut the server booted on its own, but no container or VM started. The containers' storage had been left half-activated after its check, and Proxmox's automatic start doesn't retry."

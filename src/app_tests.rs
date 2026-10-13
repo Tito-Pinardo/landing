@@ -192,6 +192,30 @@ async fn rack_units_have_their_own_page(db: PgPool) {
 }
 
 #[sqlx::test]
+async fn blog_search_index_has_every_article(db: PgPool) {
+    let (app, _) = router(db, config(false));
+    let (status, h, body) = send(&app, get("/es/blog/index.json")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(h[header::CONTENT_TYPE], "application/json");
+    let items: Vec<serde_json::Value> = serde_json::from_str(&body).unwrap();
+    assert_eq!(items.len(), crate::article::EMBEDDED.len());
+    let nat = items.iter().find(|i| i["slug"] == "nat-hsts").unwrap();
+    let text = nat["text"].as_str().unwrap();
+    assert!(
+        text.contains("in-interface-list"),
+        "busca en el texto entero, no solo el título"
+    );
+    assert_eq!(text, text.to_lowercase());
+
+    let (_, _, body) = send(&app, get("/es/blog/")).await;
+    assert!(body.contains("data-kind=\"incident\""));
+    let (_, _, body) = send(&app, get("/es/blog/lvm-thin-corte-de-luz/")).await;
+    assert!(body.contains("post-sheet"), "un postmortem lleva ficha");
+    let (status, _, _) = send(&app, get("/fr/blog/index.json")).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[sqlx::test]
 async fn articles_have_their_own_pages(db: PgPool) {
     let (app, _) = router(db, config(false));
 
@@ -301,7 +325,11 @@ async fn contact_topic_is_stored(db: PgPool) {
     let mut body = valid_body();
     body["topic"] = "lo-que-sea".into();
     let (status, _, _) = send(&app, json_contact(body, "203.0.113.10")).await;
-    assert_eq!(status, StatusCode::OK, "un motivo raro no rechaza el mensaje");
+    assert_eq!(
+        status,
+        StatusCode::OK,
+        "un motivo raro no rechaza el mensaje"
+    );
     let topics: Vec<String> =
         sqlx::query_scalar!("SELECT topic FROM contact_messages ORDER BY created_at")
             .fetch_all(&db)

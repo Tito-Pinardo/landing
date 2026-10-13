@@ -41,8 +41,22 @@ pub struct Article {
     /// Unidad del rack donde pasó.
     pub unit: String,
     pub tech: Vec<String>,
+    /// Qué clase de artículo es (ver [`KINDS`]).
+    pub kind: String,
     pub text: BTreeMap<String, ArticleText>,
 }
+
+/// Tipos de artículo. Los cuatro primeros son postmortems y llevan ficha
+/// (impacto y cómo se detectó); el resumen semanal y los cambios del mes no.
+pub const KINDS: &[&str] = &[
+    "incident",
+    "near_miss",
+    "improvement",
+    "build",
+    "digest",
+    "changelog",
+];
+pub const POSTMORTEM_KINDS: &[&str] = &["incident", "near_miss", "improvement", "build"];
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -54,6 +68,26 @@ pub struct ArticleText {
     pub summary: String,
     pub sections: Vec<Section>,
     pub lesson: String,
+    /// Ficha del postmortem: a quién o a qué afectó.
+    #[serde(default)]
+    pub impact: Option<String>,
+    /// Cómo me enteré: aviso, prueba, medida…
+    #[serde(default)]
+    pub detected: Option<String>,
+    /// Tiempo de servicio caído, si lo hubo.
+    #[serde(default)]
+    pub downtime: Option<String>,
+}
+
+/// Un enlace a una fuente de fuera (el resumen semanal enlaza a los
+/// originales).
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SourceLink {
+    pub title: String,
+    pub url: String,
+    /// Quién lo publica: «Blog de Proxmox», «NVD»…
+    pub source: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -66,11 +100,17 @@ pub struct Section {
     pub list: Vec<String>,
     #[serde(default)]
     pub code: Option<String>,
+    #[serde(default)]
+    pub links: Vec<SourceLink>,
 }
 
 impl Article {
     pub fn parse(src: &str) -> Result<Article> {
         toml::from_str(src).context("content/articles")
+    }
+
+    pub fn is_postmortem(&self) -> bool {
+        POSTMORTEM_KINDS.contains(&self.kind.as_str())
     }
 
     pub fn texts(&self, lang: Lang) -> &ArticleText {
@@ -95,6 +135,10 @@ impl Article {
                     .enumerate()
                     .all(|(i, c)| i == 4 || i == 7 || c.is_ascii_digit()),
             ctx("la fecha va como AAAA-MM-DD")
+        );
+        ensure!(
+            KINDS.contains(&self.kind.as_str()),
+            ctx(&format!("tipo desconocido {}", self.kind))
         );
         ensure!(
             units.contains(self.unit.as_str()),
@@ -125,11 +169,28 @@ impl Article {
                     "[text.{code}] description demasiado larga para buscadores"
                 ))
             );
+            if self.is_postmortem() {
+                ensure!(
+                    t.impact.is_some() && t.detected.is_some(),
+                    ctx(&format!(
+                        "[text.{code}] un postmortem lleva impact y detected"
+                    ))
+                );
+            }
             for sec in &t.sections {
                 ensure!(
-                    !sec.paragraphs.is_empty() || !sec.list.is_empty() || sec.code.is_some(),
+                    !sec.paragraphs.is_empty()
+                        || !sec.list.is_empty()
+                        || sec.code.is_some()
+                        || !sec.links.is_empty(),
                     ctx(&format!("[text.{code}] sección vacía «{}»", sec.heading))
                 );
+                for l in &sec.links {
+                    ensure!(
+                        l.url.starts_with("https://") && !l.url.contains(char::is_whitespace),
+                        ctx(&format!("[text.{code}] enlace raro {}", l.url))
+                    );
+                }
             }
         }
         Ok(())
@@ -148,5 +209,19 @@ mod tests {
             c.articles.windows(2).all(|w| w[0].date >= w[1].date),
             "del más reciente al más antiguo"
         );
+        assert!(
+            c.articles
+                .iter()
+                .all(|a| a.is_postmortem() || a.kind == "digest" || a.kind == "changelog")
+        );
+    }
+
+    #[test]
+    fn unknown_kind_is_rejected() {
+        let c = Content::embedded().unwrap();
+        let src = super::EMBEDDED[0].replacen("kind = \"", "kind = \"otro", 1);
+        let a = super::Article::parse(&src).unwrap();
+        let units = c.units.iter().map(|u| u.id.as_str()).collect();
+        assert!(a.validate(&c.site, &units).is_err());
     }
 }

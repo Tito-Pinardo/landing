@@ -2,8 +2,11 @@ slug = "okd-discos-lentos"
 date = "2026-09-14"
 unit = "okd"
 tech = ["openshift", "kubernetes", "proxmox"]
+kind = "build"
 
 [text.es]
+impact = "Una sesión entera para montar el clúster: cuatro bloqueos con la misma raíz, los discos mecánicos."
+detected = "Leyendo los registros de cada pieza que se quedaba esperando."
 title = "Instalar OKD con el Agent-Based Installer sobre discos mecánicos: los cuatro muros"
 description = "Una ISO que no arrancaba, un overlay en RAM lleno, etcd con escrituras de 6,6 s y un timeout de systemd de 5 minutos: cómo acabó sano un clúster OKD de 3 nodos."
 summary = "Montar un clúster OKD compacto de tres nodos en Proxmox, con discos mecánicos, llevó una sesión entera. Cada bloqueo parecía un fallo grave y casi todos eran lo mismo: algo pensado para SSD que se quedaba corto."
@@ -48,6 +51,8 @@ paragraphs = [
 ]
 
 [text.en]
+impact = "A whole session to build the cluster: four blockers with the same root, the spinning disks."
+detected = "Reading the logs of each piece that was left waiting."
 title = "Installing OKD with the Agent-Based Installer on spinning disks: the four walls"
 description = "An ISO that wouldn't boot, a full RAM overlay, etcd with 6.6 s writes and a 5-minute systemd timeout: how a 3-node OKD cluster ended up healthy."
 summary = "Setting up a compact three-node OKD cluster on Proxmox, with spinning disks, took a whole session. Every blocker looked serious and nearly all were the same thing: something designed for SSD falling short."

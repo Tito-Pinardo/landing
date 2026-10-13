@@ -2,8 +2,11 @@ slug = "firewall-proxmox-ct"
 date = "2026-09-22"
 unit = "proxmox"
 tech = ["proxmox", "hardening"]
+kind = "incident"
 
 [text.es]
+impact = "Reglas de cortafuegos sin efecto en 11 contenedores: el SSH y una base de datos, abiertos a la red interna."
+detected = "Intentando atravesar el cortafuegos desde otro contenedor."
 title = "El cortafuegos de un contenedor de Proxmox que no hace nada: falta [OPTIONS] enable: 1"
 description = "Reglas de cortafuegos de un CT de Proxmox que se guardan pero no se aplican: sin la sección [OPTIONS] con enable: 1, firewall=1 en la interfaz no basta."
 summary = "Había restringido el SSH de los contenedores a mis equipos y la VPN, y bloqueado el puerto de una base de datos. Desde otro contenedor se llegaba a los dos igual. En 11 contenedores, las reglas estaban escritas y no hacían nada."
@@ -38,6 +41,8 @@ paragraphs = [
 ]
 
 [text.en]
+impact = "Firewall rules doing nothing on 11 containers: SSH and a database open to the internal network."
+detected = "Trying to get through the firewall from another container."
 title = "A Proxmox container firewall that does nothing: [OPTIONS] enable: 1 is missing"
 description = "Firewall rules on a Proxmox CT that are stored but never applied: without the [OPTIONS] section with enable: 1, firewall=1 on the interface isn't enough."
 summary = "I had restricted the containers' SSH to my machines and the VPN, and blocked a database port. From another container both could still be reached. On 11 containers the rules were written down and did nothing."
