@@ -20,6 +20,7 @@ macro_rules! articles {
 pub const EMBEDDED: &[&str] = articles![
     "cache-escritura-discos",
     "zabbix-load-lxc",
+    "cambios-2026-09",
     "firewall-proxmox-ct",
     "think-adaptativo",
     "qwen3-8gb-vram",

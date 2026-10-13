@@ -1,0 +1,117 @@
+slug = "cambios-2026-09"
+date = "2026-09-30"
+unit = "iac"
+tech = ["terraform", "ansible", "proxmox", "hardening", "wazuh", "python"]
+kind = "changelog"
+
+[text.es]
+title = "Lo que cambió en septiembre de 2026: todo el homelab como código"
+description = "142 cambios en un mes: el homelab entero pasa a Terraform y Ansible, se cierran paneles a internet, el asistente estrena modelo y pruebas, y se mide antes de tocar."
+summary = "Septiembre fue el mes en que el homelab entero pasó a estar definido como código. Además se cerró a internet todo lo que no tenía por qué estar abierto, el asistente cambió de modelo y ganó una batería de pruebas, y hubo dos sustos que acabaron en artículo."
+lesson = "Un mes de 142 cambios pequeños, cada uno revisado con su plan o su diff antes de aplicarse, se deshace mejor que uno grande. Y lo que parecía terminado (un cortafuegos, una lista de claves) solo lo estaba cuando se probó desde fuera."
+
+[[text.es.sections]]
+heading = "Todo el homelab, como código"
+paragraphs = [
+  "Del 16 al 19 de septiembre, cada servicio que seguía montado a mano se rehízo en un contenedor nuevo creado con Terraform y configurado con Ansible: el DNS, los servidores de juego, la multimedia, la gestión documental y los scripts. Al acabar, no quedaba nada en el servidor que no saliera del repositorio.",
+]
+list = [
+  "Plex pasa a un contenedor sin privilegios, con la GPU para transcodificar.",
+  "La gestión documental se rehace aislada y sin SSH.",
+  "El repositorio tiene una segunda copia en otro disco del servidor, y cada commit se empuja también ahí.",
+]
+
+[[text.es.sections]]
+heading = "Seguridad: cerrar y comprobar"
+list = [
+  "Endurecimiento básico en todos los contenedores (SSH, hora y tareas programadas), y después SSH solo con algoritmos modernos.",
+  "El cortafuegos de Proxmox no se aplicaba en 11 contenedores aunque las reglas estaban escritas. Se descubrió probando a atravesarlo.",
+  "El 26 de septiembre, los paneles de administración que estaban publicados dejaron de estarlo: solo se llega a ellos desde casa o la VPN, con doble factor.",
+  "Una política propia de Wazuh revisa en cada contenedor que lo esencial siga en su sitio.",
+]
+links = [
+  { title = "El cortafuegos de un contenedor de Proxmox que no hace nada", url = "https://titopinardogutierrez.com/es/blog/firewall-proxmox-ct/", source = "Este blog" },
+]
+
+[[text.es.sections]]
+heading = "Hermes, el asistente"
+paragraphs = [
+  "El mes en que más cambió. Pasó de qwen2.5 a qwen3:8b, aprendió a leer y escribir el calendario, a enterarse del correo nada más llegar y a consultar el estado de la red y de Docker. Y, sobre todo, ganó una batería de pruebas con preguntas reales que se pasa antes de cada cambio.",
+]
+list = [
+  "Una línea de log por llamada al modelo: con ella se vio que solo cabía en la GPU el 66 % del modelo.",
+  "Razonar solo en las llamadas que lo necesitan: turnos entre un 25 % y un 40 % más rápidos.",
+  "Si un dato no sale de ninguna fuente (un importe, una dirección), no lo da por bueno.",
+]
+links = [
+  { title = "qwen3:8b en una GPU de 8 GB: de 17 a 73 tokens por segundo", url = "https://titopinardogutierrez.com/es/blog/qwen3-8gb-vram/", source = "Este blog" },
+  { title = "Razonar solo donde aporta: de 4,7 a 0,7 segundos al redactar", url = "https://titopinardogutierrez.com/es/blog/think-adaptativo/", source = "Este blog" },
+]
+
+[[text.es.sections]]
+heading = "Mantenimiento y sustos"
+list = [
+  "Un playbook nuevo actualiza las imágenes de Docker, y la monitorización enseña en qué contenedores hay versión nueva.",
+  "Un cambio de una línea en Terraform quería recrear la mensajería y la puerta de las webs. El plan lo avisó y no se aplicó.",
+  "La caché de escritura de los discos del sistema se activa en cada arranque.",
+  "Todos los contenedores, a la hora de Madrid.",
+]
+links = [
+  { title = "Un cambio de claves SSH que iba a destruir cuatro contenedores", url = "https://titopinardogutierrez.com/es/blog/terraform-forcenew/", source = "Este blog" },
+]
+
+[text.en]
+title = "What changed in September 2026: the whole homelab as code"
+description = "142 changes in a month: the whole homelab moves to Terraform and Ansible, panels close to the internet, the assistant gets a new model and tests."
+summary = "September was the month the whole homelab became defined as code. On top of that, everything that had no reason to be open to the internet was closed, the assistant changed model and got a test suite, and two scares ended up as articles."
+lesson = "A month of 142 small changes, each reviewed with its plan or diff before being applied, is easier to undo than one big one. And what looked finished (a firewall, a list of keys) only was once it had been tested from outside."
+
+[[text.en.sections]]
+heading = "The whole homelab, as code"
+paragraphs = [
+  "From 16 to 19 September, every service still set up by hand was rebuilt in a new container created with Terraform and configured with Ansible: DNS, the game servers, media, document management and the scripts. By the end, nothing on the server didn't come from the repo.",
+]
+list = [
+  "Plex moves to an unprivileged container, with the GPU for transcoding.",
+  "Document management is rebuilt isolated and without SSH.",
+  "The repo has a second copy on another disk of the server, and every commit is pushed there too.",
+]
+
+[[text.en.sections]]
+heading = "Security: close and check"
+list = [
+  "Basic hardening on every container (SSH, time and scheduled jobs), and later SSH with modern algorithms only.",
+  "The Proxmox firewall wasn't being applied on 11 containers even though the rules were written. Found by trying to get through it.",
+  "On 26 September, the admin panels that were published stopped being so: they're only reachable from home or the VPN, with two-factor.",
+  "A custom Wazuh policy checks on every container that the essentials are still in place.",
+]
+links = [
+  { title = "A Proxmox container firewall that does nothing", url = "https://titopinardogutierrez.com/en/blog/firewall-proxmox-ct/", source = "This blog" },
+]
+
+[[text.en.sections]]
+heading = "Hermes, the assistant"
+paragraphs = [
+  "The month it changed most. It moved from qwen2.5 to qwen3:8b, learnt to read and write the calendar, to hear about email as soon as it arrives and to check the state of the network and of Docker. And above all it got a test suite of real questions that runs before every change.",
+]
+list = [
+  "One log line per model call: that's how it showed only 66% of the model fitted on the GPU.",
+  "Reasoning only on the calls that need it: turns 25% to 40% faster.",
+  "If a figure doesn't come from any source (an amount, an address), it doesn't take it as good.",
+]
+links = [
+  { title = "qwen3:8b on an 8 GB GPU: from 17 to 73 tokens per second", url = "https://titopinardogutierrez.com/en/blog/qwen3-8gb-vram/", source = "This blog" },
+  { title = "Reason only where it helps: from 4.7 to 0.7 seconds when writing", url = "https://titopinardogutierrez.com/en/blog/think-adaptativo/", source = "This blog" },
+]
+
+[[text.en.sections]]
+heading = "Maintenance and scares"
+list = [
+  "A new playbook updates the Docker images, and monitoring shows which containers have a new version.",
+  "A one-line change in Terraform wanted to recreate the messaging server and the web gateway. The plan flagged it and it wasn't applied.",
+  "The write cache of the system disks is enabled on every boot.",
+  "Every container on Madrid time.",
+]
+links = [
+  { title = "An SSH key change that was going to destroy four containers", url = "https://titopinardogutierrez.com/en/blog/terraform-forcenew/", source = "This blog" },
+]
