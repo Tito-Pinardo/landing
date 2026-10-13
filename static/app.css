@@ -529,6 +529,17 @@ details summary:hover { color: var(--text); }
 .field textarea { resize: vertical; min-height: 140px; }
 .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .field.is-invalid input, .field.is-invalid textarea { border-color: var(--danger); }
+.topic-field { border: 0; margin: 0; padding: 0; min-width: 0; }
+.topic-field legend { font-weight: 600; font-size: .9rem; padding: 0; margin-bottom: 6px; }
+.topic-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.topic-opt { position: relative; cursor: pointer; }
+.topic-opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.topic-opt span {
+  display: inline-block; padding: 7px 13px; border-radius: 999px; font-size: .88rem; font-weight: 600;
+  background: var(--surface-2); border: 1px solid var(--border-strong); transition: background .15s, border-color .15s;
+}
+.topic-opt input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.topic-opt input:focus-visible + span { box-shadow: 0 0 0 3px var(--accent-soft); }
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 .form-status { margin: 0; font-weight: 600; min-height: 1.6em; }
 .form-status.is-ok { color: var(--ok); }

@@ -292,6 +292,25 @@ async fn contact_is_stored_with_hashed_ip(db: PgPool) {
 }
 
 #[sqlx::test]
+async fn contact_topic_is_stored(db: PgPool) {
+    let (app, _) = router(db.clone(), config(true));
+    let mut body = valid_body();
+    body["topic"] = "job".into();
+    let (status, _, _) = send(&app, json_contact(body, "203.0.113.9")).await;
+    assert_eq!(status, StatusCode::OK);
+    let mut body = valid_body();
+    body["topic"] = "lo-que-sea".into();
+    let (status, _, _) = send(&app, json_contact(body, "203.0.113.10")).await;
+    assert_eq!(status, StatusCode::OK, "un motivo raro no rechaza el mensaje");
+    let topics: Vec<String> =
+        sqlx::query_scalar!("SELECT topic FROM contact_messages ORDER BY created_at")
+            .fetch_all(&db)
+            .await
+            .unwrap();
+    assert_eq!(topics, ["job", "other"]);
+}
+
+#[sqlx::test]
 async fn invalid_contact_lists_fields(db: PgPool) {
     let (app, _) = router(db.clone(), config(false));
     let body = serde_json::json!({"name": "", "email": "x", "message": "corto"});

@@ -444,6 +444,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
       <div class="field"><label for="cf-name">{{ c.contact("name") }}</label><input id="cf-name" name="name" required maxlength="100" autocomplete="name"></div>
       <div class="field"><label for="cf-email">{{ c.contact("email") }}</label><input id="cf-email" name="email" type="email" required maxlength="254" autocomplete="email"></div>
       <div class="field"><label for="cf-company">{{ c.contact("company") }}</label><input id="cf-company" name="company" maxlength="120" autocomplete="organization"></div>
+      <fieldset class="field topic-field"><legend>{{ c.contact("topic") }}</legend><div class="topic-opts">{% for t in ["job", "project", "homelab", "other"] %}<label class="topic-opt"><input type="radio" name="topic" value="{{ t }}"{% if loop.first %} checked{% endif %}><span>{{ c.contact(format!("topic_{}", t).as_str()) }}</span></label>{% endfor %}</div></fieldset>
       <div class="field"><label for="cf-message">{{ c.contact("message") }}</label><textarea id="cf-message" name="message" required minlength="10" maxlength="5000" rows="6"></textarea></div>
       <div class="hp" aria-hidden="true"><label for="cf-website">Website</label><input id="cf-website" name="website" tabindex="-1" autocomplete="off"></div>
       {% if let Some(key) = turnstile_site_key %}<div class="cf-turnstile" data-sitekey="{{ key }}" data-theme="auto" data-language="{{ c.lang }}"></div>{% endif %}

@@ -9,7 +9,7 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 ## Cómo está hecha
 
 - **Rust + Axum.** Las páginas se renderizan una vez al arrancar (plantillas `askama` compiladas) y se sirven desde memoria con ETag. Detrás de Cloudflare casi ninguna visita llega al servidor.
-- **PostgreSQL + sqlx.** Las consultas se comprueban en compilación (los datos de `.sqlx/` permiten compilar sin base de datos). Los límites de envío del formulario se calculan con una sola consulta indexada, y la IP nunca se guarda: solo un hash con sal.
+- **PostgreSQL + sqlx.** Las consultas se comprueban en compilación (los datos de `.sqlx/` permiten compilar sin base de datos). Los límites de envío del formulario se calculan con una sola consulta indexada, y la IP nunca se guarda: solo un hash con sal. El formulario pide el **motivo** (oferta de trabajo, proyecto, homelab u otro) y las ofertas llegan a Matrix destacadas en la primera línea del aviso.
 - **Aviso a Matrix con bandeja de salida.** El mensaje se guarda primero y el aviso se reintenta (`FOR UPDATE SKIP LOCKED`) hasta que Matrix devuelve un `event_id`.
 - **Sin dependencias en el navegador.** CSS y JS propios (unos 28 KB en total con brotli). Todo funciona sin JavaScript; el mapa, la terminal y los logros son una mejora encima.
 - **Seguridad.** CSP estricta sin nada en línea, cabeceras HSTS/COOP/etc., Turnstile opcional, campo trampa y límites por IP y globales.

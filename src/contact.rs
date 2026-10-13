@@ -19,6 +19,9 @@ pub struct ContactForm {
     #[serde(default)]
     pub company: String,
     pub message: String,
+    /// Motivo: `job`, `project`, `homelab` u `other`.
+    #[serde(default)]
+    pub topic: String,
     /// Campo trampa: invisible para personas, los bots lo rellenan.
     #[serde(default)]
     pub website: String,
@@ -34,6 +37,38 @@ pub struct NewMessage {
     pub email: String,
     pub company: Option<String>,
     pub message: String,
+    pub topic: Topic,
+}
+
+/// Por qué escribe: decide cómo llega el aviso a Matrix.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Topic {
+    Job,
+    Project,
+    Homelab,
+    Other,
+}
+
+impl Topic {
+    pub const ALL: [Topic; 4] = [Topic::Job, Topic::Project, Topic::Homelab, Topic::Other];
+
+    pub fn code(self) -> &'static str {
+        match self {
+            Topic::Job => "job",
+            Topic::Project => "project",
+            Topic::Homelab => "homelab",
+            Topic::Other => "other",
+        }
+    }
+
+    /// Lo que no se reconoce cuenta como «otro»: el motivo es una ayuda, no
+    /// un motivo para rechazar un mensaje.
+    pub fn parse(s: &str) -> Topic {
+        Topic::ALL
+            .into_iter()
+            .find(|t| t.code() == s.trim())
+            .unwrap_or(Topic::Other)
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -87,6 +122,7 @@ impl ContactForm {
             email,
             company: (!company.is_empty()).then_some(company),
             message,
+            topic: Topic::parse(&self.topic),
         })
     }
 }
@@ -155,8 +191,8 @@ pub async fn insert(
     let user_agent = user_agent.map(|ua| ua.chars().take(300).collect::<String>());
     sqlx::query!(
         r#"
-        INSERT INTO contact_messages (id, lang, name, email, company, message, ip_hash, user_agent)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO contact_messages (id, lang, name, email, company, message, ip_hash, user_agent, topic)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         "#,
         id,
         lang.code(),
@@ -166,6 +202,7 @@ pub async fn insert(
         msg.message,
         ip_hash,
         user_agent,
+        msg.topic.code(),
     )
     .execute(db)
     .await?;
@@ -222,6 +259,7 @@ mod tests {
             email: email.into(),
             company: String::new(),
             message: message.into(),
+            topic: String::new(),
             website: String::new(),
             turnstile_token: String::new(),
         }
@@ -283,6 +321,16 @@ mod tests {
                 .unwrap_err(),
             vec![Invalid::Name]
         );
+    }
+
+    #[test]
+    fn topic_falls_back_to_other() {
+        let mut f = form("Ana", "a@b.co", "Mensaje suficientemente largo");
+        assert_eq!(f.validate().unwrap().topic, Topic::Other);
+        f.topic = "job".into();
+        assert_eq!(f.validate().unwrap().topic, Topic::Job);
+        f.topic = "<script>".into();
+        assert_eq!(f.validate().unwrap().topic, Topic::Other);
     }
 
     #[test]

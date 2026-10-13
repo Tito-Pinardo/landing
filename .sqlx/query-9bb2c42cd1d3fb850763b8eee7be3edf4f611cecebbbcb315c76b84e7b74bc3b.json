@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        UPDATE contact_messages\n           SET notify_attempts = notify_attempts + 1\n         WHERE id IN (\n               SELECT id FROM contact_messages\n                WHERE notified_at IS NULL AND notify_attempts < $1\n                ORDER BY created_at\n                LIMIT 10\n                FOR UPDATE SKIP LOCKED)\n        RETURNING id, lang, name, email, company, message\n        ",
+  "query": "\n        UPDATE contact_messages\n           SET notify_attempts = notify_attempts + 1\n         WHERE id IN (\n               SELECT id FROM contact_messages\n                WHERE notified_at IS NULL AND notify_attempts < $1\n                ORDER BY created_at\n                LIMIT 10\n                FOR UPDATE SKIP LOCKED)\n        RETURNING id, lang, name, email, company, message, topic\n        ",
   "describe": {
     "columns": [
       {
@@ -68,6 +68,17 @@
             "name": "message"
           }
         }
+      },
+      {
+        "ordinal": 6,
+        "name": "topic",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "topic"
+          }
+        }
       }
     ],
     "parameters": {
@@ -81,8 +92,9 @@
       false,
       false,
       true,
+      false,
       false
     ]
   },
-  "hash": "6f3fdd89b7c9367903bcaeeee537f0e8f4630398eabafe01c777e36c0e580d8c"
+  "hash": "9bb2c42cd1d3fb850763b8eee7be3edf4f611cecebbbcb315c76b84e7b74bc3b"
 }

@@ -23,6 +23,7 @@ struct Pending {
     email: String,
     company: Option<String>,
     message: String,
+    topic: String,
 }
 
 /// Bucle del trabajador: se despierta al llegar un mensaje o cada minuto.
@@ -59,7 +60,7 @@ async fn deliver_batch(
                 ORDER BY created_at
                 LIMIT 10
                 FOR UPDATE SKIP LOCKED)
-        RETURNING id, lang, name, email, company, message
+        RETURNING id, lang, name, email, company, message, topic
         "#,
         MAX_ATTEMPTS,
     )
@@ -103,15 +104,16 @@ async fn send(http: &reqwest::Client, matrix: &Matrix, msg: &Pending) -> anyhow:
     }
 
     let company = msg.company.as_deref().unwrap_or("—");
+    let head = headline(&msg.topic);
     let body = format!(
-        "📬 Nuevo contacto desde la web ({lang})\nDe: {name} <{email}>\nEmpresa: {company}\n\n{message}",
+        "{head} ({lang})\nDe: {name} <{email}>\nEmpresa: {company}\n\n{message}",
         lang = msg.lang,
         name = msg.name,
         email = msg.email,
         message = msg.message,
     );
     let html = format!(
-        "<p>📬 <strong>Nuevo contacto desde la web</strong> ({lang})</p>\
+        "<p><strong>{head}</strong> ({lang})</p>\
          <p><strong>De:</strong> {name} &lt;{email}&gt;<br><strong>Empresa:</strong> {company}</p>\
          <blockquote>{message}</blockquote>",
         lang = escape(&msg.lang),
@@ -149,6 +151,17 @@ async fn send(http: &reqwest::Client, matrix: &Matrix, msg: &Pending) -> anyhow:
         .ok_or_else(|| anyhow::anyhow!("Matrix respondió sin event_id"))
 }
 
+/// La primera línea del aviso: lo que se ve en la notificación del móvil.
+/// Una oferta de trabajo tiene que distinguirse de un vistazo.
+fn headline(topic: &str) -> &'static str {
+    match topic {
+        "job" => "💼🔴 OFERTA DE TRABAJO desde la web",
+        "project" => "🛠️ Propuesta de proyecto desde la web",
+        "homelab" => "🖥️ Pregunta sobre el homelab desde la web",
+        _ => "📬 Nuevo contacto desde la web",
+    }
+}
+
 fn escape(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
@@ -178,6 +191,12 @@ fn urlencode(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn job_offers_stand_out() {
+        assert!(headline("job").contains("OFERTA"));
+        assert!(headline("raro").starts_with("📬"));
+    }
 
     #[test]
     fn html_is_escaped() {
