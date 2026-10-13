@@ -82,6 +82,22 @@ group = ""
 tech = []
 
 [[pods]]
+id = "site"
+x = 290
+y = 420
+kind = "app"
+group = ""
+tech = ["typescript"]
+
+[[pods]]
+id = "botpanel"
+x = 100
+y = 540
+kind = "control"
+group = ""
+tech = ["hardening"]
+
+[[pods]]
 id = "host"
 x = 290
 y = 540
@@ -231,7 +247,11 @@ path = ["players", "router", "ufw", "proxy", "modded", "disks", "arc", "modded",
 
 [[flows]]
 id = "status"
-path = ["discord", "bot", "panel", "bot", "discord"]
+path = ["panel", "bot", "discord", "players", "discord", "router", "proxy"]
+
+[[flows]]
+id = "listed"
+path = ["panel", "bot", "site", "botpanel", "bot", "discord", "site", "players"]
 
 [[flows]]
 id = "blackout"
@@ -325,7 +345,17 @@ text = "Cada minuto pregunta al panel qué está encendido y ajusta router y DNS
 [text.es.pods.discord]
 short = "Discord"
 title = "Discord"
-text = "Donde los amigos ven qué servidores hay encendidos."
+text = "Un canal donde cada servidor tiene su mensaje de estado: encendido o apagado, quién está dentro, la dirección y el enlace para entrar."
+
+[text.es.pods.site]
+short = "Web pública"
+title = "Web pública de los servidores"
+text = "Una sola página con los servidores en vivo, agrupados por juego, con «Copiar» y «Conectar con Steam», quién está en Discord y las normas. No enlaza al panel de AMP."
+
+[text.es.pods.botpanel]
+short = "Panel del bot"
+title = "Panel de gestión del bot"
+text = "Solo desde casa o la VPN, detrás de la puerta interna con doble factor. Desde aquí se dan de alta los servidores que AMP ya publica y se edita cómo salen."
 
 [text.es.pods.host]
 short = "Hipervisor"
@@ -350,7 +380,7 @@ text = "Desde donde se encienden, apagan y configuran los servidores. Ya no se p
 [text.es.pods.bot]
 short = "Bot de estado"
 title = "Bot de estado"
-text = "Lee el panel con un usuario sin privilegios y publica el estado en Discord y en una web."
+text = "Lee el panel con un usuario sin privilegios y mantiene al día los mensajes de Discord y la web pública."
 
 [text.es.pods.modded]
 short = "Minecraft mods"
@@ -454,13 +484,28 @@ steps = [
 ]
 
 [text.es.flows.status]
-title = "Los amigos miran qué hay"
+title = "Los amigos miran qué hay en Discord"
 steps = [
-  "Alguien pregunta en Discord qué servidores hay encendidos.",
-  "El bot lo sabe.",
-  "Lo consulta al panel con un usuario de solo lectura, por la red interna.",
-  "Recibe estado, dirección y carátula.",
-  "Y lo publica.",
+  "El panel sabe qué servidores están encendidos y cuánta gente hay en cada uno.",
+  "El bot se lo pregunta cada poco, con un usuario de solo lectura y por la red interna.",
+  "En el canal de Discord, cada servidor tiene su mensaje: encendido o apagado, quién está dentro, la dirección y su carátula. El bot lo edita cuando algo cambia, sin llenar el canal.",
+  "Un amigo ve que hay gente jugando y le apetece entrar.",
+  "El título del mensaje enlaza a la página del servidor para conectarse directamente o copiar la dirección; si esa página no sirve, a la web.",
+  "Entra por el router, que tiene abierto ese puerto porque el servidor está encendido.",
+  "Y el proxy le lleva a su mundo.",
+]
+
+[text.es.flows.listed]
+title = "Un servidor nuevo sale en la web y en Discord"
+steps = [
+  "En el panel de AMP le pongo a un servidor su dirección pública.",
+  "El bot lo ve en su siguiente consulta: dirección, juego, carátula y botón de Steam salen de lo que ya sabe AMP.",
+  "El servidor aparece solo en la web pública, en su sección (Minecraft, juegos con varios servidores, Steam u otros). Todavía sin mensaje en Discord.",
+  "En el panel del bot, solo desde casa o la VPN con doble factor, sale en «Publicados desde AMP» con el botón «Añadir al bot».",
+  "Al añadirlo, el bot lo da de alta: si le pongo dirección o carátula propias, mandan sobre las de AMP.",
+  "Y empieza a publicar su mensaje de estado en el canal de Discord.",
+  "En la web, el servidor ya tiene su ficha completa: «Copiar» la dirección y «Conectar con Steam».",
+  "Los amigos lo encuentran en la web o en Discord, sin que tenga que avisar a nadie.",
 ]
 
 [text.es.flows.blackout]
@@ -656,7 +701,17 @@ text = "Every minute it asks the panel what's running and adjusts router and DNS
 [text.en.pods.discord]
 short = "Discord"
 title = "Discord"
-text = "Where friends see which servers are up."
+text = "A channel where each server has its status message: on or off, who's in, the address and the link to join."
+
+[text.en.pods.site]
+short = "Public site"
+title = "Public servers site"
+text = "A single page with the servers live, grouped by game, with «Copy» and «Connect with Steam», who's on Discord and the rules. It doesn't link to the AMP panel."
+
+[text.en.pods.botpanel]
+short = "Bot panel"
+title = "Bot admin panel"
+text = "Only from home or the VPN, behind the internal door with two-factor. This is where servers AMP already publishes get registered and how they show up gets edited."
 
 [text.en.pods.host]
 short = "Hypervisor"
@@ -681,7 +736,7 @@ text = "Where servers are started, stopped and configured. No longer published o
 [text.en.pods.bot]
 short = "Status bot"
 title = "Status bot"
-text = "Reads the panel with an unprivileged user and posts the status to Discord and a website."
+text = "Reads the panel with an unprivileged user and keeps the Discord messages and the public site up to date."
 
 [text.en.pods.modded]
 short = "Modded MC"
@@ -785,13 +840,28 @@ steps = [
 ]
 
 [text.en.flows.status]
-title = "Friends check what's up"
+title = "Friends check Discord to see what's up"
 steps = [
-  "Someone asks on Discord which servers are running.",
-  "The bot knows.",
-  "It asks the panel with a read-only user, over the internal network.",
-  "It gets status, address and cover art.",
-  "And posts it.",
+  "The panel knows which servers are running and how many people are on each.",
+  "The bot asks it every so often, with a read-only user over the internal network.",
+  "In the Discord channel each server has its own message: on or off, who's in, the address and its cover art. The bot edits it when something changes, without flooding the channel.",
+  "A friend sees people playing and fancies joining.",
+  "The message title links to the server's page to connect directly or copy the address; if that page won't work, to the website.",
+  "They come in through the router, which has that port open because the server is running.",
+  "And the proxy takes them to their world.",
+]
+
+[text.en.flows.listed]
+title = "A new server shows up on the site and on Discord"
+steps = [
+  "In the AMP panel I give a server its public address.",
+  "The bot sees it on its next check: address, game, cover art and the Steam button come from what AMP already knows.",
+  "The server appears on its own on the public site, in its section (Minecraft, games with several servers, Steam or others). No Discord message yet.",
+  "In the bot's panel, only from home or the VPN with two-factor, it shows up under «Published from AMP» with an «Add to bot» button.",
+  "Adding it registers it in the bot: if I set my own address or cover art, they override AMP's.",
+  "And it starts posting its status message in the Discord channel.",
+  "On the site the server now has its full card: «Copy» the address and «Connect with Steam».",
+  "Friends find it on the site or on Discord, without me having to tell anyone.",
 ]
 
 [text.en.flows.blackout]
