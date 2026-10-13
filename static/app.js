@@ -1566,16 +1566,27 @@
 
   // Los servidores entran en el rack al aparecer.
   if ("IntersectionObserver" in window && !reduceMotion) {
+    // Se vigila un marcador sin animación justo encima de cada zona, no la
+    // zona: inclinada en 3D, una zona muy alta (misiones, laboratorio) ocupa
+    // en pantalla mucho menos de lo que mide y entraba tarde. Y sin umbral en
+    // porcentaje: entra en cuanto su borde pasa del 85 % de la pantalla.
     const racked = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (!e.isIntersecting) continue;
-        e.target.classList.add("is-racked");
+        e.target.nextElementSibling?.classList.add("is-racked");
         racked.unobserve(e.target);
+        e.target.remove();
       }
-    }, { threshold: 0.08 });
+    }, { threshold: 0, rootMargin: "0px 0px -15% 0px" });
     $$(".zone").forEach((z) => {
       const r = z.getBoundingClientRect();
-      if (r.top > innerHeight) { z.classList.add("rack-in"); racked.observe(z); }
+      if (r.top <= innerHeight) return;
+      z.classList.add("rack-in");
+      const mark = document.createElement("div");
+      mark.className = "rack-mark";
+      mark.setAttribute("aria-hidden", "true");
+      z.before(mark);
+      racked.observe(mark);
     });
   }
 

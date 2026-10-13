@@ -1375,3 +1375,6 @@ main { overflow-x: clip; }
 .unit-posts ul { margin: 6px 0 0; padding-left: 1.2em; }
 .blog, .post { margin-top: 30px; margin-bottom: 30px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 34px clamp(18px, 4vw, 44px) 40px; width: calc(100% - 2 * var(--gutter)); }
 .blog .post-card a { background: var(--surface-2); }
+
+/* Marcador invisible que dispara la entrada de cada zona en el rack. */
+.rack-mark { height: 1px; margin-bottom: -1px; pointer-events: none; }
