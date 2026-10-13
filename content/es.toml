@@ -40,6 +40,8 @@ lab_quick = "El mapa interactivo del servidor y sus recorridos animados están e
 unit_enter = "Entrar en la unidad 1U"
 unit_where = "Ver dónde usé {skill}"
 unit_badge = "Tiene unidad propia en el rack"
+sound_on = "Sonido del servidor: activado (pulsa para silenciar)"
+sound_off = "Sonido del servidor: silenciado (pulsa para activar)"
 
 [hero]
 kicker = "Hola, soy"
@@ -799,7 +801,8 @@ help = [
   ["hermes", "llama a Hermes, tu guía"],
   ["challenge", "un reto: encuentra la bandera"],
   ["submit <flag>", "entrega la bandera"],
-  ["ssh xpify", "entra en la unidad de XPIFY"],
+  ["ssh <pieza>", "entra en la unidad de una pieza (ssh hermes, ssh zfs…)"],
+  ["sound on|off", "enciende o apaga el sonido del servidor"],
   ["clear", "limpia la pantalla"],
   ["exit", "cierra la terminal"],
 ]
@@ -976,3 +979,60 @@ tour_end_lab = "¡Fin del tour! Te falta lo mejor: prueba un recorrido del labor
 tour_end_all = "¡Fin del tour, y lo has explorado prácticamente todo! Si quieres hablar con Tito, el formulario está aquí."
 detective = "¡Bien visto! Así es como Tito investiga las averías: pistas primero, conclusiones después."
 hacker = "¡Bandera encontrada! Tenías madera de sysadmin."
+
+# ---------------------------------------------------------------------------
+# Unidades del rack: textos comunes de todas las páginas de unidad. Cada
+# unidad puede sobrescribir cualquiera en su `[text.es.ui]`.
+# ---------------------------------------------------------------------------
+[unit_ui]
+back = "Volver al rack"
+crumb_rack = "Rack"
+crumb_lab = "Laboratorio"
+pull = "Tirando de la unidad…"
+map_title = "Por dentro"
+map_intro = "Pulsa una pieza para ver qué hace o elige un recorrido y sigue el paquete."
+flows_title = "Recorridos"
+flows_hint = "Pulsa uno y sigue el paquete."
+play = "Reproducir"
+pause = "Pausa"
+prev = "Anterior"
+next = "Siguiente"
+step = "Paso"
+of = "de"
+pick = "Pulsa una pieza o elige un recorrido. Si vienes de una habilidad, ya están encendidas las piezas donde la uso."
+narrator = "Hermes"
+narrator_role = "de visita en la unidad"
+tech_title = "Lo que uso de mi árbol"
+tech_intro = "Pulsa una habilidad: se encienden en el mapa las piezas donde la uso y te cuento para qué."
+tech_all = "Ver todas mis misiones con esta habilidad"
+tech_clear = "Apagar"
+incidents_title = "Bitácora de incidencias"
+incidents_intro = "Averías reales. Lee el síntoma, elige la causa que creas y mira cómo se arregló."
+incident_guess = "¿Qué crees que pasaba?"
+incident_wrong = "No era eso. Prueba otra."
+incident_right = "¡Exacto!"
+incident_reveal = "Ver la solución"
+cause = "Causa"
+fix = "Solución"
+lesson = "Lección"
+solved = "resueltas"
+timeline_title = "Cómo se construyó"
+decisions_title = "Decisiones (y por qué)"
+lessons_title = "Lo que aprendí"
+next_title = "Lo siguiente"
+cta_title = "¿Hablamos?"
+cta_text = "Puedo contar cualquiera de estas decisiones en detalle en una entrevista."
+noscript = "Esta página funciona sin JavaScript; con él la unidad se abre, el paquete recorre el mapa y puedes jugar con la bitácora."
+unit_prev = "Unidad de arriba"
+unit_next = "Unidad de abajo"
+rack_pos = "Posición {n} de {total} en el rack"
+status_live = "En producción"
+status_retired = "Retirada"
+status_lab = "Laboratorio"
+
+[rack]
+title = "El rack, unidad a unidad"
+intro = "Cada pieza del servidor tiene su propia unidad: entra en cualquiera para verla por dentro, con sus recorridos, sus averías y por qué está montada así."
+enter = "Entrar"
+lit = "{n} unidades del rack usan {skill}: están encendidas."
+units = "unidades"

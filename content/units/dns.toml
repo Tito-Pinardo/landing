@@ -1,0 +1,899 @@
+# Unidad 1U del rack: el DNS de casa y el sincronizador de IP.
+#
+# Fuente: Obsidian «Technitium DNS» (migración del 13-09 y revisión de
+# cifrado del 10-10) y la nota de red. Sin direcciones ni nombres internos.
+
+id = "dns"
+status = "live"
+host_tech = ["lxc", "linux"]
+links = [
+  ["devices", "dhcp"],
+  ["upstream", "doh"],
+  ["cloudflare", "sync"],
+]
+
+[[groups]]
+id = "resolve"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "filter"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "migration"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "ip"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "devices"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "dhcp"
+x = 290
+y = 110
+kind = "network"
+group = ""
+tech = ["mikrotik"]
+
+[[pods]]
+id = "host"
+x = 290
+y = 250
+kind = "control"
+group = ""
+tech = ["proxmox"]
+
+[[pods]]
+id = "upstream"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "cloudflare"
+x = 100
+y = 540
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "listener"
+x = 515
+y = 140
+kind = "network"
+group = "resolve"
+tech = ["dns"]
+
+[[pods]]
+id = "zones"
+x = 700
+y = 140
+kind = "network"
+group = "resolve"
+tech = ["dns"]
+
+[[pods]]
+id = "cache"
+x = 885
+y = 140
+kind = "network"
+group = "resolve"
+tech = ["dns"]
+
+[[pods]]
+id = "doh"
+x = 1070
+y = 140
+kind = "network"
+group = "resolve"
+tech = ["dns", "hardening"]
+
+[[pods]]
+id = "blocklists"
+x = 515
+y = 266
+kind = "observability"
+group = "filter"
+tech = ["dns"]
+
+[[pods]]
+id = "manual"
+x = 700
+y = 266
+kind = "observability"
+group = "filter"
+tech = ["dns"]
+
+[[pods]]
+id = "dnssec"
+x = 885
+y = 266
+kind = "observability"
+group = "filter"
+tech = ["dns", "hardening"]
+
+[[pods]]
+id = "panel"
+x = 1070
+y = 266
+kind = "control"
+group = "filter"
+tech = ["hardening"]
+
+[[pods]]
+id = "pihole"
+x = 515
+y = 392
+kind = "edge"
+group = "migration"
+tech = []
+
+[[pods]]
+id = "port"
+x = 700
+y = 392
+kind = "network"
+group = "migration"
+tech = ["linux"]
+
+[[pods]]
+id = "redirect"
+x = 885
+y = 392
+kind = "control"
+group = "migration"
+tech = ["linux"]
+
+[[pods]]
+id = "watch"
+x = 1070
+y = 392
+kind = "observability"
+group = "migration"
+tech = []
+
+[[pods]]
+id = "sync"
+x = 515
+y = 518
+kind = "control"
+group = "ip"
+tech = ["linux"]
+
+[[pods]]
+id = "checkip"
+x = 700
+y = 518
+kind = "network"
+group = "ip"
+tech = ["linux"]
+
+[[pods]]
+id = "records"
+x = 885
+y = 518
+kind = "network"
+group = "ip"
+tech = []
+
+[[pods]]
+id = "startup"
+x = 1070
+y = 518
+kind = "control"
+group = "ip"
+tech = ["proxmox"]
+
+[[flows]]
+id = "query"
+path = ["devices", "dhcp", "listener", "blocklists", "cache", "doh", "upstream", "doh", "cache", "devices"]
+
+[[flows]]
+id = "local"
+path = ["devices", "listener", "zones", "devices"]
+
+[[flows]]
+id = "ad"
+path = ["devices", "listener", "blocklists", "manual", "devices"]
+
+[[flows]]
+id = "migrate"
+path = ["pihole", "port", "redirect", "listener", "watch", "pihole"]
+
+[[flows]]
+id = "ipchange"
+path = ["sync", "checkip", "upstream", "sync", "cloudflare", "records"]
+
+[[flows]]
+id = "blackout"
+path = ["host", "startup", "listener", "host", "devices", "dhcp"]
+
+[[incidents]]
+id = "clear"
+answer = 3
+
+[[incidents]]
+id = "confused"
+answer = 1
+
+[[incidents]]
+id = "port53"
+answer = 0
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "El DNS de casa por dentro · Tito Pinardo Gutiérrez"
+description = "El DNS de toda la casa: Technitium con caché, bloqueo de publicidad, DNSSEC y salida cifrada; una migración desde Pi-hole sin perder una consulta y el sincronizador que mantiene los dominios apuntando a casa."
+
+[text.es.ui]
+slot = "1U · DNS"
+face_specs = "Technitium · DoH · IP dinámica"
+state = "En producción"
+map_silk = "DNS"
+map_title = "El DNS por dentro"
+map_intro = "Cada nombre que se escribe en casa pasa por aquí antes de ir a ningún sitio. Elige un recorrido."
+vm_title = "Contenedores del DNS · Proxmox"
+vm_specs = "Technitium + sincronizador de IP"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, zonas ni nombres internos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Red de casa"
+title = "DNS de casa · Technitium"
+tagline = "Todos los equipos de casa, el router y el propio servidor preguntan aquí qué dirección tiene cada nombre. Responde los nombres internos, bloquea publicidad y rastreadores, valida las firmas DNSSEC y lo que tiene que preguntar fuera lo pregunta cifrado."
+grade = "Migrado con 0 consultas perdidas"
+facts = [
+  { label = "Por qué Technitium", value = "Sustituye a dos piezas (Pi-hole y Unbound) con una: resolución propia, caché persistente, bloqueo y zonas locales, todo con una API." },
+  { label = "Cómo se migró", value = "Junto al anterior, en el mismo contenedor y la misma IP. Una redirección del puerto movió las consultas nuevas al servicio nuevo mientras las viejas terminaban." },
+  { label = "El otro inquilino", value = "Un contenedor diminuto comprueba cada 5 minutos la IP pública de casa y, si cambia, actualiza Cloudflare." },
+]
+
+[[text.es.stats]]
+value = "1.200"
+label = "consultas durante el cambio, 0 fallos"
+
+[[text.es.stats]]
+value = "19,5 ms"
+label = "la respuesta más lenta de esa prueba"
+
+[[text.es.stats]]
+value = "276.000+"
+label = "dominios en las listas de bloqueo"
+
+[[text.es.stats]]
+value = "5 min"
+label = "cada cuánto se comprueba la IP pública"
+
+[text.es.groups]
+resolve = "Resolver"
+filter = "Filtrar y validar"
+migration = "La migración desde Pi-hole"
+ip = "IP dinámica y arranque"
+
+[text.es.pods.devices]
+short = "Equipos de casa"
+title = "Equipos de casa"
+text = "Móviles, portátiles, la tele y los contenedores del servidor: todos preguntan aquí."
+
+[text.es.pods.dhcp]
+short = "DHCP del router"
+title = "DHCP del router"
+text = "Al dar dirección a un equipo, el router le dice qué DNS usar: este, en los tres segmentos."
+
+[text.es.pods.host]
+short = "Hipervisor"
+title = "El hipervisor y sus contenedores"
+text = "El servidor también resuelve aquí desde octubre, con un público de respaldo por si este no responde."
+
+[text.es.pods.upstream]
+short = "DNS públicos"
+title = "Resolutores públicos"
+text = "Lo que no está en caché se pregunta fuera, por HTTPS."
+
+[text.es.pods.cloudflare]
+short = "Cloudflare"
+title = "DNS de Cloudflare"
+text = "Donde viven los registros públicos de mis dominios."
+
+[text.es.pods.listener]
+short = "Puerto 53"
+title = "Entrada DNS"
+text = "La misma dirección de siempre: los equipos no notaron el cambio de servidor."
+
+[text.es.pods.zones]
+short = "Zonas locales"
+title = "Zonas locales"
+text = "Los nombres internos del homelab y del laboratorio. Nunca se preguntan fuera."
+
+[text.es.pods.cache]
+short = "Caché"
+title = "Caché persistente"
+text = "Guarda las respuestas respetando su caducidad, sobrevive a reinicios y renueva antes de tiempo las más usadas."
+
+[text.es.pods.doh]
+short = "DNS sobre HTTPS"
+title = "Salida cifrada (DoH)"
+text = "Las consultas que salen de casa van por HTTPS: quien mire la línea no ve qué nombres se piden. Comprobado: nada sale ya por el puerto 53."
+
+[text.es.pods.blocklists]
+short = "Listas"
+title = "Listas de bloqueo"
+text = "Las mismas doce listas que tenía en Pi-hole, más de 276.000 dominios de publicidad y rastreo."
+
+[text.es.pods.manual]
+short = "Bloqueos propios"
+title = "Bloqueos manuales"
+text = "Unos pocos dominios bloqueados a mano y las señales que algunos navegadores consultan para saltarse el DNS de la red."
+
+[text.es.pods.dnssec]
+short = "DNSSEC"
+title = "Validación DNSSEC"
+text = "Si un dominio firmado responde con una firma que no cuadra, la respuesta se rechaza."
+
+[text.es.pods.panel]
+short = "Panel"
+title = "Panel de administración"
+text = "Solo desde dentro, detrás de la puerta interna con doble factor. El servicio no corre como root."
+
+[text.es.pods.pihole]
+short = "Pi-hole"
+title = "El DNS anterior"
+text = "Pi-hole con Unbound. Se quedó instalado, parado, como vuelta atrás."
+
+[text.es.pods.port]
+short = "Puerto nuevo"
+title = "Technitium en otro puerto"
+text = "El servidor nuevo arrancó junto al viejo, escuchando en otro puerto, para probarlo sin tocar a nadie."
+
+[text.es.pods.redirect]
+short = "Redirección"
+title = "Redirección con nftables"
+text = "Una regla movió las conexiones nuevas del puerto 53 al servidor nuevo dentro del mismo contenedor. Las que ya estaban abiertas terminaron en el viejo."
+
+[text.es.pods.watch]
+short = "Vigilancia"
+title = "Monitorización"
+text = "Zabbix comprueba que resuelve nombres externos y que los dos servicios están activos; Wazuh vigila los cambios en la configuración."
+
+[text.es.pods.sync]
+short = "Sincronizador"
+title = "Sincronizador de IP"
+text = "Un contenedor mínimo con un script. Comprueba la IP pública de casa cada 5 minutos."
+
+[text.es.pods.checkip]
+short = "IP pública"
+title = "¿Cuál es mi IP?"
+text = "Pregunta fuera qué IP ve el mundo y la compara con la última conocida."
+
+[text.es.pods.records]
+short = "Registros"
+title = "Registros públicos"
+text = "Si la IP cambió, actualiza los registros que deben apuntar a casa. Si no, no hace nada."
+
+[text.es.pods.startup]
+short = "Arranca primero"
+title = "Orden de arranque"
+text = "Tras un corte de luz, el DNS es el primer contenedor en arrancar: el resto lo necesita."
+
+[text.es.flows.query]
+title = "Alguien abre una web"
+steps = [
+  "Un móvil de casa quiere abrir una web.",
+  "Usa el DNS que le dio el router al conectarse: este.",
+  "La consulta llega al servidor DNS.",
+  "Primero, ¿está en alguna lista de bloqueo? No.",
+  "¿Está en caché? No: es la primera vez que alguien lo pide.",
+  "Sale a preguntar fuera, por HTTPS.",
+  "Un resolutor público responde.",
+  "La respuesta vuelve cifrada y se valida la firma DNSSEC si la tiene.",
+  "Se guarda en caché para la próxima vez.",
+  "El móvil recibe la dirección y abre la web.",
+]
+
+[text.es.flows.local]
+title = "Un nombre interno"
+steps = [
+  "Desde casa pido un panel por su nombre interno.",
+  "La consulta llega al DNS.",
+  "El nombre está en una zona local: se responde aquí mismo, sin preguntar fuera.",
+  "El equipo recibe la dirección de la puerta interna.",
+]
+
+[text.es.flows.ad]
+title = "Una web intenta cargar publicidad"
+steps = [
+  "Una web pide un dominio de publicidad.",
+  "La consulta llega al DNS.",
+  "Está en las listas de bloqueo.",
+  "O en los bloqueos propios.",
+  "La respuesta es «no existe»: el anuncio no carga, en ningún equipo de la casa.",
+]
+
+[text.es.flows.migrate]
+title = "La migración, sin cortar"
+steps = [
+  "Pi-hole sigue respondiendo a todo el mundo.",
+  "Technitium arranca en otro puerto del mismo contenedor y lo pruebo: nombres, bloqueos, DNSSEC.",
+  "Una regla de nftables manda las conexiones nuevas del 53 al servidor nuevo, sin cambiar IP ni nada en los clientes.",
+  "Las consultas nuevas ya las responde Technitium.",
+  "Durante cinco minutos lanzo 1.200 consultas alternando nombres externos e internos: 0 fallos, la más lenta 19,5 ms.",
+  "Pi-hole se para cuando terminan sus últimas conexiones, y se queda instalado como vuelta atrás.",
+]
+
+[text.es.flows.ipchange]
+title = "Cambia la IP de casa"
+steps = [
+  "Cada 5 minutos el sincronizador se despierta.",
+  "Pregunta qué IP pública tiene casa.",
+  "La respuesta llega desde fuera.",
+  "Ha cambiado respecto a la última vez.",
+  "Actualiza Cloudflare.",
+  "Los registros que deben apuntar a casa ya tienen la IP nueva.",
+]
+
+[text.es.flows.blackout]
+title = "Vuelve la luz"
+steps = [
+  "Tras un corte de luz, el servidor arranca. Con las comprobaciones de disco puede tardar más de una hora.",
+  "El DNS tiene el primer puesto en el orden de arranque.",
+  "En cuanto responde, el resto de contenedores ya pueden resolver nombres.",
+  "El hipervisor le pregunta a él primero, y a un público solo si no responde.",
+  "Mientras tanto, los equipos de casa pueden poner un DNS público a mano: no se fuerza nada en el router.",
+  "Cuando todo vuelve, el DHCP sigue repartiendo este DNS.",
+]
+
+[text.es.incidents.clear]
+title = "El DNS de casa iba cifrado… salvo el del servidor"
+meta = "10-10-2026 · privacidad"
+symptom = "Lo que pasaba por el DNS de casa salía cifrado. Pero al revisar las conexiones del servidor seguía habiendo consultas DNS en claro hacia fuera."
+options = [
+  "El DNS cifrado fallaba y volvía al puerto 53",
+  "El router tenía otro DNS configurado",
+  "Algún equipo de casa tenía el DNS a mano",
+  "El hipervisor y casi todos sus contenedores usaban DNS públicos directamente",
+]
+cause = "El hipervisor tenía resolutores públicos configurados y 16 de los 18 contenedores los heredaban: preguntaban fuera, por el 53, sin cifrar y sin caché."
+fix = "Un playbook que apunta el hipervisor y los contenedores al DNS de casa, con un público solo de respaldo, actualizado en caliente sin reiniciar nada. Y el DNS, el primero en arrancar."
+lesson = "Comprobar el camino real del tráfico, no la configuración que se supone. El fallo estaba en el propio servidor, no en los equipos de casa."
+
+[text.es.incidents.confused]
+title = "Se apaga el DNS de toda la casa"
+meta = "13-09-2026 · migración"
+symptom = "La misma noche de la migración, la casa se quedó sin resolver nombres durante un rato."
+options = [
+  "La redirección del puerto se perdió al reiniciar",
+  "Apagué el contenedor nuevo pensando que era el Pi-hole viejo",
+  "Las listas de bloqueo bloquearon un dominio necesario",
+  "La caché se corrompió",
+]
+cause = "Había dos contenedores con nombres parecidos: el de pruebas y el de producción. Apagué el que daba servicio pensando que era el viejo."
+fix = "Encenderlo, comprobar resolución, bloqueos y redirección, volver a activar el arranque automático y renombrar los dos contenedores para que no se puedan confundir."
+lesson = "Los nombres son parte de la seguridad operativa: lo que se puede confundir, alguien lo confundirá. Yo incluido."
+
+[text.es.incidents.port53]
+title = "¿Forzar el DNS en el router?"
+meta = "10-10-2026 · decisión"
+symptom = "Para que ningún equipo se saltara el DNS de casa, lo típico sería que el router redirigiera o bloqueara cualquier consulta al puerto 53 hacia fuera. No lo hice."
+options = [
+  "Porque si el servidor cae, nadie de casa podría ni poner un DNS a mano",
+  "Porque el router no lo permite",
+  "Porque rompe el DNS cifrado",
+  "Porque ralentiza la navegación",
+]
+cause = "Tras un corte de luz, el servidor puede tardar más de una hora en arrancar. Con el 53 forzado, la casa se quedaría sin internet hasta entonces."
+fix = "Decisión: no forzarlo. El DHCP reparte este DNS y quien lo necesite puede poner uno público a mano para seguir trabajando."
+lesson = "La seguridad que deja a todo el mundo sin servicio cuando falla una pieza no es una mejora. Se decide con el peor caso delante."
+
+[[text.es.timeline]]
+title = "Pi-hole y Unbound"
+period = "Verano de 2026"
+items = [
+  "Bloqueo de publicidad para toda la casa y resolución recursiva propia.",
+  "Dos servicios que mantener y actualizar por separado.",
+]
+
+[[text.es.timeline]]
+title = "Migración a Technitium"
+period = "13-09-2026"
+items = [
+  "Instalado junto al anterior, con el paquete oficial verificado por su hash.",
+  "Mismas listas, mismos bloqueos y mismas zonas locales.",
+  "Cambio por redirección de puerto, sin tocar ningún cliente: 0 consultas perdidas.",
+]
+
+[[text.es.timeline]]
+title = "Cifrado y arranque"
+period = "10-10-2026"
+items = [
+  "Salida por DNS sobre HTTPS, comprobada mirando las conexiones.",
+  "El hipervisor y sus contenedores pasan a resolver aquí.",
+  "El DNS, el primero en arrancar tras un corte.",
+]
+
+[[text.es.decisions]]
+title = "Cómo migrar un servicio que usa todo el mundo"
+choice = "En la misma dirección, con redirección de puerto"
+why = "Cambiar la IP del DNS obliga a tocar el DHCP y esperar a que cada equipo renueve. Redirigir el puerto dentro del mismo contenedor hace el cambio invisible y reversible en segundos."
+
+[[text.es.decisions]]
+title = "Cómo sale fuera"
+choice = "DNS sobre HTTPS"
+why = "Sin cifrar, cualquiera en el camino ve qué nombres se piden en casa. Con DoH, solo ve conexiones HTTPS a un resolutor."
+
+[[text.es.decisions]]
+title = "La IP dinámica"
+choice = "Un contenedor propio que actualiza Cloudflare"
+why = "Mi conexión no tiene IP fija. Un script pequeño en su propio contenedor es fácil de vigilar y no depende de servicios de terceros."
+
+[text.es.tech_notes]
+proxmox = "El hipervisor y sus contenedores resuelven aquí, y el DNS es el primero en el orden de arranque."
+lxc = "Technitium y el sincronizador corren en sus propios contenedores LXC."
+linux = "nftables para la redirección de la migración y para proteger los puertos nuevos; el servicio corre sin root con las restricciones de systemd."
+mikrotik = "El DHCP del router anuncia este DNS en los tres segmentos, y el propio router también le pregunta."
+dns = "Technitium: zonas locales, caché persistente con prefetch, DNSSEC, minimización de consultas, listas de bloqueo y salida por DoH."
+hardening = "Panel solo detrás de la puerta interna con doble factor, consultas externas cifradas y validación de firmas."
+
+[text.es.close]
+lessons = [
+  "Un servicio que usa todo el mundo se cambia sin que nadie lo note, o no se cambia.",
+  "Mirar el tráfico real: el servidor seguía preguntando en claro mientras la casa ya iba cifrada.",
+  "Nombres que no se puedan confundir, sobre todo en lo que da servicio a todos.",
+]
+next = [
+  "Servir también el DNS por IPv6 cuando esté resuelto el fallo que encontré al probarlo.",
+  "Llevar las listas y las zonas a código en el repositorio de infraestructura.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside the home DNS · Tito Pinardo Gutiérrez"
+description = "The DNS for the whole house: Technitium with caching, ad blocking, DNSSEC and encrypted upstream; a migration from Pi-hole without losing a single query, and the sync job that keeps my domains pointing home."
+
+[text.en.ui]
+slot = "1U · DNS"
+face_specs = "Technitium · DoH · dynamic IP"
+state = "In production"
+map_silk = "DNS"
+map_title = "Inside the DNS"
+map_intro = "Every name typed at home comes through here before going anywhere. Pick a flow."
+vm_title = "DNS containers · Proxmox"
+vm_specs = "Technitium + IP sync"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no addresses, zones or internal names."
+
+[text.en.hero]
+kicker = "1U unit · Home network"
+title = "Home DNS · Technitium"
+tagline = "Every device at home, the router and the server itself ask here which address each name has. It answers internal names, blocks ads and trackers, validates DNSSEC signatures and whatever it has to ask outside, it asks encrypted."
+grade = "Migrated with 0 lost queries"
+facts = [
+  { label = "Why Technitium", value = "It replaces two parts (Pi-hole and Unbound) with one: its own resolution, persistent cache, blocking and local zones, all with an API." },
+  { label = "How it was migrated", value = "Next to the old one, in the same container and on the same IP. A port redirect moved new queries to the new service while the old ones finished." },
+  { label = "The other tenant", value = "A tiny container checks the home public IP every 5 minutes and, if it changes, updates Cloudflare." },
+]
+
+[[text.en.stats]]
+value = "1,200"
+label = "queries during the switch, 0 failures"
+
+[[text.en.stats]]
+value = "19.5 ms"
+label = "the slowest answer in that test"
+
+[[text.en.stats]]
+value = "276,000+"
+label = "domains on the block lists"
+
+[[text.en.stats]]
+value = "5 min"
+label = "how often the public IP is checked"
+
+[text.en.groups]
+resolve = "Resolve"
+filter = "Filter and validate"
+migration = "The migration from Pi-hole"
+ip = "Dynamic IP and start-up"
+
+[text.en.pods.devices]
+short = "Home devices"
+title = "Home devices"
+text = "Phones, laptops, the TV and the server's containers: they all ask here."
+
+[text.en.pods.dhcp]
+short = "Router DHCP"
+title = "Router DHCP"
+text = "When giving a device its address, the router tells it which DNS to use: this one, on all three segments."
+
+[text.en.pods.host]
+short = "Hypervisor"
+title = "The hypervisor and its containers"
+text = "The server resolves here too since October, with a public one as fallback if this doesn't answer."
+
+[text.en.pods.upstream]
+short = "Public DNS"
+title = "Public resolvers"
+text = "Whatever isn't cached is asked outside, over HTTPS."
+
+[text.en.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare DNS"
+text = "Where my domains' public records live."
+
+[text.en.pods.listener]
+short = "Port 53"
+title = "DNS entry point"
+text = "The same address as always: devices didn't notice the server change."
+
+[text.en.pods.zones]
+short = "Local zones"
+title = "Local zones"
+text = "The homelab's and the lab's internal names. Never asked outside."
+
+[text.en.pods.cache]
+short = "Cache"
+title = "Persistent cache"
+text = "Stores answers honouring their expiry, survives restarts and refreshes the most used ones ahead of time."
+
+[text.en.pods.doh]
+short = "DNS over HTTPS"
+title = "Encrypted upstream (DoH)"
+text = "Queries leaving home go over HTTPS: anyone watching the line can't see which names are asked. Checked: nothing leaves on port 53 any more."
+
+[text.en.pods.blocklists]
+short = "Lists"
+title = "Block lists"
+text = "The same twelve lists I had on Pi-hole, over 276,000 ad and tracking domains."
+
+[text.en.pods.manual]
+short = "My own blocks"
+title = "Manual blocks"
+text = "A few domains blocked by hand, plus the signals some browsers check to bypass the network's DNS."
+
+[text.en.pods.dnssec]
+short = "DNSSEC"
+title = "DNSSEC validation"
+text = "If a signed domain answers with a signature that doesn't add up, the answer is rejected."
+
+[text.en.pods.panel]
+short = "Panel"
+title = "Admin panel"
+text = "Only from inside, behind the internal door with two-factor. The service doesn't run as root."
+
+[text.en.pods.pihole]
+short = "Pi-hole"
+title = "The previous DNS"
+text = "Pi-hole with Unbound. Left installed, stopped, as a way back."
+
+[text.en.pods.port]
+short = "New port"
+title = "Technitium on another port"
+text = "The new server started next to the old one, on another port, to test it without affecting anyone."
+
+[text.en.pods.redirect]
+short = "Redirect"
+title = "nftables redirect"
+text = "A rule moved new connections on port 53 to the new server inside the same container. Those already open finished on the old one."
+
+[text.en.pods.watch]
+short = "Monitoring"
+title = "Monitoring"
+text = "Zabbix checks it resolves external names and both services are up; Wazuh watches for configuration changes."
+
+[text.en.pods.sync]
+short = "IP sync"
+title = "IP sync"
+text = "A minimal container with a script. It checks the home public IP every 5 minutes."
+
+[text.en.pods.checkip]
+short = "Public IP"
+title = "What's my IP?"
+text = "It asks outside which IP the world sees and compares it with the last known one."
+
+[text.en.pods.records]
+short = "Records"
+title = "Public records"
+text = "If the IP changed, it updates the records that should point home. Otherwise it does nothing."
+
+[text.en.pods.startup]
+short = "Starts first"
+title = "Start-up order"
+text = "After a power cut, DNS is the first container to start: everything else needs it."
+
+[text.en.flows.query]
+title = "Someone opens a website"
+steps = [
+  "A phone at home wants to open a website.",
+  "It uses the DNS the router gave it when it joined: this one.",
+  "The query reaches the DNS server.",
+  "First, is it on a block list? No.",
+  "Is it cached? No: it's the first time anyone has asked.",
+  "It goes out to ask, over HTTPS.",
+  "A public resolver answers.",
+  "The answer comes back encrypted and its DNSSEC signature is validated if it has one.",
+  "It's cached for next time.",
+  "The phone gets the address and opens the site.",
+]
+
+[text.en.flows.local]
+title = "An internal name"
+steps = [
+  "From home I ask for a panel by its internal name.",
+  "The query reaches the DNS.",
+  "The name is in a local zone: it's answered right here, without asking outside.",
+  "The device gets the address of the internal door.",
+]
+
+[text.en.flows.ad]
+title = "A website tries to load ads"
+steps = [
+  "A website asks for an ad domain.",
+  "The query reaches the DNS.",
+  "It's on the block lists.",
+  "Or on my own blocks.",
+  "The answer is «doesn't exist»: the ad doesn't load, on any device in the house.",
+]
+
+[text.en.flows.migrate]
+title = "The migration, without downtime"
+steps = [
+  "Pi-hole is still answering everyone.",
+  "Technitium starts on another port in the same container and I test it: names, blocks, DNSSEC.",
+  "An nftables rule sends new connections on 53 to the new server, without changing the IP or anything on the clients.",
+  "New queries are now answered by Technitium.",
+  "For five minutes I fire 1,200 queries alternating external and internal names: 0 failures, the slowest 19.5 ms.",
+  "Pi-hole stops once its last connections finish, and stays installed as a way back.",
+]
+
+[text.en.flows.ipchange]
+title = "The home IP changes"
+steps = [
+  "Every 5 minutes the sync job wakes up.",
+  "It asks what public IP home has.",
+  "The answer comes from outside.",
+  "It has changed since last time.",
+  "It updates Cloudflare.",
+  "The records that should point home now have the new IP.",
+]
+
+[text.en.flows.blackout]
+title = "The power comes back"
+steps = [
+  "After a power cut the server boots. With the disk checks it can take over an hour.",
+  "DNS is first in the start-up order.",
+  "As soon as it answers, the other containers can resolve names.",
+  "The hypervisor asks it first, and a public one only if it doesn't answer.",
+  "Meanwhile, home devices can set a public DNS by hand: nothing is forced in the router.",
+  "When everything is back, DHCP keeps handing out this DNS.",
+]
+
+[text.en.incidents.clear]
+title = "Home DNS was encrypted… except the server's"
+meta = "10-10-2026 · privacy"
+symptom = "Whatever went through the home DNS left encrypted. But checking the server's connections there were still plain DNS queries going out."
+options = [
+  "Encrypted DNS was failing and falling back to port 53",
+  "The router had another DNS configured",
+  "Some home device had its DNS set by hand",
+  "The hypervisor and almost all its containers used public DNS directly",
+]
+cause = "The hypervisor had public resolvers configured and 16 of the 18 containers inherited them: they asked outside, on 53, unencrypted and uncached."
+fix = "A playbook that points the hypervisor and the containers at the home DNS, with a public one only as fallback, updated live without restarting anything. And DNS first to start."
+lesson = "Check the real path of the traffic, not the configuration you assume. The flaw was on the server itself, not on the home devices."
+
+[text.en.incidents.confused]
+title = "DNS goes down for the whole house"
+meta = "13-09-2026 · migration"
+symptom = "The very night of the migration, the house couldn't resolve names for a while."
+options = [
+  "The port redirect was lost on reboot",
+  "I switched off the new container thinking it was the old Pi-hole",
+  "The block lists blocked a needed domain",
+  "The cache got corrupted",
+]
+cause = "There were two containers with similar names: the test one and the production one. I switched off the one serving the house, thinking it was the old one."
+fix = "Turn it back on, check resolution, blocking and the redirect, re-enable auto-start and rename both containers so they can't be confused."
+lesson = "Names are part of operational safety: whatever can be confused, someone will confuse. Me included."
+
+[text.en.incidents.port53]
+title = "Force DNS on the router?"
+meta = "10-10-2026 · decision"
+symptom = "To stop any device bypassing the home DNS, the usual move is for the router to redirect or block any query to port 53 going out. I didn't do it."
+options = [
+  "Because if the server goes down, nobody at home could even set a DNS by hand",
+  "Because the router doesn't allow it",
+  "Because it breaks encrypted DNS",
+  "Because it slows browsing down",
+]
+cause = "After a power cut the server can take over an hour to boot. With 53 forced, the house would be without internet until then."
+fix = "Decision: don't force it. DHCP hands out this DNS, and anyone who needs to can set a public one by hand to keep working."
+lesson = "Security that leaves everyone without service when one part fails isn't an improvement. Decide with the worst case in front of you."
+
+[[text.en.timeline]]
+title = "Pi-hole and Unbound"
+period = "Summer 2026"
+items = [
+  "Ad blocking for the whole house and its own recursive resolution.",
+  "Two services to maintain and update separately.",
+]
+
+[[text.en.timeline]]
+title = "Migration to Technitium"
+period = "13-09-2026"
+items = [
+  "Installed next to the old one, with the official package checked against its hash.",
+  "Same lists, same blocks and same local zones.",
+  "Switch through a port redirect, without touching any client: 0 lost queries.",
+]
+
+[[text.en.timeline]]
+title = "Encryption and start-up"
+period = "10-10-2026"
+items = [
+  "Upstream over DNS over HTTPS, checked by watching the connections.",
+  "The hypervisor and its containers now resolve here.",
+  "DNS first to start after a power cut.",
+]
+
+[[text.en.decisions]]
+title = "How to migrate a service everyone uses"
+choice = "On the same address, with a port redirect"
+why = "Changing the DNS IP means touching DHCP and waiting for every device to renew. Redirecting the port inside the same container makes the switch invisible and reversible in seconds."
+
+[[text.en.decisions]]
+title = "How it goes out"
+choice = "DNS over HTTPS"
+why = "Unencrypted, anyone on the path sees which names are asked at home. With DoH they only see HTTPS connections to a resolver."
+
+[[text.en.decisions]]
+title = "The dynamic IP"
+choice = "A container of its own that updates Cloudflare"
+why = "My connection has no fixed IP. A small script in its own container is easy to monitor and doesn't depend on third-party services."
+
+[text.en.tech_notes]
+proxmox = "The hypervisor and its containers resolve here, and DNS is first in the start-up order."
+lxc = "Technitium and the sync job run in their own LXC containers."
+linux = "nftables for the migration redirect and to protect the new ports; the service runs without root under systemd's restrictions."
+mikrotik = "The router's DHCP announces this DNS on all three segments, and the router itself asks it too."
+dns = "Technitium: local zones, persistent cache with prefetch, DNSSEC, query minimisation, block lists and DoH upstream."
+hardening = "Panel only behind the internal door with two-factor, encrypted external queries and signature validation."
+
+[text.en.close]
+lessons = [
+  "A service everyone uses is changed without anyone noticing, or not at all.",
+  "Look at real traffic: the server kept asking in plain text while the house was already encrypted.",
+  "Names that can't be confused, especially for what serves everyone.",
+]
+next = [
+  "Serve DNS over IPv6 too, once the bug I found testing it is sorted.",
+  "Move the lists and zones into code in the infrastructure repo.",
+]

@@ -1,0 +1,902 @@
+# Unidad 1U del rack: Obsidian, la documentación del homelab.
+#
+# Fuente: el propio vault (estructura, Archify) y sus postmortems: backup git
+# parado 13 días, push fallido y arranque tras actualizar. Sin rutas ni
+# nombres internos.
+
+id = "obsidian"
+status = "live"
+host_tech = ["lxc", "docker"]
+links = [
+  ["browser", "caddy"],
+  ["github", "mirror"],
+  ["hermes", "qdrant"],
+]
+
+[[groups]]
+id = "app"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "vault"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "sync"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "readers"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "browser"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "caddy"
+x = 290
+y = 110
+kind = "network"
+group = ""
+tech = []
+
+[[pods]]
+id = "agents"
+x = 100
+y = 250
+kind = "control"
+group = ""
+tech = []
+
+[[pods]]
+id = "github"
+x = 100
+y = 420
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "mirror"
+x = 290
+y = 420
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "hermes"
+x = 100
+y = 540
+kind = "ai"
+group = ""
+tech = []
+
+[[pods]]
+id = "qdrant"
+x = 290
+y = 540
+kind = "ai"
+group = ""
+tech = ["llm"]
+
+[[pods]]
+id = "desktop"
+x = 515
+y = 140
+kind = "app"
+group = "app"
+tech = ["docker"]
+
+[[pods]]
+id = "obsidian"
+x = 700
+y = 140
+kind = "app"
+group = "app"
+tech = ["docker"]
+
+[[pods]]
+id = "plugins"
+x = 885
+y = 140
+kind = "app"
+group = "app"
+tech = []
+
+[[pods]]
+id = "restricted"
+x = 1070
+y = 140
+kind = "observability"
+group = "app"
+tech = []
+
+[[pods]]
+id = "sections"
+x = 515
+y = 266
+kind = "app"
+group = "vault"
+tech = []
+
+[[pods]]
+id = "postmortems"
+x = 700
+y = 266
+kind = "observability"
+group = "vault"
+tech = []
+
+[[pods]]
+id = "maps"
+x = 885
+y = 266
+kind = "app"
+group = "vault"
+tech = []
+
+[[pods]]
+id = "home"
+x = 1070
+y = 266
+kind = "app"
+group = "vault"
+tech = []
+
+[[pods]]
+id = "gitplugin"
+x = 515
+y = 392
+kind = "control"
+group = "sync"
+tech = ["git"]
+
+[[pods]]
+id = "repo"
+x = 700
+y = 392
+kind = "control"
+group = "sync"
+tech = ["git"]
+
+[[pods]]
+id = "sshkey"
+x = 885
+y = 392
+kind = "control"
+group = "sync"
+tech = ["git", "hardening"]
+
+[[pods]]
+id = "check"
+x = 1070
+y = 392
+kind = "observability"
+group = "sync"
+tech = []
+
+[[pods]]
+id = "me"
+x = 515
+y = 518
+kind = "edge"
+group = "readers"
+tech = []
+
+[[pods]]
+id = "procedures"
+x = 700
+y = 518
+kind = "app"
+group = "readers"
+tech = []
+
+[[pods]]
+id = "embed"
+x = 885
+y = 518
+kind = "ai"
+group = "readers"
+tech = ["llm"]
+
+[[pods]]
+id = "landing"
+x = 1070
+y = 518
+kind = "app"
+group = "readers"
+tech = []
+
+[[flows]]
+id = "write"
+path = ["browser", "caddy", "desktop", "obsidian", "sections", "gitplugin", "repo", "sshkey", "github", "mirror"]
+
+[[flows]]
+id = "incident"
+path = ["agents", "postmortems", "procedures", "repo", "github"]
+
+[[flows]]
+id = "ask"
+path = ["hermes", "qdrant", "embed", "postmortems", "embed", "qdrant", "hermes"]
+
+[[flows]]
+id = "stuck"
+path = ["gitplugin", "check", "repo", "sshkey", "github"]
+
+[[flows]]
+id = "web"
+path = ["sections", "me", "landing"]
+
+[[incidents]]
+id = "stuck"
+answer = 3
+
+[[incidents]]
+id = "push"
+answer = 0
+
+[[incidents]]
+id = "update"
+answer = 2
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Obsidian por dentro · Tito Pinardo Gutiérrez"
+description = "La documentación del homelab: procedimientos, incidentes y postmortems en Obsidian, versionados en Git, con mapas interactivos y leídos por Hermes para responder."
+
+[text.es.ui]
+slot = "1U · OBSIDIAN"
+face_specs = "Vault · Git · postmortems"
+state = "En producción"
+map_silk = "DOCS"
+map_title = "La documentación por dentro"
+map_intro = "Todo lo que hago en el servidor acaba aquí, y de aquí sale buena parte de esta web. Elige un recorrido."
+vm_title = "Contenedor de Obsidian · Proxmox"
+vm_specs = "escritorio remoto en Docker"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir del propio vault, que es privado: sin rutas, nombres internos ni contenido de las notas."
+
+[text.es.hero]
+kicker = "Unidad 1U · Documentación"
+title = "Obsidian · la memoria del homelab"
+tagline = "Cada cambio, cada avería y cada decisión del servidor se escribe aquí: qué se hizo, con qué comandos, qué salió y por qué. Las notas se versionan en Git solas y Hermes las consulta para responder preguntas del tipo «¿qué pasó con…?»."
+grade = "Cada incidente, con su postmortem"
+facts = [
+  { label = "Por qué tanto", value = "Si algo no está escrito, la próxima vez se vuelve a investigar desde cero. Documentar con el resultado real de cada comando es lo que hace que una avería se arregle en minutos la segunda vez." },
+  { label = "Cómo está ordenado", value = "Diez secciones numeradas: inicio, infraestructura, servicios, estado, proyectos, procedimientos, historial, personal, estudio y plantillas. Cada nota enlaza con las que la explican." },
+  { label = "Quién la lee", value = "Yo; Hermes, que la tiene indexada por significado; y esta web, cuyo contenido salió de aquí y se saneó antes de publicarlo." },
+]
+
+[[text.es.stats]]
+value = "10"
+label = "secciones numeradas"
+
+[[text.es.stats]]
+value = "18"
+label = "mapas interactivos de la infraestructura"
+
+[[text.es.stats]]
+value = "13 días"
+label = "sin copia que destapó una revisión"
+
+[[text.es.stats]]
+value = "10 min"
+label = "entre commits automáticos"
+
+[text.es.groups]
+app = "La aplicación"
+vault = "El vault"
+sync = "Copia en Git"
+readers = "Quién lo lee"
+
+[text.es.pods.browser]
+short = "Navegador"
+title = "Mi navegador"
+text = "Abro Obsidian desde cualquier equipo de casa, como una página web."
+
+[text.es.pods.caddy]
+short = "Puerta interna"
+title = "Puerta interna"
+text = "Solo desde casa o la VPN."
+
+[text.es.pods.agents]
+short = "Agentes IA"
+title = "Los agentes con los que trabajo"
+text = "Cuando arreglo algo con ayuda de un agente, el postmortem se escribe con los comandos y resultados reales de la sesión."
+
+[text.es.pods.github]
+short = "GitHub privado"
+title = "Repositorio privado"
+text = "Donde se empuja el vault. Privado: es documentación de trabajo."
+
+[text.es.pods.mirror]
+short = "Segunda copia"
+title = "Segunda copia"
+text = "Un repositorio más, dentro de casa, que se actualiza a la vez."
+
+[text.es.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "Lee la documentación para responder. Nunca escribe en ella: decisión mía."
+
+[text.es.pods.qdrant]
+short = "Qdrant"
+title = "Base vectorial"
+text = "Donde Hermes guarda las notas troceadas para buscarlas por significado."
+
+[text.es.pods.desktop]
+short = "Escritorio web"
+title = "Escritorio remoto"
+text = "Obsidian es una aplicación de escritorio. En el servidor corre dentro de un escritorio que se sirve por el navegador."
+
+[text.es.pods.obsidian]
+short = "Obsidian"
+title = "Obsidian"
+text = "La aplicación, en un contenedor Docker con el vault montado desde fuera."
+
+[text.es.pods.plugins]
+short = "Plugins"
+title = "Plugins"
+text = "Consultas sobre las propias notas, tareas, calendario y la copia en Git. Los más nuevos son los primeros sospechosos cuando algo se rompe."
+
+[text.es.pods.restricted]
+short = "Modo seguro"
+title = "Modo restringido"
+text = "Arrancar sin plugins de la comunidad: la forma de seguir usando el vault mientras se busca el plugin culpable."
+
+[text.es.pods.sections]
+short = "Secciones"
+title = "Diez secciones"
+text = "Del 00 al 09. Cada nota con su lugar y su enlace a la sección."
+
+[text.es.pods.postmortems]
+short = "Postmortems"
+title = "Incidentes y postmortems"
+text = "Síntoma, diagnóstico paso a paso con su porqué, causa, arreglo y cómo detectarlo la próxima vez."
+
+[text.es.pods.maps]
+short = "Mapas"
+title = "Mapas interactivos"
+text = "Dieciocho diagramas de la infraestructura que se exploran dentro de Obsidian, en un marco aislado sin acceso a las notas."
+
+[text.es.pods.home]
+short = "Inicio"
+title = "Panel de inicio"
+text = "Una nota que se rellena sola con el estado de cada área, las tareas abiertas y lo de hoy."
+
+[text.es.pods.gitplugin]
+short = "Auto-commit"
+title = "Copia automática"
+text = "Un plugin hace commit y push cada 10 minutos."
+
+[text.es.pods.repo]
+short = "Repo local"
+title = "Repositorio del vault"
+text = "El historial completo de la documentación. Lo que se borra, sigue estando."
+
+[text.es.pods.sshkey]
+short = "Clave SSH"
+title = "Clave para empujar"
+text = "Guardada en una ruta que sobrevive a que se recree el contenedor, y referenciada desde la configuración del propio repositorio."
+
+[text.es.pods.check]
+short = "Comprobación"
+title = "Comprobar el último commit"
+text = "Mirar de vez en cuando la fecha del último commit es lo que destapó una copia parada."
+
+[text.es.pods.me]
+short = "Yo"
+title = "Yo, la próxima vez"
+text = "El primer lector: el que vuelve a tener la misma avería meses después."
+
+[text.es.pods.procedures]
+short = "Procedimientos"
+title = "Procedimientos"
+text = "Cómo se hace cada cosa, con su vuelta atrás."
+
+[text.es.pods.embed]
+short = "Embeddings"
+title = "Embeddings"
+text = "Cada nota, convertida en vectores para encontrarla por lo que dice."
+
+[text.es.pods.landing]
+short = "Esta web"
+title = "Esta web"
+text = "Su contenido sale de aquí, saneado: sin direcciones, nombres internos ni secretos."
+
+[text.es.flows.write]
+title = "Escribo una nota"
+steps = [
+  "Abro Obsidian desde el navegador.",
+  "La puerta interna comprueba que estoy en casa y pide doble factor.",
+  "El escritorio remoto se sirve en la pestaña.",
+  "Escribo en Obsidian.",
+  "La nota va a su sección.",
+  "A los 10 minutos, el plugin hace commit.",
+  "El historial guarda el cambio.",
+  "Con la clave guardada en la ruta persistente…",
+  "…se empuja al repositorio privado.",
+  "Y a la segunda copia dentro de casa.",
+]
+
+[text.es.flows.incident]
+title = "Después de una avería"
+steps = [
+  "Arreglo algo con ayuda de un agente.",
+  "Se escribe el postmortem con los comandos y salidas reales.",
+  "Se actualiza el procedimiento afectado.",
+  "Commit.",
+  "Y push.",
+]
+
+[text.es.flows.ask]
+title = "Hermes busca en la documentación"
+steps = [
+  "Me preguntan qué pasó con un disco tras un corte de luz.",
+  "Hermes busca en la base vectorial.",
+  "La pregunta, convertida en vector.",
+  "Aparece el postmortem del apagón.",
+  "Con sus fragmentos más relevantes.",
+  "Ordenados por parecido.",
+  "Hermes responde con el enlace a la nota.",
+]
+
+[text.es.flows.stuck]
+title = "La copia se para sin avisar"
+steps = [
+  "El plugin deja de hacer commits, sin ningún error visible.",
+  "Revisando, la fecha del último commit es de hace 13 días.",
+  "En el repositorio no faltaba nada: en disco había más notas que en el último commit.",
+  "La clave y la conexión funcionaban: un push manual desde dentro del contenedor entró a la primera.",
+  "La copia, al día otra vez.",
+]
+
+[text.es.flows.web]
+title = "De la nota a esta web"
+steps = [
+  "Las notas de proyectos, incidentes y decisiones son la fuente de esta web.",
+  "Se reescriben para alguien de fuera y se sanean: nada de direcciones, nombres internos ni secretos.",
+  "Y acaban en las páginas que estás leyendo.",
+]
+
+[text.es.incidents.stuck]
+title = "13 días sin copia"
+meta = "18-09-2026 · copia"
+symptom = "Revisando la documentación, el último commit del vault era de hacía 13 días, aunque el plugin estaba configurado para hacer commit y push cada 10 minutos."
+options = [
+  "La clave SSH había caducado",
+  "GitHub rechazaba los push",
+  "El disco del contenedor estaba lleno",
+  "El plugin dejó de ejecutarse en silencio, probablemente tras mover cientos de notas a la vez",
+]
+cause = "Las credenciales y la conexión funcionaban: un push manual entró a la primera. El que se había parado era el plugin, justo después de reorganizar todo el vault en carpetas numeradas."
+fix = "Revisar el diff, hacer commit de la reorganización (git la reconoció como renombrados) y empujar a mano desde dentro del contenedor. Después, vigilar que el plugin vuelve a hacerlo solo."
+lesson = "Una copia que no avisa cuando falla no es una copia fiable. Hay que vigilar el resultado (la fecha del último commit), no la configuración."
+
+[text.es.incidents.push]
+title = "«dubious ownership» y luego «Host key verification failed»"
+meta = "Julio de 2026 · Git"
+symptom = "El push del vault fallaba con dos errores seguidos: primero git se negaba a trabajar con el repositorio; al arreglarlo, SSH no reconocía a GitHub."
+options = [
+  "Dueños distintos entre los ficheros y el proceso, y la clave y los hosts conocidos en una ruta que se borra al recrear el contenedor",
+  "La clave se había borrado",
+  "GitHub había cambiado su clave",
+  "El repositorio estaba corrupto",
+]
+cause = "Los ficheros eran del usuario de la aplicación y git corría como root: git lo rechaza por seguridad. Y SSH buscaba la clave y los hosts conocidos en la carpeta de root, que se vacía cada vez que se recrea el contenedor."
+fix = "Marcar el repositorio como seguro, guardar los hosts conocidos en la ruta persistente y decirle a git qué clave usar desde la configuración del propio repositorio, que vive en el vault."
+lesson = "En un contenedor, lo que no está en un volumen no existe tras recrearlo. El arreglo tiene que vivir donde persiste, o hay que repetirlo cada vez."
+
+[text.es.incidents.update]
+title = "Obsidian no levanta tras actualizar"
+meta = "21-07-2026 · aplicación"
+symptom = "Tras actualizar Obsidian, la aplicación dejó de arrancar bien. El contenedor seguía vivo, sin reinicios ni falta de memoria."
+options = [
+  "El contenedor se quedaba sin memoria",
+  "El vault estaba corrupto",
+  "Un plugin incompatible con la versión nueva, probablemente al abrir la nota de inicio",
+  "El escritorio remoto no arrancaba",
+]
+cause = "Sin confirmar del todo: Obsidian no guarda en disco los errores de plugins. Los sospechosos eran los dos únicos que pedían la versión más reciente, uno de ellos el que abre al arrancar una nota con varias consultas."
+fix = "Arrancar en modo restringido, sin plugins de la comunidad, para seguir usando el vault mientras se aísla el culpable."
+lesson = "Antes de mirar la aplicación, descartar la infraestructura capa por capa. Y saber dónde guarda cada cosa sus errores: aquí, en ningún sitio."
+
+[[text.es.timeline]]
+title = "De notas sueltas a un sistema"
+period = "Julio de 2026"
+items = [
+  "Obsidian en el servidor, accesible desde el navegador.",
+  "Copia automática en un repositorio privado.",
+]
+
+[[text.es.timeline]]
+title = "Reorganización"
+period = "Septiembre de 2026"
+items = [
+  "Todo el vault en diez secciones numeradas, con índice en cada una.",
+  "Postmortems con comandos y resultados reales.",
+  "Dieciocho mapas interactivos de la infraestructura.",
+]
+
+[[text.es.timeline]]
+title = "Fuente de Hermes y de esta web"
+period = "Septiembre y octubre de 2026"
+items = [
+  "Indexado para que Hermes lo consulte por significado.",
+  "El contenido de esta web sale de aquí, saneado.",
+]
+
+[[text.es.decisions]]
+title = "Qué se documenta"
+choice = "El resultado real, no el plan"
+why = "Un procedimiento que dice lo que debería pasar engaña el día que pasa otra cosa. Con el resultado de cada comando se ve qué es dato y qué es suposición."
+
+[[text.es.decisions]]
+title = "Dónde viven los secretos"
+choice = "Nunca en el vault"
+why = "El vault se copia en un repositorio externo. Las contraseñas van cifradas en el vault de Ansible o en ficheros locales con permisos mínimos."
+
+[[text.es.decisions]]
+title = "¿Hermes puede escribir?"
+choice = "No"
+why = "La documentación es de trabajo y tiene que ser de fiar. Un modelo pequeño que escribe notas acabaría mezclando datos y suposiciones."
+
+[text.es.tech_notes]
+lxc = "Corre en el contenedor de Docker del servidor."
+docker = "Obsidian dentro de un escritorio remoto en Docker, con el vault y la configuración en volúmenes persistentes."
+git = "Commit y push automáticos cada 10 minutos a un repositorio privado y a una segunda copia, con la clave en una ruta persistente."
+hardening = "Acceso solo desde casa o la VPN con doble factor y secretos siempre fuera del vault."
+llm = "La documentación está indexada por significado para que Hermes la use al responder."
+
+[text.es.close]
+lessons = [
+  "Documentar con resultados reales es lo que hace que la segunda vez cueste minutos.",
+  "Vigilar la copia por lo que produce, no por cómo está configurada.",
+]
+next = [
+  "Un aviso automático si el último commit del vault tiene más de un día.",
+  "Encontrar el plugin que se paró y decidir si se sustituye por una tarea programada.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Obsidian · Tito Pinardo Gutiérrez"
+description = "The homelab's documentation: procedures, incidents and postmortems in Obsidian, versioned in Git, with interactive maps and read by Hermes to answer questions."
+
+[text.en.ui]
+slot = "1U · OBSIDIAN"
+face_specs = "Vault · Git · postmortems"
+state = "In production"
+map_silk = "DOCS"
+map_title = "Inside the documentation"
+map_intro = "Everything I do on the server ends up here, and much of this site comes from here. Pick a flow."
+vm_title = "Obsidian container · Proxmox"
+vm_specs = "remote desktop on Docker"
+outside = "Outside"
+disclaimer = "Rebuilt from the vault itself, which is private: no paths, internal names or note contents."
+
+[text.en.hero]
+kicker = "1U unit · Documentation"
+title = "Obsidian · the homelab's memory"
+tagline = "Every change, failure and decision on the server is written here: what was done, with which commands, what came out and why. The notes are versioned in Git on their own and Hermes reads them to answer «what happened with…?» questions."
+grade = "Every incident, with its postmortem"
+facts = [
+  { label = "Why so much", value = "If it isn't written down, next time it gets investigated from scratch. Documenting the real output of each command is what makes a failure take minutes the second time." },
+  { label = "How it's organised", value = "Ten numbered sections: start, infrastructure, services, status, projects, procedures, history, personal, study and templates. Each note links to the ones that explain it." },
+  { label = "Who reads it", value = "Me; Hermes, which has it indexed by meaning; and this site, whose content came from here and was cleaned before publishing." },
+]
+
+[[text.en.stats]]
+value = "10"
+label = "numbered sections"
+
+[[text.en.stats]]
+value = "18"
+label = "interactive infrastructure maps"
+
+[[text.en.stats]]
+value = "13 days"
+label = "without a backup, found by a review"
+
+[[text.en.stats]]
+value = "10 min"
+label = "between automatic commits"
+
+[text.en.groups]
+app = "The app"
+vault = "The vault"
+sync = "Backup in Git"
+readers = "Who reads it"
+
+[text.en.pods.browser]
+short = "Browser"
+title = "My browser"
+text = "I open Obsidian from any computer at home, like a web page."
+
+[text.en.pods.caddy]
+short = "Internal door"
+title = "Internal door"
+text = "Only from home or the VPN."
+
+[text.en.pods.agents]
+short = "AI agents"
+title = "The agents I work with"
+text = "When I fix something with an agent's help, the postmortem is written with the session's real commands and output."
+
+[text.en.pods.github]
+short = "Private GitHub"
+title = "Private repository"
+text = "Where the vault is pushed. Private: it's working documentation."
+
+[text.en.pods.mirror]
+short = "Second copy"
+title = "Second copy"
+text = "Another repository, inside the house, updated at the same time."
+
+[text.en.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "Reads the documentation to answer. It never writes to it: my decision."
+
+[text.en.pods.qdrant]
+short = "Qdrant"
+title = "Vector database"
+text = "Where Hermes stores the notes in chunks to search them by meaning."
+
+[text.en.pods.desktop]
+short = "Web desktop"
+title = "Remote desktop"
+text = "Obsidian is a desktop app. On the server it runs inside a desktop served through the browser."
+
+[text.en.pods.obsidian]
+short = "Obsidian"
+title = "Obsidian"
+text = "The app, in a Docker container with the vault mounted from outside."
+
+[text.en.pods.plugins]
+short = "Plugins"
+title = "Plugins"
+text = "Queries over the notes themselves, tasks, calendar and the Git backup. The newest ones are the first suspects when something breaks."
+
+[text.en.pods.restricted]
+short = "Safe mode"
+title = "Restricted mode"
+text = "Start without community plugins: the way to keep using the vault while looking for the guilty plugin."
+
+[text.en.pods.sections]
+short = "Sections"
+title = "Ten sections"
+text = "From 00 to 09. Every note in its place with a link to its section."
+
+[text.en.pods.postmortems]
+short = "Postmortems"
+title = "Incidents and postmortems"
+text = "Symptom, step-by-step diagnosis with its reasoning, cause, fix and how to spot it next time."
+
+[text.en.pods.maps]
+short = "Maps"
+title = "Interactive maps"
+text = "Eighteen infrastructure diagrams explored inside Obsidian, in an isolated frame with no access to the notes."
+
+[text.en.pods.home]
+short = "Home"
+title = "Home dashboard"
+text = "A note that fills itself with each area's status, open tasks and what's on today."
+
+[text.en.pods.gitplugin]
+short = "Auto-commit"
+title = "Automatic backup"
+text = "A plugin commits and pushes every 10 minutes."
+
+[text.en.pods.repo]
+short = "Local repo"
+title = "Vault repository"
+text = "The documentation's full history. What gets deleted is still there."
+
+[text.en.pods.sshkey]
+short = "SSH key"
+title = "Push key"
+text = "Kept in a path that survives the container being recreated, and referenced from the repository's own configuration."
+
+[text.en.pods.check]
+short = "Check"
+title = "Check the last commit"
+text = "Looking at the date of the last commit now and then is what exposed a stopped backup."
+
+[text.en.pods.me]
+short = "Me"
+title = "Me, next time"
+text = "The first reader: the one who hits the same failure months later."
+
+[text.en.pods.procedures]
+short = "Procedures"
+title = "Procedures"
+text = "How each thing is done, with its way back."
+
+[text.en.pods.embed]
+short = "Embeddings"
+title = "Embeddings"
+text = "Every note, turned into vectors to find it by what it says."
+
+[text.en.pods.landing]
+short = "This site"
+title = "This site"
+text = "Its content comes from here, cleaned: no addresses, internal names or secrets."
+
+[text.en.flows.write]
+title = "I write a note"
+steps = [
+  "I open Obsidian from the browser.",
+  "The internal door checks I'm at home and asks for two-factor.",
+  "The remote desktop is served in the tab.",
+  "I write in Obsidian.",
+  "The note goes into its section.",
+  "After 10 minutes, the plugin commits.",
+  "The history keeps the change.",
+  "With the key kept in the persistent path…",
+  "…it's pushed to the private repository.",
+  "And to the second copy inside the house.",
+]
+
+[text.en.flows.incident]
+title = "After a failure"
+steps = [
+  "I fix something with an agent's help.",
+  "The postmortem is written with the real commands and output.",
+  "The affected procedure gets updated.",
+  "Commit.",
+  "And push.",
+]
+
+[text.en.flows.ask]
+title = "Hermes searches the documentation"
+steps = [
+  "Someone asks what happened to a disk after a power cut.",
+  "Hermes searches the vector database.",
+  "The question, turned into a vector.",
+  "The blackout postmortem shows up.",
+  "With its most relevant fragments.",
+  "Ranked by similarity.",
+  "Hermes answers with a link to the note.",
+]
+
+[text.en.flows.stuck]
+title = "The backup stops without warning"
+steps = [
+  "The plugin stops committing, with no visible error.",
+  "Checking, the last commit is 13 days old.",
+  "Nothing was missing from the repo: there were more notes on disk than in the last commit.",
+  "The key and connection worked: a manual push from inside the container went through first time.",
+  "The backup, up to date again.",
+]
+
+[text.en.flows.web]
+title = "From note to this site"
+steps = [
+  "Notes on projects, incidents and decisions are this site's source.",
+  "They're rewritten for an outside reader and cleaned: no addresses, internal names or secrets.",
+  "And they end up in the pages you're reading.",
+]
+
+[text.en.incidents.stuck]
+title = "13 days without a backup"
+meta = "18-09-2026 · backup"
+symptom = "Reviewing the documentation, the vault's last commit was 13 days old, even though the plugin was set to commit and push every 10 minutes."
+options = [
+  "The SSH key had expired",
+  "GitHub was rejecting pushes",
+  "The container's disk was full",
+  "The plugin silently stopped running, probably after moving hundreds of notes at once",
+]
+cause = "Credentials and connection worked: a manual push went through first time. What had stopped was the plugin, right after reorganising the whole vault into numbered folders."
+fix = "Review the diff, commit the reorganisation (git recognised it as renames) and push by hand from inside the container. Then keep an eye on the plugin doing it on its own again."
+lesson = "A backup that doesn't warn when it fails isn't a reliable backup. Watch the result (the last commit's date), not the configuration."
+
+[text.en.incidents.push]
+title = "«dubious ownership» and then «Host key verification failed»"
+meta = "July 2026 · Git"
+symptom = "Pushing the vault failed with two errors in a row: first git refused to work with the repository; once fixed, SSH didn't recognise GitHub."
+options = [
+  "Different owners for the files and the process, and the key and known hosts in a path wiped when the container is recreated",
+  "The key had been deleted",
+  "GitHub had changed its key",
+  "The repository was corrupted",
+]
+cause = "The files belonged to the app's user and git ran as root: git refuses that for safety. And SSH looked for the key and known hosts in root's folder, which is emptied every time the container is recreated."
+fix = "Mark the repository as safe, store known hosts in the persistent path and tell git which key to use from the repository's own configuration, which lives in the vault."
+lesson = "In a container, whatever isn't on a volume doesn't exist after it's recreated. The fix has to live where things persist, or be repeated every time."
+
+[text.en.incidents.update]
+title = "Obsidian won't come up after updating"
+meta = "21-07-2026 · app"
+symptom = "After updating Obsidian, the app stopped starting properly. The container was still alive, with no restarts and no memory shortage."
+options = [
+  "The container ran out of memory",
+  "The vault was corrupted",
+  "A plugin incompatible with the new version, probably when opening the start note",
+  "The remote desktop didn't start",
+]
+cause = "Not fully confirmed: Obsidian doesn't write plugin errors to disk. The suspects were the only two asking for the newest version, one of them the plugin that opens a note full of queries at start-up."
+fix = "Start in restricted mode, without community plugins, to keep using the vault while isolating the culprit."
+lesson = "Before looking at the app, rule out the infrastructure layer by layer. And know where each thing keeps its errors: here, nowhere."
+
+[[text.en.timeline]]
+title = "From loose notes to a system"
+period = "July 2026"
+items = [
+  "Obsidian on the server, reachable from the browser.",
+  "Automatic backup to a private repository.",
+]
+
+[[text.en.timeline]]
+title = "Reorganisation"
+period = "September 2026"
+items = [
+  "The whole vault in ten numbered sections, each with an index.",
+  "Postmortems with real commands and output.",
+  "Eighteen interactive infrastructure maps.",
+]
+
+[[text.en.timeline]]
+title = "Source for Hermes and this site"
+period = "September and October 2026"
+items = [
+  "Indexed so Hermes can search it by meaning.",
+  "This site's content comes from here, cleaned.",
+]
+
+[[text.en.decisions]]
+title = "What gets documented"
+choice = "The real result, not the plan"
+why = "A procedure that says what should happen misleads you the day something else happens. With each command's output you can tell data from assumption."
+
+[[text.en.decisions]]
+title = "Where secrets live"
+choice = "Never in the vault"
+why = "The vault is copied to an external repository. Passwords go encrypted in the Ansible vault or in local files with minimal permissions."
+
+[[text.en.decisions]]
+title = "Can Hermes write?"
+choice = "No"
+why = "The documentation is for work and has to be trustworthy. A small model writing notes would end up mixing data with assumptions."
+
+[text.en.tech_notes]
+lxc = "Runs in the server's Docker container."
+docker = "Obsidian inside a remote desktop on Docker, with the vault and settings on persistent volumes."
+git = "Automatic commit and push every 10 minutes to a private repository and a second copy, with the key in a persistent path."
+hardening = "Access only from home or the VPN with two-factor, and secrets always outside the vault."
+llm = "The documentation is indexed by meaning so Hermes can use it when answering."
+
+[text.en.close]
+lessons = [
+  "Documenting real results is what makes the second time take minutes.",
+  "Watch the backup by what it produces, not how it's configured.",
+]
+next = [
+  "An automatic warning if the vault's last commit is over a day old.",
+  "Find the plugin that stopped and decide whether to replace it with a scheduled job.",
+]

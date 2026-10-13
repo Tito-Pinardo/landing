@@ -1,0 +1,878 @@
+# Unidad 1U del rack: Wazuh, la seguridad.
+#
+# Fuente: Obsidian «Monitorización de seguridad», «Revisión Wazuh
+# 2026-09-14», «Avisos de Zabbix y Wazuh - menos ruido» y el postmortem del
+# upgrade colgado del 25-09. Sin direcciones, agentes ni detalles explotables.
+
+id = "wazuh"
+status = "live"
+host_tech = ["lxc", "hardening"]
+links = [
+  ["me", "discord"],
+  ["me", "matrix"],
+  ["host", "agent"],
+]
+
+[[groups]]
+id = "agents"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "manager"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "notify"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "review"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "me"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "discord"
+x = 290
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "matrix"
+x = 290
+y = 250
+kind = "app"
+group = ""
+tech = []
+
+[[pods]]
+id = "host"
+x = 100
+y = 420
+kind = "control"
+group = ""
+tech = ["proxmox"]
+
+[[pods]]
+id = "hermes"
+x = 290
+y = 540
+kind = "ai"
+group = ""
+tech = []
+
+[[pods]]
+id = "agent"
+x = 515
+y = 140
+kind = "observability"
+group = "agents"
+tech = ["wazuh"]
+
+[[pods]]
+id = "logs"
+x = 700
+y = 140
+kind = "observability"
+group = "agents"
+tech = ["wazuh", "linux"]
+
+[[pods]]
+id = "fim"
+x = 885
+y = 140
+kind = "observability"
+group = "agents"
+tech = ["wazuh"]
+
+[[pods]]
+id = "inventory"
+x = 1070
+y = 140
+kind = "observability"
+group = "agents"
+tech = ["wazuh"]
+
+[[pods]]
+id = "manager"
+x = 515
+y = 266
+kind = "observability"
+group = "manager"
+tech = ["wazuh"]
+
+[[pods]]
+id = "rules"
+x = 700
+y = 266
+kind = "observability"
+group = "manager"
+tech = ["wazuh"]
+
+[[pods]]
+id = "indexer"
+x = 885
+y = 266
+kind = "app"
+group = "manager"
+tech = ["wazuh"]
+
+[[pods]]
+id = "dashboard"
+x = 1070
+y = 266
+kind = "app"
+group = "manager"
+tech = ["wazuh"]
+
+[[pods]]
+id = "levels"
+x = 515
+y = 392
+kind = "observability"
+group = "notify"
+tech = ["wazuh"]
+
+[[pods]]
+id = "flood"
+x = 700
+y = 392
+kind = "control"
+group = "notify"
+tech = ["python"]
+
+[[pods]]
+id = "mail"
+x = 885
+y = 392
+kind = "observability"
+group = "notify"
+tech = ["wazuh"]
+
+[[pods]]
+id = "nemesis"
+x = 1070
+y = 392
+kind = "ai"
+group = "notify"
+tech = []
+
+[[pods]]
+id = "cve"
+x = 515
+y = 518
+kind = "observability"
+group = "review"
+tech = ["wazuh", "linux"]
+
+[[pods]]
+id = "sca"
+x = 700
+y = 518
+kind = "observability"
+group = "review"
+tech = ["wazuh", "hardening"]
+
+[[pods]]
+id = "patch"
+x = 885
+y = 518
+kind = "control"
+group = "review"
+tech = ["ansible", "linux"]
+
+[[pods]]
+id = "snapshot"
+x = 1070
+y = 518
+kind = "control"
+group = "review"
+tech = ["proxmox"]
+
+[[flows]]
+id = "intrusion"
+path = ["logs", "agent", "manager", "rules", "levels", "flood", "matrix", "me"]
+
+[[flows]]
+id = "change"
+path = ["fim", "agent", "manager", "rules", "indexer", "dashboard"]
+
+[[flows]]
+id = "cves"
+path = ["inventory", "manager", "cve", "patch", "snapshot", "patch", "inventory"]
+
+[[flows]]
+id = "daily"
+path = ["manager", "nemesis", "hermes", "matrix", "me"]
+
+[[flows]]
+id = "upgrade"
+path = ["patch", "host", "snapshot", "host", "manager", "indexer"]
+
+[[incidents]]
+id = "noise"
+answer = 2
+
+[[incidents]]
+id = "pve"
+answer = 1
+
+[[incidents]]
+id = "stuck"
+answer = 3
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Wazuh por dentro · Tito Pinardo Gutiérrez"
+description = "La seguridad del homelab con Wazuh: agentes en toda la flota, integridad de ficheros, vulnerabilidades y comprobaciones CIS revisadas a mano, y de 9.500 avisos a la semana a un centenar."
+
+[text.es.ui]
+slot = "1U · WAZUH"
+face_specs = "SIEM · FIM · CVE · CIS"
+state = "En producción"
+map_silk = "SEC"
+map_title = "La seguridad por dentro"
+map_intro = "Cada máquina manda sus registros; aquí se decide qué es sospechoso y a quién se avisa. Elige un recorrido."
+vm_title = "Contenedor de Wazuh · Proxmox"
+vm_specs = "gestor, indexador y panel"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, agentes, reglas locales ni detalles que sirvan para atacar."
+
+[text.es.hero]
+kicker = "Unidad 1U · Seguridad"
+title = "Wazuh · quién hizo qué"
+tagline = "Un agente en cada máquina manda sus registros, vigila los ficheros que no deberían cambiar y hace inventario de paquetes. Wazuh los cruza con sus reglas, con las vulnerabilidades conocidas y con las comprobaciones CIS, y avisa por gravedad: lo grave, cifrado al móvil."
+grade = "2.195 → 1.801 entradas de vulnerabilidad"
+facts = [
+  { label = "Cómo está aislado", value = "Contenedor sin privilegios y sin SSH; la API, el indexador y el correo solo escuchan hacia dentro, y el alta de agentes está cerrada: se registran desde el hipervisor." },
+  { label = "Qué vigila", value = "Inicios de sesión, cambios en ficheros críticos, paquetes con vulnerabilidades y controles de configuración en los contenedores y en el propio servidor." },
+  { label = "Cómo avisa", value = "Agrupando repeticiones en ventanas de 5 minutos y sin mandar nunca registros en crudo. Solo lo de nivel alto llega al móvil." },
+]
+
+[[text.es.stats]]
+value = "9.500 → ~100"
+label = "avisos a la semana en Discord"
+
+[[text.es.stats]]
+value = "342"
+label = "CVE distintas revisadas una a una"
+
+[[text.es.stats]]
+value = "3 h"
+label = "colgado un upgrade, por el disco"
+
+[[text.es.stats]]
+value = "0"
+label = "registros en crudo en los avisos"
+
+[text.es.groups]
+agents = "En cada máquina"
+manager = "El gestor"
+notify = "Avisos"
+review = "Revisar y parchear"
+
+[text.es.pods.me]
+short = "Yo"
+title = "Yo"
+text = "El que tiene que decidir si algo es un ataque o soy yo."
+
+[text.es.pods.discord]
+short = "Discord"
+title = "Discord"
+text = "Desde nivel 7: lo que merece una mirada."
+
+[text.es.pods.matrix]
+short = "Element"
+title = "Sala de alertas"
+text = "Desde nivel 12, cifrado de extremo a extremo."
+
+[text.es.pods.host]
+short = "Hipervisor"
+title = "Hipervisor"
+text = "También tiene agente, con auditoría de los ficheros de cuentas, sudo y SSH."
+
+[text.es.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "Su vigilante de accesos fallidos resume lo que ya no llega a Discord."
+
+[text.es.pods.agent]
+short = "Agente"
+title = "Agente de Wazuh"
+text = "En cada contenedor. Se registra por el hipervisor, no por un puerto abierto."
+
+[text.es.pods.logs]
+short = "Registros"
+title = "Registros"
+text = "Autenticación, sudo, servicios, auditd y Docker."
+
+[text.es.pods.fim]
+short = "Integridad"
+title = "Integridad de ficheros"
+text = "Avisa si cambian ficheros que no deberían: configuración, cuentas, servicios. Sin guardar el contenido del cambio."
+
+[text.es.pods.inventory]
+short = "Inventario"
+title = "Inventario de paquetes"
+text = "Qué versión de cada paquete hay en cada máquina, para cruzarlo con las vulnerabilidades."
+
+[text.es.pods.manager]
+short = "Gestor"
+title = "Gestor de Wazuh"
+text = "Recibe todo y lo analiza."
+
+[text.es.pods.rules]
+short = "Reglas"
+title = "Reglas"
+text = "Las de Wazuh y unas pocas propias para el registro de casa."
+
+[text.es.pods.indexer]
+short = "Indexador"
+title = "Indexador"
+text = "Guarda las alertas 30 días para buscarlas."
+
+[text.es.pods.dashboard]
+short = "Panel"
+title = "Panel"
+text = "Solo detrás de la puerta interna con doble factor."
+
+[text.es.pods.levels]
+short = "Niveles"
+title = "Reparto por nivel"
+text = "Discord desde 7, correo desde 10, el móvil desde 12."
+
+[text.es.pods.flood]
+short = "Anti-repetición"
+title = "Agrupar repeticiones"
+text = "Una integración propia agrupa lo repetido en ventanas de 5 minutos y manda un resumen, nunca el registro."
+
+[text.es.pods.mail]
+short = "Correo"
+title = "Correo"
+text = "Desde nivel 10: unos 15 a la semana."
+
+[text.es.pods.nemesis]
+short = "Accesos fallidos"
+title = "Resumen de accesos fallidos"
+text = "Lo que sale de Discord no se pierde: Hermes lo resume en su sala."
+
+[text.es.pods.cve]
+short = "CVE"
+title = "Vulnerabilidades"
+text = "Cada paquete cruzado con las vulnerabilidades conocidas. Una CVE puede aparecer muchas veces: no son ataques."
+
+[text.es.pods.sca]
+short = "CIS"
+title = "Comprobaciones CIS"
+text = "Controles de configuración segura. Las excepciones aceptadas se documentan con su motivo."
+
+[text.es.pods.patch]
+short = "Parchear"
+title = "Parchear"
+text = "Solo correcciones oficiales, simulando antes y rechazando cambios de kernel, driver o servicios críticos."
+
+[text.es.pods.snapshot]
+short = "Instantánea"
+title = "Instantánea previa"
+text = "Antes de parchear, una instantánea del contenedor. Útil… pero no se puede dejar para siempre."
+
+[text.es.flows.intrusion]
+title = "Alguien prueba contraseñas"
+steps = [
+  "Un registro de autenticación muestra fallos repetidos.",
+  "El agente lo manda.",
+  "El gestor lo recibe.",
+  "Una regla lo clasifica por nivel.",
+  "Si llega a 12, va al móvil.",
+  "Agrupado: un aviso con el recuento, no uno por intento.",
+  "A la sala de alertas, cifrado.",
+  "Lo leo y decido.",
+]
+
+[text.es.flows.change]
+title = "Cambia un fichero crítico"
+steps = [
+  "Cambia la configuración de SSH de un contenedor.",
+  "El agente lo detecta.",
+  "El gestor lo recibe.",
+  "Una regla lo marca.",
+  "Se guarda para buscarlo.",
+  "Y aparece en el panel: qué fichero, dónde y cuándo.",
+]
+
+[text.es.flows.cves]
+title = "Revisión de vulnerabilidades"
+steps = [
+  "El inventario dice qué versión hay de cada paquete.",
+  "El gestor lo cruza con las vulnerabilidades conocidas.",
+  "Las reviso una a una contra la distribución: corregidas, pendientes o no afectan.",
+  "Parcheo solo lo oficial, simulando antes.",
+  "Con una instantánea previa.",
+  "Aplico.",
+  "Y el inventario se refresca.",
+]
+
+[text.es.flows.daily]
+title = "El resumen de cada mañana"
+steps = [
+  "El gestor tiene los accesos fallidos del día.",
+  "El vigilante de Hermes los recoge.",
+  "Hermes los resume.",
+  "En su sala.",
+  "Y lo leo con el café.",
+]
+
+[text.es.flows.upgrade]
+title = "Un upgrade que se queda colgado"
+steps = [
+  "Lanzo la actualización de toda la flota.",
+  "El disco del hipervisor está saturado.",
+  "Y el contenedor de Wazuh arrastra dos instantáneas antiguas.",
+  "El sistema de ficheros del contenedor deja de avanzar: tres horas.",
+  "Borradas las instantáneas y activada la caché de escritura, el gestor arranca.",
+  "El indexador necesita más tiempo de arranque: se le da.",
+]
+
+[text.es.incidents.noise]
+title = "9.517 avisos en una semana"
+meta = "05-10-2026 · ruido"
+symptom = "Los avisos de seguridad eran «súper pesados»: miles al día en Discord."
+options = [
+  "Un ataque continuo",
+  "Un agente se había vuelto loco",
+  "Se mandaba todo desde nivel 3, y casi todo era rutina: sesiones de Ansible, cron y SSH correctos",
+  "Las reglas estaban duplicadas",
+]
+cause = "Discord recibía desde nivel 3. Dos tercios eran aperturas y cierres de sesión de mis propias automatizaciones, y el resto, SSH correctos y comprobaciones rutinarias."
+fix = "Medir una semana por regla y por agente, y subir Discord a nivel 7 y el correo a 10. Lo que se deja de enviar sigue en el panel y Hermes resume los accesos fallidos."
+lesson = "Si casi todo lo que llega es rutina, lo importante se pierde entre medias. Se decide con el recuento delante, no a ojo."
+
+[text.es.incidents.pve]
+title = "Once cambios «sospechosos» al día en el hipervisor"
+meta = "08-09-2026 · integridad"
+symptom = "La integridad de ficheros avisaba cada día de cambios en ficheros de configuración del hipervisor, incluidas claves."
+options = [
+  "Alguien estaba modificando el hipervisor",
+  "Esa carpeta es un sistema de ficheros del clúster que se reescribe solo constantemente",
+  "Un fallo del disco",
+  "Una actualización a medias",
+]
+cause = "Esa carpeta del hipervisor no son ficheros normales: es una vista de su base de datos interna, que se reescribe a cada momento por su funcionamiento normal."
+fix = "Sacarla de la vigilancia de integridad y dejar las rutas que sí importan: cuentas, sudo, SSH y servicios. Además, auditd vigila esos ficheros en el hipervisor."
+lesson = "Vigilar algo que cambia siempre no protege: entrena a ignorar el aviso. Hay que saber qué es cada ruta antes de vigilarla."
+
+[text.es.incidents.stuck]
+title = "Tres horas parado en «apt upgrade»"
+meta = "25-09-2026 · disco"
+symptom = "La actualización de la flota se quedó tres horas en el contenedor de Wazuh. No era Ansible ni una pregunta de apt: los procesos estaban esperando al disco."
+options = [
+  "Un paquete roto",
+  "Falta de memoria",
+  "La red con el repositorio",
+  "Disco del sistema saturado, con dos instantáneas antiguas multiplicando cada escritura",
+]
+cause = "Todo el sistema y unos 16 contenedores comparten un espejo de dos discos mecánicos, con la caché de escritura apagada. Y el volumen de Wazuh, casi lleno, arrastraba dos instantáneas que convertían cada escritura en varias."
+fix = "Borrar las instantáneas, reiniciar el contenedor y terminar la configuración. Activar la caché de escritura de los discos del sistema. Dar al indexador 15 minutos para arrancar."
+lesson = "Una instantánea «por si acaso» tiene un coste en cada escritura mientras exista. Se borra cuando ya no hace falta."
+
+[[text.es.timeline]]
+title = "Instalación"
+period = "06 y 07-09-2026"
+items = [
+  "Primer intento fallido por la presión de disco; segundo separando la descarga inicial de vulnerabilidades.",
+  "Contenedor sin privilegios, sin SSH y con los puertos internos solo hacia dentro.",
+  "Agentes en toda la flota.",
+]
+
+[[text.es.timeline]]
+title = "Revisión completa"
+period = "14-09-2026"
+items = [
+  "342 CVE contrastadas con la distribución y parches oficiales aplicados.",
+  "Controles CIS fallidos revisados uno a uno, con excepciones documentadas.",
+  "Auditoría de ficheros de cuentas en el hipervisor y servicios sobrantes apagados.",
+]
+
+[[text.es.timeline]]
+title = "Menos ruido"
+period = "Septiembre y octubre de 2026"
+items = [
+  "Integridad sin la carpeta que cambia sola.",
+  "Niveles de aviso ajustados con una semana medida.",
+]
+
+[[text.es.decisions]]
+title = "Cómo se cuentan las vulnerabilidades"
+choice = "Contra la distribución, no el número bruto"
+why = "Una CVE en una biblioteca compartida aparece en cada máquina. Lo que importa es si la versión instalada ya está corregida, pendiente o no afectada."
+
+[[text.es.decisions]]
+title = "Qué se manda en un aviso"
+choice = "Un resumen, nunca el registro"
+why = "Un registro puede llevar datos que no deben salir del servidor. El aviso dice qué, dónde y cuántas veces; el detalle está en el panel."
+
+[[text.es.decisions]]
+title = "Las puntuaciones CIS"
+choice = "No perseguir el número"
+why = "Algunos controles, aplicados a ciegas, romperían el cortafuegos del hipervisor o servicios necesarios. Se aceptan con su motivo escrito."
+
+[text.es.tech_notes]
+wazuh = "Gestor, indexador y panel; agentes con registros, integridad de ficheros, inventario y vulnerabilidades; niveles de aviso medidos y ajustados."
+proxmox = "El hipervisor tiene su agente y auditd; los agentes se registran a través de él."
+lxc = "Wazuh corre en su propio contenedor sin privilegios."
+linux = "auditd, journald, AppArmor y servicios sobrantes revisados en cada máquina."
+ansible = "Las actualizaciones de la flota, con simulación previa y sin tocar kernel ni drivers."
+python = "La integración que agrupa repeticiones y manda resúmenes a Discord y a Matrix."
+hardening = "Controles CIS revisados, auditoría de ficheros críticos y avisos sin datos en crudo."
+
+[text.es.close]
+lessons = [
+  "Un sistema de seguridad que avisa de todo no avisa de nada.",
+  "Contar bien: una CVE en cien sitios es un parche, no cien ataques.",
+  "Las instantáneas se borran.",
+]
+next = [
+  "Repetir la medición de avisos en unas semanas.",
+  "Mover el sistema a discos más rápidos para que una actualización no compita con todo el servidor.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Wazuh · Tito Pinardo Gutiérrez"
+description = "The homelab's security with Wazuh: agents across the fleet, file integrity, vulnerabilities and CIS checks reviewed by hand, and from 9,500 alerts a week to about a hundred."
+
+[text.en.ui]
+slot = "1U · WAZUH"
+face_specs = "SIEM · FIM · CVE · CIS"
+state = "In production"
+map_silk = "SEC"
+map_title = "Inside the security"
+map_intro = "Every machine sends its logs; here it's decided what's suspicious and who gets told. Pick a flow."
+vm_title = "Wazuh container · Proxmox"
+vm_specs = "manager, indexer and dashboard"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no addresses, agents, local rules or details useful for an attack."
+
+[text.en.hero]
+kicker = "1U unit · Security"
+title = "Wazuh · who did what"
+tagline = "An agent on every machine sends its logs, watches the files that shouldn't change and takes a package inventory. Wazuh matches them against its rules, known vulnerabilities and CIS checks, and alerts by severity: the serious stuff, encrypted to my phone."
+grade = "2,195 → 1,801 vulnerability entries"
+facts = [
+  { label = "How it's isolated", value = "Unprivileged container with no SSH; the API, indexer and mail only listen inwards, and agent enrolment is closed: they're registered from the hypervisor." },
+  { label = "What it watches", value = "Logins, changes to critical files, packages with vulnerabilities and configuration checks on the containers and the server itself." },
+  { label = "How it alerts", value = "Grouping repeats in 5-minute windows and never sending raw logs. Only high-level stuff reaches my phone." },
+]
+
+[[text.en.stats]]
+value = "9,500 → ~100"
+label = "alerts a week on Discord"
+
+[[text.en.stats]]
+value = "342"
+label = "distinct CVEs reviewed one by one"
+
+[[text.en.stats]]
+value = "3 h"
+label = "an upgrade hung, because of the disk"
+
+[[text.en.stats]]
+value = "0"
+label = "raw logs in the alerts"
+
+[text.en.groups]
+agents = "On every machine"
+manager = "The manager"
+notify = "Alerts"
+review = "Review and patch"
+
+[text.en.pods.me]
+short = "Me"
+title = "Me"
+text = "The one who has to decide whether something is an attack or just me."
+
+[text.en.pods.discord]
+short = "Discord"
+title = "Discord"
+text = "From level 7: what deserves a look."
+
+[text.en.pods.matrix]
+short = "Element"
+title = "Alerts room"
+text = "From level 12, end-to-end encrypted."
+
+[text.en.pods.host]
+short = "Hypervisor"
+title = "Hypervisor"
+text = "Has its own agent too, with auditing of account files, sudo and SSH."
+
+[text.en.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "Its failed-login watcher summarises what no longer reaches Discord."
+
+[text.en.pods.agent]
+short = "Agent"
+title = "Wazuh agent"
+text = "In every container. Registered through the hypervisor, not through an open port."
+
+[text.en.pods.logs]
+short = "Logs"
+title = "Logs"
+text = "Authentication, sudo, services, auditd and Docker."
+
+[text.en.pods.fim]
+short = "Integrity"
+title = "File integrity"
+text = "Warns if files that shouldn't change do: configuration, accounts, services. Without storing the change's content."
+
+[text.en.pods.inventory]
+short = "Inventory"
+title = "Package inventory"
+text = "Which version of each package is on each machine, to match it against vulnerabilities."
+
+[text.en.pods.manager]
+short = "Manager"
+title = "Wazuh manager"
+text = "Receives everything and analyses it."
+
+[text.en.pods.rules]
+short = "Rules"
+title = "Rules"
+text = "Wazuh's own plus a few of mine for the home log."
+
+[text.en.pods.indexer]
+short = "Indexer"
+title = "Indexer"
+text = "Keeps alerts for 30 days to search them."
+
+[text.en.pods.dashboard]
+short = "Dashboard"
+title = "Dashboard"
+text = "Only behind the internal door with two-factor."
+
+[text.en.pods.levels]
+short = "Levels"
+title = "Routing by level"
+text = "Discord from 7, email from 10, phone from 12."
+
+[text.en.pods.flood]
+short = "De-duplication"
+title = "Group repeats"
+text = "An integration of my own groups repeats in 5-minute windows and sends a summary, never the log."
+
+[text.en.pods.mail]
+short = "Email"
+title = "Email"
+text = "From level 10: about 15 a week."
+
+[text.en.pods.nemesis]
+short = "Failed logins"
+title = "Failed-login summary"
+text = "What leaves Discord isn't lost: Hermes summarises it in its room."
+
+[text.en.pods.cve]
+short = "CVE"
+title = "Vulnerabilities"
+text = "Each package matched against known vulnerabilities. One CVE can show up many times: they aren't attacks."
+
+[text.en.pods.sca]
+short = "CIS"
+title = "CIS checks"
+text = "Secure-configuration controls. Accepted exceptions are documented with their reason."
+
+[text.en.pods.patch]
+short = "Patch"
+title = "Patching"
+text = "Official fixes only, simulated first, rejecting kernel, driver or critical-service changes."
+
+[text.en.pods.snapshot]
+short = "Snapshot"
+title = "Prior snapshot"
+text = "Before patching, a container snapshot. Useful… but it can't be kept forever."
+
+[text.en.flows.intrusion]
+title = "Someone tries passwords"
+steps = [
+  "An authentication log shows repeated failures.",
+  "The agent sends it.",
+  "The manager receives it.",
+  "A rule classifies it by level.",
+  "If it reaches 12, it goes to my phone.",
+  "Grouped: one alert with the count, not one per attempt.",
+  "To the alerts room, encrypted.",
+  "I read it and decide.",
+]
+
+[text.en.flows.change]
+title = "A critical file changes"
+steps = [
+  "A container's SSH configuration changes.",
+  "The agent detects it.",
+  "The manager receives it.",
+  "A rule flags it.",
+  "It's stored to search later.",
+  "And it shows on the dashboard: which file, where and when.",
+]
+
+[text.en.flows.cves]
+title = "Vulnerability review"
+steps = [
+  "The inventory says which version of each package is installed.",
+  "The manager matches it with known vulnerabilities.",
+  "I review them one by one against the distribution: fixed, pending or not affected.",
+  "I patch only official fixes, simulating first.",
+  "With a prior snapshot.",
+  "I apply.",
+  "And the inventory refreshes.",
+]
+
+[text.en.flows.daily]
+title = "The morning summary"
+steps = [
+  "The manager has the day's failed logins.",
+  "Hermes' watcher collects them.",
+  "Hermes summarises them.",
+  "In its room.",
+  "And I read it with my coffee.",
+]
+
+[text.en.flows.upgrade]
+title = "An upgrade that hangs"
+steps = [
+  "I run the fleet-wide update.",
+  "The hypervisor's disk is saturated.",
+  "And the Wazuh container carries two old snapshots.",
+  "The container's file system stops moving: three hours.",
+  "With the snapshots deleted and write cache on, the manager starts.",
+  "The indexer needs more start-up time: it gets it.",
+]
+
+[text.en.incidents.noise]
+title = "9,517 alerts in a week"
+meta = "05-10-2026 · noise"
+symptom = "Security alerts were «unbearable»: thousands a day on Discord."
+options = [
+  "An ongoing attack",
+  "An agent had gone haywire",
+  "Everything was sent from level 3, and almost all of it was routine: Ansible sessions, cron and successful SSH",
+  "Rules were duplicated",
+]
+cause = "Discord got everything from level 3. Two thirds were session opens and closes from my own automations, and the rest successful SSH logins and routine checks."
+fix = "Measure a week by rule and agent, and raise Discord to level 7 and email to 10. What stops being sent stays on the dashboard and Hermes summarises failed logins."
+lesson = "If almost everything that arrives is routine, what matters gets lost in between. Decide with the count in front of you, not by eye."
+
+[text.en.incidents.pve]
+title = "Eleven «suspicious» changes a day on the hypervisor"
+meta = "08-09-2026 · integrity"
+symptom = "File integrity warned every day about changes to the hypervisor's configuration files, keys included."
+options = [
+  "Someone was modifying the hypervisor",
+  "That folder is a cluster file system that rewrites itself constantly",
+  "A disk fault",
+  "A half-finished update",
+]
+cause = "That hypervisor folder isn't normal files: it's a view of its internal database, rewritten all the time by normal operation."
+fix = "Take it out of integrity monitoring and keep the paths that matter: accounts, sudo, SSH and services. On top of that, auditd watches those files on the hypervisor."
+lesson = "Watching something that always changes doesn't protect you: it trains you to ignore the alert. Know what each path is before watching it."
+
+[text.en.incidents.stuck]
+title = "Three hours stuck on «apt upgrade»"
+meta = "25-09-2026 · disk"
+symptom = "The fleet update sat for three hours on the Wazuh container. It wasn't Ansible or an apt prompt: the processes were waiting for the disk."
+options = [
+  "A broken package",
+  "Out of memory",
+  "The network to the repository",
+  "A saturated system disk, with two old snapshots multiplying every write",
+]
+cause = "The whole system and about 16 containers share a mirror of two spinning disks, with write cache off. And Wazuh's nearly full volume carried two snapshots that turned each write into several."
+fix = "Delete the snapshots, restart the container and finish configuration. Turn on write cache on the system disks. Give the indexer 15 minutes to start."
+lesson = "A «just in case» snapshot costs something on every write for as long as it exists. Delete it once it's no longer needed."
+
+[[text.en.timeline]]
+title = "Installation"
+period = "06-07-09-2026"
+items = [
+  "A first attempt failed under disk pressure; a second one separated the initial vulnerability download.",
+  "Unprivileged container, no SSH and internal ports only inwards.",
+  "Agents across the fleet.",
+]
+
+[[text.en.timeline]]
+title = "Full review"
+period = "14-09-2026"
+items = [
+  "342 CVEs checked against the distribution and official patches applied.",
+  "Failed CIS checks reviewed one by one, with documented exceptions.",
+  "Auditing of account files on the hypervisor and spare services switched off.",
+]
+
+[[text.en.timeline]]
+title = "Less noise"
+period = "September and October 2026"
+items = [
+  "Integrity without the folder that changes by itself.",
+  "Alert levels tuned against a measured week.",
+]
+
+[[text.en.decisions]]
+title = "How vulnerabilities are counted"
+choice = "Against the distribution, not the raw number"
+why = "A CVE in a shared library shows up on every machine. What matters is whether the installed version is already fixed, pending or not affected."
+
+[[text.en.decisions]]
+title = "What goes in an alert"
+choice = "A summary, never the log"
+why = "A log can carry data that mustn't leave the server. The alert says what, where and how many times; the detail is on the dashboard."
+
+[[text.en.decisions]]
+title = "CIS scores"
+choice = "Don't chase the number"
+why = "Some controls, applied blindly, would break the hypervisor's firewall or needed services. They're accepted with a written reason."
+
+[text.en.tech_notes]
+wazuh = "Manager, indexer and dashboard; agents with logs, file integrity, inventory and vulnerabilities; alert levels measured and tuned."
+proxmox = "The hypervisor has its agent and auditd; agents are registered through it."
+lxc = "Wazuh runs in its own unprivileged container."
+linux = "auditd, journald, AppArmor and spare services reviewed on every machine."
+ansible = "Fleet updates, simulated first and without touching kernel or drivers."
+python = "The integration that groups repeats and sends summaries to Discord and Matrix."
+hardening = "CIS checks reviewed, auditing of critical files and alerts without raw data."
+
+[text.en.close]
+lessons = [
+  "A security system that alerts on everything alerts on nothing.",
+  "Count properly: one CVE in a hundred places is one patch, not a hundred attacks.",
+  "Snapshots get deleted.",
+]
+next = [
+  "Repeat the alert measurement in a few weeks.",
+  "Move the system to faster disks so an update doesn't compete with the whole server.",
+]

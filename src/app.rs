@@ -254,7 +254,7 @@ async fn not_found(State(st): State<AppState>, headers: HeaderMap) -> Response {
 /// pueden cachear "para siempre" con `?v=`.
 fn asset_version() -> String {
     let mut h = Sha256::new();
-    for name in ["app.css", "app.js", "unit.js"] {
+    for name in ["app.css", "app.js", "unit.js", "sound.js"] {
         if let Some(f) = Assets::get(name) {
             h.update(f.metadata.sha256_hash());
         }

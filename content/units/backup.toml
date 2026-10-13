@@ -1,0 +1,839 @@
+# Unidad 1U del rack: las copias.
+#
+# Fuente: Obsidian «Backup», el incidente del 17-09 (respaldo de la
+# infraestructura), el postmortem del vault y las copias de AMP. Cuenta lo
+# que hay y lo que falta, sin direcciones ni nombres internos.
+
+id = "backup"
+status = "live"
+host_tech = ["lxc", "ansible"]
+links = [
+  ["laptop", "central"],
+  ["central", "github"],
+]
+
+[[groups]]
+id = "code"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "changes"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "data"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "watch"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "laptop"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "central"
+x = 290
+y = 110
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "github"
+x = 100
+y = 250
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "hermes"
+x = 290
+y = 420
+kind = "ai"
+group = ""
+tech = []
+
+[[pods]]
+id = "me"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "hook"
+x = 515
+y = 140
+kind = "control"
+group = "code"
+tech = ["git"]
+
+[[pods]]
+id = "bare"
+x = 700
+y = 140
+kind = "control"
+group = "code"
+tech = ["git", "linux"]
+
+[[pods]]
+id = "gitshell"
+x = 885
+y = 140
+kind = "observability"
+group = "code"
+tech = ["hardening", "linux"]
+
+[[pods]]
+id = "vaultgit"
+x = 1070
+y = 140
+kind = "app"
+group = "code"
+tech = ["git"]
+
+[[pods]]
+id = "revert"
+x = 515
+y = 266
+kind = "control"
+group = "changes"
+tech = ["linux"]
+
+[[pods]]
+id = "timer"
+x = 700
+y = 266
+kind = "observability"
+group = "changes"
+tech = ["linux"]
+
+[[pods]]
+id = "dated"
+x = 885
+y = 266
+kind = "control"
+group = "changes"
+tech = ["ansible"]
+
+[[pods]]
+id = "snapshot"
+x = 1070
+y = 266
+kind = "control"
+group = "changes"
+tech = ["proxmox"]
+
+[[pods]]
+id = "raid"
+x = 515
+y = 392
+kind = "compute"
+group = "data"
+tech = ["zfs"]
+
+[[pods]]
+id = "dump"
+x = 700
+y = 392
+kind = "control"
+group = "data"
+tech = ["postgresql"]
+
+[[pods]]
+id = "users"
+x = 885
+y = 392
+kind = "control"
+group = "data"
+tech = ["linux"]
+
+[[pods]]
+id = "missing"
+x = 1070
+y = 392
+kind = "edge"
+group = "data"
+tech = []
+
+[[pods]]
+id = "mnemosyne"
+x = 515
+y = 518
+kind = "observability"
+group = "watch"
+tech = ["python"]
+
+[[pods]]
+id = "lastcommit"
+x = 700
+y = 518
+kind = "observability"
+group = "watch"
+tech = ["git"]
+
+[[pods]]
+id = "valid"
+x = 885
+y = 518
+kind = "observability"
+group = "watch"
+tech = ["linux"]
+
+[[pods]]
+id = "restore"
+x = 1070
+y = 518
+kind = "observability"
+group = "watch"
+tech = []
+
+[[flows]]
+id = "commit"
+path = ["laptop", "central", "hook", "bare", "gitshell", "bare"]
+
+[[flows]]
+id = "change"
+path = ["dated", "snapshot", "revert", "timer", "revert"]
+
+[[flows]]
+id = "watcher"
+path = ["mnemosyne", "missing", "snapshot", "hermes", "me"]
+
+[[flows]]
+id = "vault"
+path = ["vaultgit", "github", "lastcommit", "me", "vaultgit"]
+
+[[flows]]
+id = "proof"
+path = ["users", "valid", "restore", "dump", "restore"]
+
+[[incidents]]
+id = "samedisk"
+answer = 3
+
+[[incidents]]
+id = "alpine"
+answer = 1
+
+[[incidents]]
+id = "raidnotbackup"
+answer = 0
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Las copias por dentro · Tito Pinardo Gutiérrez"
+description = "Qué copias hay en el homelab y cuáles no: el código con dos respaldos automáticos, cada cambio con su vuelta atrás programada, copias de los datos que se rompen con los cortes… y lo que todavía falta, dicho claramente."
+
+[text.es.ui]
+slot = "1U · BACKUP"
+face_specs = "Git ×2 · reversión · lo que falta"
+state = "Parcial"
+map_silk = "BAK"
+map_title = "Las copias por dentro"
+map_intro = "Lo que se puede reconstruir desde código, lo que tiene su vuelta atrás y lo que aún no tiene copia. Elige un recorrido."
+vm_title = "Copias · repartidas por el servidor"
+vm_specs = "un respaldo de código en su propio contenedor"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones ni nombres internos. Lo que falta está escrito como falta."
+
+[text.es.hero]
+kicker = "Unidad 1U · Copias"
+title = "Las copias, con honestidad"
+tagline = "El código de toda la infraestructura tiene dos respaldos automáticos y cada cambio delicado se aplica con una vuelta atrás programada. Pero los datos grandes no tienen copias periódicas fuera del servidor: es una decisión de presupuesto, y está documentada como pendiente, no escondida."
+grade = "Código: cubierto · Datos: pendiente"
+facts = [
+  { label = "Lo que está cubierto", value = "La infraestructura entera se puede reconstruir desde Git, que se copia sola en cada commit a un segundo repositorio. La documentación, a un repositorio privado." },
+  { label = "Lo que tiene parche", value = "Lo que se rompía con los cortes de luz (cuentas del panel de juegos) se copia cada 30 minutos fuera de su contenedor, con comprobación de que la copia sirve." },
+  { label = "Lo que falta", value = "Copias periódicas de los datos fuera del servidor. Un RAID protege de que muera un disco, no de un borrado ni de una corrupción." },
+]
+
+[[text.es.stats]]
+value = "2"
+label = "respaldos automáticos del código en cada commit"
+
+[[text.es.stats]]
+value = "5 min"
+label = "para que un cambio delicado se deshaga solo"
+
+[[text.es.stats]]
+value = "100"
+label = "versiones guardadas de las cuentas del panel de juegos"
+
+[[text.es.stats]]
+value = "0"
+label = "copias periódicas de datos fuera del servidor (aún)"
+
+[text.es.groups]
+code = "Código y documentación"
+changes = "Cada cambio, con vuelta atrás"
+data = "Datos"
+watch = "Comprobar que sirven"
+
+[text.es.pods.laptop]
+short = "Mi portátil"
+title = "Mi portátil"
+text = "Edito el repositorio desde aquí o desde el nodo de control."
+
+[text.es.pods.central]
+short = "Repo central"
+title = "Repositorio central"
+text = "Donde se trabaja."
+
+[text.es.pods.github]
+short = "GitHub privado"
+title = "Repositorio privado en GitHub"
+text = "Donde se empuja la documentación, fuera de casa."
+
+[text.es.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "Su vigilante de copias habla en su sala cuando encuentra algo raro."
+
+[text.es.pods.me]
+short = "Yo"
+title = "Yo"
+text = "Quien decide qué falta y cuándo."
+
+[text.es.pods.hook]
+short = "Hook"
+title = "Hook post-commit"
+text = "Versionado en el propio repositorio: cada commit se empuja solo al respaldo, en segundo plano."
+
+[text.es.pods.bare]
+short = "Repo de respaldo"
+title = "Repositorio de respaldo"
+text = "Un repositorio desnudo en un contenedor diminuto, en otro disco que el de trabajo."
+
+[text.es.pods.gitshell]
+short = "git-shell"
+title = "Usuario solo Git"
+text = "El usuario del respaldo solo puede hacer push y pull: ni una shell. Con su propia clave."
+
+[text.es.pods.vaultgit]
+short = "Documentación"
+title = "Copia de la documentación"
+text = "El vault de notas se empuja cada 10 minutos. Tiene su propia unidad."
+
+[text.es.pods.revert]
+short = "Vuelta atrás"
+title = "Script de reversión"
+text = "Antes de un cambio delicado se guarda el estado y un script que lo deja todo como estaba."
+
+[text.es.pods.timer]
+short = "5 minutos"
+title = "Reversión programada"
+text = "Si el cambio me deja fuera, a los 5 minutos se deshace solo. Si todo va bien, cancelo el temporizador."
+
+[text.es.pods.dated]
+short = "Copias fechadas"
+title = "Copias fechadas"
+text = "Ansible deja una copia fechada de cada fichero que sustituye."
+
+[text.es.pods.snapshot]
+short = "Instantánea"
+title = "Instantánea"
+text = "Antes de parchear, una instantánea del contenedor. Se borra después: cuesta en cada escritura mientras existe."
+
+[text.es.pods.raid]
+short = "RAID y ZFS"
+title = "RAID y ZFS"
+text = "Aguantan que muera un disco. No aguantan un borrado, un error o un ransomware: eso se copia igual al espejo."
+
+[text.es.pods.dump]
+short = "Volcados"
+title = "Volcados de bases de datos"
+text = "Antes de una migración o un parche, volcado de la base y comprobación de que se puede leer."
+
+[text.es.pods.users]
+short = "Cuentas juegos"
+title = "Cuentas del panel de juegos"
+text = "Cada 30 minutos, fuera de su contenedor, las 100 últimas versiones."
+
+[text.es.pods.missing]
+short = "Falta"
+title = "Lo que falta"
+text = "Copias periódicas de contenedores y datos fuera del servidor, con restauración probada."
+
+[text.es.pods.mnemosyne]
+short = "Vigilante"
+title = "Vigilante de copias"
+text = "Revisa cada día qué tiene copia y qué no, y avisa de lo que encuentre."
+
+[text.es.pods.lastcommit]
+short = "Último commit"
+title = "Fecha del último commit"
+text = "La forma más simple de saber si una copia de Git sigue viva."
+
+[text.es.pods.valid]
+short = "¿Es válida?"
+title = "Comprobar la copia"
+text = "Una copia vacía no es una copia. Se comprueba el contenido, no que el fichero exista."
+
+[text.es.pods.restore]
+short = "Restaurar"
+title = "Restaurar de verdad"
+text = "La única prueba de que una copia sirve."
+
+[text.es.flows.commit]
+title = "Hago un commit"
+steps = [
+  "Cambio algo en la infraestructura.",
+  "Commit en el repositorio central.",
+  "El hook se dispara solo.",
+  "Empuja al repositorio de respaldo, en otro disco.",
+  "Con un usuario que solo puede hacer Git.",
+  "Y el respaldo queda al día, sin que yo haga nada.",
+]
+
+[text.es.flows.change]
+title = "Un cambio delicado"
+steps = [
+  "Voy a cambiar el cortafuegos del hipervisor. Ansible guarda copia de lo que sustituye.",
+  "Y una instantánea del contenedor, si es una actualización.",
+  "Se guarda el script que lo deja todo como estaba.",
+  "Arranca un temporizador de 5 minutos.",
+  "Si me quedo fuera, se revierte solo. Si todo va bien, lo cancelo.",
+]
+
+[text.es.flows.watcher]
+title = "El vigilante mira"
+steps = [
+  "El vigilante de copias revisa la flota.",
+  "Encuentra lo que ya sabía: ningún contenedor tiene copias programadas.",
+  "Y alguna instantánea vieja que conviene borrar.",
+  "Hermes lo publica en su sala.",
+  "Y queda en la lista de pendientes, con su motivo.",
+]
+
+[text.es.flows.vault]
+title = "La documentación"
+steps = [
+  "Las notas se copian solas cada 10 minutos.",
+  "Al repositorio privado.",
+  "Pero un día el último commit tenía 13 días.",
+  "Lo descubrí mirando la fecha, no porque avisara nada.",
+  "Ahora es lo primero que miro.",
+]
+
+[text.es.flows.proof]
+title = "Comprobar que una copia sirve"
+steps = [
+  "Las cuentas del panel de juegos se copian cada 30 minutos.",
+  "Cada copia se comprueba: si sale vacía, se rechaza.",
+  "Tras un corte, se restaura la última válida.",
+  "Con los volcados de bases de datos, igual: se comprueba que se pueden leer.",
+  "Restaurar es la única prueba.",
+]
+
+[text.es.incidents.samedisk]
+title = "Un respaldo en el mismo disco"
+meta = "17-09-2026 · código"
+symptom = "La infraestructura tenía su «copia»: un repositorio desnudo al lado del de trabajo."
+options = [
+  "El repositorio de respaldo estaba corrupto",
+  "No se actualizaba",
+  "Le faltaban ramas",
+  "Estaba en el mismo disco de la misma máquina: un fallo o un robo se llevaba las dos",
+]
+cause = "Las dos copias vivían en el mismo disco del mismo PC. Y el portátil solo sincronizaba a mano y con VPN."
+fix = "Un segundo repositorio en un contenedor propio del servidor, con un usuario que solo puede hacer Git, y un hook versionado que empuja cada commit solo."
+lesson = "Una copia en el mismo sitio que el original no protege de lo que más importa. Hay que preguntarse qué la destruiría junto al original."
+
+[text.es.incidents.alpine]
+title = "Ansible no podía crear el respaldo"
+meta = "17-09-2026 · Alpine"
+symptom = "El rol del respaldo fallaba en el contenedor: primero al dar el grupo a la carpeta de claves, luego con «sudo: not found»."
+options = [
+  "Faltaba espacio en el contenedor",
+  "Alpine no crea un grupo por usuario ni trae sudo, como suponía el rol",
+  "La clave SSH era incorrecta",
+  "El repositorio ya existía",
+]
+cause = "El contenedor es un Alpine mínimo: al crear un usuario no crea su grupo y no hay sudo para cambiar de usuario."
+fix = "Crear el grupo de forma explícita y crear el repositorio como root, corrigiendo después el dueño con el módulo de ficheros."
+lesson = "Un rol escrito para Debian no es un rol para cualquier Linux. Las suposiciones del sistema hay que escribirlas."
+
+[text.es.incidents.raidnotbackup]
+title = "«Tengo RAID, tengo copia»"
+meta = "06-09-2026 · decisión"
+symptom = "Todos los datos importantes están en espejo o en RAIDZ. ¿Para qué más?"
+options = [
+  "Porque un borrado, un error o una corrupción se copian al espejo al instante",
+  "Porque el RAID es lento",
+  "Porque el RAID no aguanta cortes de luz",
+  "Porque ocupa demasiado",
+]
+cause = "El RAID protege de que muera un disco. Cualquier otra cosa (un comando equivocado, un fichero corrupto, un ransomware) llega a todos los discos a la vez."
+fix = "No hay presupuesto ahora para copias periódicas fuera del servidor: se ha decidido así y está escrito como pendiente, con lo que sí está cubierto y lo que no."
+lesson = "Es mejor un hueco reconocido que una falsa sensación de seguridad. Cuando se resuelva, la prueba será una restauración, no un fichero."
+
+[[text.es.timeline]]
+title = "Reversiones"
+period = "Septiembre de 2026"
+items = [
+  "Cada cambio de seguridad con su script de vuelta atrás y un temporizador de 5 minutos.",
+  "Copias de las cuentas del panel de juegos, y su arreglo cuando resultaron vacías.",
+]
+
+[[text.es.timeline]]
+title = "Respaldo del código"
+period = "17-09-2026"
+items = [
+  "Segundo repositorio en un contenedor propio, con un usuario solo de Git.",
+  "Hook versionado que empuja cada commit solo.",
+]
+
+[[text.es.decisions]]
+title = "Qué se copia primero"
+choice = "Lo que permite reconstruir todo lo demás"
+why = "Con el código de la infraestructura a salvo, cualquier servicio se vuelve a montar. Los datos son el siguiente paso."
+
+[[text.es.decisions]]
+title = "Cómo se cuenta lo que falta"
+choice = "Por escrito"
+why = "Un estado «sin copias periódicas» en rojo en la documentación evita que nadie, yo incluido, crea que hay algo que no hay."
+
+[text.es.tech_notes]
+lxc = "El respaldo del código vive en su propio contenedor diminuto."
+ansible = "El rol que crea el respaldo y las copias fechadas que deja cada vez que sustituye un fichero."
+git = "Hook versionado que empuja cada commit a un segundo repositorio, y la documentación a un repositorio privado."
+linux = "Usuario con git-shell, scripts de reversión con temporizador y copias comprobadas."
+hardening = "El usuario del respaldo solo puede hacer Git, con su propia clave."
+proxmox = "Instantáneas antes de parchear, que se borran después."
+zfs = "RAID y espejos para aguantar la muerte de un disco, que no es lo mismo que una copia."
+postgresql = "Volcados de las bases antes de migrar o parchear, comprobados."
+python = "El vigilante de copias de Hermes."
+
+[text.es.close]
+lessons = [
+  "Una copia que no se ha restaurado nunca es una esperanza.",
+  "RAID no es copia.",
+  "Lo que falta se escribe como falta.",
+]
+next = [
+  "Copias periódicas cifradas de contenedores y datos fuera del servidor, con una restauración de prueba cada cierto tiempo.",
+  "Un SAI, para que los cortes de luz dejen de ser la causa de la mitad de los problemas.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside the backups · Tito Pinardo Gutiérrez"
+description = "What backups the homelab has and which it doesn't: code with two automatic backups, every change with a scheduled way back, copies of the data that breaks in power cuts… and what's still missing, stated plainly."
+
+[text.en.ui]
+slot = "1U · BACKUP"
+face_specs = "Git ×2 · rollback · what's missing"
+state = "Partial"
+map_silk = "BAK"
+map_title = "Inside the backups"
+map_intro = "What can be rebuilt from code, what has its way back and what still has no backup. Pick a flow."
+vm_title = "Backups · spread across the server"
+vm_specs = "a code backup in its own container"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no addresses or internal names. What's missing is written down as missing."
+
+[text.en.hero]
+kicker = "1U unit · Backups"
+title = "Backups, honestly"
+tagline = "The whole infrastructure's code has two automatic backups and every delicate change is applied with a scheduled way back. But the large data has no regular off-server backups: it's a budget decision, documented as pending, not hidden."
+grade = "Code: covered · Data: pending"
+facts = [
+  { label = "What's covered", value = "The whole infrastructure can be rebuilt from Git, which copies itself to a second repository on every commit. The documentation, to a private repository." },
+  { label = "What's patched", value = "What used to break in power cuts (the game panel's accounts) is copied every 30 minutes outside its container, with a check that the copy is usable." },
+  { label = "What's missing", value = "Regular off-server data backups. RAID protects against a disk dying, not against a deletion or corruption." },
+]
+
+[[text.en.stats]]
+value = "2"
+label = "automatic code backups on every commit"
+
+[[text.en.stats]]
+value = "5 min"
+label = "before a delicate change undoes itself"
+
+[[text.en.stats]]
+value = "100"
+label = "versions kept of the game panel's accounts"
+
+[[text.en.stats]]
+value = "0"
+label = "regular off-server data backups (yet)"
+
+[text.en.groups]
+code = "Code and documentation"
+changes = "Every change, with a way back"
+data = "Data"
+watch = "Check they work"
+
+[text.en.pods.laptop]
+short = "My laptop"
+title = "My laptop"
+text = "I edit the repository from here or from the control node."
+
+[text.en.pods.central]
+short = "Central repo"
+title = "Central repository"
+text = "Where the work happens."
+
+[text.en.pods.github]
+short = "Private GitHub"
+title = "Private GitHub repository"
+text = "Where the documentation is pushed, outside the house."
+
+[text.en.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "Its backup watcher speaks in its room when it finds something odd."
+
+[text.en.pods.me]
+short = "Me"
+title = "Me"
+text = "The one who decides what's missing and when."
+
+[text.en.pods.hook]
+short = "Hook"
+title = "post-commit hook"
+text = "Versioned in the repository itself: every commit is pushed to the backup on its own, in the background."
+
+[text.en.pods.bare]
+short = "Backup repo"
+title = "Backup repository"
+text = "A bare repository in a tiny container, on a different disk from the working one."
+
+[text.en.pods.gitshell]
+short = "git-shell"
+title = "Git-only user"
+text = "The backup user can only push and pull: not even a shell. With its own key."
+
+[text.en.pods.vaultgit]
+short = "Documentation"
+title = "Documentation backup"
+text = "The notes vault is pushed every 10 minutes. It has its own unit."
+
+[text.en.pods.revert]
+short = "Way back"
+title = "Rollback script"
+text = "Before a delicate change, the state is saved along with a script that puts everything back."
+
+[text.en.pods.timer]
+short = "5 minutes"
+title = "Scheduled rollback"
+text = "If the change locks me out, it undoes itself after 5 minutes. If all goes well, I cancel the timer."
+
+[text.en.pods.dated]
+short = "Dated copies"
+title = "Dated copies"
+text = "Ansible leaves a dated copy of every file it replaces."
+
+[text.en.pods.snapshot]
+short = "Snapshot"
+title = "Snapshot"
+text = "Before patching, a container snapshot. Deleted afterwards: it costs on every write while it exists."
+
+[text.en.pods.raid]
+short = "RAID and ZFS"
+title = "RAID and ZFS"
+text = "They survive a disk dying. They don't survive a deletion, a mistake or ransomware: those get copied to the mirror too."
+
+[text.en.pods.dump]
+short = "Dumps"
+title = "Database dumps"
+text = "Before a migration or a patch, a database dump and a check that it can be read."
+
+[text.en.pods.users]
+short = "Game accounts"
+title = "Game panel accounts"
+text = "Every 30 minutes, outside their container, the last 100 versions."
+
+[text.en.pods.missing]
+short = "Missing"
+title = "What's missing"
+text = "Regular off-server backups of containers and data, with a tested restore."
+
+[text.en.pods.mnemosyne]
+short = "Watcher"
+title = "Backup watcher"
+text = "Checks every day what has a backup and what doesn't, and reports what it finds."
+
+[text.en.pods.lastcommit]
+short = "Last commit"
+title = "Last commit date"
+text = "The simplest way to know a Git backup is still alive."
+
+[text.en.pods.valid]
+short = "Is it valid?"
+title = "Check the backup"
+text = "An empty copy isn't a backup. The content is checked, not that the file exists."
+
+[text.en.pods.restore]
+short = "Restore"
+title = "Restore for real"
+text = "The only proof a backup works."
+
+[text.en.flows.commit]
+title = "I make a commit"
+steps = [
+  "I change something in the infrastructure.",
+  "Commit on the central repository.",
+  "The hook fires on its own.",
+  "It pushes to the backup repository, on another disk.",
+  "With a user that can only do Git.",
+  "And the backup is up to date, without me doing anything.",
+]
+
+[text.en.flows.change]
+title = "A delicate change"
+steps = [
+  "I'm about to change the hypervisor firewall. Ansible keeps a copy of what it replaces.",
+  "And a container snapshot, if it's an update.",
+  "The script that puts everything back is saved.",
+  "A 5-minute timer starts.",
+  "If I'm locked out, it reverts on its own. If all goes well, I cancel it.",
+]
+
+[text.en.flows.watcher]
+title = "The watcher checks"
+steps = [
+  "The backup watcher reviews the fleet.",
+  "It finds what I already knew: no container has scheduled backups.",
+  "And some old snapshot worth deleting.",
+  "Hermes posts it in its room.",
+  "And it stays on the to-do list, with its reason.",
+]
+
+[text.en.flows.vault]
+title = "The documentation"
+steps = [
+  "The notes copy themselves every 10 minutes.",
+  "To the private repository.",
+  "But one day the last commit was 13 days old.",
+  "I found out by looking at the date, not because anything warned me.",
+  "Now it's the first thing I check.",
+]
+
+[text.en.flows.proof]
+title = "Checking a backup works"
+steps = [
+  "The game panel's accounts are copied every 30 minutes.",
+  "Each copy is checked: if it's empty, it's rejected.",
+  "After a power cut, the last valid one is restored.",
+  "Same with database dumps: checked to be readable.",
+  "Restoring is the only proof.",
+]
+
+[text.en.incidents.samedisk]
+title = "A backup on the same disk"
+meta = "17-09-2026 · code"
+symptom = "The infrastructure had its «backup»: a bare repository next to the working one."
+options = [
+  "The backup repository was corrupted",
+  "It wasn't updating",
+  "It was missing branches",
+  "It was on the same disk of the same machine: a failure or theft would take both",
+]
+cause = "Both copies lived on the same disk of the same PC. And the laptop only synced by hand and over VPN."
+fix = "A second repository in a container of its own on the server, with a user that can only do Git, and a versioned hook pushing every commit on its own."
+lesson = "A backup in the same place as the original doesn't protect against what matters most. Ask what would destroy it along with the original."
+
+[text.en.incidents.alpine]
+title = "Ansible couldn't create the backup"
+meta = "17-09-2026 · Alpine"
+symptom = "The backup role failed on the container: first when assigning the key folder's group, then with «sudo: not found»."
+options = [
+  "The container was out of space",
+  "Alpine doesn't create a group per user or ship sudo, as the role assumed",
+  "The SSH key was wrong",
+  "The repository already existed",
+]
+cause = "The container is a minimal Alpine: creating a user doesn't create its group, and there's no sudo to switch users."
+fix = "Create the group explicitly and create the repository as root, then fix the owner with the file module."
+lesson = "A role written for Debian isn't a role for any Linux. The system's assumptions have to be written down."
+
+[text.en.incidents.raidnotbackup]
+title = "«I have RAID, so I have a backup»"
+meta = "06-09-2026 · decision"
+symptom = "All the important data is mirrored or on RAIDZ. Why more?"
+options = [
+  "Because a deletion, a mistake or corruption gets copied to the mirror instantly",
+  "Because RAID is slow",
+  "Because RAID doesn't survive power cuts",
+  "Because it takes too much space",
+]
+cause = "RAID protects against a disk dying. Anything else (a wrong command, a corrupted file, ransomware) reaches every disk at once."
+fix = "There's no budget right now for regular off-server backups: that's been decided and written down as pending, with what is covered and what isn't."
+lesson = "An acknowledged gap beats a false sense of safety. When it's solved, the proof will be a restore, not a file."
+
+[[text.en.timeline]]
+title = "Rollbacks"
+period = "September 2026"
+items = [
+  "Every security change with its rollback script and a 5-minute timer.",
+  "Backups of the game panel's accounts, and their fix when they turned out empty.",
+]
+
+[[text.en.timeline]]
+title = "Code backup"
+period = "17-09-2026"
+items = [
+  "A second repository in its own container, with a Git-only user.",
+  "A versioned hook that pushes every commit on its own.",
+]
+
+[[text.en.decisions]]
+title = "What gets backed up first"
+choice = "What lets you rebuild everything else"
+why = "With the infrastructure code safe, any service can be set up again. Data is the next step."
+
+[[text.en.decisions]]
+title = "How what's missing is reported"
+choice = "In writing"
+why = "A red «no regular backups» status in the documentation stops anyone, me included, from believing there's something there isn't."
+
+[text.en.tech_notes]
+lxc = "The code backup lives in its own tiny container."
+ansible = "The role that creates the backup and the dated copies it leaves whenever it replaces a file."
+git = "A versioned hook pushing every commit to a second repository, and the documentation to a private one."
+linux = "A git-shell user, rollback scripts with a timer and verified copies."
+hardening = "The backup user can only do Git, with its own key."
+proxmox = "Snapshots before patching, deleted afterwards."
+zfs = "RAID and mirrors to survive a dead disk, which isn't the same as a backup."
+postgresql = "Database dumps before migrating or patching, checked."
+python = "Hermes' backup watcher."
+
+[text.en.close]
+lessons = [
+  "A backup that's never been restored is a hope.",
+  "RAID isn't a backup.",
+  "What's missing gets written down as missing.",
+]
+next = [
+  "Regular encrypted off-server backups of containers and data, with a test restore every so often.",
+  "A UPS, so power cuts stop being the cause of half the problems.",
+]

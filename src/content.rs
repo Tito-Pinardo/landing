@@ -63,6 +63,12 @@ pub struct Site {
     pub incidents: Vec<Incident>,
 }
 
+impl Site {
+    pub fn project(&self, id: &str) -> Option<&Project> {
+        self.projects.iter().find(|p| p.id == id)
+    }
+}
+
 /// Caso del modo detective: piezas con pista y opción correcta.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -198,6 +204,11 @@ pub struct Texts {
     pub contact: BTreeMap<String, String>,
     pub terminal: Terminal,
     pub achievements: BTreeMap<String, TitleText>,
+    /// Textos comunes de las páginas de unidad (cada unidad puede
+    /// sobrescribirlos en su `[text.*.ui]`).
+    pub unit_ui: BTreeMap<String, String>,
+    /// Lista del rack en la portada.
+    pub rack: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -450,7 +461,10 @@ const UI_KEYS: &[&str] = &[
     "unit_enter",
     "unit_where",
     "unit_badge",
+    "sound_on",
+    "sound_off",
 ];
+const RACK_KEYS: &[&str] = &["title", "intro", "enter", "lit", "units"];
 const LAB_KEYS: &[&str] = &[
     "intro",
     "server_title",
@@ -577,7 +591,9 @@ impl Content {
 
     /// Unidad de una misión, si la tiene.
     pub fn project_unit(&self, project: &str) -> Option<&Unit> {
-        self.units.iter().find(|u| u.project == project)
+        self.units
+            .iter()
+            .find(|u| u.project.as_deref() == Some(project))
     }
 
     fn validate_units(&self) -> Result<()> {
@@ -599,6 +615,17 @@ impl Content {
                     n.id
                 );
             }
+        }
+        // Cada unidad tiene que tener una puerta en el laboratorio.
+        for u in &self.units {
+            ensure!(
+                self.site
+                    .nodes
+                    .iter()
+                    .any(|n| n.unit.as_deref() == Some(&u.id)),
+                "unidad {}: ninguna pieza del laboratorio lleva a ella",
+                u.id
+            );
         }
         Ok(())
     }
@@ -733,6 +760,8 @@ impl Content {
             }
             required(code, "ui", UI_KEYS, &t.ui)?;
             required(code, "lab", LAB_KEYS, &t.lab)?;
+            required(code, "unit_ui", unit::COMMON_KEYS, &t.unit_ui)?;
+            required(code, "rack", RACK_KEYS, &t.rack)?;
             required(code, "hermes", HERMES_KEYS, &t.hermes.text)?;
             required(code, "incident_ui", INCIDENT_UI_KEYS, &t.incident_ui)?;
             required(code, "compare", COMPARE_KEYS, &t.compare)?;

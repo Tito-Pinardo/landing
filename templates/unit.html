@@ -32,15 +32,16 @@
 {% endblock %}
 
 {% block main %}
-<div class="unit" data-unit>
+<div class="unit status-{{ status }}" data-unit>
 
 <!-- =========================== FRONTAL DE LA UNIDAD =========================== -->
 <div class="unit-face" data-unit-face>
   <span class="uf-ear" aria-hidden="true"><i></i><i></i></span>
   <span class="uf-leds" aria-hidden="true"><i class="led-pwr"></i><i class="led-act"></i><i class="led-net"></i></span>
   <span class="uf-label"><strong>{{ ui("slot") }}</strong><span>{{ ui("face_specs") }}</span></span>
+  <span class="uf-fans" aria-hidden="true"><i></i><i></i><i></i></span>
   <span class="uf-vent" aria-hidden="true"></span>
-  <span class="uf-state">{{ ui("retired") }}</span>
+  <span class="uf-state">{{ ui("state") }}</span>
   <span class="uf-handle" aria-hidden="true"></span>
   <span class="uf-gnome" aria-hidden="true"><svg viewBox="0 0 40 52">{% include "gnome.svg" %}</svg></span>
   <span class="uf-ear uf-ear-r" aria-hidden="true"><i></i><i></i></span>
@@ -52,7 +53,8 @@
 
 <!-- ================================ FICHA ================================ -->
 <section class="bay unit-hero" aria-labelledby="unit-title">
-  <p class="bay-silk" aria-hidden="true">BAY 00 · {{ id|upper }}</p>
+  <p class="bay-silk" aria-hidden="true">{{ bay("hero") }}</p>
+  <p class="unit-pos muted small">{{ pos_label }} · <span class="unit-status">{{ status_label }}</span></p>
   <p class="kicker">{{ t.hero.kicker }}</p>
   <h1 id="unit-title">{{ t.hero.title }}</h1>
   <p class="unit-grade"><span aria-hidden="true">★</span> {{ t.hero.grade }}</p>
@@ -71,7 +73,7 @@
 
 <!-- ================================ MAPA ================================ -->
 <section class="bay" id="map" aria-labelledby="map-title">
-  <p class="bay-silk" aria-hidden="true">BAY 01 · K3S</p>
+  <p class="bay-silk" aria-hidden="true">{{ bay("map") }}</p>
   <h2 id="map-title">{{ ui("map_title") }}</h2>
   <p class="muted">{{ ui("map_intro") }}</p>
   <div class="lab unit-lab" data-ulab>
@@ -154,7 +156,7 @@
 
 <!-- ============================ HABILIDADES ============================ -->
 <section class="bay" id="skills" aria-labelledby="skills-title">
-  <p class="bay-silk" aria-hidden="true">BAY 02 · SKILLS</p>
+  <p class="bay-silk" aria-hidden="true">{{ bay("skills") }}</p>
   <h2 id="skills-title">{{ ui("tech_title") }}</h2>
   <p class="muted js-only">{{ ui("tech_intro") }}</p>
   <div class="unit-skills js-only">
@@ -175,8 +177,9 @@
 </section>
 
 <!-- ============================== CÁLCULO XP ============================== -->
+{% if has_xp %}
 <section class="bay" id="xp" aria-labelledby="xp-title">
-  <p class="bay-silk" aria-hidden="true">BAY 03 · XP ENGINE</p>
+  <p class="bay-silk" aria-hidden="true">{{ bay("xp") }}</p>
   <h2 id="xp-title">{{ ui("xp_title") }}</h2>
   <p class="muted">{{ ui("xp_intro") }}</p>
   <noscript><p class="muted small">{{ ui("xp_noscript") }}</p></noscript>
@@ -204,10 +207,63 @@
     </div>
   </form>
 </section>
+{% endif %}
+
+<!-- ============================== VRAM ============================== -->
+{% if let Some(v) = t.vram %}
+<section class="bay" id="vram" aria-labelledby="vram-title">
+  <p class="bay-silk" aria-hidden="true">{{ bay("vram") }}</p>
+  <h2 id="vram-title">{{ v.title }}</h2>
+  <p class="muted">{{ v.intro }}</p>
+  <noscript><p class="muted small">{{ v.noscript }}</p></noscript>
+  <form class="vram js-only" data-vram>
+    <div class="vram-controls">
+      <fieldset class="xp-field">
+        <legend>{{ v.kv }}</legend>
+        <div class="xp-diff-opts" data-vram-kv></div>
+      </fieldset>
+      <fieldset class="xp-field">
+        <legend>{{ v.apps }}</legend>
+        <div class="vram-apps" data-vram-apps></div>
+      </fieldset>
+      <fieldset class="xp-field">
+        <legend>{{ v.think }}</legend>
+        <div class="xp-diff-opts">
+          <label class="xp-diff-opt"><input type="radio" name="think" value="1"><span>{{ v.think_on }}</span></label>
+          <label class="xp-diff-opt"><input type="radio" name="think" value="0" checked><span>{{ v.think_off }}</span></label>
+        </div>
+      </fieldset>
+    </div>
+    <div class="vram-result" aria-live="polite">
+      <div class="vram-card" aria-hidden="true">
+        <div class="vram-chips"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="vram-bar" data-vram-bar>
+          <span class="vb-reserved" data-vb="reserved"></span><span class="vb-apps" data-vb="apps"></span><span class="vb-model" data-vb="model"></span><span class="vb-free" data-vb="free"></span>
+        </div>
+        <div class="vram-spill" data-vram-spill><span></span></div>
+        <ul class="vram-legend small">
+          <li class="lg-reserved"><i></i>{{ v.bar_reserved }}</li><li class="lg-apps"><i></i>{{ v.bar_apps }}</li><li class="lg-model"><i></i>{{ v.bar_model }}</li><li class="lg-cpu"><i></i>{{ v.bar_cpu }}</li>
+        </ul>
+      </div>
+      <dl class="vram-nums">
+        <div><dt>{{ v.in_gpu }}</dt><dd data-vram-out="pct"></dd></div>
+        <div><dt>{{ v.speed }}</dt><dd data-vram-out="speed"></dd></div>
+        <div><dt>{{ v.turn }}</dt><dd data-vram-out="time"></dd></div>
+        <div><dt>{{ v.free }}</dt><dd data-vram-out="free"></dd></div>
+      </dl>
+      <p class="vram-verdict" data-vram-verdict></p>
+      <p class="xp-math"><code data-vram-math></code></p>
+      <p class="muted small"><code>{{ v.formula }}</code></p>
+    </div>
+  </form>
+  <p class="muted small">{{ v.note }}</p>
+</section>
+{% endif %}
 
 <!-- ============================== BITÁCORA ============================== -->
+{% if !incidents.is_empty() %}
 <section class="bay" id="incidents" aria-labelledby="inc-title">
-  <p class="bay-silk" aria-hidden="true">BAY 04 · LOGS</p>
+  <p class="bay-silk" aria-hidden="true">{{ bay("incidents") }}</p>
   <h2 id="inc-title">{{ ui("incidents_title") }} <span class="inc-score js-only" data-inc-score></span></h2>
   <p class="muted">{{ ui("incidents_intro") }}</p>
   <ol class="incidents">
@@ -240,10 +296,11 @@
   {% endfor %}
   </ol>
 </section>
+{% endif %}
 
 <!-- ============================ CONSTRUCCIÓN ============================ -->
 <section class="bay" id="build" aria-labelledby="build-title">
-  <p class="bay-silk" aria-hidden="true">BAY 05 · BUILD</p>
+  <p class="bay-silk" aria-hidden="true">{{ bay("build") }}</p>
   <div class="unit-build">
     <div>
       <h2 id="build-title">{{ ui("timeline_title") }}</h2>
@@ -270,7 +327,7 @@
 
 <!-- ============================== CIERRE ============================== -->
 <section class="bay" id="close" aria-labelledby="close-title">
-  <p class="bay-silk" aria-hidden="true">BAY 06 · EOF</p>
+  <p class="bay-silk" aria-hidden="true">{{ bay("close") }}</p>
   <div class="unit-close">
     <div class="card">
       <h2 id="close-title">{{ ui("lessons_title") }}</h2>
@@ -292,6 +349,12 @@
   </div>
   <p class="muted small">{{ ui("disclaimer") }}</p>
 </section>
+
+<!-- ======================== UNIDADES VECINAS ======================== -->
+<nav class="unit-neighbours" aria-label="{{ ui("crumb_rack") }}">
+  {% if let Some(p) = prev %}<a class="un-prev" href="{{ p.url }}" rel="prev"><small>↑ {{ ui("unit_prev") }}</small><strong>{{ p.slot }}</strong></a>{% else %}<span></span>{% endif %}
+  {% if let Some(n) = next %}<a class="un-next" href="{{ n.url }}" rel="next"><small>{{ ui("unit_next") }} ↓</small><strong>{{ n.slot }}</strong></a>{% endif %}
+</nav>
 
 </div>
 </div>

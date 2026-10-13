@@ -1,0 +1,827 @@
+# Unidad 1U del rack: el almacenamiento (ZFS y RAID).
+#
+# Fuente: Obsidian «Storage», «Discos - rendimiento 2026-10-06», «XFS
+# Duplicate UUID» y la expansión del pool de agosto. Sin rutas, nombres de
+# discos ni contenido.
+
+id = "zfs"
+status = "live"
+host_tech = ["proxmox", "linux"]
+links = [
+  ["hba", "jbod"],
+  ["zabbix", "smart"],
+]
+
+[[groups]]
+id = "pools"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "tuning"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "disks"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "health"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "hba"
+x = 100
+y = 110
+kind = "network"
+group = ""
+tech = []
+
+[[pods]]
+id = "jbod"
+x = 290
+y = 110
+kind = "compute"
+group = ""
+tech = []
+
+[[pods]]
+id = "containers"
+x = 100
+y = 250
+kind = "compute"
+group = ""
+tech = ["lxc"]
+
+[[pods]]
+id = "zabbix"
+x = 100
+y = 420
+kind = "observability"
+group = ""
+tech = ["zabbix"]
+
+[[pods]]
+id = "upgrade"
+x = 290
+y = 420
+kind = "control"
+group = ""
+tech = ["proxmox"]
+
+[[pods]]
+id = "library"
+x = 515
+y = 140
+kind = "compute"
+group = "pools"
+tech = ["zfs"]
+
+[[pods]]
+id = "games"
+x = 700
+y = 140
+kind = "compute"
+group = "pools"
+tech = ["zfs"]
+
+[[pods]]
+id = "system"
+x = 885
+y = 140
+kind = "compute"
+group = "pools"
+tech = ["linux"]
+
+[[pods]]
+id = "loose"
+x = 1070
+y = 140
+kind = "compute"
+group = "pools"
+tech = ["linux"]
+
+[[pods]]
+id = "arc"
+x = 515
+y = 266
+kind = "compute"
+group = "tuning"
+tech = ["zfs"]
+
+[[pods]]
+id = "recordsize"
+x = 700
+y = 266
+kind = "control"
+group = "tuning"
+tech = ["zfs"]
+
+[[pods]]
+id = "atime"
+x = 885
+y = 266
+kind = "control"
+group = "tuning"
+tech = ["zfs"]
+
+[[pods]]
+id = "scheduler"
+x = 1070
+y = 266
+kind = "control"
+group = "tuning"
+tech = ["linux"]
+
+[[pods]]
+id = "wce"
+x = 515
+y = 392
+kind = "control"
+group = "disks"
+tech = ["linux"]
+
+[[pods]]
+id = "service"
+x = 700
+y = 392
+kind = "control"
+group = "disks"
+tech = ["linux"]
+
+[[pods]]
+id = "expand"
+x = 885
+y = 392
+kind = "control"
+group = "disks"
+tech = ["zfs"]
+
+[[pods]]
+id = "uuid"
+x = 1070
+y = 392
+kind = "observability"
+group = "disks"
+tech = ["linux"]
+
+[[pods]]
+id = "scrub"
+x = 515
+y = 518
+kind = "observability"
+group = "health"
+tech = ["zfs"]
+
+[[pods]]
+id = "smart"
+x = 700
+y = 518
+kind = "observability"
+group = "health"
+tech = ["linux"]
+
+[[pods]]
+id = "fill"
+x = 885
+y = 518
+kind = "observability"
+group = "health"
+tech = ["zfs"]
+
+[[pods]]
+id = "fio"
+x = 1070
+y = 518
+kind = "observability"
+group = "health"
+tech = ["linux"]
+
+[[flows]]
+id = "read"
+path = ["containers", "library", "arc", "containers"]
+
+[[flows]]
+id = "expandflow"
+path = ["jbod", "hba", "upgrade", "expand", "library", "scrub"]
+
+[[flows]]
+id = "speed"
+path = ["fio", "wce", "service", "scheduler", "fio"]
+
+[[flows]]
+id = "watch"
+path = ["smart", "zabbix", "scrub", "fill", "zabbix"]
+
+[[flows]]
+id = "reinsert"
+path = ["loose", "uuid", "loose", "containers"]
+
+[[incidents]]
+id = "attach"
+answer = 2
+
+[[incidents]]
+id = "uuid"
+answer = 1
+
+[[incidents]]
+id = "cache"
+answer = 3
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "El almacenamiento por dentro · Tito Pinardo Gutiérrez"
+description = "Los discos del homelab: un pool ZFS RAIDZ en una bandeja de 24 discos ampliado en caliente, un espejo para los juegos, el RAID del sistema y cómo se multiplicaron por trece las escrituras sin comprar nada."
+
+[text.es.ui]
+slot = "1U · STORAGE"
+face_specs = "ZFS · RAIDZ1 · espejos · RAID1"
+state = "En producción"
+map_silk = "ZFS"
+map_title = "El almacenamiento por dentro"
+map_intro = "Varios pools para usos distintos y una bandeja externa de discos. Elige un recorrido."
+vm_title = "Discos del servidor y de la bandeja"
+vm_specs = "ZFS gestionado por el hipervisor"
+outside = "Conexiones"
+disclaimer = "Reconstrucción a partir de mi documentación: sin rutas, nombres de discos ni contenido."
+
+[text.es.hero]
+kicker = "Unidad 1U · Almacenamiento"
+title = "ZFS y RAID · los discos"
+tagline = "Los datos grandes viven en un pool ZFS RAIDZ1 de cinco discos de 10 TB en una bandeja externa; los mundos de los juegos, en un espejo de cuatro discos SAS; el sistema, en un RAID1 por software. ZFS verifica cada bloque al leerlo y una caché enorme en RAM sirve casi todas las lecturas."
+grade = "Escrituras ×13 sin comprar nada"
+facts = [
+  { label = "Por qué ZFS", value = "Sumas de comprobación en cada bloque, compresión, instantáneas y ampliar un RAIDZ en caliente. Y la RAM sobrante del servidor se convierte en caché." },
+  { label = "Qué pool para qué", value = "RAIDZ para mucho espacio con un disco de margen; espejos para escrituras pequeñas y rápidas; RAID1 por software para el sistema." },
+  { label = "Lo que no es", value = "Ni RAIDZ ni espejos son una copia de seguridad: aguantan que muera un disco, no un borrado. Eso está en la unidad de copias." },
+]
+
+[[text.es.stats]]
+value = "95 → 1.237"
+label = "escrituras por segundo con fsync en el pool grande"
+
+[[text.es.stats]]
+value = "5 × 10 TB"
+label = "en RAIDZ1, ampliado de 4 a 5 en caliente"
+
+[[text.es.stats]]
+value = "0 B"
+label = "reparados en el scrub tras la ampliación"
+
+[[text.es.stats]]
+value = "> 98 %"
+label = "de las lecturas de juegos desde la caché en RAM"
+
+[text.es.groups]
+pools = "Pools"
+tuning = "Ajustes"
+disks = "Discos"
+health = "Salud"
+
+[text.es.pods.hba]
+short = "HBA SAS"
+title = "Controladora SAS"
+text = "Una controladora en modo HBA: ZFS ve los discos tal cual, sin RAID por hardware en medio."
+
+[text.es.pods.jbod]
+short = "Bandeja 24"
+title = "Bandeja de 24 discos"
+text = "Una bandeja de discos de segunda mano, conectada por SAS, donde vive el pool grande."
+
+[text.es.pods.containers]
+short = "Contenedores"
+title = "Contenedores"
+text = "Montan los datasets que necesitan."
+
+[text.es.pods.zabbix]
+short = "Zabbix"
+title = "Monitorización"
+text = "Estado de los pools, del RAID y SMART de cada disco, sin despertar los que duermen."
+
+[text.es.pods.upgrade]
+short = "Proxmox 9.2"
+title = "Actualización del hipervisor"
+text = "Ampliar un RAIDZ necesita ZFS 2.3 o más: hubo que actualizar Proxmox primero."
+
+[text.es.pods.library]
+short = "Pool RAIDZ1"
+title = "Pool grande (RAIDZ1)"
+text = "Cinco discos de 10 TB: espacio para la biblioteca multimedia, con un disco de margen."
+
+[text.es.pods.games]
+short = "Pool espejos"
+title = "Pool de juegos (espejos)"
+text = "Cuatro discos SAS en dos espejos: escrituras pequeñas y frecuentes, como guardar un mundo."
+
+[text.es.pods.system]
+short = "RAID1 sistema"
+title = "RAID1 del sistema"
+text = "Dos discos en espejo por software para el sistema y los discos de los contenedores."
+
+[text.es.pods.loose]
+short = "Discos sueltos"
+title = "Discos sueltos"
+text = "Algunos discos independientes con XFS, pendientes de entrar en el pool."
+
+[text.es.pods.arc]
+short = "Caché ARC"
+title = "Caché en RAM"
+text = "ZFS usa la RAM libre como caché de lectura. En el pool de juegos sirve más del 98 %."
+
+[text.es.pods.recordsize]
+short = "recordsize 1M"
+title = "Tamaño de bloque"
+text = "Bloques de 1 MB para vídeo, que se lee de principio a fin. Bloques normales donde hay ficheros pequeños."
+
+[text.es.pods.atime]
+short = "atime off"
+title = "Sin tiempo de acceso"
+text = "No escribir cada vez que se lee un fichero."
+
+[text.es.pods.scheduler]
+short = "Planificador"
+title = "Planificador «none»"
+text = "ZFS ya ordena y agrupa la E/S: el planificador del kernel solo estorba."
+
+[text.es.pods.wce]
+short = "Caché escritura"
+title = "Caché de escritura de los discos"
+text = "Venía apagada en varios discos. Con ZFS es segura: vacía esa caché en cada transacción."
+
+[text.es.pods.service]
+short = "Al arrancar"
+title = "Reactivar al arrancar"
+text = "En los discos detrás de la bandeja el ajuste no siempre sobrevive a un apagado: un servicio lo vuelve a poner en cada arranque."
+
+[text.es.pods.expand]
+short = "Ampliación"
+title = "Ampliar el RAIDZ"
+text = "Añadir un quinto disco a un RAIDZ de cuatro, en caliente, sin mover los datos a otro sitio."
+
+[text.es.pods.uuid]
+short = "UUID XFS"
+title = "Identificador de un disco"
+text = "Un disco sacado y vuelto a meter puede chocar consigo mismo."
+
+[text.es.pods.scrub]
+short = "Scrub"
+title = "Scrub"
+text = "Lee todo el pool y comprueba cada bloque contra su suma. Tras la ampliación: 0 errores."
+
+[text.es.pods.smart]
+short = "SMART"
+title = "SMART"
+text = "La salud que cada disco dice de sí mismo: sectores reasignados, temperatura, errores."
+
+[text.es.pods.fill]
+short = "Ocupación"
+title = "Ocupación"
+text = "Por encima del 80-85 %, ZFS escribe más lento. Hay que vigilarlo antes de llegar."
+
+[text.es.pods.fio]
+short = "fio"
+title = "Medir con fio"
+text = "En un dataset temporal sin compresión, antes y después de cada ajuste, y borrado al terminar."
+
+[text.es.flows.read]
+title = "Alguien ve una película"
+steps = [
+  "Plex pide un fichero.",
+  "Al pool grande, que comprueba la suma de cada bloque al leerlo.",
+  "Lo que se lee a menudo se queda en la caché de RAM.",
+  "Y llega al contenedor, verificado.",
+]
+
+[text.es.flows.expandflow]
+title = "Amplío el pool en caliente"
+steps = [
+  "Meto un quinto disco en la bandeja.",
+  "La controladora lo ve.",
+  "Primero, actualizar el hipervisor: ampliar un RAIDZ necesita una versión más nueva de ZFS.",
+  "La ampliación se lanza sobre el grupo de discos, no sobre un disco.",
+  "El pool sigue en uso mientras se reparten los datos.",
+  "Al terminar, un scrub lo verifica todo: 0 errores.",
+]
+
+[text.es.flows.speed]
+title = "Trece veces más escrituras"
+steps = [
+  "Mido con fio: 95 escrituras con fsync por segundo.",
+  "Activo la caché de escritura de los discos.",
+  "Y un servicio que la vuelve a activar en cada arranque.",
+  "Con el planificador en «none».",
+  "Vuelvo a medir: 1.237.",
+]
+
+[text.es.flows.watch]
+title = "Vigilar los discos"
+steps = [
+  "Cada disco informa de su SMART.",
+  "La monitorización lo recoge sin despertar los discos dormidos.",
+  "Los scrubs periódicos comprueban cada bloque.",
+  "Y la ocupación de cada pool.",
+  "Si algo empeora, aviso.",
+]
+
+[text.es.flows.reinsert]
+title = "Un disco que vuelve a entrar"
+steps = [
+  "Saco un disco de su bahía y lo vuelvo a meter.",
+  "No monta: el sistema cree que el mismo disco ya está montado.",
+  "Se limpia el registro del sistema de ficheros y se monta.",
+  "Y sus datos vuelven a estar disponibles.",
+]
+
+[text.es.incidents.attach]
+title = "Una ampliación que no hacía nada"
+meta = "Julio de 2026 · pool"
+symptom = "El script de ampliar el pool con un disco nuevo terminaba, pero el pool seguía igual de grande. Sin ningún error claro."
+options = [
+  "El disco nuevo era defectuoso",
+  "El pool estaba lleno",
+  "Usaba la orden de añadir a un espejo, que no vale para RAIDZ, y además esa versión de ZFS no sabía ampliar un RAIDZ",
+  "Faltaba reiniciar",
+]
+cause = "La orden apuntaba a un disco del pool, como en un espejo, en vez de al grupo RAIDZ entero. Y la versión de ZFS instalada todavía no permitía ampliar un RAIDZ."
+fix = "Actualizar el hipervisor a una versión con ZFS 2.3 o más y lanzar la ampliación sobre el grupo de discos. Terminó en un día y el scrub posterior reparó 0 bytes."
+lesson = "Un script que «termina» no es un script que funciona: hay que comprobar el resultado. Y leer qué versión permite qué antes de lanzar algo así."
+
+[text.es.incidents.uuid]
+title = "«wrong fs type, bad superblock»"
+meta = "14-07-2026 · disco"
+symptom = "Saqué un disco de su bahía y lo volví a meter. No montaba, y el error hablaba de un sistema de ficheros dañado."
+options = [
+  "El disco se había dañado al sacarlo",
+  "El sistema seguía teniendo registrado el disco anterior con el mismo identificador",
+  "La bahía estaba rota",
+  "Faltaba el controlador",
+]
+cause = "Al sacarlo en caliente, el kernel cerró el sistema de ficheros pero no lo olvidó del todo. Al volver con otro nombre de dispositivo, su identificador chocaba con el que aún figuraba como montado."
+fix = "Limpiar la referencia antigua y montarlo de nuevo, sin tocar sus datos."
+lesson = "El mensaje de error no siempre dice la causa: «superblock dañado» era «ya te conozco». El registro del kernel lo decía claro."
+
+[text.es.incidents.cache]
+title = "Discos lentos de fábrica"
+meta = "06-10-2026 · rendimiento"
+symptom = "El pool grande hacía solo 95 escrituras con fsync por segundo, con cinco discos."
+options = [
+  "El pool estaba muy fragmentado",
+  "La controladora limitaba la velocidad",
+  "Faltaba RAM para la caché",
+  "Varios discos venían con la caché de escritura apagada",
+]
+cause = "Los discos tenían la caché de escritura desactivada, y en los que van detrás de la bandeja ni siquiera aceptaban la orden normal para activarla."
+fix = "Activarla con la orden que sí aceptan, guardarla en el disco y añadir un servicio que la vuelve a activar en cada arranque. De 95 a 1.237 escrituras por segundo."
+lesson = "La configuración de fábrica no es la mejor para cada uso. Medir, cambiar una cosa y volver a medir."
+
+[[text.es.timeline]]
+title = "Ampliación del pool"
+period = "Julio y agosto de 2026"
+items = [
+  "Actualización de Proxmox para tener una versión de ZFS que amplíe RAIDZ.",
+  "Quinto disco añadido en caliente y scrub posterior sin errores.",
+]
+
+[[text.es.timeline]]
+title = "Ajustes medidos"
+period = "Septiembre y octubre de 2026"
+items = [
+  "Sin tiempo de acceso y bloques grandes para vídeo.",
+  "Caché de escritura y planificador en todos los pools, medidos con fio antes y después.",
+]
+
+[[text.es.decisions]]
+title = "RAID por hardware o ZFS"
+choice = "ZFS con la controladora en modo HBA"
+why = "ZFS necesita ver los discos de verdad para comprobar cada bloque y reparar lo que encuentra. Un RAID por hardware se lo escondería."
+
+[[text.es.decisions]]
+title = "Un pool para todo o varios"
+choice = "Uno por patrón de uso"
+why = "Mucho espacio y lectura secuencial no piden lo mismo que muchas escrituras pequeñas. Separarlos deja ajustar cada uno."
+
+[text.es.tech_notes]
+proxmox = "ZFS gestionado desde el hipervisor; actualizado para poder ampliar un RAIDZ."
+lxc = "Los contenedores montan los datasets que necesitan."
+linux = "RAID por software para el sistema, caché de escritura de los discos, planificador de E/S y discos XFS sueltos."
+zfs = "RAIDZ1 ampliado en caliente, espejos para los juegos, caché ARC, compresión, recordsize y scrubs."
+zabbix = "Vigila pools, RAID y SMART sin despertar los discos dormidos."
+
+[text.es.close]
+lessons = [
+  "Comprobar el resultado de una operación de discos, no que el script termine.",
+  "Medir cada ajuste antes y después.",
+  "Un RAID no es una copia.",
+]
+next = [
+  "Unir los discos sueltos al pool.",
+  "Un SSD para el sistema y las bases de datos.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside the storage · Tito Pinardo Gutiérrez"
+description = "The homelab's disks: a ZFS RAIDZ pool on a 24-disk shelf expanded live, a mirror for games, the system RAID and how writes went up thirteenfold without buying anything."
+
+[text.en.ui]
+slot = "1U · STORAGE"
+face_specs = "ZFS · RAIDZ1 · mirrors · RAID1"
+state = "In production"
+map_silk = "ZFS"
+map_title = "Inside the storage"
+map_intro = "Several pools for different jobs and an external disk shelf. Pick a flow."
+vm_title = "Server and shelf disks"
+vm_specs = "ZFS managed by the hypervisor"
+outside = "Connections"
+disclaimer = "Rebuilt from my documentation: no paths, disk names or content."
+
+[text.en.hero]
+kicker = "1U unit · Storage"
+title = "ZFS and RAID · the disks"
+tagline = "Large data lives on a ZFS RAIDZ1 pool of five 10 TB disks in an external shelf; the game worlds, on a mirror of four SAS disks; the system, on a software RAID1. ZFS checks every block as it reads it and a huge RAM cache serves almost all reads."
+grade = "Writes ×13 without buying anything"
+facts = [
+  { label = "Why ZFS", value = "Checksums on every block, compression, snapshots and live RAIDZ expansion. And the server's spare RAM becomes cache." },
+  { label = "Which pool for what", value = "RAIDZ for lots of space with one disk of margin; mirrors for small, fast writes; software RAID1 for the system." },
+  { label = "What it isn't", value = "Neither RAIDZ nor mirrors are a backup: they survive a disk dying, not a deletion. That's in the backups unit." },
+]
+
+[[text.en.stats]]
+value = "95 → 1,237"
+label = "fsync writes per second on the big pool"
+
+[[text.en.stats]]
+value = "5 × 10 TB"
+label = "in RAIDZ1, grown from 4 to 5 live"
+
+[[text.en.stats]]
+value = "0 B"
+label = "repaired in the scrub after expansion"
+
+[[text.en.stats]]
+value = "> 98 %"
+label = "of game reads served from the RAM cache"
+
+[text.en.groups]
+pools = "Pools"
+tuning = "Tuning"
+disks = "Disks"
+health = "Health"
+
+[text.en.pods.hba]
+short = "SAS HBA"
+title = "SAS controller"
+text = "A controller in HBA mode: ZFS sees the disks as they are, with no hardware RAID in between."
+
+[text.en.pods.jbod]
+short = "24-bay shelf"
+title = "24-disk shelf"
+text = "A second-hand disk shelf, connected over SAS, where the big pool lives."
+
+[text.en.pods.containers]
+short = "Containers"
+title = "Containers"
+text = "They mount the datasets they need."
+
+[text.en.pods.zabbix]
+short = "Zabbix"
+title = "Monitoring"
+text = "Pool and RAID state and SMART for each disk, without waking the sleeping ones."
+
+[text.en.pods.upgrade]
+short = "Proxmox 9.2"
+title = "Hypervisor upgrade"
+text = "Expanding a RAIDZ needs ZFS 2.3 or later: Proxmox had to be upgraded first."
+
+[text.en.pods.library]
+short = "RAIDZ1 pool"
+title = "Big pool (RAIDZ1)"
+text = "Five 10 TB disks: room for the media library, with one disk of margin."
+
+[text.en.pods.games]
+short = "Mirror pool"
+title = "Games pool (mirrors)"
+text = "Four SAS disks in two mirrors: small, frequent writes, like saving a world."
+
+[text.en.pods.system]
+short = "System RAID1"
+title = "System RAID1"
+text = "Two disks in a software mirror for the system and the containers' disks."
+
+[text.en.pods.loose]
+short = "Loose disks"
+title = "Loose disks"
+text = "A few standalone XFS disks, waiting to join the pool."
+
+[text.en.pods.arc]
+short = "ARC cache"
+title = "RAM cache"
+text = "ZFS uses free RAM as a read cache. On the games pool it serves over 98 %."
+
+[text.en.pods.recordsize]
+short = "recordsize 1M"
+title = "Block size"
+text = "1 MB blocks for video, which is read start to finish. Normal blocks where there are small files."
+
+[text.en.pods.atime]
+short = "atime off"
+title = "No access time"
+text = "Don't write every time a file is read."
+
+[text.en.pods.scheduler]
+short = "Scheduler"
+title = "«none» scheduler"
+text = "ZFS already orders and groups I/O: the kernel scheduler just gets in the way."
+
+[text.en.pods.wce]
+short = "Write cache"
+title = "Disk write cache"
+text = "It was off on several disks. With ZFS it's safe: it flushes that cache on every transaction."
+
+[text.en.pods.service]
+short = "On boot"
+title = "Re-enable at boot"
+text = "On the disks behind the shelf the setting doesn't always survive a shutdown: a service sets it again on every boot."
+
+[text.en.pods.expand]
+short = "Expansion"
+title = "Expanding the RAIDZ"
+text = "Adding a fifth disk to a four-disk RAIDZ, live, without moving the data elsewhere."
+
+[text.en.pods.uuid]
+short = "XFS UUID"
+title = "A disk's identifier"
+text = "A disk pulled out and put back can clash with itself."
+
+[text.en.pods.scrub]
+short = "Scrub"
+title = "Scrub"
+text = "Reads the whole pool and checks every block against its checksum. After the expansion: 0 errors."
+
+[text.en.pods.smart]
+short = "SMART"
+title = "SMART"
+text = "The health each disk reports about itself: reallocated sectors, temperature, errors."
+
+[text.en.pods.fill]
+short = "Usage"
+title = "Usage"
+text = "Above 80-85 %, ZFS writes slower. It needs watching before you get there."
+
+[text.en.pods.fio]
+short = "fio"
+title = "Measuring with fio"
+text = "On a temporary uncompressed dataset, before and after each change, deleted afterwards."
+
+[text.en.flows.read]
+title = "Someone watches a film"
+steps = [
+  "Plex asks for a file.",
+  "From the big pool, which checks each block's checksum as it reads.",
+  "What's read often stays in the RAM cache.",
+  "And it reaches the container, verified.",
+]
+
+[text.en.flows.expandflow]
+title = "I expand the pool live"
+steps = [
+  "I put a fifth disk in the shelf.",
+  "The controller sees it.",
+  "First, upgrade the hypervisor: expanding a RAIDZ needs a newer ZFS.",
+  "The expansion targets the disk group, not a disk.",
+  "The pool stays in use while the data is spread out.",
+  "When done, a scrub verifies everything: 0 errors.",
+]
+
+[text.en.flows.speed]
+title = "Thirteen times more writes"
+steps = [
+  "I measure with fio: 95 fsync writes per second.",
+  "I turn on the disks' write cache.",
+  "And a service that turns it on again on every boot.",
+  "With the scheduler on «none».",
+  "I measure again: 1,237.",
+]
+
+[text.en.flows.watch]
+title = "Watching the disks"
+steps = [
+  "Each disk reports its SMART.",
+  "Monitoring collects it without waking sleeping disks.",
+  "Regular scrubs check every block.",
+  "And each pool's usage.",
+  "If something gets worse, an alert.",
+]
+
+[text.en.flows.reinsert]
+title = "A disk going back in"
+steps = [
+  "I pull a disk from its bay and put it back.",
+  "It won't mount: the system thinks the same disk is already mounted.",
+  "The file system's old reference is cleared and it mounts.",
+  "And its data is available again.",
+]
+
+[text.en.incidents.attach]
+title = "An expansion that did nothing"
+meta = "July 2026 · pool"
+symptom = "The script to grow the pool with a new disk finished, but the pool stayed the same size. No clear error."
+options = [
+  "The new disk was faulty",
+  "The pool was full",
+  "It used the add-to-mirror command, which doesn't work for RAIDZ, and that ZFS version couldn't expand a RAIDZ anyway",
+  "A reboot was missing",
+]
+cause = "The command targeted one disk in the pool, as for a mirror, instead of the whole RAIDZ group. And the installed ZFS version didn't yet allow RAIDZ expansion."
+fix = "Upgrade the hypervisor to a version with ZFS 2.3 or later and run the expansion against the disk group. It finished in a day and the scrub afterwards repaired 0 bytes."
+lesson = "A script that «finishes» isn't a script that works: check the result. And read which version allows what before launching something like that."
+
+[text.en.incidents.uuid]
+title = "«wrong fs type, bad superblock»"
+meta = "14-07-2026 · disk"
+symptom = "I pulled a disk from its bay and put it back. It wouldn't mount, and the error talked about a damaged file system."
+options = [
+  "The disk got damaged when pulled",
+  "The system still had the previous disk registered with the same identifier",
+  "The bay was broken",
+  "The driver was missing",
+]
+cause = "Pulled live, the kernel shut the file system but didn't fully forget it. Coming back under another device name, its identifier clashed with the one still listed as mounted."
+fix = "Clear the old reference and mount it again, without touching its data."
+lesson = "The error message doesn't always give the cause: «bad superblock» meant «I already know you». The kernel log said it plainly."
+
+[text.en.incidents.cache]
+title = "Slow disks out of the box"
+meta = "06-10-2026 · performance"
+symptom = "The big pool managed only 95 fsync writes per second, with five disks."
+options = [
+  "The pool was heavily fragmented",
+  "The controller was capping the speed",
+  "Not enough RAM for the cache",
+  "Several disks shipped with write cache switched off",
+]
+cause = "The disks had write cache disabled, and the ones behind the shelf didn't even accept the normal command to enable it."
+fix = "Enable it with the command they do accept, save it on the disk and add a service that enables it again on every boot. From 95 to 1,237 writes per second."
+lesson = "Factory settings aren't the best for every use. Measure, change one thing, measure again."
+
+[[text.en.timeline]]
+title = "Pool expansion"
+period = "July and August 2026"
+items = [
+  "Proxmox upgraded to get a ZFS version that can expand RAIDZ.",
+  "Fifth disk added live and a clean scrub afterwards.",
+]
+
+[[text.en.timeline]]
+title = "Measured tuning"
+period = "September and October 2026"
+items = [
+  "No access time and large blocks for video.",
+  "Write cache and scheduler on every pool, measured with fio before and after.",
+]
+
+[[text.en.decisions]]
+title = "Hardware RAID or ZFS"
+choice = "ZFS with the controller in HBA mode"
+why = "ZFS needs to see the real disks to check every block and repair what it finds. Hardware RAID would hide them."
+
+[[text.en.decisions]]
+title = "One pool or several"
+choice = "One per usage pattern"
+why = "Lots of space and sequential reads don't want the same as many small writes. Separating them lets each be tuned."
+
+[text.en.tech_notes]
+proxmox = "ZFS managed from the hypervisor; upgraded to allow RAIDZ expansion."
+lxc = "Containers mount the datasets they need."
+linux = "Software RAID for the system, disk write cache, I/O scheduler and loose XFS disks."
+zfs = "RAIDZ1 expanded live, mirrors for games, ARC cache, compression, recordsize and scrubs."
+zabbix = "Watches pools, RAID and SMART without waking sleeping disks."
+
+[text.en.close]
+lessons = [
+  "Check the result of a disk operation, not that the script finished.",
+  "Measure each change before and after.",
+  "RAID isn't a backup.",
+]
+next = [
+  "Bring the loose disks into the pool.",
+  "An SSD for the system and the databases.",
+]

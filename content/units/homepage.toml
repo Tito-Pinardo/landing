@@ -1,0 +1,802 @@
+# Unidad 1U del rack: Homepage, el panel de entrada.
+#
+# Fuente: Obsidian «Homepage del homelab» y «Terraform en Proxmox» (sección
+# Homepage). Sin direcciones ni nombres internos.
+
+id = "homepage"
+status = "live"
+host_tech = ["lxc", "terraform"]
+links = [
+  ["git", "services"],
+  ["laptop", "caddy"],
+]
+
+[[groups]]
+id = "source"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "role"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "app"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "check"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "git"
+x = 100
+y = 110
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "laptop"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "caddy"
+x = 290
+y = 250
+kind = "network"
+group = ""
+tech = []
+
+[[pods]]
+id = "traefik"
+x = 290
+y = 110
+kind = "network"
+group = ""
+tech = ["traefik"]
+
+[[pods]]
+id = "services"
+x = 515
+y = 140
+kind = "control"
+group = "source"
+tech = ["ansible"]
+
+[[pods]]
+id = "local"
+x = 700
+y = 140
+kind = "control"
+group = "source"
+tech = ["ansible"]
+
+[[pods]]
+id = "looks"
+x = 885
+y = 140
+kind = "control"
+group = "source"
+tech = ["ansible"]
+
+[[pods]]
+id = "image"
+x = 1070
+y = 140
+kind = "app"
+group = "source"
+tech = []
+
+[[pods]]
+id = "templates"
+x = 515
+y = 266
+kind = "control"
+group = "role"
+tech = ["ansible"]
+
+[[pods]]
+id = "tag"
+x = 700
+y = 266
+kind = "control"
+group = "role"
+tech = ["ansible"]
+
+[[pods]]
+id = "backup"
+x = 885
+y = 266
+kind = "control"
+group = "role"
+tech = ["ansible"]
+
+[[pods]]
+id = "revalidate"
+x = 1070
+y = 266
+kind = "control"
+group = "role"
+tech = ["ansible"]
+
+[[pods]]
+id = "build"
+x = 515
+y = 392
+kind = "app"
+group = "app"
+tech = ["typescript", "nextjs"]
+
+[[pods]]
+id = "node"
+x = 700
+y = 392
+kind = "app"
+group = "app"
+tech = ["linux"]
+
+[[pods]]
+id = "hosts"
+x = 885
+y = 392
+kind = "observability"
+group = "app"
+tech = ["hardening"]
+
+[[pods]]
+id = "tabs"
+x = 1070
+y = 392
+kind = "app"
+group = "app"
+tech = []
+
+[[pods]]
+id = "syntax"
+x = 515
+y = 518
+kind = "observability"
+group = "check"
+tech = ["ansible"]
+
+[[pods]]
+id = "diff"
+x = 700
+y = 518
+kind = "observability"
+group = "check"
+tech = ["ansible"]
+
+[[pods]]
+id = "browser"
+x = 885
+y = 518
+kind = "observability"
+group = "check"
+tech = []
+
+[[pods]]
+id = "idempotent"
+x = 1070
+y = 518
+kind = "observability"
+group = "check"
+tech = ["ansible"]
+
+[[flows]]
+id = "addservice"
+path = ["git", "services", "traefik", "templates", "tabs"]
+
+[[flows]]
+id = "restyle"
+path = ["looks", "image", "syntax", "diff", "tag", "templates", "backup", "revalidate", "browser", "idempotent"]
+
+[[flows]]
+id = "open"
+path = ["laptop", "caddy", "hosts", "node", "tabs", "laptop"]
+
+[[flows]]
+id = "upgrade"
+path = ["git", "build", "node", "hosts", "tabs"]
+
+[[incidents]]
+id = "node20"
+answer = 2
+
+[[incidents]]
+id = "host"
+answer = 0
+
+[[incidents]]
+id = "stale"
+answer = 3
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Homepage por dentro · Tito Pinardo Gutiérrez"
+description = "El panel de entrada a todos los servicios del homelab, generado por Ansible desde la misma lista que usa Traefik: 29 servicios, ocho categorías y ningún paso manual."
+
+[text.es.ui]
+slot = "1U · HOMEPAGE"
+face_specs = "Homepage · 29 servicios · generado"
+state = "En producción"
+map_silk = "DASH"
+map_title = "El panel por dentro"
+map_intro = "Nadie edita este panel a mano: se genera. Elige un recorrido para ver de dónde sale cada tarjeta."
+vm_title = "Contenedor de Homepage · Proxmox"
+vm_specs = "Node.js + systemd, sin Docker"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, puertos ni nombres internos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Panel de entrada"
+title = "Homepage · la puerta a todo"
+tagline = "Una página con todos los servicios del homelab, agrupados por categoría y con su icono. No se toca a mano: Ansible la genera desde la misma lista de servicios con la que se crean las rutas de Traefik, así que lo que se publica y lo que aparece en el panel no pueden desincronizarse."
+grade = "Una sola fuente de verdad"
+facts = [
+  { label = "Por qué generado", value = "Un panel editado a mano envejece: servicios que ya no existen, enlaces rotos. Si sale de la lista de servicios, siempre está al día." },
+  { label = "Qué enseña", value = "29 servicios en ocho categorías y tres pestañas: control, biblioteca y comunidad. Sin indicadores de salud de adorno: para eso está la monitorización." },
+  { label = "Dónde se ve", value = "Solo desde casa o la VPN, detrás de la puerta interna. Se retiró de internet: sus descripciones dicen demasiado de la red." },
+]
+
+[[text.es.stats]]
+value = "29"
+label = "servicios en el panel"
+
+[[text.es.stats]]
+value = "8"
+label = "categorías, en tres pestañas"
+
+[[text.es.stats]]
+value = "0"
+label = "ficheros editados a mano en el servidor"
+
+[[text.es.stats]]
+value = "5"
+label = "plantillas que generan todo"
+
+[text.es.groups]
+source = "De dónde sale"
+role = "El rol de Ansible"
+app = "La aplicación"
+check = "Cómo se comprueba un cambio"
+
+[text.es.pods.git]
+short = "Repositorio"
+title = "Repositorio de infraestructura"
+text = "La lista de servicios y el aspecto del panel, versionados."
+
+[text.es.pods.laptop]
+short = "Mi portátil"
+title = "Mi portátil"
+text = "Lo abro al empezar a trabajar."
+
+[text.es.pods.caddy]
+short = "Puerta interna"
+title = "Puerta interna"
+text = "Solo desde casa o la VPN, con doble factor."
+
+[text.es.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "Usa la misma lista para crear sus rutas públicas."
+
+[text.es.pods.services]
+short = "Lista servicios"
+title = "Lista de servicios"
+text = "Cada servicio con su dominio, su categoría y su icono. La misma lista para Traefik y para el panel."
+
+[text.es.pods.local]
+short = "Solo locales"
+title = "Servicios solo locales"
+text = "Los que nunca pasan por internet (monitorización, seguridad, DNS…) en una lista aparte, para que el panel los tenga sin publicarlos."
+
+[text.es.pods.looks]
+short = "Aspecto"
+title = "Aspecto"
+text = "Título, orden, nombres, descripciones y servicios ocultos, en las variables del rol."
+
+[text.es.pods.image]
+short = "Fondo"
+title = "Imagen de fondo"
+text = "Una imagen propia de montañas al anochecer, con tarjetas translúcidas encima."
+
+[text.es.pods.templates]
+short = "Plantillas"
+title = "Cinco plantillas"
+text = "Ajustes, servicios, widgets, marcadores y estilos. La de servicios agrupa sola por categoría: una categoría nueva aparece sin tocar nada."
+
+[text.es.pods.tag]
+short = "Solo config"
+title = "Etiqueta de configuración"
+text = "Cambiar el aspecto no reinstala paquetes ni recompila: solo despliega las plantillas."
+
+[text.es.pods.backup]
+short = "Copias"
+title = "Copias fechadas"
+text = "Cada fichero que se sustituye deja su copia al lado, para volver atrás en segundos."
+
+[text.es.pods.revalidate]
+short = "Regenerar"
+title = "Regenerar la página"
+text = "Reiniciar no bastaba: la página estática seguía con el título viejo. El rol llama a la regeneración con reintentos."
+
+[text.es.pods.build]
+short = "Compilación"
+title = "Compilación"
+text = "Homepage no publica un binario: se compila con Node y Next.js, en una carpeta por versión con un enlace a la activa."
+
+[text.es.pods.node]
+short = "Servicio"
+title = "Servicio systemd"
+text = "Node.js con su unidad de systemd, sin Docker."
+
+[text.es.pods.hosts]
+short = "Hosts válidos"
+title = "Hosts permitidos"
+text = "Homepage rechaza cualquier petición cuyo nombre no esté en su lista. Protección propia que hay que configurar."
+
+[text.es.pods.tabs]
+short = "Pestañas"
+title = "Las tres pestañas"
+text = "Control, biblioteca y comunidad, con accesos rápidos en todas."
+
+[text.es.pods.syntax]
+short = "Sintaxis"
+title = "Comprobar la sintaxis"
+text = "Antes de nada, el playbook tiene que ser válido."
+
+[text.es.pods.diff]
+short = "--check --diff"
+title = "Ensayo con diferencias"
+text = "Ver qué cambiaría sin cambiarlo."
+
+[text.es.pods.browser]
+short = "Navegador"
+title = "Comprobar en el navegador"
+text = "En escritorio y en móvil: tarjetas, fondo, título, sin desbordes ni errores de JavaScript."
+
+[text.es.pods.idempotent]
+short = "Sin cambios"
+title = "Segunda pasada sin cambios"
+text = "Volver a aplicar no debe cambiar nada. Si cambia, algo no es idempotente."
+
+[text.es.flows.addservice]
+title = "Añado un servicio"
+steps = [
+  "Añado una entrada a la lista de servicios, con su categoría y su icono.",
+  "La lista es la misma para todo el homelab.",
+  "Traefik crea su ruta, si es público.",
+  "La plantilla de servicios lo coloca en su categoría.",
+  "Y aparece en su pestaña del panel, sin tocar nada más.",
+]
+
+[text.es.flows.restyle]
+title = "Cambio el aspecto"
+steps = [
+  "Cambio título, orden o descripciones en las variables del rol.",
+  "Y la imagen de fondo, si toca.",
+  "Comprobación de sintaxis.",
+  "Ensayo: qué cambiaría.",
+  "Se aplica solo la parte de configuración.",
+  "Las cinco plantillas se despliegan.",
+  "Cada fichero sustituido deja su copia fechada.",
+  "Se regenera la página estática, con reintentos.",
+  "Lo compruebo en el navegador, en escritorio y móvil.",
+  "Y una segunda pasada no cambia nada.",
+]
+
+[text.es.flows.open]
+title = "Abro el panel"
+steps = [
+  "Abro el panel desde casa.",
+  "La puerta interna pide doble factor.",
+  "Homepage comprueba que el nombre pedido es uno de los permitidos.",
+  "El servicio responde.",
+  "Con las tres pestañas.",
+  "Y desde ahí, a cualquier servicio.",
+]
+
+[text.es.flows.upgrade]
+title = "Actualizo de versión"
+steps = [
+  "Cambio la versión en el repositorio.",
+  "Ansible compila la nueva en su propia carpeta.",
+  "Cambia el enlace a la activa y reinicia el servicio.",
+  "Con su lista de nombres permitidos.",
+  "Y el panel sigue igual, en la versión nueva. Volver atrás es cambiar el enlace.",
+]
+
+[text.es.incidents.node20]
+title = "«markAsUncloneable is not a function»"
+meta = "15-09-2026 · despliegue"
+symptom = "La versión de Homepage elegida no arrancaba: un error de JavaScript que no decía nada del panel."
+options = [
+  "Faltaba compilar la aplicación",
+  "La configuración tenía un error",
+  "El Node.js del sistema era demasiado antiguo para esa versión de Next.js",
+  "Faltaba memoria",
+]
+cause = "Esa versión de Homepage usa un Next.js que exige Node 22, y la distribución solo trae Node 20. El error salía de dentro de Node, no de Homepage."
+fix = "Instalar Node 22 desde el repositorio oficial de NodeSource y asegurarse de que la tarea sustituye la versión previa, que ya estaba instalada de un intento anterior."
+lesson = "Leer de quién es el error antes de buscarlo: este venía del motor, no de la aplicación. Y un intento previo deja restos que la segunda ejecución tiene que limpiar."
+
+[text.es.incidents.host]
+title = "«Host validation failed» a todo"
+meta = "15-09-2026 · arranque"
+symptom = "Ya arrancaba, pero respondía 400 «Host validation failed» a cualquier petición, desde cualquier sitio."
+options = [
+  "Homepage rechaza los nombres que no estén en su lista de hosts permitidos",
+  "El certificado no era válido",
+  "La puerta interna cambiaba la cabecera",
+  "El cortafuegos cortaba la respuesta",
+]
+cause = "Es una protección propia de Homepage: si el nombre con el que se le llama no está en su lista, rechaza la petición."
+fix = "Declarar los nombres permitidos en el servicio de systemd, generados también por Ansible."
+lesson = "Las protecciones por defecto se agradecen, pero hay que saber que existen. La documentación oficial estaba antes que el foro."
+
+[text.es.incidents.stale]
+title = "El título viejo no se iba"
+meta = "26-09-2026 · aspecto"
+symptom = "Cambié título, idioma y orden. Ansible aplicó todo y reinició el servicio, pero el navegador seguía enseñando el título anterior."
+options = [
+  "La caché del navegador",
+  "La puerta interna guardaba la página",
+  "Ansible no había copiado las plantillas",
+  "La página estática se genera una vez y reiniciar no la regenera",
+]
+cause = "Next.js genera parte del HTML una vez y lo sirve hecho. Reiniciar el servicio no lo vuelve a generar."
+fix = "El rol llama a la ruta de regeneración tras reiniciar, con reintentos hasta que responde."
+lesson = "«Aplicado sin errores» no es «se ve bien». Hay que mirar el resultado en el navegador."
+
+[[text.es.timeline]]
+title = "De Fenrus a Homepage"
+period = "15-09-2026"
+items = [
+  "Homepage en su contenedor, compilado y con systemd.",
+  "Lista de servicios compartida con Traefik, con categoría e icono.",
+]
+
+[[text.es.timeline]]
+title = "Aspecto y retirada de internet"
+period = "26-09-2026"
+items = [
+  "Diseño propio, tres pestañas y fondo nuevo.",
+  "Fuera de internet: ahora solo detrás de la puerta interna.",
+]
+
+[[text.es.decisions]]
+title = "Qué panel"
+choice = "Homepage"
+why = "Configuración declarativa en YAML: encaja con generarlo todo desde la lista de servicios."
+
+[[text.es.decisions]]
+title = "Indicadores de salud"
+choice = "Ninguno de adorno"
+why = "Un círculo verde que no mide nada da falsa tranquilidad. La salud está en la monitorización, a un clic."
+
+[text.es.tech_notes]
+terraform = "Crea el contenedor del panel."
+ansible = "Genera todo el panel desde la lista de servicios, con etiqueta para cambios de aspecto, copias y regeneración."
+lxc = "Corre en su propio contenedor."
+linux = "Node.js con systemd, versiones en carpetas separadas y un enlace a la activa."
+git = "La lista de servicios y el aspecto del panel están versionados."
+traefik = "Comparte con el panel la lista de servicios."
+typescript = "Homepage es una aplicación de Next.js que se compila con Node."
+nextjs = "La página estática que hay que regenerar tras cambiar la configuración."
+hardening = "Lista de nombres permitidos y acceso solo desde la puerta interna."
+
+[text.es.close]
+lessons = [
+  "Una sola lista para todo evita que dos sitios cuenten cosas distintas.",
+  "Comprobar en el navegador lo que Ansible dice que aplicó.",
+]
+next = [
+  "Generar también la configuración de la puerta interna desde la misma lista.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Homepage · Tito Pinardo Gutiérrez"
+description = "The start page for every homelab service, generated by Ansible from the same list Traefik uses: 29 services, eight categories and no manual steps."
+
+[text.en.ui]
+slot = "1U · HOMEPAGE"
+face_specs = "Homepage · 29 services · generated"
+state = "In production"
+map_silk = "DASH"
+map_title = "Inside the dashboard"
+map_intro = "Nobody edits this dashboard by hand: it's generated. Pick a flow to see where each card comes from."
+vm_title = "Homepage container · Proxmox"
+vm_specs = "Node.js + systemd, no Docker"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no addresses, ports or internal names."
+
+[text.en.hero]
+kicker = "1U unit · Start page"
+title = "Homepage · the door to everything"
+tagline = "A page with every homelab service, grouped by category with its icon. It isn't edited by hand: Ansible generates it from the same service list used to create Traefik's routes, so what's published and what shows on the dashboard can't drift apart."
+grade = "A single source of truth"
+facts = [
+  { label = "Why generated", value = "A hand-edited dashboard ages: services that no longer exist, broken links. If it comes from the service list, it's always current." },
+  { label = "What it shows", value = "29 services in eight categories and three tabs: control, library and community. No decorative health indicators: that's what monitoring is for." },
+  { label = "Where it's seen", value = "Only from home or the VPN, behind the internal door. It was taken off the internet: its descriptions say too much about the network." },
+]
+
+[[text.en.stats]]
+value = "29"
+label = "services on the dashboard"
+
+[[text.en.stats]]
+value = "8"
+label = "categories, in three tabs"
+
+[[text.en.stats]]
+value = "0"
+label = "files edited by hand on the server"
+
+[[text.en.stats]]
+value = "5"
+label = "templates that generate everything"
+
+[text.en.groups]
+source = "Where it comes from"
+role = "The Ansible role"
+app = "The app"
+check = "How a change is checked"
+
+[text.en.pods.git]
+short = "Repository"
+title = "Infrastructure repository"
+text = "The service list and the dashboard's look, versioned."
+
+[text.en.pods.laptop]
+short = "My laptop"
+title = "My laptop"
+text = "I open it when I start working."
+
+[text.en.pods.caddy]
+short = "Internal door"
+title = "Internal door"
+text = "Only from home or the VPN, with two-factor."
+
+[text.en.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "Uses the same list to create its public routes."
+
+[text.en.pods.services]
+short = "Service list"
+title = "Service list"
+text = "Each service with its domain, category and icon. The same list for Traefik and the dashboard."
+
+[text.en.pods.local]
+short = "Local only"
+title = "Local-only services"
+text = "Those that never go through the internet (monitoring, security, DNS…) on a separate list, so the dashboard has them without publishing them."
+
+[text.en.pods.looks]
+short = "Look"
+title = "Look"
+text = "Title, order, names, descriptions and hidden services, in the role's variables."
+
+[text.en.pods.image]
+short = "Background"
+title = "Background image"
+text = "An image of my own of mountains at dusk, with translucent cards on top."
+
+[text.en.pods.templates]
+short = "Templates"
+title = "Five templates"
+text = "Settings, services, widgets, bookmarks and styles. The services one groups by category on its own: a new category shows up without touching anything."
+
+[text.en.pods.tag]
+short = "Config only"
+title = "Configuration tag"
+text = "Changing the look doesn't reinstall packages or recompile: it only deploys the templates."
+
+[text.en.pods.backup]
+short = "Backups"
+title = "Dated backups"
+text = "Every replaced file leaves its copy alongside, to roll back in seconds."
+
+[text.en.pods.revalidate]
+short = "Regenerate"
+title = "Regenerate the page"
+text = "Restarting wasn't enough: the static page kept the old title. The role calls the regeneration with retries."
+
+[text.en.pods.build]
+short = "Build"
+title = "Build"
+text = "Homepage doesn't ship a binary: it's built with Node and Next.js, in a folder per version with a link to the active one."
+
+[text.en.pods.node]
+short = "Service"
+title = "systemd service"
+text = "Node.js with its systemd unit, no Docker."
+
+[text.en.pods.hosts]
+short = "Allowed hosts"
+title = "Allowed hosts"
+text = "Homepage rejects any request whose name isn't on its list. Its own protection, which has to be configured."
+
+[text.en.pods.tabs]
+short = "Tabs"
+title = "The three tabs"
+text = "Control, library and community, with shortcuts on all of them."
+
+[text.en.pods.syntax]
+short = "Syntax"
+title = "Syntax check"
+text = "First of all, the playbook has to be valid."
+
+[text.en.pods.diff]
+short = "--check --diff"
+title = "Dry run with diff"
+text = "See what would change without changing it."
+
+[text.en.pods.browser]
+short = "Browser"
+title = "Check in the browser"
+text = "On desktop and mobile: cards, background, title, no overflow or JavaScript errors."
+
+[text.en.pods.idempotent]
+short = "No changes"
+title = "Second pass with no changes"
+text = "Applying again mustn't change anything. If it does, something isn't idempotent."
+
+[text.en.flows.addservice]
+title = "I add a service"
+steps = [
+  "I add an entry to the service list, with its category and icon.",
+  "The list is the same for the whole homelab.",
+  "Traefik creates its route, if it's public.",
+  "The services template puts it in its category.",
+  "And it shows up in its dashboard tab, without touching anything else.",
+]
+
+[text.en.flows.restyle]
+title = "I change the look"
+steps = [
+  "I change title, order or descriptions in the role's variables.",
+  "And the background image, if needed.",
+  "Syntax check.",
+  "Dry run: what would change.",
+  "Only the configuration part is applied.",
+  "The five templates are deployed.",
+  "Each replaced file leaves its dated copy.",
+  "The static page is regenerated, with retries.",
+  "I check it in the browser, on desktop and mobile.",
+  "And a second pass changes nothing.",
+]
+
+[text.en.flows.open]
+title = "I open the dashboard"
+steps = [
+  "I open the dashboard from home.",
+  "The internal door asks for two-factor.",
+  "Homepage checks the requested name is an allowed one.",
+  "The service answers.",
+  "With the three tabs.",
+  "And from there, to any service.",
+]
+
+[text.en.flows.upgrade]
+title = "I upgrade the version"
+steps = [
+  "I change the version in the repo.",
+  "Ansible builds the new one in its own folder.",
+  "It switches the link to the active one and restarts the service.",
+  "With its list of allowed names.",
+  "And the dashboard stays the same, on the new version. Rolling back is switching the link.",
+]
+
+[text.en.incidents.node20]
+title = "«markAsUncloneable is not a function»"
+meta = "15-09-2026 · deploy"
+symptom = "The chosen Homepage version wouldn't start: a JavaScript error that said nothing about the dashboard."
+options = [
+  "The app hadn't been built",
+  "The configuration had an error",
+  "The system's Node.js was too old for that Next.js version",
+  "Not enough memory",
+]
+cause = "That Homepage version uses a Next.js that requires Node 22, and the distribution only ships Node 20. The error came from inside Node, not Homepage."
+fix = "Install Node 22 from the official NodeSource repo and make sure the task replaces the previous version, already installed by an earlier attempt."
+lesson = "Read whose error it is before chasing it: this one came from the engine, not the app. And an earlier attempt leaves leftovers the second run has to clean up."
+
+[text.en.incidents.host]
+title = "«Host validation failed» for everything"
+meta = "15-09-2026 · start-up"
+symptom = "It now started, but answered 400 «Host validation failed» to every request, from anywhere."
+options = [
+  "Homepage rejects names that aren't on its allowed-hosts list",
+  "The certificate wasn't valid",
+  "The internal door changed the header",
+  "The firewall cut the response",
+]
+cause = "It's Homepage's own protection: if the name it's called by isn't on its list, it rejects the request."
+fix = "Declare the allowed names in the systemd service, also generated by Ansible."
+lesson = "Default protections are welcome, but you have to know they exist. The official docs came before the forum."
+
+[text.en.incidents.stale]
+title = "The old title wouldn't go"
+meta = "26-09-2026 · look"
+symptom = "I changed title, language and order. Ansible applied everything and restarted the service, but the browser still showed the old title."
+options = [
+  "The browser cache",
+  "The internal door was caching the page",
+  "Ansible hadn't copied the templates",
+  "The static page is generated once and restarting doesn't regenerate it",
+]
+cause = "Next.js generates part of the HTML once and serves it ready-made. Restarting the service doesn't generate it again."
+fix = "The role calls the regeneration route after restarting, with retries until it answers."
+lesson = "«Applied without errors» isn't «looks right». You have to look at the result in the browser."
+
+[[text.en.timeline]]
+title = "From Fenrus to Homepage"
+period = "15-09-2026"
+items = [
+  "Homepage in its container, built and running under systemd.",
+  "A service list shared with Traefik, with category and icon.",
+]
+
+[[text.en.timeline]]
+title = "Look and off the internet"
+period = "26-09-2026"
+items = [
+  "My own design, three tabs and a new background.",
+  "Off the internet: now only behind the internal door.",
+]
+
+[[text.en.decisions]]
+title = "Which dashboard"
+choice = "Homepage"
+why = "Declarative YAML configuration: it fits generating everything from the service list."
+
+[[text.en.decisions]]
+title = "Health indicators"
+choice = "No decorative ones"
+why = "A green dot that measures nothing gives false comfort. Health lives in monitoring, one click away."
+
+[text.en.tech_notes]
+terraform = "Creates the dashboard's container."
+ansible = "Generates the whole dashboard from the service list, with a tag for look changes, backups and regeneration."
+lxc = "Runs in its own container."
+linux = "Node.js with systemd, versions in separate folders and a link to the active one."
+git = "The service list and the dashboard's look are versioned."
+traefik = "Shares the service list with the dashboard."
+typescript = "Homepage is a Next.js app built with Node."
+nextjs = "The static page that has to be regenerated after a configuration change."
+hardening = "Allowed-names list and access only through the internal door."
+
+[text.en.close]
+lessons = [
+  "A single list for everything stops two places telling different stories.",
+  "Check in the browser what Ansible says it applied.",
+]
+next = [
+  "Generate the internal door's configuration from the same list too.",
+]

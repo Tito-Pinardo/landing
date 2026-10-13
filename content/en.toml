@@ -40,6 +40,8 @@ lab_quick = "The interactive server map and its animated journeys are in the ful
 unit_enter = "Open the 1U unit"
 unit_where = "See where I used {skill}"
 unit_badge = "Has its own unit in the rack"
+sound_on = "Server sound: on (click to mute)"
+sound_off = "Server sound: muted (click to turn on)"
 
 [hero]
 kicker = "Hi, I'm"
@@ -789,7 +791,8 @@ help = [
   ["hermes", "call Hermes, your guide"],
   ["challenge", "a challenge: find the flag"],
   ["submit <flag>", "hand in the flag"],
-  ["ssh xpify", "open the XPIFY unit"],
+  ["ssh <part>", "step into a part's unit (ssh hermes, ssh zfs…)"],
+  ["sound on|off", "turn the server sound on or off"],
   ["clear", "clear the screen"],
   ["exit", "close the terminal"],
 ]
@@ -964,3 +967,60 @@ tour_end_lab = "That's the tour! You're missing the best bit: try a lab journey 
 tour_end_all = "That's the tour, and you've explored pretty much everything! If you'd like to talk to Tito, the form is right here."
 detective = "Well spotted! That's how Tito investigates failures: clues first, conclusions after."
 hacker = "Flag found! You've got the makings of a sysadmin."
+
+# ---------------------------------------------------------------------------
+# Rack units: text shared by every unit page. Each unit can override any key
+# in its own `[text.en.ui]`.
+# ---------------------------------------------------------------------------
+[unit_ui]
+back = "Back to the rack"
+crumb_rack = "Rack"
+crumb_lab = "Lab"
+pull = "Pulling the unit out…"
+map_title = "Inside"
+map_intro = "Click a part to see what it does, or pick a flow and follow the packet."
+flows_title = "Flows"
+flows_hint = "Pick one and follow the packet."
+play = "Play"
+pause = "Pause"
+prev = "Back"
+next = "Next"
+step = "Step"
+of = "of"
+pick = "Click a part or pick a flow. If you came from a skill, the parts where I use it are already lit."
+narrator = "Hermes"
+narrator_role = "visiting the unit"
+tech_title = "What I use from my skill tree"
+tech_intro = "Pick a skill: the parts where I use it light up on the map and I tell you what for."
+tech_all = "See all my quests with this skill"
+tech_clear = "Turn off"
+incidents_title = "Incident log"
+incidents_intro = "Real failures. Read the symptom, pick the cause you think it was and see how it was fixed."
+incident_guess = "What do you think was going on?"
+incident_wrong = "Not that one. Try another."
+incident_right = "Exactly!"
+incident_reveal = "Show the fix"
+cause = "Cause"
+fix = "Fix"
+lesson = "Lesson"
+solved = "solved"
+timeline_title = "How it was built"
+decisions_title = "Decisions (and why)"
+lessons_title = "What I learned"
+next_title = "What's next"
+cta_title = "Shall we talk?"
+cta_text = "I can walk through any of these decisions in detail in an interview."
+noscript = "This page works without JavaScript; with it the unit slides out, the packet travels the map and you can play with the incident log."
+unit_prev = "Unit above"
+unit_next = "Unit below"
+rack_pos = "Slot {n} of {total} in the rack"
+status_live = "In production"
+status_retired = "Retired"
+status_lab = "Lab"
+
+[rack]
+title = "The rack, unit by unit"
+intro = "Every part of the server has its own unit: step into any of them to see it from the inside, with its flows, its failures and why it is built that way."
+enter = "Enter"
+lit = "{n} rack units use {skill}: they are lit."
+units = "units"

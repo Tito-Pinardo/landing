@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#0a0e17">
 <link rel="icon" href="/static/favicon.svg?v={{ c.asset_v }}" type="image/svg+xml">
 <link rel="stylesheet" href="/static/app.css?v={{ c.asset_v }}">
+<script src="/static/sound.js?v={{ c.asset_v }}" defer></script>
 {% block head %}{% endblock %}
 </head>
 <body>
@@ -19,6 +20,7 @@
   {% block nav %}{% endblock %}
   <div class="topbar-actions">
     {% block actions %}{% endblock %}
+    <button type="button" class="btn btn-ghost btn-sound js-only" data-sound-toggle aria-pressed="false" data-label-on="{{ c.ui("sound_on") }}" data-label-off="{{ c.ui("sound_off") }}" aria-label="{{ c.ui("sound_on") }}"><span class="snd-icon" aria-hidden="true"><i></i><i></i><i></i></span></button>
     <a class="btn btn-ghost" href="/{{ c.other }}/{{ c.path }}" hreflang="{{ c.other }}" lang="{{ c.other }}" data-lang-switch>{{ c.ui("lang_switch") }}</a>
   </div>
 </header>

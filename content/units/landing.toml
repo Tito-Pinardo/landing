@@ -1,0 +1,983 @@
+# Unidad 1U del rack: esta misma web.
+#
+# Fuente: el propio repositorio (público) y la nota de Obsidian «Web personal -
+# Despliegue y operación». Sin direcciones ni nombres internos.
+
+id = "landing"
+project = "landing"
+status = "live"
+host_tech = ["terraform", "ansible"]
+links = [
+  ["visitor", "cloudflare"],
+  ["cloudflare", "traefik"],
+  ["github", "ci"],
+  ["phone", "matrix"],
+]
+
+[[groups]]
+id = "binary"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "contact"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "data"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "deploy"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "visitor"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "cloudflare"
+x = 290
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "traefik"
+x = 290
+y = 250
+kind = "network"
+group = ""
+tech = ["traefik"]
+
+[[pods]]
+id = "phone"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "github"
+x = 100
+y = 420
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "ci"
+x = 290
+y = 420
+kind = "control"
+group = ""
+tech = ["gitlab-ci"]
+
+[[pods]]
+id = "matrix"
+x = 100
+y = 540
+kind = "app"
+group = ""
+tech = []
+
+[[pods]]
+id = "axum"
+x = 515
+y = 140
+kind = "app"
+group = "binary"
+tech = ["rust"]
+
+[[pods]]
+id = "pages"
+x = 700
+y = 140
+kind = "app"
+group = "binary"
+tech = ["rust"]
+
+[[pods]]
+id = "security"
+x = 885
+y = 140
+kind = "observability"
+group = "binary"
+tech = ["rust"]
+
+[[pods]]
+id = "content"
+x = 1070
+y = 140
+kind = "control"
+group = "binary"
+tech = ["rust"]
+
+[[pods]]
+id = "form"
+x = 515
+y = 266
+kind = "app"
+group = "contact"
+tech = ["rust"]
+
+[[pods]]
+id = "limits"
+x = 700
+y = 266
+kind = "observability"
+group = "contact"
+tech = ["rust", "postgresql"]
+
+[[pods]]
+id = "outbox"
+x = 885
+y = 266
+kind = "control"
+group = "contact"
+tech = ["rust", "postgresql"]
+
+[[pods]]
+id = "notify"
+x = 1070
+y = 266
+kind = "app"
+group = "contact"
+tech = ["rust"]
+
+[[pods]]
+id = "postgres"
+x = 515
+y = 392
+kind = "app"
+group = "data"
+tech = ["postgresql"]
+
+[[pods]]
+id = "socket"
+x = 700
+y = 392
+kind = "network"
+group = "data"
+tech = ["postgresql"]
+
+[[pods]]
+id = "status"
+x = 885
+y = 392
+kind = "observability"
+group = "data"
+tech = []
+
+[[pods]]
+id = "browser"
+x = 1070
+y = 392
+kind = "edge"
+group = "data"
+tech = []
+
+[[pods]]
+id = "terraform"
+x = 515
+y = 518
+kind = "control"
+group = "deploy"
+tech = ["terraform"]
+
+[[pods]]
+id = "ansible"
+x = 700
+y = 518
+kind = "control"
+group = "deploy"
+tech = ["ansible"]
+
+[[pods]]
+id = "check"
+x = 885
+y = 518
+kind = "control"
+group = "deploy"
+tech = ["rust", "ansible"]
+
+[[pods]]
+id = "systemd"
+x = 1070
+y = 518
+kind = "observability"
+group = "deploy"
+tech = ["ansible"]
+
+[[flows]]
+id = "visit"
+path = ["visitor", "cloudflare", "traefik", "axum", "security", "pages", "browser", "visitor"]
+
+[[flows]]
+id = "message"
+path = ["visitor", "traefik", "form", "limits", "postgres", "outbox", "notify", "matrix", "phone"]
+
+[[flows]]
+id = "retry"
+path = ["outbox", "notify", "outbox", "notify", "matrix"]
+
+[[flows]]
+id = "release"
+path = ["github", "ci", "github", "ansible", "check", "systemd", "axum"]
+
+[[flows]]
+id = "build"
+path = ["terraform", "ansible", "postgres", "socket", "systemd"]
+
+[[flows]]
+id = "live"
+path = ["status", "axum", "pages", "browser"]
+
+[[incidents]]
+id = "anonymous"
+answer = 2
+
+[[incidents]]
+id = "firefox"
+answer = 1
+
+[[incidents]]
+id = "raid"
+answer = 3
+
+[[incidents]]
+id = "history"
+answer = 0
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Esta web por dentro · Tito Pinardo Gutiérrez"
+description = "Cómo está hecha esta web: un binario de Rust que lo renderiza todo al arrancar, PostgreSQL solo por socket, un formulario con bandeja de salida hacia Matrix y un contenedor con el cortafuegos más estricto del homelab."
+
+[text.es.ui]
+slot = "1U · LANDING"
+face_specs = "Rust · Axum · PostgreSQL · 12 MB de RAM"
+state = "En producción"
+map_silk = "WEB"
+map_title = "Esta web por dentro"
+map_intro = "Lo que estás leyendo ahora mismo sale de aquí. Elige un recorrido para ver qué pasa con tu visita o con un mensaje."
+vm_title = "Contenedor de la web · Proxmox"
+vm_specs = "sin Docker, sin privilegios"
+outside = "Fuera"
+disclaimer = "El código es público en GitHub. Aquí no aparecen direcciones, puertos internos ni secretos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Proyecto personal en producción"
+title = "Esta web"
+tagline = "Un único binario de Rust que lleva dentro las plantillas, los estilos, los textos y hasta el CV. Renderiza todas las páginas una vez al arrancar y las sirve desde memoria. Lo único que escribe cualquiera, el formulario, se guarda en PostgreSQL antes de avisarme."
+grade = "Código público · CI en verde"
+facts = [
+  { label = "Por qué Rust", value = "Un binario pequeño, sin entorno que instalar, que usa unos 12 MB de RAM y se comprueba en compilación: las plantillas, las consultas SQL y los textos de los dos idiomas." },
+  { label = "Dónde vive", value = "En su propio contenedor sin Docker ni privilegios, el único del homelab que rechaza por defecto todo lo que entra. Solo Traefik puede hablar con él." },
+  { label = "Qué hay detrás", value = "Terraform crea el contenedor, Ansible lo configura y despliega, y el binario se niega a arrancar si el contenido tiene una errata." },
+]
+
+[[text.es.stats]]
+value = "~12 MB"
+label = "de RAM en uso"
+
+[[text.es.stats]]
+value = "0"
+label = "dependencias en el navegador"
+
+[[text.es.stats]]
+value = "1"
+label = "regla de entrada: solo desde Traefik"
+
+[[text.es.stats]]
+value = "0 B"
+label = "de IP guardada: solo un hash con sal"
+
+[text.es.groups]
+binary = "El binario"
+contact = "El formulario"
+data = "Datos"
+deploy = "Cómo llega a producción"
+
+[text.es.pods.visitor]
+short = "Tú"
+title = "Tú"
+text = "Lo que estás leyendo ahora."
+
+[text.es.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "Delante del dominio: oculta la IP de casa y filtra."
+
+[text.es.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "La puerta pública. Es lo único que puede hablar con el contenedor de la web."
+
+[text.es.pods.phone]
+short = "Mi móvil"
+title = "Mi móvil"
+text = "Donde me llegan los mensajes del formulario."
+
+[text.es.pods.github]
+short = "GitHub"
+title = "Repositorio en GitHub"
+text = "El código es público. Antes de cada push, un hook busca secretos, direcciones internas y nombres que no deben salir."
+
+[text.es.pods.ci]
+short = "GitHub Actions"
+title = "Integración continua"
+text = "En cada push: formato, clippy sin avisos y todas las pruebas contra un PostgreSQL de verdad."
+
+[text.es.pods.matrix]
+short = "Matrix"
+title = "Mi servidor de Matrix"
+text = "La sala donde llegan los avisos de mensajes nuevos, con un bot propio que solo puede escribir ahí."
+
+[text.es.pods.axum]
+short = "Axum"
+title = "Servidor Axum"
+text = "Recibe la petición, busca la página ya renderizada y responde. Si el navegador ya la tiene, responde 304 sin cuerpo."
+
+[text.es.pods.pages]
+short = "Páginas en RAM"
+title = "Páginas pre-renderizadas"
+text = "Plantillas compiladas que se rellenan una vez al arrancar, en los dos idiomas, cada una con su ETag."
+
+[text.es.pods.security]
+short = "Cabeceras"
+title = "Cabeceras de seguridad"
+text = "CSP estricta sin nada en línea, HSTS y el resto. Por eso el JavaScript solo mejora la página: todo funciona sin él."
+
+[text.es.pods.content]
+short = "Contenido TOML"
+title = "Contenido en TOML"
+text = "Textos, proyectos, piezas del laboratorio y estas unidades viven en ficheros TOML que se validan al arrancar. Una clave que falte en un idioma impide desplegar."
+
+[text.es.pods.form]
+short = "Formulario"
+title = "Formulario de contacto"
+text = "Valida los campos, tiene un campo trampa para bots y un captcha opcional."
+
+[text.es.pods.limits]
+short = "Límites"
+title = "Límites de envío"
+text = "Por IP y globales, calculados con una sola consulta indexada. La IP nunca se guarda: solo un hash con una sal secreta."
+
+[text.es.pods.outbox]
+short = "Bandeja salida"
+title = "Bandeja de salida"
+text = "El mensaje se guarda primero y el aviso queda pendiente. Un trabajo lo reintenta hasta que Matrix confirma con un identificador de evento."
+
+[text.es.pods.notify]
+short = "Aviso"
+title = "Aviso a Matrix"
+text = "Envía el aviso a la sala con el bot propio de la web. Varios trabajadores no se pisan: cada uno coge una fila distinta."
+
+[text.es.pods.postgres]
+short = "PostgreSQL"
+title = "PostgreSQL"
+text = "Guarda los mensajes y los avisos pendientes. Las consultas se comprueban contra el esquema al compilar."
+
+[text.es.pods.socket]
+short = "Solo socket"
+title = "Sin red"
+text = "PostgreSQL no escucha en ninguna interfaz: solo por el socket local y autenticación del sistema, sin contraseña que robar."
+
+[text.es.pods.status]
+short = "Estado en vivo"
+title = "Estado del homelab"
+text = "Cada 5 minutos el hipervisor deja un resumen: servicios en marcha, disponibilidad y el LED de cada pieza del mapa. Solo agregados."
+
+[text.es.pods.browser]
+short = "Tu navegador"
+title = "Tu navegador"
+text = "Guarda tus logros, la zona por la que ibas y si quieres sonido. Nada de eso sale de tu navegador."
+
+[text.es.pods.terraform]
+short = "Terraform"
+title = "Terraform"
+text = "Crea el contenedor con sus recursos, su red y su cortafuegos: el único con política de entrada «rechazar»."
+
+[text.es.pods.ansible]
+short = "Ansible"
+title = "Ansible"
+text = "Instala PostgreSQL, el binario y su servicio, con los secretos cifrados en el vault."
+
+[text.es.pods.check]
+short = "landing check"
+title = "Comprobación antes de reiniciar"
+text = "El rol ejecuta «landing check» con el binario nuevo: si el contenido no es válido, no se reinicia nada."
+
+[text.es.pods.systemd]
+short = "systemd"
+title = "Servicio endurecido"
+text = "Sistema de ficheros de solo lectura, sin capacidades, filtro de llamadas al sistema, memoria limitada. Tras reiniciar, espera a que /healthz diga «ok»."
+
+[text.es.flows.visit]
+title = "Tu visita"
+steps = [
+  "Abres la web.",
+  "Cloudflare la recibe primero.",
+  "Traefik pone el certificado y la pasa al contenedor de la web.",
+  "Axum recibe la petición. No hay que consultar nada: la página ya está hecha.",
+  "Se añaden las cabeceras de seguridad.",
+  "Sale la página en tu idioma, renderizada al arrancar. Si ya la tenías, un 304 y listo.",
+  "Tu navegador la pinta y el JavaScript le añade el mapa, la terminal, los logros y el sonido.",
+  "Y la estás leyendo.",
+]
+
+[text.es.flows.message]
+title = "Me escribes por el formulario"
+steps = [
+  "Rellenas el formulario y lo envías.",
+  "Entra por Traefik, como todo.",
+  "Se validan los campos. Si el campo trampa viene relleno, era un bot.",
+  "Se comprueban los límites: por IP (guardada solo como hash) y globales.",
+  "El mensaje se guarda en PostgreSQL. A partir de aquí no se pierde.",
+  "Queda un aviso pendiente en la bandeja de salida.",
+  "Un trabajo coge el aviso y lo envía a Matrix.",
+  "Matrix confirma con un identificador de evento y el aviso se marca como entregado.",
+  "Me llega al móvil.",
+]
+
+[text.es.flows.retry]
+title = "Matrix no responde"
+steps = [
+  "Hay un aviso pendiente.",
+  "Se intenta enviar, pero Matrix no contesta.",
+  "El aviso sigue en la bandeja, con su intento contado. El mensaje ya está guardado.",
+  "Al rato se reintenta. Si hay varios trabajadores, cada uno bloquea una fila distinta y nadie envía dos veces.",
+  "Matrix responde y confirma: entregado.",
+]
+
+[text.es.flows.release]
+title = "Publico una versión"
+steps = [
+  "Hago push. Antes, un hook local busca secretos y nombres internos.",
+  "La integración continua pasa formato, clippy y todas las pruebas.",
+  "Con todo en verde, compilo la versión.",
+  "Ansible copia el binario nuevo al contenedor.",
+  "Antes de reiniciar, ejecuta «landing check»: valida el contenido de los dos idiomas.",
+  "Reinicia el servicio y espera a que /healthz diga «ok», que comprueba también la base de datos.",
+  "La versión nueva está sirviendo.",
+]
+
+[text.es.flows.build]
+title = "Monto el contenedor desde cero"
+steps = [
+  "Terraform crea el contenedor con su cortafuegos: entra SSH de administración y lo que venga de Traefik. Nada más.",
+  "Ansible instala y configura PostgreSQL.",
+  "PostgreSQL sin escuchar en red.",
+  "La web se conecta por el socket local, con autenticación del sistema.",
+  "Ansible crea el servicio endurecido y lo arranca.",
+]
+
+[text.es.flows.live]
+title = "Los LEDs del mapa"
+steps = [
+  "Cada 5 minutos llega un resumen del estado del homelab. Si tiene más de 15 minutos, ni se publica.",
+  "La web lo lee y lo sirve como un JSON pequeño.",
+  "La portada lo pide al cargar.",
+  "Y tu navegador enciende el LED de cada pieza. Si el dato tiene más de 2 horas, se oculta.",
+]
+
+[text.es.incidents.anonymous]
+title = "«Peer authentication failed for user anonymous»"
+meta = "04-10-2026 · primer despliegue"
+symptom = "El primer arranque en el contenedor falló: PostgreSQL rechazaba al usuario «anonymous». Al corregirlo, apareció «empty host»."
+options = [
+  "Faltaba crear la base de datos",
+  "El cortafuegos bloqueaba el socket",
+  "La librería no toma el usuario del sistema ni acepta un host vacío",
+  "La contraseña estaba mal",
+]
+cause = "Con autenticación del sistema por socket no hay contraseña, pero la librería de base de datos necesita el usuario escrito en la URL y un host nominal: no lo deduce."
+fix = "La URL de conexión lleva el usuario explícito y «localhost» como host nominal, con la ruta del socket aparte."
+lesson = "Quitar la contraseña es más seguro, pero cambia lo que la librería necesita. Leer el error dos veces: el segundo decía exactamente qué faltaba."
+
+[text.es.incidents.firefox]
+title = "«En Firefox el laboratorio está roto»"
+meta = "04-10-2026 · navegador"
+symptom = "En Firefox el laboratorio se veía como una lista de desplegables y tarjetas, sin mapa. En otros navegadores, bien."
+options = [
+  "Firefox no soportaba el SVG del mapa",
+  "Era la vista rápida, guardada en el navegador para siempre",
+  "La CSP bloqueaba el JavaScript en Firefox",
+  "Una extensión ocultaba el mapa",
+]
+cause = "En ese navegador se había activado alguna vez la vista rápida, que enseña lo esencial sin animaciones. Se guardaba sin caducidad y la web parecía rota."
+fix = "La vista rápida caduca a los 30 minutos y, mientras está activa, el laboratorio dice que está en vista rápida y ofrece un botón para salir."
+lesson = "Lo que se recuerda por el visitante tiene que caducar o verse. Un estado invisible que dura para siempre parece un fallo."
+
+[text.es.incidents.raid]
+title = "Despliegues que no llegaban"
+meta = "05-10-2026 · operación"
+symptom = "Los despliegues daban «inalcanzable» a mitad de camino y las pruebas de base de datos fallaban por tiempo, sin haber cambiado nada."
+options = [
+  "El contenedor se había quedado sin memoria",
+  "Ansible tenía una versión incompatible",
+  "Cloudflare cortaba las conexiones largas",
+  "La comprobación mensual del RAID saturaba los discos del servidor",
+]
+cause = "El primer domingo de mes, el RAID del sistema se comprueba entero durante unas 5 horas. Con los discos al límite, un checkpoint de PostgreSQL llegó a tardar 1.190 segundos."
+fix = "Desplegar con los mismos pasos del rol por separado (copiar, comprobar, reiniciar, healthz), validar la suite completa en la integración continua y relanzar el playbook entero al terminar: sin cambios pendientes."
+lesson = "Saber qué tareas programadas tiene el servidor antes de culpar al código. Y que la comprobación de calidad no dependa de una sola máquina."
+
+[text.es.incidents.history]
+title = "Un repositorio que había que publicar"
+meta = "04-10-2026 · seguridad"
+symptom = "El código iba a ser público, pero su historial se había escrito pensando en un repositorio privado."
+options = [
+  "Reescribir el historial antes de publicar y auditar un clon limpio tras cada push",
+  "Publicar solo el último commit",
+  "Hacer el repositorio público y borrar lo sensible después",
+  "Publicar un repositorio aparte copiado a mano",
+]
+cause = "Un historial de Git guarda todo lo que alguna vez estuvo, aunque ya no esté: notas de planificación, nombres internos o configuraciones."
+fix = "Historial reescrito y saneado antes del primer push, un hook local que bloquea secretos, direcciones internas y nombres concretos, y la auditoría de un clon limpio después de cada push."
+lesson = "Borrar algo en un commit nuevo no lo borra de la historia. Lo que se publica se revisa antes, y se vuelve a revisar desde fuera."
+
+[[text.es.timeline]]
+title = "Plan y contenido"
+period = "04-10-2026"
+items = [
+  "Decisiones: Rust y Axum, PostgreSQL bien hecho aunque el tráfico no lo pida, contacto guardado y avisado a Matrix.",
+  "El contenido sacado de mi documentación y saneado: nada de direcciones ni nombres internos.",
+]
+
+[[text.es.timeline]]
+title = "El servidor y su contenedor"
+period = "04-10-2026"
+items = [
+  "Binario con todo dentro y páginas renderizadas al arrancar.",
+  "Contenedor propio con el cortafuegos más estricto y PostgreSQL solo por socket.",
+  "Publicada otra vez, tras retirarla de internet el 26-09 por seguridad.",
+]
+
+[[text.es.timeline]]
+title = "El laboratorio y el juego"
+period = "Octubre de 2026"
+items = [
+  "Hermes como guía guionizado, mapa del servidor con recorridos animados, modo detective y terminal.",
+  "Estado en vivo de cada pieza y aspecto de rack de servidores con enanitos.",
+  "Unidades del rack: una página por pieza para verla por dentro, con sonido de sala de servidores.",
+]
+
+[[text.es.decisions]]
+title = "Cómo se sirven las páginas"
+choice = "Renderizadas una vez al arrancar"
+why = "El contenido no cambia mientras el binario corre: renderizarlo en cada visita sería trabajo repetido. Desde memoria y con ETag, casi ninguna visita llega a gastar nada."
+
+[[text.es.decisions]]
+title = "Qué pasa si falla el aviso"
+choice = "Guardar primero, avisar después"
+why = "El mensaje es lo importante, el aviso no. Con una bandeja de salida, que Matrix no responda nunca hace perder un mensaje."
+
+[[text.es.decisions]]
+title = "Qué guarda de quien escribe"
+choice = "Un hash de la IP, nunca la IP"
+why = "Para limitar envíos basta con saber si dos peticiones vienen del mismo sitio. Con un hash con sal secreta se puede comparar sin poder volver a la IP."
+
+[[text.es.decisions]]
+title = "JavaScript"
+choice = "Mejora progresiva, sin librerías"
+why = "Todo se lee sin JavaScript y la CSP prohíbe cualquier script en línea. El mapa, la terminal, los logros y el sonido son una capa encima."
+
+[text.es.tech_notes]
+rust = "El servidor entero: Axum, plantillas askama compiladas, contenido validado al arrancar, cabeceras de seguridad y el trabajo que reintenta los avisos."
+postgresql = "Mensajes y avisos pendientes, consultas comprobadas en compilación con sqlx, bloqueo de filas sin esperas para los reintentos y acceso solo por socket."
+traefik = "La única entrada: certificado, cabeceras y una ruta generada desde la lista de servicios."
+terraform = "Crea el contenedor de la web, sus recursos y su cortafuegos."
+ansible = "El rol que instala PostgreSQL, despliega el binario, comprueba el contenido y espera al healthz."
+git = "Repositorio público con historial saneado y un hook que bloquea secretos antes de cada push."
+gitlab-ci = "GitHub Actions: formato, clippy y todas las pruebas contra un PostgreSQL de verdad en cada push."
+
+[text.es.close]
+lessons = [
+  "Un binario con todo dentro es fácil de desplegar, de revertir y de razonar.",
+  "Validar el contenido al arrancar convierte una errata en un despliegue que no ocurre, no en una página rota.",
+  "Lo que es público se audita desde fuera, después de publicarlo.",
+]
+next = [
+  "Cachear el HTML en Cloudflare con una regla propia.",
+  "Activar el captcha del formulario si algún día aparecen bots.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside this site · Tito Pinardo Gutiérrez"
+description = "How this site is built: a Rust binary that renders everything at start-up, PostgreSQL over a socket only, a contact form with an outbox to Matrix and a container with the strictest firewall in the homelab."
+
+[text.en.ui]
+slot = "1U · LANDING"
+face_specs = "Rust · Axum · PostgreSQL · 12 MB of RAM"
+state = "In production"
+map_silk = "WEB"
+map_title = "Inside this site"
+map_intro = "What you're reading right now comes from here. Pick a flow to see what happens with your visit or with a message."
+vm_title = "Site container · Proxmox"
+vm_specs = "no Docker, no privileges"
+outside = "Outside"
+disclaimer = "The code is public on GitHub. No addresses, internal ports or secrets appear here."
+
+[text.en.hero]
+kicker = "1U unit · Personal project in production"
+title = "This site"
+tagline = "A single Rust binary carrying the templates, styles, texts and even the CV. It renders every page once at start-up and serves them from memory. The only thing anyone can write, the contact form, is stored in PostgreSQL before I'm notified."
+grade = "Public code · CI green"
+facts = [
+  { label = "Why Rust", value = "A small binary, no runtime to install, about 12 MB of RAM, and checked at compile time: templates, SQL queries and the texts in both languages." },
+  { label = "Where it lives", value = "In its own container with no Docker or privileges, the only one in the homelab that drops everything incoming by default. Only Traefik can talk to it." },
+  { label = "What's behind it", value = "Terraform creates the container, Ansible configures and deploys it, and the binary refuses to start if the content has a typo." },
+]
+
+[[text.en.stats]]
+value = "~12 MB"
+label = "of RAM in use"
+
+[[text.en.stats]]
+value = "0"
+label = "dependencies in the browser"
+
+[[text.en.stats]]
+value = "1"
+label = "inbound rule: only from Traefik"
+
+[[text.en.stats]]
+value = "0 B"
+label = "of IP stored: only a salted hash"
+
+[text.en.groups]
+binary = "The binary"
+contact = "The contact form"
+data = "Data"
+deploy = "How it reaches production"
+
+[text.en.pods.visitor]
+short = "You"
+title = "You"
+text = "What you're reading right now."
+
+[text.en.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "In front of the domain: hides my home IP and filters."
+
+[text.en.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "The public door. It's the only thing allowed to talk to the site's container."
+
+[text.en.pods.phone]
+short = "My phone"
+title = "My phone"
+text = "Where the contact form messages reach me."
+
+[text.en.pods.github]
+short = "GitHub"
+title = "GitHub repository"
+text = "The code is public. Before every push, a hook looks for secrets, internal addresses and names that mustn't leave."
+
+[text.en.pods.ci]
+short = "GitHub Actions"
+title = "Continuous integration"
+text = "On every push: formatting, clippy with no warnings and every test against a real PostgreSQL."
+
+[text.en.pods.matrix]
+short = "Matrix"
+title = "My Matrix server"
+text = "The room where new-message notices arrive, with a bot of its own that can only write there."
+
+[text.en.pods.axum]
+short = "Axum"
+title = "Axum server"
+text = "Gets the request, finds the already rendered page and answers. If the browser already has it, it answers 304 with no body."
+
+[text.en.pods.pages]
+short = "Pages in RAM"
+title = "Pre-rendered pages"
+text = "Compiled templates filled in once at start-up, in both languages, each with its ETag."
+
+[text.en.pods.security]
+short = "Headers"
+title = "Security headers"
+text = "A strict CSP with nothing inline, HSTS and the rest. That's why JavaScript only enhances the page: everything works without it."
+
+[text.en.pods.content]
+short = "TOML content"
+title = "Content in TOML"
+text = "Texts, projects, lab parts and these units live in TOML files validated at start-up. A key missing in one language stops the deploy."
+
+[text.en.pods.form]
+short = "Contact form"
+title = "Contact form"
+text = "Validates the fields, has a honeypot field for bots and an optional captcha."
+
+[text.en.pods.limits]
+short = "Limits"
+title = "Sending limits"
+text = "Per IP and global, worked out with a single indexed query. The IP is never stored: only a hash with a secret salt."
+
+[text.en.pods.outbox]
+short = "Outbox"
+title = "Outbox"
+text = "The message is saved first and the notice is left pending. A job retries it until Matrix confirms with an event ID."
+
+[text.en.pods.notify]
+short = "Notice"
+title = "Matrix notice"
+text = "Sends the notice to the room with the site's own bot. Several workers don't step on each other: each takes a different row."
+
+[text.en.pods.postgres]
+short = "PostgreSQL"
+title = "PostgreSQL"
+text = "Stores messages and pending notices. Queries are checked against the schema at compile time."
+
+[text.en.pods.socket]
+short = "Socket only"
+title = "No network"
+text = "PostgreSQL listens on no interface: only on the local socket with OS authentication, no password to steal."
+
+[text.en.pods.status]
+short = "Live status"
+title = "Homelab status"
+text = "Every 5 minutes the hypervisor drops a summary: services running, availability and the LED for each map part. Aggregates only."
+
+[text.en.pods.browser]
+short = "Your browser"
+title = "Your browser"
+text = "Keeps your achievements, where you were and whether you want sound. None of it leaves your browser."
+
+[text.en.pods.terraform]
+short = "Terraform"
+title = "Terraform"
+text = "Creates the container with its resources, network and firewall: the only one with a «drop» inbound policy."
+
+[text.en.pods.ansible]
+short = "Ansible"
+title = "Ansible"
+text = "Installs PostgreSQL, the binary and its service, with secrets encrypted in the vault."
+
+[text.en.pods.check]
+short = "landing check"
+title = "Check before restarting"
+text = "The role runs «landing check» with the new binary: if the content isn't valid, nothing is restarted."
+
+[text.en.pods.systemd]
+short = "systemd"
+title = "Hardened service"
+text = "Read-only file system, no capabilities, a syscall filter, capped memory. After restarting, it waits for /healthz to say «ok»."
+
+[text.en.flows.visit]
+title = "Your visit"
+steps = [
+  "You open the site.",
+  "Cloudflare gets it first.",
+  "Traefik adds the certificate and passes it to the site's container.",
+  "Axum gets the request. Nothing to look up: the page is already made.",
+  "The security headers are added.",
+  "Out goes the page in your language, rendered at start-up. If you already had it, a 304 and done.",
+  "Your browser draws it and the JavaScript adds the map, the terminal, the achievements and the sound.",
+  "And you're reading it.",
+]
+
+[text.en.flows.message]
+title = "You write to me through the form"
+steps = [
+  "You fill in the form and send it.",
+  "It comes in through Traefik, like everything.",
+  "The fields are validated. If the honeypot field is filled in, it was a bot.",
+  "Limits are checked: per IP (stored only as a hash) and global.",
+  "The message is saved in PostgreSQL. From here on it isn't lost.",
+  "A pending notice sits in the outbox.",
+  "A job picks up the notice and sends it to Matrix.",
+  "Matrix confirms with an event ID and the notice is marked delivered.",
+  "It reaches my phone.",
+]
+
+[text.en.flows.retry]
+title = "Matrix doesn't answer"
+steps = [
+  "There's a pending notice.",
+  "It tries to send it, but Matrix doesn't reply.",
+  "The notice stays in the outbox, with its attempt counted. The message is already saved.",
+  "A while later it's retried. With several workers, each locks a different row and nobody sends twice.",
+  "Matrix answers and confirms: delivered.",
+]
+
+[text.en.flows.release]
+title = "I ship a version"
+steps = [
+  "I push. First, a local hook looks for secrets and internal names.",
+  "Continuous integration runs formatting, clippy and every test.",
+  "With everything green, I build the release.",
+  "Ansible copies the new binary to the container.",
+  "Before restarting, it runs «landing check»: it validates the content in both languages.",
+  "It restarts the service and waits for /healthz to say «ok», which also checks the database.",
+  "The new version is serving.",
+]
+
+[text.en.flows.build]
+title = "I build the container from scratch"
+steps = [
+  "Terraform creates the container with its firewall: admin SSH and whatever comes from Traefik get in. Nothing else.",
+  "Ansible installs and configures PostgreSQL.",
+  "PostgreSQL not listening on the network.",
+  "The site connects through the local socket, with OS authentication.",
+  "Ansible creates the hardened service and starts it.",
+]
+
+[text.en.flows.live]
+title = "The map's LEDs"
+steps = [
+  "Every 5 minutes a homelab status summary arrives. If it's over 15 minutes old it isn't even published.",
+  "The site reads it and serves it as a small JSON.",
+  "The home page asks for it on load.",
+  "And your browser lights each part's LED. If the data is over 2 hours old, it's hidden.",
+]
+
+[text.en.incidents.anonymous]
+title = "«Peer authentication failed for user anonymous»"
+meta = "04-10-2026 · first deploy"
+symptom = "The first start in the container failed: PostgreSQL rejected the user «anonymous». Fixing that brought up «empty host»."
+options = [
+  "The database hadn't been created",
+  "The firewall was blocking the socket",
+  "The library doesn't take the OS user or accept an empty host",
+  "The password was wrong",
+]
+cause = "With OS authentication over a socket there's no password, but the database library needs the user written in the URL and a nominal host: it doesn't work them out."
+fix = "The connection URL carries the explicit user and «localhost» as a nominal host, with the socket path separate."
+lesson = "Dropping the password is safer, but it changes what the library needs. Read the error twice: the second one said exactly what was missing."
+
+[text.en.incidents.firefox]
+title = "«In Firefox the lab is broken»"
+meta = "04-10-2026 · browser"
+symptom = "In Firefox the lab showed up as a list of drop-downs and cards, with no map. In other browsers, fine."
+options = [
+  "Firefox didn't support the map's SVG",
+  "It was the quick view, stored in the browser forever",
+  "The CSP was blocking JavaScript in Firefox",
+  "An extension was hiding the map",
+]
+cause = "Quick view, which shows the essentials without animations, had been switched on in that browser at some point. It was stored with no expiry and the site looked broken."
+fix = "Quick view expires after 30 minutes and, while on, the lab says it's in quick view and offers a button to leave."
+lesson = "Whatever is remembered for the visitor must expire or be visible. An invisible state that lasts forever looks like a bug."
+
+[text.en.incidents.raid]
+title = "Deploys that didn't get through"
+meta = "05-10-2026 · operations"
+symptom = "Deploys reported «unreachable» halfway and the database tests timed out, with nothing changed."
+options = [
+  "The container had run out of memory",
+  "Ansible had an incompatible version",
+  "Cloudflare was cutting long connections",
+  "The monthly RAID check was saturating the server's disks",
+]
+cause = "On the first Sunday of the month the system RAID is checked end to end for about 5 hours. With the disks maxed out, a PostgreSQL checkpoint took 1,190 seconds."
+fix = "Deploy with the role's same steps separately (copy, check, restart, healthz), validate the full suite in CI and rerun the whole playbook afterwards: nothing pending."
+lesson = "Know which scheduled jobs the server runs before blaming the code. And don't let the quality check depend on a single machine."
+
+[text.en.incidents.history]
+title = "A repository that had to go public"
+meta = "04-10-2026 · security"
+symptom = "The code was going to be public, but its history had been written with a private repository in mind."
+options = [
+  "Rewrite the history before publishing and audit a clean clone after every push",
+  "Publish only the last commit",
+  "Make the repo public and delete the sensitive bits afterwards",
+  "Publish a separate hand-copied repo",
+]
+cause = "A Git history keeps everything that was ever there, even if it's gone now: planning notes, internal names or configuration."
+fix = "History rewritten and cleaned before the first push, a local hook blocking secrets, internal addresses and specific names, and an audit of a clean clone after every push."
+lesson = "Deleting something in a new commit doesn't delete it from history. What gets published is reviewed beforehand, and reviewed again from outside."
+
+[[text.en.timeline]]
+title = "Plan and content"
+period = "04-10-2026"
+items = [
+  "Decisions: Rust and Axum, PostgreSQL done properly even if the traffic doesn't need it, contact messages stored and notified to Matrix.",
+  "Content taken from my documentation and cleaned: no addresses or internal names.",
+]
+
+[[text.en.timeline]]
+title = "The server and its container"
+period = "04-10-2026"
+items = [
+  "A binary with everything inside and pages rendered at start-up.",
+  "Its own container with the strictest firewall and PostgreSQL over a socket only.",
+  "Published again, after taking it off the internet on 26-09 for security.",
+]
+
+[[text.en.timeline]]
+title = "The lab and the game"
+period = "October 2026"
+items = [
+  "Hermes as a scripted guide, a server map with animated flows, detective mode and a terminal.",
+  "Live status for each part and a server-rack look with gnomes.",
+  "Rack units: a page per part to see it from the inside, with server-room sound.",
+]
+
+[[text.en.decisions]]
+title = "How pages are served"
+choice = "Rendered once at start-up"
+why = "The content doesn't change while the binary runs: rendering it on every visit would be repeated work. From memory and with ETag, almost no visit costs anything."
+
+[[text.en.decisions]]
+title = "What if the notice fails"
+choice = "Save first, notify later"
+why = "The message is what matters, not the notice. With an outbox, Matrix not answering never loses a message."
+
+[[text.en.decisions]]
+title = "What it keeps about whoever writes"
+choice = "A hash of the IP, never the IP"
+why = "To limit sending it's enough to know whether two requests come from the same place. A hash with a secret salt can be compared without going back to the IP."
+
+[[text.en.decisions]]
+title = "JavaScript"
+choice = "Progressive enhancement, no libraries"
+why = "Everything reads without JavaScript and the CSP forbids any inline script. The map, terminal, achievements and sound are a layer on top."
+
+[text.en.tech_notes]
+rust = "The whole server: Axum, compiled askama templates, content validated at start-up, security headers and the job that retries notices."
+postgresql = "Messages and pending notices, queries checked at compile time with sqlx, skip-locked row locking for retries and socket-only access."
+traefik = "The only way in: certificate, headers and a route generated from the service list."
+terraform = "Creates the site's container, its resources and its firewall."
+ansible = "The role that installs PostgreSQL, deploys the binary, checks the content and waits for healthz."
+git = "A public repo with cleaned history and a hook that blocks secrets before every push."
+gitlab-ci = "GitHub Actions: formatting, clippy and every test against a real PostgreSQL on every push."
+
+[text.en.close]
+lessons = [
+  "A binary with everything inside is easy to deploy, roll back and reason about.",
+  "Validating content at start-up turns a typo into a deploy that doesn't happen, not a broken page.",
+  "Whatever is public gets audited from outside, after publishing.",
+]
+next = [
+  "Cache the HTML on Cloudflare with a rule of its own.",
+  "Turn on the form's captcha if bots ever show up.",
+]

@@ -1,0 +1,856 @@
+# Unidad 1U del rack: Proxmox, el hipervisor.
+#
+# Fuente: Obsidian «Proxmox», «PVE 9.2 Upgrade», «Control de ventiladores»,
+# la auditoría del 06-09 y los postmortems del LVM tras el corte de luz y del
+# cortafuegos de los CT. Sin direcciones ni nombres internos.
+
+id = "proxmox"
+status = "live"
+host_tech = ["proxmox", "linux"]
+links = [
+  ["laptop", "webui"],
+  ["control", "api"],
+  ["power", "boot"],
+]
+
+[[groups]]
+id = "manage"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "guests"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "storage"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "hardware"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "laptop"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "control"
+x = 290
+y = 110
+kind = "control"
+group = ""
+tech = ["terraform", "ansible"]
+
+[[pods]]
+id = "power"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "zabbix"
+x = 290
+y = 420
+kind = "observability"
+group = ""
+tech = ["zabbix"]
+
+[[pods]]
+id = "webui"
+x = 515
+y = 140
+kind = "control"
+group = "manage"
+tech = ["proxmox"]
+
+[[pods]]
+id = "api"
+x = 700
+y = 140
+kind = "control"
+group = "manage"
+tech = ["proxmox"]
+
+[[pods]]
+id = "firewall"
+x = 885
+y = 140
+kind = "observability"
+group = "manage"
+tech = ["proxmox", "hardening"]
+
+[[pods]]
+id = "audit"
+x = 1070
+y = 140
+kind = "observability"
+group = "manage"
+tech = ["wazuh", "hardening"]
+
+[[pods]]
+id = "lxc"
+x = 515
+y = 266
+kind = "compute"
+group = "guests"
+tech = ["lxc"]
+
+[[pods]]
+id = "vms"
+x = 700
+y = 266
+kind = "compute"
+group = "guests"
+tech = ["proxmox"]
+
+[[pods]]
+id = "gpu"
+x = 885
+y = 266
+kind = "compute"
+group = "guests"
+tech = ["proxmox", "linux"]
+
+[[pods]]
+id = "onboot"
+x = 1070
+y = 266
+kind = "control"
+group = "guests"
+tech = ["proxmox"]
+
+[[pods]]
+id = "md0"
+x = 515
+y = 392
+kind = "compute"
+group = "storage"
+tech = ["linux"]
+
+[[pods]]
+id = "thin"
+x = 700
+y = 392
+kind = "compute"
+group = "storage"
+tech = ["linux"]
+
+[[pods]]
+id = "zfs"
+x = 885
+y = 392
+kind = "compute"
+group = "storage"
+tech = ["zfs"]
+
+[[pods]]
+id = "boot"
+x = 1070
+y = 392
+kind = "control"
+group = "storage"
+tech = ["linux"]
+
+[[pods]]
+id = "cpus"
+x = 515
+y = 518
+kind = "compute"
+group = "hardware"
+tech = []
+
+[[pods]]
+id = "ram"
+x = 700
+y = 518
+kind = "compute"
+group = "hardware"
+tech = []
+
+[[pods]]
+id = "fans"
+x = 885
+y = 518
+kind = "control"
+group = "hardware"
+tech = ["linux"]
+
+[[pods]]
+id = "jbod"
+x = 1070
+y = 518
+kind = "compute"
+group = "hardware"
+tech = []
+
+[[flows]]
+id = "create"
+path = ["control", "api", "lxc", "thin", "md0", "zfs", "firewall", "lxc"]
+
+[[flows]]
+id = "blackout"
+path = ["power", "boot", "md0", "thin", "onboot", "lxc", "zabbix"]
+
+[[flows]]
+id = "manage"
+path = ["laptop", "firewall", "webui", "vms", "gpu"]
+
+[[flows]]
+id = "heat"
+path = ["cpus", "fans", "cpus", "jbod", "zabbix"]
+
+[[flows]]
+id = "upgrade"
+path = ["control", "webui", "boot", "gpu", "audit"]
+
+[[incidents]]
+id = "lvm"
+answer = 1
+
+[[incidents]]
+id = "fwoptions"
+answer = 3
+
+[[incidents]]
+id = "upgrade"
+answer = 0
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Proxmox por dentro · Tito Pinardo Gutiérrez"
+description = "El hipervisor que lo sostiene todo: un Dell R620 con unos veinte contenedores y las VMs del laboratorio, su cortafuegos, sus discos, sus ventiladores y lo que pasa cuando se va la luz."
+
+[text.es.ui]
+slot = "1U · PROXMOX"
+face_specs = "PVE 9.2 · 48 hilos · ~250 GB RAM"
+state = "En producción"
+map_silk = "HOST"
+map_title = "El hipervisor por dentro"
+map_intro = "Todo lo demás corre aquí. Elige un recorrido para ver cómo nace un contenedor o qué pasa tras un corte de luz."
+vm_title = "Dell PowerEdge R620 · Proxmox VE"
+vm_specs = "y una bandeja de 24 discos"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, puertos ni nombres internos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Hipervisor"
+title = "Proxmox VE · el que lo sostiene todo"
+tagline = "Un servidor de rack de verdad, un Dell R620 de 1U con dos Xeon y unos 250 GB de RAM, más una bandeja externa de 24 discos. Proxmox reparte esa máquina en unos veinte contenedores LXC y las VMs del laboratorio, con su propio cortafuegos y una GPU para Plex."
+grade = "Proxmox 9.2 desde la 8.4"
+facts = [
+  { label = "Por qué Proxmox", value = "Contenedores y VMs en el mismo sitio, con una API completa para Terraform y ZFS de serie. Sin licencias." },
+  { label = "El punto débil", value = "El sistema y los discos de todos los contenedores viven en un espejo de dos discos mecánicos. Es lo que más se nota en cada actualización y en cada corte de luz." },
+  { label = "Seguridad", value = "Cortafuegos del hipervisor con entrada rechazada por defecto, cortafuegos propio en cada contenedor, auditoría de ficheros de cuentas y servicios sobrantes apagados." },
+]
+
+[[text.es.stats]]
+value = "~20"
+label = "contenedores LXC, casi todos sin privilegios"
+
+[[text.es.stats]]
+value = "48"
+label = "hilos en dos procesadores"
+
+[[text.es.stats]]
+value = "65-90 min"
+label = "de comprobación del disco tras un corte de luz"
+
+[[text.es.stats]]
+value = "11"
+label = "contenedores cuyo cortafuegos no se aplicaba"
+
+[text.es.groups]
+manage = "Gestión y seguridad"
+guests = "Invitados"
+storage = "Discos del sistema"
+hardware = "Hardware"
+
+[text.es.pods.laptop]
+short = "Mi portátil"
+title = "Mi portátil"
+text = "La consola web, solo desde casa o la VPN."
+
+[text.es.pods.control]
+short = "Nodo control"
+title = "Nodo de control"
+text = "Terraform y Ansible, que hablan con la API."
+
+[text.es.pods.power]
+short = "Corte de luz"
+title = "La red eléctrica"
+text = "Sin SAI, cada corte apaga el servidor de golpe."
+
+[text.es.pods.zabbix]
+short = "Zabbix"
+title = "Monitorización"
+text = "Carga del hipervisor, RAID, SMART, temperatura y espacio real del almacenamiento."
+
+[text.es.pods.webui]
+short = "Consola web"
+title = "Consola web de Proxmox"
+text = "Solo desde la red de administración y la VPN: no se publica en internet."
+
+[text.es.pods.api]
+short = "API"
+title = "API de Proxmox"
+text = "Terraform la usa con un usuario y un token de permisos justos."
+
+[text.es.pods.firewall]
+short = "Cortafuegos"
+title = "Cortafuegos del hipervisor"
+text = "Entrada rechazada por defecto al propio hipervisor, y un fichero de reglas por contenedor."
+
+[text.es.pods.audit]
+short = "Auditoría"
+title = "Auditoría"
+text = "auditd vigila cuentas, sudo y SSH; el agente de seguridad, el resto."
+
+[text.es.pods.lxc]
+short = "Contenedores"
+title = "Contenedores LXC"
+text = "Un servicio por contenedor. Más ligeros que una VM y, sin privilegios, su root no es el del servidor."
+
+[text.es.pods.vms]
+short = "VMs"
+title = "Máquinas virtuales"
+text = "Para lo que necesita su propio kernel: el clúster OKD del laboratorio."
+
+[text.es.pods.gpu]
+short = "GPU"
+title = "GPU para Plex"
+text = "La GTX 1050 Ti, con su grupo IOMMU propio y el driver en el hipervisor."
+
+[text.es.pods.onboot]
+short = "Arranque auto"
+title = "Arranque automático"
+text = "Cada contenedor arranca solo, en orden, cuando arranca el hipervisor. Solo lo intenta una vez."
+
+[text.es.pods.md0]
+short = "RAID1 md0"
+title = "RAID1 del sistema"
+text = "Dos discos mecánicos en espejo por software. El sistema y los discos de todos los contenedores, aquí."
+
+[text.es.pods.thin]
+short = "LVM-thin"
+title = "LVM-thin"
+text = "Los discos de los contenedores, reservando solo lo que usan. Tras un apagado brusco necesita una comprobación larga."
+
+[text.es.pods.zfs]
+short = "Pools ZFS"
+title = "Pools ZFS"
+text = "Los datos grandes, en sus propios pools. Tienen su unidad."
+
+[text.es.pods.boot]
+short = "Arranque"
+title = "Arranque del hipervisor"
+text = "systemd-boot desde la 9.2, con los parámetros del kernel para la IOMMU."
+
+[text.es.pods.cpus]
+short = "2× Xeon"
+title = "Dos Xeon de 12 núcleos"
+text = "48 hilos, potentes en paralelo pero sin AVX2: por eso la IA no corre aquí."
+
+[text.es.pods.ram]
+short = "~250 GB RAM"
+title = "Memoria"
+text = "Sobra para los contenedores; el resto lo usa ZFS como caché."
+
+[text.es.pods.fans]
+short = "Ventiladores"
+title = "Control de ventiladores"
+text = "Un script ajusta por IPMI los ventiladores del chasis según la temperatura de la CPU. La bandeja de discos tiene los suyos."
+
+[text.es.pods.jbod]
+short = "Bandeja 24"
+title = "Bandeja de 24 discos"
+text = "Conectada por SAS, con su propia refrigeración."
+
+[text.es.flows.create]
+title = "Nace un contenedor"
+steps = [
+  "El nodo de control pide un contenedor nuevo.",
+  "Por la API, con permisos justos.",
+  "Proxmox lo crea.",
+  "Su disco, en el LVM-thin.",
+  "Sobre el espejo del sistema.",
+  "Sus datos grandes, montados desde ZFS.",
+  "Su cortafuegos, con su sección de opciones activada: sin ella, las reglas no se aplican.",
+  "Y arranca.",
+]
+
+[text.es.flows.blackout]
+title = "Se va la luz"
+steps = [
+  "Se va la luz y el servidor se apaga de golpe. Vuelve y arranca solo.",
+  "El hipervisor arranca.",
+  "El espejo se comprueba.",
+  "El LVM-thin necesita revisar sus metadatos: más de una hora en discos mecánicos.",
+  "Mientras tanto, el arranque automático de los contenedores falla, y no lo reintenta.",
+  "Cuando el almacenamiento está listo, hay que arrancarlos.",
+  "La monitorización confirma que todo vuelve.",
+]
+
+[text.es.flows.manage]
+title = "Administro el servidor"
+steps = [
+  "Abro la consola desde casa.",
+  "El cortafuegos del hipervisor solo deja entrar a la red de administración y la VPN.",
+  "La consola web.",
+  "Reviso las VMs del laboratorio.",
+  "Y el estado de la GPU.",
+]
+
+[text.es.flows.heat]
+title = "Sube la temperatura"
+steps = [
+  "La CPU se calienta.",
+  "El script de ventiladores sube su velocidad por IPMI.",
+  "La CPU se enfría.",
+  "La bandeja de discos tiene su propia refrigeración, que el script no controla.",
+  "Y la monitorización vigila las temperaturas de los discos.",
+]
+
+[text.es.flows.upgrade]
+title = "De Proxmox 8.4 a 9.2"
+steps = [
+  "Preparo la actualización desde el nodo de control.",
+  "Se actualiza el hipervisor.",
+  "El arranque pasa a systemd-boot: los parámetros del kernel cambian de sitio.",
+  "El driver de la GPU tiene que volver a compilar con el kernel nuevo.",
+  "Y la auditoría revisa lo que ha cambiado.",
+]
+
+[text.es.incidents.lvm]
+title = "Ningún contenedor arrancaba tras un corte"
+meta = "07-08-2026 · almacenamiento"
+symptom = "Tras un corte de luz, el servidor arrancó solo, pero ningún contenedor ni VM llegó a iniciar. La documentación tampoco se podía abrir: también estaba dentro."
+options = [
+  "Se había roto un disco del espejo",
+  "El almacenamiento de los contenedores quedó a medio activar tras su comprobación",
+  "Proxmox había perdido su configuración",
+  "La red no levantaba",
+]
+cause = "El apagado brusco dejó el LVM-thin marcado para revisión. La revisión tardó entre 65 y 90 minutos en discos mecánicos, y dejó sus piezas internas activas por separado, lo que impedía activar el conjunto."
+fix = "Esperar a la revisión, desactivar a mano las dos piezas sueltas y activar el conjunto. Después, arrancar a mano todos los contenedores: el arranque automático solo se intenta una vez."
+lesson = "Escribir el postmortem con el paso exacto: la próxima vez, ir directo a desactivar las piezas sueltas ahorra otra revisión entera. Y un SAI evitaría todo esto."
+
+[text.es.incidents.fwoptions]
+title = "Reglas de cortafuegos que no hacían nada"
+meta = "22-09-2026 · cortafuegos"
+symptom = "Había restringido el SSH de los contenedores a mis equipos y la VPN, y bloqueado el puerto de la base vectorial. Desde otro contenedor se llegaba igual a los dos."
+options = [
+  "El cortafuegos del hipervisor estaba apagado",
+  "Las reglas tenían un error de sintaxis",
+  "Los contenedores usaban otra interfaz",
+  "Un fichero de reglas sin su sección de opciones con «enable: 1» no se aplica",
+]
+cause = "Los contenedores que sí filtraban tenían en su fichero una sección de opciones con el cortafuegos activado. Los demás solo tenían reglas: Proxmox las guarda, pero no las aplica, aunque la interfaz tenga el cortafuegos marcado."
+fix = "Activar la sección de opciones en los 11 contenedores afectados y comprobarlo desde fuera, intentando conectar a lo que debía estar cerrado."
+lesson = "Una regla de seguridad se prueba atacándola. Si no, puede estar escrita y no hacer nada durante días."
+
+[text.es.incidents.upgrade]
+title = "Terraform se quedó sin permiso tras actualizar"
+meta = "Septiembre de 2026 · actualización"
+symptom = "Después de pasar a Proxmox 9.2, crear el rol de permisos de Terraform fallaba: un privilegio de la lista ya no existía."
+options = [
+  "La versión nueva había eliminado ese privilegio y había que quitarlo de la lista",
+  "El token había caducado",
+  "El usuario de Terraform se había borrado",
+  "La API había cambiado de puerto",
+]
+cause = "Proxmox 9.2 retiró un privilegio de monitorización que la documentación del proveedor de Terraform aún pedía."
+fix = "Quitar ese privilegio del rol y comprobar con un plan que Terraform seguía pudiendo hacer todo lo necesario."
+lesson = "Las guías de permisos envejecen con cada versión. Mejor dar los privilegios justos y probarlos que copiar una lista."
+
+[[text.es.timeline]]
+title = "Proxmox 8.4"
+period = "Hasta el verano de 2026"
+items = [
+  "Contenedores creados a mano, cortafuegos del hipervisor desactivado.",
+]
+
+[[text.es.timeline]]
+title = "Proxmox 9.2"
+period = "Verano de 2026"
+items = [
+  "Actualización a la 9.2, necesaria para ampliar el pool de discos.",
+  "Nueva forma de arranque y driver de GPU recompilado.",
+]
+
+[[text.es.timeline]]
+title = "Cerrar y medir"
+period = "Septiembre y octubre de 2026"
+items = [
+  "Cortafuegos del hipervisor con rechazo por defecto y reversión automática a los 5 minutos.",
+  "Cortafuegos de los contenedores activado de verdad y comprobado.",
+  "Caché de escritura en los discos del sistema y DNS del hipervisor por el DNS de casa.",
+]
+
+[[text.es.decisions]]
+title = "Contenedores o VMs"
+choice = "Contenedores, salvo lo que necesita su kernel"
+why = "Un contenedor arranca en segundos y gasta casi nada. Solo el clúster del laboratorio necesita VMs."
+
+[[text.es.decisions]]
+title = "Con privilegios o sin ellos"
+choice = "Sin, siempre que se pueda"
+why = "Sin privilegios, el root del contenedor no es el del servidor. Plex se pasó a sin privilegios incluso con la GPU dentro."
+
+[[text.es.decisions]]
+title = "Cambios en el cortafuegos"
+choice = "Con reversión automática"
+why = "Un error en el cortafuegos del hipervisor te deja fuera del hipervisor. Cada cambio llevaba un temporizador que lo deshacía si no lo cancelaba."
+
+[text.es.tech_notes]
+proxmox = "Proxmox VE 9.2: contenedores y VMs, API para Terraform, cortafuegos del hipervisor y de cada contenedor, GPU con IOMMU."
+lxc = "Unos veinte contenedores, casi todos sin privilegios, uno por servicio."
+linux = "RAID por software, LVM-thin, systemd-boot, auditd y el script de ventiladores por IPMI."
+zfs = "Los pools de datos grandes, gestionados desde el propio hipervisor."
+terraform = "Crea contenedores y VMs a través de la API, con un token de permisos justos."
+ansible = "Configura el hipervisor: cortafuegos, DNS, auditoría y actualizaciones."
+zabbix = "Vigila carga, RAID, SMART, temperatura y espacio real del almacenamiento."
+wazuh = "El agente del hipervisor vigila cuentas, sudo, SSH y servicios."
+hardening = "Entrada rechazada por defecto, auditoría de ficheros críticos y servicios sobrantes apagados."
+
+[text.es.close]
+lessons = [
+  "Un servidor sin SAI convierte cada corte de luz en una comprobación de una hora.",
+  "Las reglas de seguridad se prueban desde fuera.",
+  "Escribir el paso exacto que arregla algo ahorra la mitad la próxima vez.",
+]
+next = [
+  "Un SAI con apagado coordinado.",
+  "Mover el sistema y los discos de los contenedores a SSD.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Proxmox · Tito Pinardo Gutiérrez"
+description = "The hypervisor holding everything up: a Dell R620 with about twenty containers and the lab VMs, its firewall, its disks, its fans and what happens when the power goes."
+
+[text.en.ui]
+slot = "1U · PROXMOX"
+face_specs = "PVE 9.2 · 48 threads · ~250 GB RAM"
+state = "In production"
+map_silk = "HOST"
+map_title = "Inside the hypervisor"
+map_intro = "Everything else runs here. Pick a flow to see how a container is born or what happens after a power cut."
+vm_title = "Dell PowerEdge R620 · Proxmox VE"
+vm_specs = "plus a 24-disk shelf"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no addresses, ports or internal names."
+
+[text.en.hero]
+kicker = "1U unit · Hypervisor"
+title = "Proxmox VE · holding everything up"
+tagline = "A real rack server, a 1U Dell R620 with two Xeons and about 250 GB of RAM, plus an external 24-disk shelf. Proxmox splits that machine into about twenty LXC containers and the lab VMs, with its own firewall and a GPU for Plex."
+grade = "Proxmox 9.2, up from 8.4"
+facts = [
+  { label = "Why Proxmox", value = "Containers and VMs in one place, a full API for Terraform and ZFS built in. No licences." },
+  { label = "The weak spot", value = "The system and every container's disks live on a mirror of two spinning disks. It shows on every update and every power cut." },
+  { label = "Security", value = "Hypervisor firewall dropping inbound by default, a firewall per container, auditing of account files and spare services switched off." },
+]
+
+[[text.en.stats]]
+value = "~20"
+label = "LXC containers, almost all unprivileged"
+
+[[text.en.stats]]
+value = "48"
+label = "threads across two processors"
+
+[[text.en.stats]]
+value = "65-90 min"
+label = "of disk checking after a power cut"
+
+[[text.en.stats]]
+value = "11"
+label = "containers whose firewall wasn't applied"
+
+[text.en.groups]
+manage = "Management and security"
+guests = "Guests"
+storage = "System disks"
+hardware = "Hardware"
+
+[text.en.pods.laptop]
+short = "My laptop"
+title = "My laptop"
+text = "The web console, only from home or the VPN."
+
+[text.en.pods.control]
+short = "Control node"
+title = "Control node"
+text = "Terraform and Ansible, which talk to the API."
+
+[text.en.pods.power]
+short = "Power cut"
+title = "The mains"
+text = "With no UPS, every cut switches the server off abruptly."
+
+[text.en.pods.zabbix]
+short = "Zabbix"
+title = "Monitoring"
+text = "Hypervisor load, RAID, SMART, temperature and real storage usage."
+
+[text.en.pods.webui]
+short = "Web console"
+title = "Proxmox web console"
+text = "Only from the admin network and the VPN: not published on the internet."
+
+[text.en.pods.api]
+short = "API"
+title = "Proxmox API"
+text = "Terraform uses it with a least-privilege user and token."
+
+[text.en.pods.firewall]
+short = "Firewall"
+title = "Hypervisor firewall"
+text = "Inbound to the hypervisor dropped by default, and a rules file per container."
+
+[text.en.pods.audit]
+short = "Audit"
+title = "Auditing"
+text = "auditd watches accounts, sudo and SSH; the security agent, the rest."
+
+[text.en.pods.lxc]
+short = "Containers"
+title = "LXC containers"
+text = "One service per container. Lighter than a VM and, unprivileged, their root isn't the server's."
+
+[text.en.pods.vms]
+short = "VMs"
+title = "Virtual machines"
+text = "For what needs its own kernel: the lab's OKD cluster."
+
+[text.en.pods.gpu]
+short = "GPU"
+title = "GPU for Plex"
+text = "The GTX 1050 Ti, with its own IOMMU group and the driver on the hypervisor."
+
+[text.en.pods.onboot]
+short = "Auto start"
+title = "Automatic start"
+text = "Each container starts on its own, in order, when the hypervisor boots. It's only tried once."
+
+[text.en.pods.md0]
+short = "RAID1 md0"
+title = "System RAID1"
+text = "Two spinning disks in a software mirror. The system and every container's disks, here."
+
+[text.en.pods.thin]
+short = "LVM-thin"
+title = "LVM-thin"
+text = "Container disks, reserving only what they use. After an abrupt shutdown it needs a long check."
+
+[text.en.pods.zfs]
+short = "ZFS pools"
+title = "ZFS pools"
+text = "Large data, on their own pools. They have their own unit."
+
+[text.en.pods.boot]
+short = "Boot"
+title = "Hypervisor boot"
+text = "systemd-boot since 9.2, with the kernel parameters for IOMMU."
+
+[text.en.pods.cpus]
+short = "2× Xeon"
+title = "Two 12-core Xeons"
+text = "48 threads, strong in parallel but without AVX2: that's why the AI doesn't run here."
+
+[text.en.pods.ram]
+short = "~250 GB RAM"
+title = "Memory"
+text = "Plenty for the containers; ZFS uses the rest as cache."
+
+[text.en.pods.fans]
+short = "Fans"
+title = "Fan control"
+text = "A script sets the chassis fans over IPMI based on CPU temperature. The disk shelf has its own."
+
+[text.en.pods.jbod]
+short = "24-bay shelf"
+title = "24-disk shelf"
+text = "Connected over SAS, with its own cooling."
+
+[text.en.flows.create]
+title = "A container is born"
+steps = [
+  "The control node asks for a new container.",
+  "Through the API, with least privilege.",
+  "Proxmox creates it.",
+  "Its disk, on LVM-thin.",
+  "On top of the system mirror.",
+  "Its large data, mounted from ZFS.",
+  "Its firewall, with its options section enabled: without it, rules aren't applied.",
+  "And it starts.",
+]
+
+[text.en.flows.blackout]
+title = "The power goes"
+steps = [
+  "The power goes and the server switches off abruptly. It comes back and boots on its own.",
+  "The hypervisor boots.",
+  "The mirror is checked.",
+  "LVM-thin needs to check its metadata: over an hour on spinning disks.",
+  "Meanwhile, the containers' automatic start fails, and isn't retried.",
+  "Once storage is ready, they have to be started.",
+  "Monitoring confirms everything comes back.",
+]
+
+[text.en.flows.manage]
+title = "I manage the server"
+steps = [
+  "I open the console from home.",
+  "The hypervisor firewall only lets in the admin network and the VPN.",
+  "The web console.",
+  "I check the lab VMs.",
+  "And the GPU's state.",
+]
+
+[text.en.flows.heat]
+title = "The temperature rises"
+steps = [
+  "The CPU heats up.",
+  "The fan script raises their speed over IPMI.",
+  "The CPU cools down.",
+  "The disk shelf has its own cooling, which the script doesn't control.",
+  "And monitoring keeps an eye on disk temperatures.",
+]
+
+[text.en.flows.upgrade]
+title = "From Proxmox 8.4 to 9.2"
+steps = [
+  "I prepare the upgrade from the control node.",
+  "The hypervisor is upgraded.",
+  "Boot moves to systemd-boot: kernel parameters change place.",
+  "The GPU driver has to build again against the new kernel.",
+  "And auditing reviews what changed.",
+]
+
+[text.en.incidents.lvm]
+title = "No container would start after a power cut"
+meta = "07-08-2026 · storage"
+symptom = "After a power cut the server booted on its own, but no container or VM started. The documentation couldn't be opened either: it was inside too."
+options = [
+  "A mirror disk had failed",
+  "The containers' storage was left half-activated after its check",
+  "Proxmox had lost its configuration",
+  "The network wouldn't come up",
+]
+cause = "The abrupt shutdown left LVM-thin flagged for checking. The check took 65 to 90 minutes on spinning disks and left its internal parts active separately, which prevented activating the whole."
+fix = "Wait for the check, deactivate the two loose parts by hand and activate the whole. Then start every container by hand: automatic start is only attempted once."
+lesson = "Write the postmortem with the exact step: next time, going straight to deactivating the loose parts saves another full check. And a UPS would avoid all of it."
+
+[text.en.incidents.fwoptions]
+title = "Firewall rules that did nothing"
+meta = "22-09-2026 · firewall"
+symptom = "I had restricted the containers' SSH to my machines and the VPN, and blocked the vector database's port. From another container you could still reach both."
+options = [
+  "The hypervisor firewall was off",
+  "The rules had a syntax error",
+  "The containers used another interface",
+  "A rules file without its options section with «enable: 1» isn't applied",
+]
+cause = "The containers that did filter had an options section in their file with the firewall enabled. The rest only had rules: Proxmox stores them but doesn't apply them, even if the interface has the firewall ticked."
+fix = "Enable the options section on the 11 affected containers and check from outside, trying to connect to what should be closed."
+lesson = "A security rule is tested by attacking it. Otherwise it can sit there written down, doing nothing, for days."
+
+[text.en.incidents.upgrade]
+title = "Terraform lost a permission after upgrading"
+meta = "September 2026 · upgrade"
+symptom = "After moving to Proxmox 9.2, creating Terraform's permission role failed: a privilege on the list no longer existed."
+options = [
+  "The new version had removed that privilege and it had to come off the list",
+  "The token had expired",
+  "The Terraform user had been deleted",
+  "The API had changed port",
+]
+cause = "Proxmox 9.2 retired a monitoring privilege that the Terraform provider's docs still asked for."
+fix = "Drop that privilege from the role and check with a plan that Terraform could still do everything it needed."
+lesson = "Permission guides age with every release. Better to grant exactly what's needed and test it than copy a list."
+
+[[text.en.timeline]]
+title = "Proxmox 8.4"
+period = "Until summer 2026"
+items = [
+  "Containers created by hand, hypervisor firewall disabled.",
+]
+
+[[text.en.timeline]]
+title = "Proxmox 9.2"
+period = "Summer 2026"
+items = [
+  "Upgrade to 9.2, needed to expand the disk pool.",
+  "New boot method and GPU driver rebuilt.",
+]
+
+[[text.en.timeline]]
+title = "Lock down and measure"
+period = "September and October 2026"
+items = [
+  "Hypervisor firewall dropping by default, with automatic rollback after 5 minutes.",
+  "Container firewalls truly enabled and tested.",
+  "Write cache on the system disks and the hypervisor's DNS through the home DNS.",
+]
+
+[[text.en.decisions]]
+title = "Containers or VMs"
+choice = "Containers, except what needs its own kernel"
+why = "A container starts in seconds and uses almost nothing. Only the lab cluster needs VMs."
+
+[[text.en.decisions]]
+title = "Privileged or not"
+choice = "Unprivileged whenever possible"
+why = "Unprivileged, the container's root isn't the server's. Plex moved to unprivileged even with the GPU inside."
+
+[[text.en.decisions]]
+title = "Firewall changes"
+choice = "With automatic rollback"
+why = "A mistake in the hypervisor firewall locks you out of the hypervisor. Each change had a timer that undid it unless I cancelled it."
+
+[text.en.tech_notes]
+proxmox = "Proxmox VE 9.2: containers and VMs, an API for Terraform, hypervisor and per-container firewalls, GPU with IOMMU."
+lxc = "About twenty containers, almost all unprivileged, one per service."
+linux = "Software RAID, LVM-thin, systemd-boot, auditd and the IPMI fan script."
+zfs = "The large data pools, managed from the hypervisor itself."
+terraform = "Creates containers and VMs through the API, with a least-privilege token."
+ansible = "Configures the hypervisor: firewall, DNS, auditing and updates."
+zabbix = "Watches load, RAID, SMART, temperature and real storage usage."
+wazuh = "The hypervisor's agent watches accounts, sudo, SSH and services."
+hardening = "Inbound dropped by default, auditing of critical files and spare services switched off."
+
+[text.en.close]
+lessons = [
+  "A server without a UPS turns every power cut into an hour-long check.",
+  "Security rules get tested from outside.",
+  "Writing down the exact step that fixes something halves the time next time.",
+]
+next = [
+  "A UPS with coordinated shutdown.",
+  "Move the system and the container disks to SSD.",
+]

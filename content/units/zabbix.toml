@@ -1,0 +1,891 @@
+# Unidad 1U del rack: Zabbix, las métricas y los avisos.
+#
+# Fuente: Obsidian «Monitorización de seguridad», «Avisos de Zabbix y Wazuh -
+# menos ruido» y la sección de registro automático en «Terraform en
+# Proxmox». Sin direcciones, hosts ni credenciales.
+
+id = "zabbix"
+project = "security"
+status = "live"
+host_tech = ["hardening"]
+links = [
+  ["me", "discord"],
+  ["me", "matrix"],
+  ["router", "server"],
+]
+
+[[groups]]
+id = "agents"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "server"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "notify"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "fleet"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "me"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "discord"
+x = 290
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "matrix"
+x = 290
+y = 250
+kind = "app"
+group = ""
+tech = []
+
+[[pods]]
+id = "router"
+x = 100
+y = 420
+kind = "network"
+group = ""
+tech = ["mikrotik"]
+
+[[pods]]
+id = "caddy"
+x = 100
+y = 250
+kind = "network"
+group = ""
+tech = []
+
+[[pods]]
+id = "hermes"
+x = 290
+y = 540
+kind = "ai"
+group = ""
+tech = []
+
+[[pods]]
+id = "agent"
+x = 515
+y = 140
+kind = "observability"
+group = "agents"
+tech = ["zabbix"]
+
+[[pods]]
+id = "psk"
+x = 700
+y = 140
+kind = "observability"
+group = "agents"
+tech = ["zabbix", "hardening"]
+
+[[pods]]
+id = "collectors"
+x = 885
+y = 140
+kind = "observability"
+group = "agents"
+tech = ["zabbix"]
+
+[[pods]]
+id = "norun"
+x = 1070
+y = 140
+kind = "observability"
+group = "agents"
+tech = ["hardening"]
+
+[[pods]]
+id = "server"
+x = 515
+y = 266
+kind = "observability"
+group = "server"
+tech = ["zabbix"]
+
+[[pods]]
+id = "triggers"
+x = 700
+y = 266
+kind = "observability"
+group = "server"
+tech = ["zabbix"]
+
+[[pods]]
+id = "history"
+x = 885
+y = 266
+kind = "observability"
+group = "server"
+tech = ["zabbix"]
+
+[[pods]]
+id = "api"
+x = 1070
+y = 266
+kind = "control"
+group = "server"
+tech = ["zabbix"]
+
+[[pods]]
+id = "severity"
+x = 515
+y = 392
+kind = "observability"
+group = "notify"
+tech = ["zabbix"]
+
+[[pods]]
+id = "mail"
+x = 700
+y = 392
+kind = "observability"
+group = "notify"
+tech = ["zabbix"]
+
+[[pods]]
+id = "chat"
+x = 885
+y = 392
+kind = "observability"
+group = "notify"
+tech = ["zabbix"]
+
+[[pods]]
+id = "recovery"
+x = 1070
+y = 392
+kind = "observability"
+group = "notify"
+tech = ["zabbix"]
+
+[[pods]]
+id = "register"
+x = 515
+y = 518
+kind = "control"
+group = "fleet"
+tech = ["ansible"]
+
+[[pods]]
+id = "vault"
+x = 700
+y = 518
+kind = "control"
+group = "fleet"
+tech = ["ansible"]
+
+[[pods]]
+id = "fw"
+x = 885
+y = 518
+kind = "observability"
+group = "fleet"
+tech = ["hardening"]
+
+[[pods]]
+id = "landing"
+x = 1070
+y = 518
+kind = "app"
+group = "fleet"
+tech = []
+
+[[flows]]
+id = "problem"
+path = ["collectors", "agent", "psk", "server", "triggers", "severity", "matrix", "me", "recovery"]
+
+[[flows]]
+id = "newct"
+path = ["register", "api", "server", "vault", "agent", "fw", "server"]
+
+[[flows]]
+id = "noise"
+path = ["triggers", "severity", "mail", "discord", "me", "triggers"]
+
+[[flows]]
+id = "status"
+path = ["history", "hermes", "landing"]
+
+[[flows]]
+id = "panel"
+path = ["me", "caddy", "server", "history"]
+
+[[incidents]]
+id = "load"
+answer = 2
+
+[[incidents]]
+id = "latency"
+answer = 0
+
+[[incidents]]
+id = "silentagent"
+answer = 3
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Zabbix por dentro · Tito Pinardo Gutiérrez"
+description = "La monitorización del homelab: agentes con clave propia en cada máquina, comprobaciones de ZFS, RAID, SMART y Docker sin dar permisos de más, y cómo pasé de avisos «súper pesados» a solo lo que hay que mirar."
+
+[text.es.ui]
+slot = "1U · ZABBIX"
+face_specs = "Zabbix 7 LTS · PSK · 4 canales"
+state = "En producción"
+map_silk = "MON"
+map_title = "La monitorización por dentro"
+map_intro = "Cada máquina manda sus métricas; aquí se decide qué es un problema y a quién se avisa. Elige un recorrido."
+vm_title = "Contenedor de Zabbix · Proxmox"
+vm_specs = "sin privilegios, sin SSH"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, nombres de equipos ni credenciales."
+
+[text.es.hero]
+kicker = "Unidad 1U · Observabilidad"
+title = "Zabbix · métricas y avisos"
+tagline = "Cada contenedor y el propio servidor llevan un agente que manda sus métricas cifradas con una clave propia: CPU, memoria, discos, RAID, ZFS, salud SMART, contenedores Docker. Zabbix decide qué es un problema, avisa por el canal que toca según la gravedad y avisa también cuando se arregla."
+grade = "De 178 avisos dobles a solo lo grave"
+facts = [
+  { label = "Cómo está aislado", value = "Contenedor sin privilegios, SSH parado y enmascarado, entrada rechazada salvo desde los agentes y la puerta interna. Su API solo escucha hacia dentro." },
+  { label = "Qué no puede hacer", value = "Los agentes no aceptan órdenes remotas ni tienen acceso al socket de Docker: unos colectores de solo lectura dejan los datos en JSON." },
+  { label = "Avisos", value = "Un aviso por incidencia y su recuperación, sin repetir cada hora. Por gravedad: Discord desde media, correo y Element solo lo alto." },
+]
+
+[[text.es.stats]]
+value = "82 %"
+label = "de los avisos venían de un solo trigger mal planteado"
+
+[[text.es.stats]]
+value = "1 PSK"
+label = "por agente, guardada cifrada"
+
+[[text.es.stats]]
+value = "1 comando"
+label = "para registrar un contenedor nuevo"
+
+[[text.es.stats]]
+value = "90 días"
+label = "de eventos y tendencias"
+
+[text.es.groups]
+agents = "En cada máquina"
+server = "El servidor"
+notify = "Avisos"
+fleet = "La flota"
+
+[text.es.pods.me]
+short = "Yo"
+title = "Yo"
+text = "El que recibe los avisos y los tiene que creer."
+
+[text.es.pods.discord]
+short = "Discord"
+title = "Canales de Discord"
+text = "Un canal por gravedad y otro para las recuperaciones."
+
+[text.es.pods.matrix]
+short = "Element"
+title = "Sala de alertas (Matrix)"
+text = "Solo lo de gravedad alta, cifrado de extremo a extremo."
+
+[text.es.pods.router]
+short = "Router"
+title = "Router"
+text = "Se vigila por ping y HTTPS, sin credenciales de administración."
+
+[text.es.pods.caddy]
+short = "Puerta interna"
+title = "Puerta interna"
+text = "El panel, solo desde casa o la VPN con doble factor."
+
+[text.es.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "Lee una instantánea del estado para responder preguntas."
+
+[text.es.pods.agent]
+short = "Agente"
+title = "Agente de Zabbix"
+text = "En modo activo: es el agente quien manda los datos. La escucha pasiva solo en loopback y con la CPU limitada al 10 %."
+
+[text.es.pods.psk]
+short = "PSK"
+title = "Cifrado con clave propia"
+text = "Cada agente tiene su clave precompartida. Sin ella, el servidor no acepta sus datos."
+
+[text.es.pods.collectors]
+short = "Colectores"
+title = "Colectores de solo lectura"
+text = "Scripts que miran ZFS, RAID, SMART sin despertar discos dormidos y la salud de Docker, y dejan un JSON que el agente lee."
+
+[text.es.pods.norun]
+short = "Sin órdenes"
+title = "Sin ejecución remota"
+text = "Las órdenes remotas del agente están prohibidas: comprometer el servidor de monitorización no da control sobre los demás."
+
+[text.es.pods.server]
+short = "Zabbix"
+title = "Servidor Zabbix"
+text = "Recibe, guarda y evalúa. Versión LTS."
+
+[text.es.pods.triggers]
+short = "Triggers"
+title = "Reglas de problema"
+text = "Cuándo una métrica es un problema y cuándo deja de serlo. Aquí estaba casi todo el ruido."
+
+[text.es.pods.history]
+short = "Historial"
+title = "Historial"
+text = "14 días de detalle, 90 de tendencias y eventos."
+
+[text.es.pods.api]
+short = "API"
+title = "API de Zabbix"
+text = "Solo accesible desde dentro del contenedor. El registro de hosts nuevos pasa por el hipervisor."
+
+[text.es.pods.severity]
+short = "Gravedad"
+title = "Reparto por gravedad"
+text = "Cada gravedad va a su canal. Lo leve no llega al móvil."
+
+[text.es.pods.mail]
+short = "Correo"
+title = "Correo"
+text = "Solo gravedad alta, con TLS verificado."
+
+[text.es.pods.chat]
+short = "Discord+Element"
+title = "Chat"
+text = "Discord desde gravedad media; Element solo lo alto."
+
+[text.es.pods.recovery]
+short = "Recuperación"
+title = "Aviso de recuperación"
+text = "Cada problema avisa también cuando se arregla. Sin eso, no se sabe si sigue."
+
+[text.es.pods.register]
+short = "Registro"
+title = "Script de registro"
+text = "Da de alta un contenedor nuevo en Zabbix y Wazuh a la vez, con clave nueva, en un solo comando."
+
+[text.es.pods.vault]
+short = "Vault"
+title = "Claves en el vault"
+text = "El script escribe la clave del agente directamente en el vault cifrado de Ansible."
+
+[text.es.pods.fw]
+short = "Cortafuegos"
+title = "Cortafuegos del servidor"
+text = "Solo acepta agentes de direcciones conocidas. Un contenedor nuevo hay que añadirlo también aquí."
+
+[text.es.pods.landing]
+short = "Esta web"
+title = "Esta web"
+text = "Los LEDs y la disponibilidad del laboratorio salen de aquí, como agregados."
+
+[text.es.flows.problem]
+title = "Un disco empieza a fallar"
+steps = [
+  "Un colector ve un atributo SMART que empeora.",
+  "El agente lo manda.",
+  "Cifrado con su clave.",
+  "El servidor lo recibe.",
+  "Un trigger lo convierte en problema.",
+  "Por su gravedad, va al chat.",
+  "A la sala de alertas, cifrado.",
+  "Me llega al móvil.",
+  "Cuando se arregla, llega el aviso de recuperación.",
+]
+
+[text.es.flows.newct]
+title = "Un contenedor nuevo entra en la flota"
+steps = [
+  "Lanzo el script de registro con el nombre del contenedor.",
+  "Por el hipervisor, crea el host en la API.",
+  "El servidor ya lo conoce.",
+  "La clave nueva va al vault cifrado.",
+  "Ansible instala el agente con esa clave.",
+  "Su dirección se añade al cortafuegos del servidor.",
+  "Y empiezan a llegar datos.",
+]
+
+[text.es.flows.noise]
+title = "Cómo se apagó el ruido"
+steps = [
+  "Antes de tocar nada, medí una semana de avisos: 178, cada uno dos veces.",
+  "Todo desde gravedad «aviso», por correo y por Discord a la vez.",
+  "El correo pasa a solo lo alto.",
+  "Discord, desde media.",
+  "Y lo leo sin agobio.",
+  "El trigger que causaba el 82 % se desactiva donde no medía nada real.",
+]
+
+[text.es.flows.status]
+title = "De Zabbix a esta web"
+steps = [
+  "El historial dice qué agentes informaron cada hora.",
+  "Hermes lo lee para responder.",
+  "Y esta web publica la disponibilidad como cobertura: horas con datos entre horas esperadas.",
+]
+
+[text.es.flows.panel]
+title = "Abro el panel"
+steps = [
+  "Desde casa o la VPN.",
+  "Puerta interna con doble factor.",
+  "Y después el login de Zabbix.",
+  "Para mirar el historial.",
+]
+
+[text.es.incidents.load]
+title = "Ocho contenedores en alerta a la vez"
+meta = "05-10-2026 · ruido"
+symptom = "Cada pocos días, ocho contenedores avisaban a la vez de «carga por CPU por encima de 3 durante 15 minutos». Ninguno estaba haciendo nada."
+options = [
+  "Un ataque a toda la flota",
+  "El hipervisor se había quedado sin memoria",
+  "Dentro de un contenedor LXC, la carga que se ve es la del hipervisor entero",
+  "El agente medía mal la CPU",
+]
+cause = "En estos contenedores, /proc/loadavg enseña la carga del servidor. Durante la comprobación mensual del RAID el hipervisor llegaba a 50, y dividido entre las 2 CPU de cada contenedor, todos «estaban» a 25."
+fix = "Desactivar ese trigger en los contenedores y dejarlo solo en el hipervisor, donde mide algo real. La CPU de cada contenedor se sigue vigilando por uso."
+lesson = "Un aviso que salta por algo que no se puede medir así enseña a ignorar los avisos. Comprobar qué mide de verdad la métrica en ese entorno."
+
+[text.es.incidents.latency]
+title = "Latencia de disco «demasiado alta»"
+meta = "08-09-2026 · discos"
+symptom = "Avisos constantes de latencia de lectura y escritura por encima de 20 ms en uno de los discos del sistema."
+options = [
+  "Es un disco mecánico sirviendo a todo el sistema: 20 ms es su normal, no un fallo",
+  "El disco se estaba muriendo",
+  "El cable estaba suelto",
+  "La controladora estaba saturada",
+]
+cause = "SMART limpio y sin errores en el kernel. Es uno de los dos discos mecánicos del RAID del sistema, con una carga real: 15-28 ms es lo esperable."
+fix = "Subir el umbral a 50 ms para ese disco y su pareja del espejo, no para todos."
+lesson = "Los umbrales por defecto son para un disco genérico. Se ajustan con datos del disco concreto, y para los dos miembros del espejo a la vez."
+
+[text.es.incidents.silentagent]
+title = "Agentes que no daban señales de vida"
+meta = "16-09-2026 · registro"
+symptom = "Tras registrar varios contenedores nuevos, solo dos empezaron a mandar datos. Los otros se quedaban en «intentando conectar», sin ningún error."
+options = [
+  "La clave estaba mal copiada",
+  "La versión del agente no era compatible",
+  "El DNS no resolvía el servidor",
+  "El cortafuegos del servidor solo aceptaba direcciones ya conocidas, y las nuevas no estaban",
+]
+cause = "Los dos que funcionaban reutilizaban direcciones que ya estaban en la lista del cortafuegos del servidor. Los nuevos se descartaban en silencio."
+fix = "Añadir las direcciones al cortafuegos y llevar ese paso al propio registro: un contenedor nuevo ya no puede quedarse fuera por olvido."
+lesson = "Un fallo que pasa dos veces el mismo día no es mala suerte: es un paso que falta en el procedimiento."
+
+[[text.es.timeline]]
+title = "Instalación aislada"
+period = "06-09-2026"
+items = [
+  "Zabbix y Wazuh en contenedores propios sin privilegios ni SSH.",
+  "Agentes con clave propia en toda la flota, sin órdenes remotas.",
+  "Canales de aviso por gravedad.",
+]
+
+[[text.es.timeline]]
+title = "Registro en un comando"
+period = "16-09-2026"
+items = [
+  "Script que da de alta un contenedor en Zabbix y Wazuh y guarda la clave en el vault.",
+  "Cortafuegos del servidor incluido en el registro.",
+]
+
+[[text.es.timeline]]
+title = "Menos ruido"
+period = "Septiembre y octubre de 2026"
+items = [
+  "Umbrales de disco ajustados al disco real.",
+  "Una semana de avisos medida antes de cambiar nada.",
+  "Correo solo para lo alto y el trigger engañoso, fuera.",
+]
+
+[[text.es.decisions]]
+title = "Quién inicia la conexión"
+choice = "El agente, en modo activo"
+why = "Así el servidor no necesita llegar a cada máquina: solo las máquinas al servidor. Una superficie menos."
+
+[[text.es.decisions]]
+title = "Cómo se mira Docker"
+choice = "Colectores de solo lectura, sin socket"
+why = "Dar el socket de Docker al usuario de monitorización es darle el servidor. Un script con permisos mínimos deja el estado en un fichero."
+
+[[text.es.decisions]]
+title = "Cómo se decide qué avisar"
+choice = "Midiendo primero"
+why = "Bajar umbrales a ojo esconde problemas reales. Contar qué llegaba, cuánto y desde dónde dijo qué sobraba."
+
+[text.es.tech_notes]
+zabbix = "Servidor y agentes activos con PSK, colectores de ZFS, RAID, SMART y Docker, triggers ajustados y avisos por gravedad con recuperación."
+wazuh = "Comparte el script de registro: un contenedor nuevo entra en las dos herramientas a la vez."
+hardening = "Contenedor sin privilegios ni SSH, entrada rechazada, sin ejecución remota y sin acceso al socket de Docker."
+mikrotik = "El router se vigila por ping y HTTPS, sin credenciales de administración."
+vlan = "Los agentes de todos los segmentos informan al mismo servidor, que solo acepta direcciones conocidas."
+wireguard = "Desde la VPN se llega al panel como desde casa, detrás de la puerta interna."
+ansible = "Instala los agentes con su clave desde el vault; el script de registro la escribe ahí."
+
+[text.es.close]
+lessons = [
+  "Un aviso que no se cree es peor que ninguno: se mide y se ajusta.",
+  "Comprobar qué significa una métrica dentro de un contenedor.",
+  "Lo que falla dos veces se mete en el procedimiento.",
+]
+next = [
+  "Repetir la medición de avisos tras unas semanas para confirmar el efecto.",
+  "Vigilar también que cada servicio responde a sus usuarios, no solo que su agente informa.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Zabbix · Tito Pinardo Gutiérrez"
+description = "The homelab's monitoring: agents with their own key on every machine, ZFS, RAID, SMART and Docker checks without extra permissions, and how alerts went from «unbearable» to only what needs looking at."
+
+[text.en.ui]
+slot = "1U · ZABBIX"
+face_specs = "Zabbix 7 LTS · PSK · 4 channels"
+state = "In production"
+map_silk = "MON"
+map_title = "Inside the monitoring"
+map_intro = "Every machine sends its metrics; here it's decided what's a problem and who gets told. Pick a flow."
+vm_title = "Zabbix container · Proxmox"
+vm_specs = "unprivileged, no SSH"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no addresses, machine names or credentials."
+
+[text.en.hero]
+kicker = "1U unit · Observability"
+title = "Zabbix · metrics and alerts"
+tagline = "Every container and the server itself run an agent sending its metrics encrypted with its own key: CPU, memory, disks, RAID, ZFS, SMART health, Docker containers. Zabbix decides what's a problem, alerts on the right channel for the severity and alerts again when it's fixed."
+grade = "From 178 doubled alerts to only the serious ones"
+facts = [
+  { label = "How it's isolated", value = "Unprivileged container, SSH stopped and masked, inbound dropped except from agents and the internal door. Its API only listens inwards." },
+  { label = "What it can't do", value = "Agents don't accept remote commands or have access to the Docker socket: read-only collectors leave the data as JSON." },
+  { label = "Alerts", value = "One alert per incident plus its recovery, no hourly repeats. By severity: Discord from average up, email and Element only for high." },
+]
+
+[[text.en.stats]]
+value = "82 %"
+label = "of alerts came from one badly framed trigger"
+
+[[text.en.stats]]
+value = "1 PSK"
+label = "per agent, stored encrypted"
+
+[[text.en.stats]]
+value = "1 command"
+label = "to register a new container"
+
+[[text.en.stats]]
+value = "90 days"
+label = "of events and trends"
+
+[text.en.groups]
+agents = "On every machine"
+server = "The server"
+notify = "Alerts"
+fleet = "The fleet"
+
+[text.en.pods.me]
+short = "Me"
+title = "Me"
+text = "The one who gets the alerts and has to believe them."
+
+[text.en.pods.discord]
+short = "Discord"
+title = "Discord channels"
+text = "One channel per severity and another for recoveries."
+
+[text.en.pods.matrix]
+short = "Element"
+title = "Alerts room (Matrix)"
+text = "High severity only, end-to-end encrypted."
+
+[text.en.pods.router]
+short = "Router"
+title = "Router"
+text = "Watched by ping and HTTPS, with no admin credentials."
+
+[text.en.pods.caddy]
+short = "Internal door"
+title = "Internal door"
+text = "The panel, only from home or the VPN with two-factor."
+
+[text.en.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "Reads a status snapshot to answer questions."
+
+[text.en.pods.agent]
+short = "Agent"
+title = "Zabbix agent"
+text = "In active mode: the agent is the one sending data. Passive listening only on loopback, with CPU capped at 10 %."
+
+[text.en.pods.psk]
+short = "PSK"
+title = "Encryption with its own key"
+text = "Each agent has its pre-shared key. Without it, the server won't accept its data."
+
+[text.en.pods.collectors]
+short = "Collectors"
+title = "Read-only collectors"
+text = "Scripts that check ZFS, RAID, SMART without waking sleeping disks, and Docker health, leaving a JSON the agent reads."
+
+[text.en.pods.norun]
+short = "No commands"
+title = "No remote execution"
+text = "The agent's remote commands are forbidden: compromising the monitoring server gives no control over the others."
+
+[text.en.pods.server]
+short = "Zabbix"
+title = "Zabbix server"
+text = "Receives, stores and evaluates. LTS release."
+
+[text.en.pods.triggers]
+short = "Triggers"
+title = "Problem rules"
+text = "When a metric is a problem and when it stops being one. Almost all the noise lived here."
+
+[text.en.pods.history]
+short = "History"
+title = "History"
+text = "14 days of detail, 90 of trends and events."
+
+[text.en.pods.api]
+short = "API"
+title = "Zabbix API"
+text = "Only reachable from inside the container. Registering new hosts goes through the hypervisor."
+
+[text.en.pods.severity]
+short = "Severity"
+title = "Routing by severity"
+text = "Each severity goes to its channel. Minor stuff doesn't reach the phone."
+
+[text.en.pods.mail]
+short = "Email"
+title = "Email"
+text = "High severity only, with verified TLS."
+
+[text.en.pods.chat]
+short = "Discord+Element"
+title = "Chat"
+text = "Discord from average up; Element only for high."
+
+[text.en.pods.recovery]
+short = "Recovery"
+title = "Recovery notice"
+text = "Every problem also notifies when fixed. Without that you don't know if it's still going on."
+
+[text.en.pods.register]
+short = "Registration"
+title = "Registration script"
+text = "Adds a new container to Zabbix and Wazuh at once, with a new key, in a single command."
+
+[text.en.pods.vault]
+short = "Vault"
+title = "Keys in the vault"
+text = "The script writes the agent's key straight into the encrypted Ansible vault."
+
+[text.en.pods.fw]
+short = "Firewall"
+title = "Server firewall"
+text = "Only accepts agents from known addresses. A new container has to be added here too."
+
+[text.en.pods.landing]
+short = "This site"
+title = "This site"
+text = "The lab's LEDs and availability come from here, as aggregates."
+
+[text.en.flows.problem]
+title = "A disk starts to fail"
+steps = [
+  "A collector sees a SMART attribute getting worse.",
+  "The agent sends it.",
+  "Encrypted with its key.",
+  "The server receives it.",
+  "A trigger turns it into a problem.",
+  "By its severity, it goes to chat.",
+  "To the alerts room, encrypted.",
+  "It reaches my phone.",
+  "When it's fixed, the recovery notice arrives.",
+]
+
+[text.en.flows.newct]
+title = "A new container joins the fleet"
+steps = [
+  "I run the registration script with the container's name.",
+  "Through the hypervisor, it creates the host in the API.",
+  "The server now knows it.",
+  "The new key goes into the encrypted vault.",
+  "Ansible installs the agent with that key.",
+  "Its address is added to the server firewall.",
+  "And data starts arriving.",
+]
+
+[text.en.flows.noise]
+title = "How the noise was switched off"
+steps = [
+  "Before touching anything, I measured a week of alerts: 178, each one twice.",
+  "Everything from «warning» severity, by email and Discord at the same time.",
+  "Email now only for high.",
+  "Discord, from average up.",
+  "And I read it without stress.",
+  "The trigger behind 82 % is disabled where it measured nothing real.",
+]
+
+[text.en.flows.status]
+title = "From Zabbix to this site"
+steps = [
+  "The history says which agents reported each hour.",
+  "Hermes reads it to answer.",
+  "And this site publishes availability as coverage: hours with data over expected hours.",
+]
+
+[text.en.flows.panel]
+title = "I open the panel"
+steps = [
+  "From home or the VPN.",
+  "Internal door with two-factor.",
+  "Then the Zabbix login.",
+  "To look at the history.",
+]
+
+[text.en.incidents.load]
+title = "Eight containers alerting at once"
+meta = "05-10-2026 · noise"
+symptom = "Every few days, eight containers alerted at once about «load per CPU above 3 for 15 minutes». None of them was doing anything."
+options = [
+  "An attack on the whole fleet",
+  "The hypervisor had run out of memory",
+  "Inside an LXC container, the load you see is the whole hypervisor's",
+  "The agent was measuring CPU wrongly",
+]
+cause = "In these containers, /proc/loadavg shows the server's load. During the monthly RAID check the hypervisor hit 50, and divided by each container's 2 CPUs, they all «were» at 25."
+fix = "Disable that trigger on the containers and keep it only on the hypervisor, where it measures something real. Each container's CPU is still watched by usage."
+lesson = "An alert that fires on something that can't be measured that way teaches you to ignore alerts. Check what the metric really measures in that environment."
+
+[text.en.incidents.latency]
+title = "Disk latency «too high»"
+meta = "08-09-2026 · disks"
+symptom = "Constant alerts about read and write latency above 20 ms on one of the system disks."
+options = [
+  "It's a spinning disk serving the whole system: 20 ms is its normal, not a fault",
+  "The disk was dying",
+  "The cable was loose",
+  "The controller was saturated",
+]
+cause = "SMART clean and no kernel errors. It's one of the two spinning disks in the system RAID, under real load: 15-28 ms is expected."
+fix = "Raise the threshold to 50 ms for that disk and its mirror partner, not for all of them."
+lesson = "Default thresholds are for a generic disk. They're tuned with data from the actual disk, and for both mirror members at once."
+
+[text.en.incidents.silentagent]
+title = "Agents with no sign of life"
+meta = "16-09-2026 · registration"
+symptom = "After registering several new containers, only two started sending data. The others stayed at «trying to connect», with no error."
+options = [
+  "The key was copied wrongly",
+  "The agent version wasn't compatible",
+  "DNS didn't resolve the server",
+  "The server firewall only accepted known addresses, and the new ones weren't there",
+]
+cause = "The two that worked reused addresses already on the server firewall's list. The new ones were silently dropped."
+fix = "Add the addresses to the firewall and make that step part of the registration itself: a new container can no longer be left out by oversight."
+lesson = "A failure that happens twice in a day isn't bad luck: it's a step missing from the procedure."
+
+[[text.en.timeline]]
+title = "Isolated install"
+period = "06-09-2026"
+items = [
+  "Zabbix and Wazuh in their own unprivileged containers with no SSH.",
+  "Agents with their own key across the fleet, no remote commands.",
+  "Alert channels by severity.",
+]
+
+[[text.en.timeline]]
+title = "Registration in one command"
+period = "16-09-2026"
+items = [
+  "A script that adds a container to Zabbix and Wazuh and stores the key in the vault.",
+  "Server firewall included in the registration.",
+]
+
+[[text.en.timeline]]
+title = "Less noise"
+period = "September and October 2026"
+items = [
+  "Disk thresholds tuned to the real disk.",
+  "A week of alerts measured before changing anything.",
+  "Email only for high and the misleading trigger gone.",
+]
+
+[[text.en.decisions]]
+title = "Who starts the connection"
+choice = "The agent, in active mode"
+why = "That way the server doesn't need to reach every machine: only the machines reach the server. One less surface."
+
+[[text.en.decisions]]
+title = "How Docker is checked"
+choice = "Read-only collectors, no socket"
+why = "Giving the Docker socket to the monitoring user is giving it the server. A script with minimal permissions leaves the state in a file."
+
+[[text.en.decisions]]
+title = "How to decide what to alert on"
+choice = "Measure first"
+why = "Lowering thresholds by eye hides real problems. Counting what arrived, how much and from where said what was surplus."
+
+[text.en.tech_notes]
+zabbix = "Server and active agents with PSK, collectors for ZFS, RAID, SMART and Docker, tuned triggers and alerts by severity with recovery."
+wazuh = "Shares the registration script: a new container joins both tools at once."
+hardening = "Unprivileged container with no SSH, inbound dropped, no remote execution and no Docker socket access."
+mikrotik = "The router is watched by ping and HTTPS, with no admin credentials."
+vlan = "Agents on every segment report to the same server, which only accepts known addresses."
+wireguard = "From the VPN you reach the panel as from home, behind the internal door."
+ansible = "Installs the agents with their key from the vault; the registration script writes it there."
+
+[text.en.close]
+lessons = [
+  "An alert nobody believes is worse than none: measure and tune.",
+  "Check what a metric means inside a container.",
+  "Whatever fails twice goes into the procedure.",
+]
+next = [
+  "Repeat the alert measurement after a few weeks to confirm the effect.",
+  "Also check each service answers its users, not just that its agent reports.",
+]

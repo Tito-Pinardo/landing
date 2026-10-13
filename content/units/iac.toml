@@ -1,0 +1,961 @@
+# Unidad 1U del rack: el nodo de control, el homelab como código.
+#
+# Fuente: Obsidian «Terraform en Proxmox», «Agentes IA en el servidor» y el
+# README de la copia pública del repositorio. Sin direcciones, tokens ni
+# nombres de máquinas.
+
+id = "iac"
+project = "homelab-iac"
+status = "live"
+host_tech = ["lxc", "proxmox"]
+links = [
+  ["laptop", "codeman"],
+  ["repo", "backup"],
+  ["repo", "public"],
+]
+
+[[groups]]
+id = "control"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "terraform"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "ansible"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "fleet"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "laptop"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "repo"
+x = 100
+y = 420
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "backup"
+x = 290
+y = 420
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "public"
+x = 100
+y = 540
+kind = "control"
+group = ""
+tech = ["git", "hardening"]
+
+[[pods]]
+id = "proxmoxapi"
+x = 290
+y = 250
+kind = "control"
+group = ""
+tech = ["proxmox"]
+
+[[pods]]
+id = "cloudflare"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = ["dns"]
+
+[[pods]]
+id = "codeman"
+x = 515
+y = 140
+kind = "control"
+group = "control"
+tech = ["linux"]
+
+[[pods]]
+id = "agents"
+x = 700
+y = 140
+kind = "ai"
+group = "control"
+tech = []
+
+[[pods]]
+id = "hook"
+x = 885
+y = 140
+kind = "control"
+group = "control"
+tech = ["git"]
+
+[[pods]]
+id = "review"
+x = 1070
+y = 140
+kind = "observability"
+group = "control"
+tech = []
+
+[[pods]]
+id = "tf"
+x = 515
+y = 266
+kind = "control"
+group = "terraform"
+tech = ["terraform"]
+
+[[pods]]
+id = "plan"
+x = 700
+y = 266
+kind = "observability"
+group = "terraform"
+tech = ["terraform"]
+
+[[pods]]
+id = "state"
+x = 885
+y = 266
+kind = "control"
+group = "terraform"
+tech = ["terraform"]
+
+[[pods]]
+id = "forcenew"
+x = 1070
+y = 266
+kind = "observability"
+group = "terraform"
+tech = ["terraform"]
+
+[[pods]]
+id = "roles"
+x = 515
+y = 392
+kind = "control"
+group = "ansible"
+tech = ["ansible"]
+
+[[pods]]
+id = "vault"
+x = 700
+y = 392
+kind = "control"
+group = "ansible"
+tech = ["ansible", "hardening"]
+
+[[pods]]
+id = "diff"
+x = 885
+y = 392
+kind = "observability"
+group = "ansible"
+tech = ["ansible"]
+
+[[pods]]
+id = "services"
+x = 1070
+y = 392
+kind = "control"
+group = "ansible"
+tech = ["ansible", "traefik"]
+
+[[pods]]
+id = "lxc"
+x = 515
+y = 518
+kind = "compute"
+group = "fleet"
+tech = ["lxc", "linux"]
+
+[[pods]]
+id = "hardening"
+x = 700
+y = 518
+kind = "observability"
+group = "fleet"
+tech = ["hardening", "ansible"]
+
+[[pods]]
+id = "updates"
+x = 885
+y = 518
+kind = "control"
+group = "fleet"
+tech = ["ansible", "linux"]
+
+[[pods]]
+id = "storage"
+x = 1070
+y = 518
+kind = "compute"
+group = "fleet"
+tech = ["zfs"]
+
+[[flows]]
+id = "newservice"
+path = ["laptop", "codeman", "agents", "tf", "plan", "review", "tf", "proxmoxapi", "lxc", "roles", "vault", "diff", "review", "roles", "hardening", "services", "cloudflare", "hook", "repo", "backup"]
+
+[[flows]]
+id = "update"
+path = ["codeman", "updates", "diff", "updates", "lxc", "hardening"]
+
+[[flows]]
+id = "danger"
+path = ["tf", "plan", "forcenew", "review", "lxc"]
+
+[[flows]]
+id = "public"
+path = ["repo", "review", "public"]
+
+[[flows]]
+id = "rebuild"
+path = ["tf", "proxmoxapi", "lxc", "storage", "roles", "lxc"]
+
+[[incidents]]
+id = "forcenew"
+answer = 2
+
+[[incidents]]
+id = "rename"
+answer = 0
+
+[[incidents]]
+id = "quotes"
+answer = 3
+
+[[incidents]]
+id = "diverged"
+answer = 1
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "El homelab como código por dentro · Tito Pinardo Gutiérrez"
+description = "Cómo se gestiona todo el homelab: Terraform crea los contenedores en Proxmox, Ansible los configura, cada cambio se revisa con plan o diff antes de aplicarlo y todo vive versionado, con secretos cifrados y copia automática."
+
+[text.es.ui]
+slot = "1U · IAC"
+face_specs = "Terraform · Ansible · Git"
+state = "En producción"
+map_silk = "IAC"
+map_title = "El nodo de control por dentro"
+map_intro = "Desde aquí se crea, se configura y se actualiza todo lo demás. Elige un recorrido para ver cómo nace un servicio y qué lo frena antes de romper algo."
+vm_title = "Nodo de control · contenedor en Proxmox"
+vm_specs = "Terraform, Ansible y los agentes de IA"
+outside = "Fuera"
+disclaimer = "Hay una copia pública y saneada del repositorio en mi GitHub. Aquí no aparecen direcciones, tokens ni reglas de cortafuegos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Infraestructura como código"
+title = "El homelab como código"
+tagline = "Los servicios de casa se habían montado a mano durante años y nadie, ni yo, sabía reconstruir uno. Ahora Terraform crea cada contenedor en Proxmox y un rol de Ansible lo configura; los secretos van cifrados, cada cambio se revisa antes de aplicarse y todo queda en Git con una copia automática."
+grade = "Reconstruir un servicio: un comando"
+facts = [
+  { label = "Cómo trabajo", value = "Desde un contenedor de control en el propio servidor, con los agentes de IA con los que trabajo en terminales que puedo abrir desde el portátil o el navegador." },
+  { label = "La regla", value = "Nada se aplica sin ver antes qué va a cambiar: «terraform plan» o «--check --diff». Y versiones fijadas: volver a ejecutar un playbook no actualiza nada por sorpresa." },
+  { label = "Lo público", value = "Una copia saneada del repositorio en GitHub: estructura y roles, sin IPs reales, secretos ni reglas de cortafuegos." },
+]
+
+[[text.es.stats]]
+value = "1"
+label = "fichero de Terraform por contenedor o VM"
+
+[[text.es.stats]]
+value = "1"
+label = "rol de Ansible por servicio"
+
+[[text.es.stats]]
+value = "4 → 0"
+label = "contenedores que un plan iba a destruir y no se aplicó"
+
+[[text.es.stats]]
+value = "2"
+label = "copias del repositorio en cada commit"
+
+[text.es.groups]
+control = "Nodo de control"
+terraform = "Terraform: qué existe"
+ansible = "Ansible: cómo está configurado"
+fleet = "La flota"
+
+[text.es.pods.laptop]
+short = "Mi portátil"
+title = "Mi portátil"
+text = "Desde casa o la VPN, abro el panel de terminales."
+
+[text.es.pods.repo]
+short = "Repositorio"
+title = "Repositorio central"
+text = "Toda la infraestructura: Terraform, inventario, roles, playbooks, scripts y documentación."
+
+[text.es.pods.backup]
+short = "Respaldo"
+title = "Repositorio de respaldo"
+text = "Un hook empuja cada commit a un segundo repositorio dentro de casa. Tiene su propia unidad."
+
+[text.es.pods.public]
+short = "Copia pública"
+title = "Copia pública saneada"
+text = "La versión que enseño: funciones con su descripción, IPs de documentación y dominios de ejemplo."
+
+[text.es.pods.proxmoxapi]
+short = "API Proxmox"
+title = "API de Proxmox"
+text = "Terraform habla con ella con un token de permisos justos."
+
+[text.es.pods.cloudflare]
+short = "Cloudflare"
+title = "DNS de Cloudflare"
+text = "Los registros públicos se crean y se borran desde la misma lista de servicios."
+
+[text.es.pods.codeman]
+short = "Terminales web"
+title = "Panel de terminales"
+text = "Las sesiones reales de cada agente, en tmux, visibles desde el navegador detrás de la puerta interna."
+
+[text.es.pods.agents]
+short = "Agentes IA"
+title = "Agentes de IA"
+text = "Con los que trabajo: proponen y ejecutan, y yo reviso. Con suscripción, nunca con claves de API sueltas."
+
+[text.es.pods.hook]
+short = "Hook"
+title = "Hook de Git"
+text = "Tras cada commit, empuja a los dos remotos en segundo plano."
+
+[text.es.pods.review]
+short = "Revisión"
+title = "Revisión"
+text = "El paso que no se salta: leer el plan o el diff antes de aplicar."
+
+[text.es.pods.tf]
+short = "Terraform"
+title = "Terraform"
+text = "Contenedores y VMs, su CPU, memoria, discos, red y cortafuegos."
+
+[text.es.pods.plan]
+short = "plan"
+title = "terraform plan"
+text = "Qué se crearía, cambiaría o destruiría. Si dice «destroy» en algo que tiene datos, se para."
+
+[text.es.pods.state]
+short = "Estado"
+title = "Estado de Terraform"
+text = "Lo que Terraform cree que existe. Se migró de máquina comprobando que el plan salía idéntico en las dos."
+
+[text.es.pods.forcenew]
+short = "ForceNew"
+title = "Cambios que recrean"
+text = "Algunos campos no se pueden cambiar en sitio: cambiarlos destruye y vuelve a crear el recurso."
+
+[text.es.pods.roles]
+short = "Roles"
+title = "Roles"
+text = "Uno por servicio, reutilizables: paquetes, configuración, servicio y comprobación final."
+
+[text.es.pods.vault]
+short = "Vault"
+title = "Ansible Vault"
+text = "Los secretos de cada grupo, cifrados. En el repositorio público solo hay ejemplos."
+
+[text.es.pods.diff]
+short = "--check --diff"
+title = "Ensayo con diferencias"
+text = "Qué ficheros cambiarían y cómo, sin cambiar nada."
+
+[text.es.pods.services]
+short = "Lista servicios"
+title = "Lista de servicios"
+text = "Una sola lista para rutas de Traefik, DNS de Cloudflare y panel de inicio."
+
+[text.es.pods.lxc]
+short = "Contenedores"
+title = "Contenedores LXC"
+text = "Un contenedor por servicio, casi todos sin privilegios."
+
+[text.es.pods.hardening]
+short = "Hardening"
+title = "Rol de endurecimiento"
+text = "SSH solo con clave y desde orígenes concretos, servicios sobrantes fuera y agentes de monitorización instalados."
+
+[text.es.pods.updates]
+short = "Actualizar"
+title = "Actualizaciones"
+text = "Paquetes de toda la flota e imágenes Docker, esperando a que cada contenedor esté sano antes de seguir."
+
+[text.es.pods.storage]
+short = "ZFS"
+title = "Datos aparte"
+text = "Los datos viven en ZFS y se montan en el contenedor. Los roles gestionan la configuración, no los datos."
+
+[text.es.flows.newservice]
+title = "Nace un servicio"
+steps = [
+  "Desde el portátil abro el panel de terminales.",
+  "Llego a la sesión del nodo de control.",
+  "Con un agente, escribo el fichero de Terraform del contenedor nuevo.",
+  "Terraform calcula el cambio.",
+  "El plan dice: 1 para crear, 0 para destruir.",
+  "Lo leo. Si sale algo que no esperaba, no sigo.",
+  "Terraform aplica.",
+  "Por la API de Proxmox.",
+  "Y el contenedor existe.",
+  "Escribo el rol del servicio.",
+  "Sus secretos, cifrados en el vault.",
+  "Ensayo: qué ficheros cambiarían.",
+  "Lo reviso.",
+  "Aplico el rol.",
+  "Endurecimiento y monitorización, iguales que en el resto.",
+  "Añado el servicio a la lista común.",
+  "Y su DNS se crea solo si es público.",
+  "Commit.",
+  "Al repositorio central.",
+  "Y al de respaldo, en segundo plano.",
+]
+
+[text.es.flows.update]
+title = "Actualizo la flota"
+steps = [
+  "Desde el nodo de control, lanzo la actualización.",
+  "Primero, una simulación por equipo.",
+  "Se rechazan cambios de kernel, drivers o servicios críticos.",
+  "Se aplica equipo a equipo.",
+  "Cada contenedor tiene que volver sano antes de pasar al siguiente.",
+  "Y los agentes de monitorización confirman.",
+]
+
+[text.es.flows.danger]
+title = "Un plan que habría borrado datos"
+steps = [
+  "Centralizo las claves de SSH en una sola lista para todos los contenedores.",
+  "El plan sale: 4 para crear, 4 para destruir.",
+  "Ese campo no se puede cambiar en sitio: recrearía los contenedores.",
+  "Entre ellos, la mensajería con toda su base de datos y la puerta pública.",
+  "No se aplica. Las claves se añaden a mano a los que ya existen y la lista vale para los nuevos.",
+]
+
+[text.es.flows.public]
+title = "La copia pública"
+steps = [
+  "El repositorio real tiene direcciones, reglas y secretos cifrados.",
+  "Se genera una copia saneada: solo estructura, nombres y descripciones; IPs de documentación y dominios de ejemplo.",
+  "Esa es la que está en GitHub, auditada desde un clon limpio.",
+]
+
+[text.es.flows.rebuild]
+title = "Reconstruir un servicio"
+steps = [
+  "Un contenedor se rompe sin arreglo.",
+  "Terraform lo vuelve a crear.",
+  "Igual que estaba.",
+  "Se monta su almacenamiento con los datos.",
+  "El rol lo configura.",
+  "Y el servicio vuelve. Antes era una tarde de prueba y error.",
+]
+
+[text.es.incidents.forcenew]
+title = "Un cambio inocente que destruía cuatro contenedores"
+meta = "16-09-2026 · Terraform"
+symptom = "Quería añadir la clave de SSH del portátil a todos los contenedores desde una lista común. El plan dijo «4 to add, 4 to destroy»."
+options = [
+  "El estado de Terraform estaba corrupto",
+  "La API de Proxmox había cambiado",
+  "Ese campo es de los que obligan a recrear el recurso si cambia",
+  "La lista tenía un error de formato",
+]
+cause = "En el proveedor de Proxmox, las claves de la cuenta del contenedor no se pueden cambiar en sitio: cualquier cambio destruye y crea de nuevo. Habría borrado la base de datos de la mensajería y tumbado la puerta pública."
+fix = "No aplicar ese plan. Añadir las claves a mano en los contenedores existentes; la lista común queda para los que se creen desde ahora."
+lesson = "El plan es el freno. Un «destroy» en algo con datos se lee dos veces, aunque el cambio parezca inocente."
+
+[text.es.incidents.rename]
+title = "Renombrar un recurso"
+meta = "Septiembre de 2026 · Terraform"
+symptom = "Al poner un nombre más claro a un recurso en el código, el plan quiso destruir el contenedor y crear otro igual."
+options = [
+  "Para Terraform, otro nombre es otro recurso: hay que moverlo en el estado",
+  "El nombre tenía caracteres no válidos",
+  "Faltaba un «terraform init»",
+  "El proveedor no admite renombrar",
+]
+cause = "Terraform identifica cada recurso por su dirección en el código. Si cambia, cree que el viejo sobra y que falta uno nuevo."
+fix = "Mover el recurso en el estado a su nombre nuevo antes de aplicar. El plan pasa a no tener cambios."
+lesson = "En Terraform, renombrar no es cosmético. Primero se mueve en el estado, después se comprueba que el plan está vacío."
+
+[text.es.incidents.quotes]
+title = "Comillas que se rompían por el camino"
+meta = "16-09-2026 · scripts"
+symptom = "Un script que registra contenedores en la monitorización fallaba de formas distintas cada vez: comillas cortadas, saltos de línea perdidos."
+options = [
+  "El script tenía errores de sintaxis",
+  "La versión de Python no coincidía",
+  "La red cortaba la conexión",
+  "El código pasaba por tres shells (local, SSH y el contenedor) y cada una interpretaba las comillas",
+]
+cause = "Para llegar al contenedor el código viajaba por tres capas de shell, y cada una reinterpretaba comillas y saltos de línea."
+fix = "Mandar el código siempre en base64 y decodificarlo al otro lado antes de ejecutarlo. El problema desaparece de raíz."
+lesson = "Cuando se parchea caso por caso y sigue fallando, hay que cambiar el transporte, no seguir escapando."
+
+[text.es.incidents.diverged]
+title = "Los respaldos dejaron de recibir commits"
+meta = "09-10-2026 · Git"
+symptom = "Los commits se hacían bien, pero los dos remotos llevaban un rato sin recibir nada. Ningún error a la vista."
+options = [
+  "Se había caducado la clave de SSH",
+  "Rehíce un commit ya empujado y los remotos rechazaban en silencio todo lo siguiente",
+  "El disco del respaldo estaba lleno",
+  "El hook se había borrado",
+]
+cause = "El hook empuja en segundo plano, así que sus errores no se ven. Tras corregir un commit que ya estaba en los remotos, las historias divergieron y cada push posterior se rechazaba."
+fix = "Comprobar qué tenía cada remoto y forzar con protección (solo si nadie ha empujado otra cosa entretanto)."
+lesson = "Lo que corre en segundo plano necesita una comprobación visible. Tras reescribir historia, mirar los remotos."
+
+[[text.es.timeline]]
+title = "Primeros recursos"
+period = "Septiembre de 2026"
+items = [
+  "Token de Proxmox con permisos justos y un contenedor de prueba que luego se retiró.",
+  "La puerta pública, primero clonada y probada, después migrada.",
+  "Mensajería, panel de inicio y DNS de Cloudflare desde la misma lista.",
+]
+
+[[text.es.timeline]]
+title = "Toda la flota"
+period = "Septiembre de 2026"
+items = [
+  "Plex, automatizaciones, documentos y monitorización migrados a código, siempre con el original parado como red.",
+  "Rol de endurecimiento común y registro de monitorización en un comando.",
+]
+
+[[text.es.timeline]]
+title = "Control desde el servidor"
+period = "22-09-2026"
+items = [
+  "El nodo de control pasa de mi PC a un contenedor del servidor, con el plan idéntico en ambos.",
+  "Panel de terminales con los agentes de IA, detrás de la puerta interna.",
+  "Copia pública saneada en GitHub.",
+]
+
+[[text.es.decisions]]
+title = "Qué hace cada herramienta"
+choice = "Terraform crea, Ansible configura"
+why = "Terraform sabe qué existe y lo compara con el código; Ansible sabe dejar una máquina en un estado. Mezclarlos hace que ninguno sepa del todo qué pasa."
+
+[[text.es.decisions]]
+title = "Versiones"
+choice = "Fijadas"
+why = "Volver a ejecutar un playbook no debe actualizar nada por sorpresa. Actualizar es un cambio explícito, con su commit."
+
+[[text.es.decisions]]
+title = "Los datos"
+choice = "Aparte de los roles"
+why = "Un rol que toca datos es un rol que puede borrarlos. Los datos viven en almacenamiento montado y se restauran por su lado."
+
+[[text.es.decisions]]
+title = "Migrar sin riesgo"
+choice = "El original parado, no destruido"
+why = "Cada migración deja el contenedor antiguo apagado como vuelta atrás hasta que el nuevo lleva días funcionando."
+
+[text.es.tech_notes]
+terraform = "Un fichero por contenedor o VM con el proveedor de Proxmox, plan antes de cada aplicación y cuidado con los campos que recrean."
+ansible = "Un rol por servicio, secretos en Ansible Vault, ensayo con --check --diff y actualizaciones de la flota equipo a equipo."
+proxmox = "Terraform habla con su API con un token de permisos justos; el nodo de control vive en un contenedor del propio servidor."
+lxc = "Un contenedor por servicio, casi todos sin privilegios."
+zfs = "Los datos de cada servicio viven en ZFS y se montan; los roles no los tocan."
+git = "Todo versionado, con hook que empuja a dos remotos y una copia pública saneada."
+linux = "Contenedores Debian, Ubuntu y Alpine configurados de forma uniforme."
+traefik = "Sus rutas se generan desde la lista común de servicios."
+dns = "Los registros de Cloudflare se crean y se borran desde la misma lista; el DNS de casa, también configurado desde aquí."
+hardening = "Rol común: SSH solo con clave y desde orígenes concretos, servicios sobrantes fuera y monitorización en todos."
+
+[text.es.close]
+lessons = [
+  "El plan es el freno de mano: un «destroy» inesperado se lee antes de seguir.",
+  "Separar lo que existe (Terraform), cómo está (Ansible) y los datos.",
+  "Migrar con el original parado al lado.",
+]
+next = [
+  "Pasar a código lo que queda a mano: el gestor de stacks Docker con todos sus servicios.",
+  "Llevar también la configuración del router a código.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside the homelab as code · Tito Pinardo Gutiérrez"
+description = "How the whole homelab is managed: Terraform creates the containers on Proxmox, Ansible configures them, every change is reviewed with plan or diff before applying, and everything lives versioned, with encrypted secrets and an automatic backup."
+
+[text.en.ui]
+slot = "1U · IAC"
+face_specs = "Terraform · Ansible · Git"
+state = "In production"
+map_silk = "IAC"
+map_title = "Inside the control node"
+map_intro = "Everything else is created, configured and updated from here. Pick a flow to see how a service is born and what stops it before something breaks."
+vm_title = "Control node · container on Proxmox"
+vm_specs = "Terraform, Ansible and the AI agents"
+outside = "Outside"
+disclaimer = "There's a public, cleaned copy of the repository on my GitHub. No addresses, tokens or firewall rules appear here."
+
+[text.en.hero]
+kicker = "1U unit · Infrastructure as code"
+title = "The homelab as code"
+tagline = "The home services had been set up by hand over years and nobody, me included, knew how to rebuild one. Now Terraform creates each container on Proxmox and an Ansible role configures it; secrets are encrypted, every change is reviewed before it's applied and everything sits in Git with an automatic backup."
+grade = "Rebuilding a service: one command"
+facts = [
+  { label = "How I work", value = "From a control container on the server itself, with the AI agents I work with in terminals I can open from my laptop or the browser." },
+  { label = "The rule", value = "Nothing is applied without first seeing what will change: «terraform plan» or «--check --diff». And pinned versions: rerunning a playbook updates nothing by surprise." },
+  { label = "The public part", value = "A cleaned copy of the repository on GitHub: structure and roles, with no real IPs, secrets or firewall rules." },
+]
+
+[[text.en.stats]]
+value = "1"
+label = "Terraform file per container or VM"
+
+[[text.en.stats]]
+value = "1"
+label = "Ansible role per service"
+
+[[text.en.stats]]
+value = "4 → 0"
+label = "containers a plan would have destroyed, not applied"
+
+[[text.en.stats]]
+value = "2"
+label = "copies of the repository on every commit"
+
+[text.en.groups]
+control = "Control node"
+terraform = "Terraform: what exists"
+ansible = "Ansible: how it's configured"
+fleet = "The fleet"
+
+[text.en.pods.laptop]
+short = "My laptop"
+title = "My laptop"
+text = "From home or the VPN, I open the terminals panel."
+
+[text.en.pods.repo]
+short = "Repository"
+title = "Central repository"
+text = "All the infrastructure: Terraform, inventory, roles, playbooks, scripts and docs."
+
+[text.en.pods.backup]
+short = "Backup"
+title = "Backup repository"
+text = "A hook pushes every commit to a second repository inside the house. It has its own unit."
+
+[text.en.pods.public]
+short = "Public copy"
+title = "Cleaned public copy"
+text = "The version I show: functions with their description, documentation IPs and example domains."
+
+[text.en.pods.proxmoxapi]
+short = "Proxmox API"
+title = "Proxmox API"
+text = "Terraform talks to it with a least-privilege token."
+
+[text.en.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare DNS"
+text = "Public records are created and deleted from the same service list."
+
+[text.en.pods.codeman]
+short = "Web terminals"
+title = "Terminals panel"
+text = "Each agent's real sessions, in tmux, visible from the browser behind the internal door."
+
+[text.en.pods.agents]
+short = "AI agents"
+title = "AI agents"
+text = "The ones I work with: they propose and run things, and I review. On subscriptions, never loose API keys."
+
+[text.en.pods.hook]
+short = "Hook"
+title = "Git hook"
+text = "After every commit, it pushes to both remotes in the background."
+
+[text.en.pods.review]
+short = "Review"
+title = "Review"
+text = "The step that never gets skipped: read the plan or the diff before applying."
+
+[text.en.pods.tf]
+short = "Terraform"
+title = "Terraform"
+text = "Containers and VMs, their CPU, memory, disks, network and firewall."
+
+[text.en.pods.plan]
+short = "plan"
+title = "terraform plan"
+text = "What would be created, changed or destroyed. If it says «destroy» on something with data, it stops."
+
+[text.en.pods.state]
+short = "State"
+title = "Terraform state"
+text = "What Terraform believes exists. It was moved between machines after checking the plan came out identical on both."
+
+[text.en.pods.forcenew]
+short = "ForceNew"
+title = "Changes that recreate"
+text = "Some fields can't be changed in place: changing them destroys and recreates the resource."
+
+[text.en.pods.roles]
+short = "Roles"
+title = "Roles"
+text = "One per service, reusable: packages, configuration, service and a final check."
+
+[text.en.pods.vault]
+short = "Vault"
+title = "Ansible Vault"
+text = "Each group's secrets, encrypted. The public repo only has examples."
+
+[text.en.pods.diff]
+short = "--check --diff"
+title = "Dry run with diff"
+text = "Which files would change and how, without changing anything."
+
+[text.en.pods.services]
+short = "Service list"
+title = "Service list"
+text = "A single list for Traefik routes, Cloudflare DNS and the start page."
+
+[text.en.pods.lxc]
+short = "Containers"
+title = "LXC containers"
+text = "One container per service, almost all unprivileged."
+
+[text.en.pods.hardening]
+short = "Hardening"
+title = "Hardening role"
+text = "Key-only SSH from specific sources, spare services removed and monitoring agents installed."
+
+[text.en.pods.updates]
+short = "Update"
+title = "Updates"
+text = "Packages across the fleet and Docker images, waiting for each container to be healthy before moving on."
+
+[text.en.pods.storage]
+short = "ZFS"
+title = "Data kept apart"
+text = "Data lives on ZFS and is mounted into the container. Roles manage configuration, not data."
+
+[text.en.flows.newservice]
+title = "A service is born"
+steps = [
+  "From my laptop I open the terminals panel.",
+  "I reach the control node's session.",
+  "With an agent, I write the Terraform file for the new container.",
+  "Terraform works out the change.",
+  "The plan says: 1 to add, 0 to destroy.",
+  "I read it. If something unexpected shows up, I stop.",
+  "Terraform applies.",
+  "Through the Proxmox API.",
+  "And the container exists.",
+  "I write the service's role.",
+  "Its secrets, encrypted in the vault.",
+  "Dry run: which files would change.",
+  "I review it.",
+  "I apply the role.",
+  "Hardening and monitoring, the same as everywhere else.",
+  "I add the service to the common list.",
+  "And its DNS is created only if it's public.",
+  "Commit.",
+  "To the central repository.",
+  "And to the backup, in the background.",
+]
+
+[text.en.flows.update]
+title = "I update the fleet"
+steps = [
+  "From the control node, I start the update.",
+  "First, a simulation per machine.",
+  "Kernel, driver or critical-service changes are rejected.",
+  "It's applied machine by machine.",
+  "Each container has to come back healthy before moving to the next.",
+  "And the monitoring agents confirm it.",
+]
+
+[text.en.flows.danger]
+title = "A plan that would have deleted data"
+steps = [
+  "I centralise SSH keys into a single list for every container.",
+  "The plan comes out: 4 to add, 4 to destroy.",
+  "That field can't be changed in place: it would recreate the containers.",
+  "Among them, messaging with its whole database and the public door.",
+  "Not applied. The keys are added by hand to existing ones and the list applies to new ones.",
+]
+
+[text.en.flows.public]
+title = "The public copy"
+steps = [
+  "The real repository has addresses, rules and encrypted secrets.",
+  "A cleaned copy is generated: only structure, names and descriptions; documentation IPs and example domains.",
+  "That's the one on GitHub, audited from a clean clone.",
+]
+
+[text.en.flows.rebuild]
+title = "Rebuilding a service"
+steps = [
+  "A container breaks beyond repair.",
+  "Terraform creates it again.",
+  "Just as it was.",
+  "Its storage with the data is mounted.",
+  "The role configures it.",
+  "And the service is back. It used to be an afternoon of trial and error.",
+]
+
+[text.en.incidents.forcenew]
+title = "An innocent change that destroyed four containers"
+meta = "16-09-2026 · Terraform"
+symptom = "I wanted to add my laptop's SSH key to every container from a common list. The plan said «4 to add, 4 to destroy»."
+options = [
+  "The Terraform state was corrupted",
+  "The Proxmox API had changed",
+  "That field is one of those that force the resource to be recreated if it changes",
+  "The list had a formatting error",
+]
+cause = "In the Proxmox provider, the container account's keys can't be changed in place: any change destroys and recreates it. It would have wiped the messaging database and taken down the public door."
+fix = "Don't apply that plan. Add the keys by hand on existing containers; the common list applies to those created from now on."
+lesson = "The plan is the brake. A «destroy» on something with data gets read twice, however innocent the change looks."
+
+[text.en.incidents.rename]
+title = "Renaming a resource"
+meta = "September 2026 · Terraform"
+symptom = "Giving a resource a clearer name in the code, the plan wanted to destroy the container and create an identical one."
+options = [
+  "To Terraform, a different name is a different resource: it has to be moved in the state",
+  "The name had invalid characters",
+  "A «terraform init» was missing",
+  "The provider doesn't support renaming",
+]
+cause = "Terraform identifies each resource by its address in the code. If it changes, it thinks the old one is surplus and a new one is missing."
+fix = "Move the resource in the state to its new name before applying. The plan then shows no changes."
+lesson = "In Terraform, renaming isn't cosmetic. Move it in the state first, then check the plan is empty."
+
+[text.en.incidents.quotes]
+title = "Quotes breaking on the way"
+meta = "16-09-2026 · scripts"
+symptom = "A script registering containers in monitoring failed differently every time: truncated quotes, lost newlines."
+options = [
+  "The script had syntax errors",
+  "The Python version didn't match",
+  "The network was dropping the connection",
+  "The code went through three shells (local, SSH and the container) and each reinterpreted the quotes",
+]
+cause = "To reach the container the code travelled through three shell layers, and each one reinterpreted quotes and newlines."
+fix = "Always send the code in base64 and decode it on the other side before running it. The problem disappears at the root."
+lesson = "When you patch case by case and it keeps failing, change the transport instead of escaping harder."
+
+[text.en.incidents.diverged]
+title = "The backups stopped getting commits"
+meta = "09-10-2026 · Git"
+symptom = "Commits went through fine, but both remotes hadn't received anything for a while. No visible error."
+options = [
+  "The SSH key had expired",
+  "I rewrote an already pushed commit and the remotes silently rejected everything after",
+  "The backup disk was full",
+  "The hook had been deleted",
+]
+cause = "The hook pushes in the background, so its errors aren't seen. After fixing a commit that was already on the remotes, the histories diverged and every later push was rejected."
+fix = "Check what each remote had and force-push with a lease (only if nobody pushed anything else meanwhile)."
+lesson = "What runs in the background needs a visible check. After rewriting history, look at the remotes."
+
+[[text.en.timeline]]
+title = "First resources"
+period = "September 2026"
+items = [
+  "A least-privilege Proxmox token and a test container later retired.",
+  "The public door, first cloned and tested, then migrated.",
+  "Messaging, start page and Cloudflare DNS from the same list.",
+]
+
+[[text.en.timeline]]
+title = "The whole fleet"
+period = "September 2026"
+items = [
+  "Plex, automations, documents and monitoring moved to code, always with the original stopped as a safety net.",
+  "A common hardening role and monitoring registration in one command.",
+]
+
+[[text.en.timeline]]
+title = "Control from the server"
+period = "22-09-2026"
+items = [
+  "The control node moves from my PC to a container on the server, with an identical plan on both.",
+  "A terminals panel with the AI agents, behind the internal door.",
+  "A cleaned public copy on GitHub.",
+]
+
+[[text.en.decisions]]
+title = "What each tool does"
+choice = "Terraform creates, Ansible configures"
+why = "Terraform knows what exists and compares it with the code; Ansible knows how to bring a machine to a state. Mixing them means neither fully knows what's going on."
+
+[[text.en.decisions]]
+title = "Versions"
+choice = "Pinned"
+why = "Rerunning a playbook mustn't update anything by surprise. Updating is an explicit change, with its commit."
+
+[[text.en.decisions]]
+title = "Data"
+choice = "Kept apart from the roles"
+why = "A role that touches data is a role that can delete it. Data lives on mounted storage and is restored on its own."
+
+[[text.en.decisions]]
+title = "Migrating without risk"
+choice = "The original stopped, not destroyed"
+why = "Each migration leaves the old container switched off as a way back until the new one has been running for days."
+
+[text.en.tech_notes]
+terraform = "One file per container or VM with the Proxmox provider, a plan before every apply and care with fields that recreate."
+ansible = "One role per service, secrets in Ansible Vault, dry runs with --check --diff and fleet updates machine by machine."
+proxmox = "Terraform talks to its API with a least-privilege token; the control node lives in a container on the server itself."
+lxc = "One container per service, almost all unprivileged."
+zfs = "Each service's data lives on ZFS and is mounted; roles don't touch it."
+git = "Everything versioned, with a hook pushing to two remotes and a cleaned public copy."
+linux = "Debian, Ubuntu and Alpine containers configured uniformly."
+traefik = "Its routes are generated from the common service list."
+dns = "Cloudflare records are created and deleted from the same list; the home DNS is configured from here too."
+hardening = "A common role: key-only SSH from specific sources, spare services removed and monitoring everywhere."
+
+[text.en.close]
+lessons = [
+  "The plan is the handbrake: an unexpected «destroy» gets read before going on.",
+  "Keep what exists (Terraform), how it is (Ansible) and the data separate.",
+  "Migrate with the original stopped next to it.",
+]
+next = [
+  "Move what's still manual into code: the Docker stack manager with all its services.",
+  "Move the router configuration into code too.",
+]

@@ -372,6 +372,7 @@ y = 250
 kind = "network"
 group = ""
 tech = ["mikrotik", "vlan", "wireguard"]
+unit = "router"
 
 [[nodes]]
 id = "casa"
@@ -388,6 +389,7 @@ y = 560
 kind = "ai"
 group = ""
 tech = ["llm"]
+unit = "hermes"
 
 [[nodes]]
 id = "github"
@@ -396,6 +398,7 @@ y = 680
 kind = "control"
 group = ""
 tech = ["git"]
+unit = "iac"
 
 # Entrada y red
 [[nodes]]
@@ -405,6 +408,7 @@ y = 146
 kind = "network"
 group = "edge"
 tech = ["traefik"]
+unit = "traefik"
 
 [[nodes]]
 id = "authelia"
@@ -413,6 +417,7 @@ y = 146
 kind = "network"
 group = "edge"
 tech = ["hardening"]
+unit = "authelia"
 
 [[nodes]]
 id = "dns"
@@ -421,6 +426,7 @@ y = 146
 kind = "network"
 group = "edge"
 tech = ["dns"]
+unit = "dns"
 
 [[nodes]]
 id = "dnssync"
@@ -429,6 +435,7 @@ y = 146
 kind = "network"
 group = "edge"
 tech = ["dns"]
+unit = "dns"
 
 # Aplicaciones
 [[nodes]]
@@ -438,6 +445,7 @@ y = 262
 kind = "app"
 group = "apps"
 tech = ["rust", "postgresql"]
+unit = "landing"
 
 [[nodes]]
 id = "postgres"
@@ -446,6 +454,7 @@ y = 262
 kind = "app"
 group = "apps"
 tech = ["postgresql"]
+unit = "landing"
 
 [[nodes]]
 id = "matrix"
@@ -454,6 +463,7 @@ y = 326
 kind = "app"
 group = "apps"
 tech = []
+unit = "matrix"
 
 [[nodes]]
 id = "paperless"
@@ -462,6 +472,7 @@ y = 326
 kind = "app"
 group = "apps"
 tech = ["python", "docker"]
+unit = "paperless"
 
 [[nodes]]
 id = "obsidian"
@@ -470,6 +481,7 @@ y = 390
 kind = "app"
 group = "apps"
 tech = ["docker"]
+unit = "obsidian"
 
 [[nodes]]
 id = "n8n"
@@ -478,6 +490,7 @@ y = 390
 kind = "app"
 group = "apps"
 tech = ["docker"]
+unit = "n8n"
 
 [[nodes]]
 id = "homepage"
@@ -486,6 +499,7 @@ y = 450
 kind = "app"
 group = "apps"
 tech = ["ansible"]
+unit = "homepage"
 
 [[nodes]]
 id = "amp"
@@ -494,6 +508,7 @@ y = 450
 kind = "app"
 group = "apps"
 tech = []
+unit = "amp"
 
 # Multimedia
 [[nodes]]
@@ -503,6 +518,7 @@ y = 262
 kind = "compute"
 group = "media"
 tech = ["proxmox"]
+unit = "plex"
 
 [[nodes]]
 id = "arr"
@@ -511,6 +527,7 @@ y = 262
 kind = "compute"
 group = "media"
 tech = ["docker"]
+unit = "arr"
 
 [[nodes]]
 id = "tv"
@@ -519,6 +536,7 @@ y = 326
 kind = "compute"
 group = "media"
 tech = ["docker"]
+unit = "tv"
 
 [[nodes]]
 id = "gpu"
@@ -527,6 +545,7 @@ y = 326
 kind = "compute"
 group = "media"
 tech = ["proxmox"]
+unit = "plex"
 
 # IA
 [[nodes]]
@@ -536,6 +555,7 @@ y = 438
 kind = "ai"
 group = "ai"
 tech = ["python", "llm"]
+unit = "hermes"
 
 [[nodes]]
 id = "qdrant"
@@ -544,6 +564,7 @@ y = 438
 kind = "ai"
 group = "ai"
 tech = ["llm"]
+unit = "hermes"
 
 # Observabilidad y seguridad
 [[nodes]]
@@ -553,6 +574,7 @@ y = 552
 kind = "observability"
 group = "observability"
 tech = ["zabbix"]
+unit = "zabbix"
 
 [[nodes]]
 id = "wazuh"
@@ -561,6 +583,7 @@ y = 552
 kind = "observability"
 group = "observability"
 tech = ["wazuh"]
+unit = "wazuh"
 
 # Plataforma
 [[nodes]]
@@ -570,6 +593,7 @@ y = 552
 kind = "control"
 group = "platform"
 tech = ["terraform", "ansible"]
+unit = "iac"
 
 [[nodes]]
 id = "zfs"
@@ -578,6 +602,7 @@ y = 552
 kind = "compute"
 group = "platform"
 tech = ["zfs"]
+unit = "zfs"
 
 # Laboratorio
 [[nodes]]
@@ -587,6 +612,7 @@ y = 666
 kind = "control"
 group = "lab"
 tech = ["proxmox", "lxc"]
+unit = "proxmox"
 
 [[nodes]]
 id = "okd"
@@ -595,6 +621,7 @@ y = 666
 kind = "compute"
 group = "lab"
 tech = ["openshift", "kubernetes"]
+unit = "okd"
 
 [[nodes]]
 id = "xpify"
@@ -612,6 +639,7 @@ y = 666
 kind = "control"
 group = "lab"
 tech = ["git"]
+unit = "backup"
 
 # ---------------------------------------------------------------------------
 # Recorridos: el camino que hace algo de verdad por dentro del servidor.

@@ -1,0 +1,823 @@
+# Unidad 1U del rack: TV en directo.
+#
+# Fuente: Obsidian «IPTV con Dispatcharr» (03-10-2026). Solo canales de TDT
+# en abierto. Sin direcciones ni nombres internos.
+
+id = "tv"
+status = "lab"
+host_tech = ["lxc", "terraform", "ansible"]
+links = [
+  ["source", "lists"],
+  ["plex", "hdhr"],
+  ["apps", "m3u"],
+]
+
+[[groups]]
+id = "input"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "out"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "code"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "guard"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "source"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "plex"
+x = 290
+y = 110
+kind = "compute"
+group = ""
+tech = []
+
+[[pods]]
+id = "apps"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "tvset"
+x = 290
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "friends"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "lists"
+x = 515
+y = 140
+kind = "app"
+group = "input"
+tech = ["docker"]
+
+[[pods]]
+id = "epg"
+x = 700
+y = 140
+kind = "app"
+group = "input"
+tech = ["docker"]
+
+[[pods]]
+id = "channels"
+x = 885
+y = 140
+kind = "control"
+group = "input"
+tech = ["ansible"]
+
+[[pods]]
+id = "refresh"
+x = 1070
+y = 140
+kind = "control"
+group = "input"
+tech = []
+
+[[pods]]
+id = "hdhr"
+x = 515
+y = 266
+kind = "network"
+group = "out"
+tech = []
+
+[[pods]]
+id = "m3u"
+x = 700
+y = 266
+kind = "network"
+group = "out"
+tech = []
+
+[[pods]]
+id = "users"
+x = 885
+y = 266
+kind = "control"
+group = "out"
+tech = []
+
+[[pods]]
+id = "remux"
+x = 1070
+y = 266
+kind = "compute"
+group = "out"
+tech = ["docker"]
+
+[[pods]]
+id = "terraform"
+x = 515
+y = 392
+kind = "control"
+group = "code"
+tech = ["terraform"]
+
+[[pods]]
+id = "role"
+x = 700
+y = 392
+kind = "control"
+group = "code"
+tech = ["ansible"]
+
+[[pods]]
+id = "api"
+x = 885
+y = 392
+kind = "control"
+group = "code"
+tech = ["ansible"]
+
+[[pods]]
+id = "twice"
+x = 1070
+y = 392
+kind = "observability"
+group = "code"
+tech = ["ansible"]
+
+[[pods]]
+id = "caddy"
+x = 515
+y = 518
+kind = "network"
+group = "guard"
+tech = ["hardening"]
+
+[[pods]]
+id = "fw"
+x = 700
+y = 518
+kind = "observability"
+group = "guard"
+tech = ["proxmox", "hardening"]
+
+[[pods]]
+id = "zabbix"
+x = 885
+y = 518
+kind = "observability"
+group = "guard"
+tech = ["zabbix"]
+
+[[pods]]
+id = "wazuh"
+x = 1070
+y = 518
+kind = "observability"
+group = "guard"
+tech = ["wazuh"]
+
+[[flows]]
+id = "watch"
+path = ["tvset", "plex", "hdhr", "remux", "source", "remux", "plex", "tvset"]
+
+[[flows]]
+id = "app"
+path = ["apps", "m3u", "epg", "m3u", "remux", "apps"]
+
+[[flows]]
+id = "build"
+path = ["terraform", "role", "api", "lists", "epg", "channels", "refresh", "twice"]
+
+[[flows]]
+id = "future"
+path = ["friends", "caddy", "users", "m3u", "remux"]
+
+[[incidents]]
+id = "refresh"
+answer = 1
+
+[[incidents]]
+id = "jinja"
+answer = 3
+
+[[incidents]]
+id = "newline"
+answer = 0
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "La TV en directo por dentro · Tito Pinardo Gutiérrez"
+description = "Canales públicos de TDT con su guía, servidos a Plex como si fuera un sintonizador y a las apps de casa como una lista: un contenedor propio montado y configurado entero desde código."
+
+[text.es.ui]
+slot = "1U · LIVE TV"
+face_specs = "Dispatcharr · 52 canales · guía"
+state = "En pruebas"
+map_silk = "TV"
+map_title = "La TV en directo por dentro"
+map_intro = "Un gestor de canales que Plex cree que es un sintonizador. Elige un recorrido."
+vm_title = "Contenedor de TV en directo · Proxmox"
+vm_specs = "sin privilegios, sin GPU"
+outside = "Fuera"
+disclaimer = "Solo canales de TDT española en abierto. Sin direcciones ni nombres internos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Multimedia"
+title = "TV en directo"
+tagline = "Un gestor de canales de TV en directo en su propio contenedor. Carga una lista pública de canales de TDT con su guía de programación y la sirve de tres formas: a Plex, que lo ve como un sintonizador de antena; a las apps de casa, como una lista; y, más adelante, a gente de fuera con un usuario propio cada uno."
+grade = "Configurado por API desde Ansible"
+facts = [
+  { label = "Por qué fuera de Plex", value = "En Plex, la TV en directo solo la ve quien vive en casa, nunca los amigos con los que se comparte la biblioteca. Un gestor aparte puede dársela a quien yo quiera." },
+  { label = "Por qué un contenedor propio", value = "Cuando se abra a internet no debe compartir contenedor con la puerta interna ni con la biblioteca. Y el streaming queda aislado." },
+  { label = "Cómo se configura", value = "Nada a mano: Ansible crea el administrador, la lista, la guía y los canales por la API, y solo crea lo que falta." },
+]
+
+[[text.es.stats]]
+value = "52"
+label = "canales elegidos en una lista explícita"
+
+[[text.es.stats]]
+value = "3.078"
+label = "programas en la guía"
+
+[[text.es.stats]]
+value = "0"
+label = "cambios en la segunda pasada del playbook"
+
+[[text.es.stats]]
+value = "2,5 %"
+label = "de CPU en reposo, sin GPU"
+
+[text.es.groups]
+input = "Entrada"
+out = "Salidas"
+code = "Desde código"
+guard = "Protección y vigilancia"
+
+[text.es.pods.source]
+short = "Lista pública"
+title = "Lista pública de TDT"
+text = "Canales de TDT española en abierto, con identificadores para emparejar la guía."
+
+[text.es.pods.plex]
+short = "Plex"
+title = "Plex"
+text = "Lo ve como un sintonizador de antena y añade su TV en directo y su grabador."
+
+[text.es.pods.apps]
+short = "Apps de casa"
+title = "Apps de IPTV de casa"
+text = "En el móvil o la tele, con la lista y la guía."
+
+[text.es.pods.tvset]
+short = "La tele"
+title = "La tele"
+text = "Viendo un canal desde Plex."
+
+[text.es.pods.friends]
+short = "Gente de fuera"
+title = "Gente de fuera (pendiente)"
+text = "La fase siguiente: cada uno con su usuario y sus canales."
+
+[text.es.pods.lists]
+short = "Lista"
+title = "Lista de canales"
+text = "La lista de origen, cargada en el gestor."
+
+[text.es.pods.epg]
+short = "Guía"
+title = "Guía de programación"
+text = "La guía de origen, emparejada canal a canal."
+
+[text.es.pods.channels]
+short = "52 canales"
+title = "Canales elegidos"
+text = "Una lista explícita en el repositorio, en vez de importar grupos enteros."
+
+[text.es.pods.refresh]
+short = "Cada 24 h"
+title = "Recarga diaria"
+text = "La lista y la guía se vuelven a descargar cada día."
+
+[text.es.pods.hdhr]
+short = "Sintonizador"
+title = "Sintonizador emulado"
+text = "El gestor se hace pasar por un sintonizador de red: Plex lo descubre y lo usa como si fuera una antena."
+
+[text.es.pods.m3u]
+short = "Lista M3U"
+title = "Lista para apps"
+text = "Una lista con la guía incluida, para cualquier app de IPTV."
+
+[text.es.pods.users]
+short = "Usuarios"
+title = "Usuarios y permisos"
+text = "Cada usuario puede tener su selección de canales."
+
+[text.es.pods.remux]
+short = "Reempaquetar"
+title = "Reempaquetado"
+text = "El gestor no convierte el vídeo, solo lo reempaqueta. Si hace falta convertir, lo hace Plex con su GPU."
+
+[text.es.pods.terraform]
+short = "Terraform"
+title = "Terraform"
+text = "Crea el contenedor sin privilegios."
+
+[text.es.pods.role]
+short = "Rol de Ansible"
+title = "Rol de Ansible"
+text = "Instala el gestor en Docker y lo configura."
+
+[text.es.pods.api]
+short = "API"
+title = "Configuración por API"
+text = "Administrador, lista, guía, recarga y canales, por la API del gestor. Si algo ya existe, no lo pisa."
+
+[text.es.pods.twice]
+short = "Dos pasadas"
+title = "Dos pasadas"
+text = "El playbook se pasa dos veces: la segunda no debe cambiar nada."
+
+[text.es.pods.caddy]
+short = "Puerta interna"
+title = "Puerta interna"
+text = "La web del gestor, solo desde casa o la VPN, con doble factor y después su login."
+
+[text.es.pods.fw]
+short = "Cortafuegos"
+title = "Cortafuegos del contenedor"
+text = "La administración solo desde mis equipos y la VPN; el servicio, solo desde la red de casa y la VPN."
+
+[text.es.pods.zabbix]
+short = "Zabbix"
+title = "Monitorización"
+text = "Como el resto de la flota."
+
+[text.es.pods.wazuh]
+short = "Wazuh"
+title = "Seguridad"
+text = "Como el resto de la flota."
+
+[text.es.flows.watch]
+title = "Veo un canal en Plex"
+steps = [
+  "Elijo un canal en la tele.",
+  "Plex se lo pide a su «sintonizador».",
+  "El sintonizador emulado lo recibe.",
+  "El gestor pide el vídeo a la fuente.",
+  "La fuente lo manda.",
+  "Se reempaqueta, sin convertir.",
+  "Plex lo recibe; si la tele lo necesita, lo convierte en la GPU.",
+  "Y se ve, con la guía.",
+]
+
+[text.es.flows.app]
+title = "Lo veo en una app"
+steps = [
+  "Una app de IPTV de casa carga la lista.",
+  "La lista del gestor.",
+  "Con su guía emparejada.",
+  "Elijo un canal.",
+  "Se reempaqueta.",
+  "Y se ve en la app.",
+]
+
+[text.es.flows.build]
+title = "Se monta desde cero"
+steps = [
+  "Terraform crea el contenedor.",
+  "Ansible instala el gestor.",
+  "Y lo configura por la API.",
+  "La lista.",
+  "La guía.",
+  "Los 52 canales elegidos.",
+  "La recarga cada 24 horas.",
+  "Segunda pasada: sin cambios. Es idempotente.",
+]
+
+[text.es.flows.future]
+title = "La siguiente fase: gente de fuera"
+steps = [
+  "Un amigo, fuera de casa.",
+  "Entrará por una puerta propia.",
+  "Con su usuario y sus canales.",
+  "Recibirá su lista.",
+  "Y el vídeo, reempaquetado desde casa.",
+]
+
+[text.es.incidents.refresh]
+title = "Una lista que nunca se actualizaba"
+meta = "03-10-2026 · configuración"
+symptom = "La lista de canales creada por la API se cargaba una vez y nunca más se volvía a descargar."
+options = [
+  "La fuente bloqueaba las descargas",
+  "La API la crea con el intervalo de recarga a cero",
+  "El cron del contenedor no arrancaba",
+  "El disco estaba lleno",
+]
+cause = "Desde la web, la recarga diaria viene puesta. Creada por la API, el intervalo es cero: nunca."
+fix = "Fijar las 24 horas al crearla y corregirlo también en las que ya existían."
+lesson = "Automatizar por API no es lo mismo que hacer clic: los valores por defecto pueden ser otros. Hay que comprobar el resultado, no solo que respondió 200."
+
+[text.es.incidents.jinja]
+title = "Un 400 con «'str' object has no attribute 'get'»"
+meta = "03-10-2026 · Ansible"
+symptom = "Al enviar la selección de grupos de canales, la API respondía 400 con un error de Python."
+options = [
+  "La API tenía un fallo",
+  "Faltaba autenticación",
+  "Los nombres de los grupos llevaban tildes",
+  "La lista construida con un bucle de plantilla llegaba como texto, no como lista",
+]
+cause = "Un bucle dentro de una plantilla de Ansible devuelve una cadena que parece una lista. La API esperaba objetos y recibió texto."
+fix = "Construir la lista solo con filtros, que devuelven estructuras de verdad."
+lesson = "En Ansible, lo que parece una lista no siempre lo es. Los filtros mantienen el tipo; las plantillas lo convierten en texto."
+
+[text.es.incidents.newline]
+title = "El cortafuegos cambiaba en cada pasada"
+meta = "03-10-2026 · idempotencia"
+symptom = "Cada vez que se pasaba el playbook, el fichero del cortafuegos del contenedor salía como modificado, aunque nada había cambiado."
+options = [
+  "El módulo añadía un salto de línea al final y el fichero nunca coincidía con la plantilla",
+  "El hipervisor reescribía el fichero",
+  "La plantilla tenía la fecha dentro",
+  "Otro playbook lo tocaba",
+]
+cause = "Ese fichero se escribe a través de la entrada estándar de un comando, y Ansible añade un salto de línea al final. La comparación nunca daba igual."
+fix = "Decirle al módulo que no añada ese salto. La segunda pasada ya da cero cambios."
+lesson = "Si la segunda pasada cambia algo, no es idempotente aunque el resultado sea el mismo. Y el mismo patrón probablemente esté en otros roles: queda apuntado para revisarlos."
+
+[[text.es.timeline]]
+title = "Un intento anterior"
+period = "Septiembre de 2026"
+items = [
+  "Un primer stack de TV en directo que nunca llegó a funcionar y se retiró en una migración.",
+]
+
+[[text.es.timeline]]
+title = "Contenedor propio desde código"
+period = "03-10-2026"
+items = [
+  "Contenedor sin privilegios con Terraform y el gestor configurado por API desde Ansible.",
+  "Plex llega al sintonizador y recibe vídeo válido.",
+  "Lista explícita de 52 canales en el repositorio.",
+]
+
+[[text.es.decisions]]
+title = "Qué gestor"
+choice = "Uno activo, con usuarios"
+why = "El anterior se había quedado parado. Este junta fuentes, empareja la guía, tiene permisos por canal y habla los tres formatos que hacen falta."
+
+[[text.es.decisions]]
+title = "¿Convertir en el servidor?"
+choice = "No, solo reempaquetar"
+why = "Con buena subida, cada uno puede recibir la calidad original. Si una tele de casa la necesita convertida, ya lo hace Plex con su GPU."
+
+[text.es.tech_notes]
+proxmox = "Cortafuegos del contenedor con la administración y el servicio acotados."
+lxc = "Contenedor sin privilegios con anidamiento para Docker."
+terraform = "Crea el contenedor."
+ansible = "Instala el gestor y lo configura por su API: administrador, lista, guía, recarga y canales, sin pisar lo que ya existe."
+docker = "El gestor de canales en Docker, con su base de datos y su cola dentro."
+zabbix = "Vigila el contenedor como al resto."
+wazuh = "Vigila el contenedor como al resto."
+hardening = "Web solo detrás de la puerta interna con doble factor y puertos acotados a casa y la VPN."
+
+[text.es.close]
+lessons = [
+  "Configurar por API exige comprobar el resultado: los valores por defecto no son los de la web.",
+  "Dos pasadas del playbook: la segunda dice si de verdad es idempotente.",
+]
+next = [
+  "Probarlo de verdad en una tele con el grabador de Plex.",
+  "Abrirlo a gente de fuera, cada uno con su usuario, por una puerta propia.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside live TV · Tito Pinardo Gutiérrez"
+description = "Public free-to-air channels with their guide, served to Plex as if it were a tuner and to home apps as a playlist: a container of its own, built and configured entirely from code."
+
+[text.en.ui]
+slot = "1U · LIVE TV"
+face_specs = "Dispatcharr · 52 channels · guide"
+state = "Testing"
+map_silk = "TV"
+map_title = "Inside live TV"
+map_intro = "A channel manager that Plex thinks is a tuner. Pick a flow."
+vm_title = "Live TV container · Proxmox"
+vm_specs = "unprivileged, no GPU"
+outside = "Outside"
+disclaimer = "Only free-to-air Spanish channels. No addresses or internal names."
+
+[text.en.hero]
+kicker = "1U unit · Media"
+title = "Live TV"
+tagline = "A live TV channel manager in its own container. It loads a public list of free-to-air channels with their programme guide and serves it three ways: to Plex, which sees it as an aerial tuner; to home apps, as a playlist; and, later on, to people outside with a user each."
+grade = "Configured through the API from Ansible"
+facts = [
+  { label = "Why outside Plex", value = "In Plex, live TV is only for people who live at home, never the friends the library is shared with. A separate manager can give it to whoever I want." },
+  { label = "Why its own container", value = "Once it opens to the internet it mustn't share a container with the internal door or the library. And streaming stays isolated." },
+  { label = "How it's configured", value = "Nothing by hand: Ansible creates the admin, list, guide and channels through the API, and only creates what's missing." },
+]
+
+[[text.en.stats]]
+value = "52"
+label = "channels picked in an explicit list"
+
+[[text.en.stats]]
+value = "3,078"
+label = "programmes in the guide"
+
+[[text.en.stats]]
+value = "0"
+label = "changes on the playbook's second pass"
+
+[[text.en.stats]]
+value = "2.5 %"
+label = "CPU at idle, no GPU"
+
+[text.en.groups]
+input = "Input"
+out = "Outputs"
+code = "From code"
+guard = "Protection and monitoring"
+
+[text.en.pods.source]
+short = "Public list"
+title = "Public free-to-air list"
+text = "Free-to-air Spanish channels, with IDs to match the guide."
+
+[text.en.pods.plex]
+short = "Plex"
+title = "Plex"
+text = "Sees it as an aerial tuner and adds its live TV and recorder."
+
+[text.en.pods.apps]
+short = "Home apps"
+title = "Home IPTV apps"
+text = "On a phone or TV, with the playlist and guide."
+
+[text.en.pods.tvset]
+short = "The TV"
+title = "The TV"
+text = "Watching a channel through Plex."
+
+[text.en.pods.friends]
+short = "People outside"
+title = "People outside (pending)"
+text = "The next phase: each with their own user and channels."
+
+[text.en.pods.lists]
+short = "List"
+title = "Channel list"
+text = "The source list, loaded into the manager."
+
+[text.en.pods.epg]
+short = "Guide"
+title = "Programme guide"
+text = "The source guide, matched channel by channel."
+
+[text.en.pods.channels]
+short = "52 channels"
+title = "Chosen channels"
+text = "An explicit list in the repository, instead of importing whole groups."
+
+[text.en.pods.refresh]
+short = "Every 24 h"
+title = "Daily refresh"
+text = "The list and guide are downloaded again every day."
+
+[text.en.pods.hdhr]
+short = "Tuner"
+title = "Emulated tuner"
+text = "The manager pretends to be a network tuner: Plex discovers it and uses it like an aerial."
+
+[text.en.pods.m3u]
+short = "M3U list"
+title = "Playlist for apps"
+text = "A playlist with the guide included, for any IPTV app."
+
+[text.en.pods.users]
+short = "Users"
+title = "Users and permissions"
+text = "Each user can have their own channel selection."
+
+[text.en.pods.remux]
+short = "Remux"
+title = "Remuxing"
+text = "The manager doesn't convert video, it only repackages it. If conversion is needed, Plex does it on its GPU."
+
+[text.en.pods.terraform]
+short = "Terraform"
+title = "Terraform"
+text = "Creates the unprivileged container."
+
+[text.en.pods.role]
+short = "Ansible role"
+title = "Ansible role"
+text = "Installs the manager on Docker and configures it."
+
+[text.en.pods.api]
+short = "API"
+title = "Configuration through the API"
+text = "Admin, list, guide, refresh and channels, through the manager's API. If something already exists, it's left alone."
+
+[text.en.pods.twice]
+short = "Two passes"
+title = "Two passes"
+text = "The playbook runs twice: the second must change nothing."
+
+[text.en.pods.caddy]
+short = "Internal door"
+title = "Internal door"
+text = "The manager's web UI, only from home or the VPN, with two-factor and then its login."
+
+[text.en.pods.fw]
+short = "Firewall"
+title = "Container firewall"
+text = "Admin only from my machines and the VPN; the service only from the home network and the VPN."
+
+[text.en.pods.zabbix]
+short = "Zabbix"
+title = "Monitoring"
+text = "Like the rest of the fleet."
+
+[text.en.pods.wazuh]
+short = "Wazuh"
+title = "Security"
+text = "Like the rest of the fleet."
+
+[text.en.flows.watch]
+title = "I watch a channel in Plex"
+steps = [
+  "I pick a channel on the TV.",
+  "Plex asks its «tuner» for it.",
+  "The emulated tuner receives the request.",
+  "The manager asks the source for the video.",
+  "The source sends it.",
+  "It's repackaged, not converted.",
+  "Plex receives it; if the TV needs it, it converts it on the GPU.",
+  "And it plays, with the guide.",
+]
+
+[text.en.flows.app]
+title = "I watch it in an app"
+steps = [
+  "A home IPTV app loads the playlist.",
+  "The manager's playlist.",
+  "With its matched guide.",
+  "I pick a channel.",
+  "It's repackaged.",
+  "And it plays in the app.",
+]
+
+[text.en.flows.build]
+title = "Built from scratch"
+steps = [
+  "Terraform creates the container.",
+  "Ansible installs the manager.",
+  "And configures it through the API.",
+  "The list.",
+  "The guide.",
+  "The 52 chosen channels.",
+  "The refresh every 24 hours.",
+  "Second pass: no changes. It's idempotent.",
+]
+
+[text.en.flows.future]
+title = "The next phase: people outside"
+steps = [
+  "A friend, away from my home.",
+  "They'll come in through a door of their own.",
+  "With their user and channels.",
+  "They'll get their playlist.",
+  "And the video, repackaged from home.",
+]
+
+[text.en.incidents.refresh]
+title = "A list that never refreshed"
+meta = "03-10-2026 · configuration"
+symptom = "The channel list created through the API loaded once and was never downloaded again."
+options = [
+  "The source was blocking downloads",
+  "The API creates it with a refresh interval of zero",
+  "The container's cron didn't start",
+  "The disk was full",
+]
+cause = "From the web UI, the daily refresh is set by default. Created through the API, the interval is zero: never."
+fix = "Set 24 hours when creating it and correct it on the existing ones too."
+lesson = "Automating through an API isn't the same as clicking: defaults can differ. Check the result, not just that it returned 200."
+
+[text.en.incidents.jinja]
+title = "A 400 with «'str' object has no attribute 'get'»"
+meta = "03-10-2026 · Ansible"
+symptom = "When sending the channel group selection, the API answered 400 with a Python error."
+options = [
+  "The API had a bug",
+  "Authentication was missing",
+  "The group names had accents",
+  "The list built with a template loop arrived as text, not as a list",
+]
+cause = "A loop inside an Ansible template returns a string that looks like a list. The API expected objects and got text."
+fix = "Build the list only with filters, which return real structures."
+lesson = "In Ansible, what looks like a list isn't always one. Filters keep the type; templates turn it into text."
+
+[text.en.incidents.newline]
+title = "The firewall changed on every pass"
+meta = "03-10-2026 · idempotence"
+symptom = "Every time the playbook ran, the container's firewall file came out as modified, even though nothing had changed."
+options = [
+  "The module added a trailing newline and the file never matched the template",
+  "The hypervisor rewrote the file",
+  "The template had the date in it",
+  "Another playbook was touching it",
+]
+cause = "That file is written through a command's standard input, and Ansible appends a newline. The comparison never matched."
+fix = "Tell the module not to add that newline. The second pass now reports zero changes."
+lesson = "If the second pass changes anything, it isn't idempotent even if the result is the same. And the same pattern is probably in other roles: noted to review them."
+
+[[text.en.timeline]]
+title = "An earlier attempt"
+period = "September 2026"
+items = [
+  "A first live TV stack that never worked and was retired during a migration.",
+]
+
+[[text.en.timeline]]
+title = "Its own container, from code"
+period = "03-10-2026"
+items = [
+  "An unprivileged container with Terraform and the manager configured through the API from Ansible.",
+  "Plex reaches the tuner and gets valid video.",
+  "An explicit list of 52 channels in the repository.",
+]
+
+[[text.en.decisions]]
+title = "Which manager"
+choice = "An active one, with users"
+why = "The previous one had stalled. This one merges sources, matches the guide, has per-channel permissions and speaks the three formats needed."
+
+[[text.en.decisions]]
+title = "Convert on the server?"
+choice = "No, just repackage"
+why = "With good upload, everyone can get the original quality. If a TV at home needs it converted, Plex already does that on its GPU."
+
+[text.en.tech_notes]
+proxmox = "Container firewall with admin and the service scoped."
+lxc = "An unprivileged container with nesting for Docker."
+terraform = "Creates the container."
+ansible = "Installs the manager and configures it through its API: admin, list, guide, refresh and channels, without overwriting what exists."
+docker = "The channel manager on Docker, with its database and queue inside."
+zabbix = "Watches the container like the rest."
+wazuh = "Watches the container like the rest."
+hardening = "Web UI only behind the internal door with two-factor and ports scoped to home and the VPN."
+
+[text.en.close]
+lessons = [
+  "Configuring through an API means checking the result: defaults aren't the web UI's.",
+  "Two playbook passes: the second tells you if it's really idempotent.",
+]
+next = [
+  "Test it for real on a TV with Plex's recorder.",
+  "Open it to people outside, each with their own user, through a door of their own.",
+]

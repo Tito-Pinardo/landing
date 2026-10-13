@@ -1,0 +1,899 @@
+# Unidad 1U del rack: Matrix (Synapse + Element).
+#
+# Fuente: Obsidian «Terraform en Proxmox» (Synapse, Element y las alertas
+# cifradas) y el runbook del asistente (salas e incidentes). Sin nombres de
+# salas, usuarios, dominios ni direcciones.
+
+id = "matrix"
+status = "live"
+host_tech = ["lxc", "linux", "terraform", "ansible"]
+links = [
+  ["phone", "cloudflare"],
+  ["cloudflare", "traefik"],
+  ["zabbix", "relay"],
+  ["wazuh", "relay"],
+]
+
+[[groups]]
+id = "front"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "server"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "bots"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "rooms"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "phone"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "cloudflare"
+x = 290
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "traefik"
+x = 290
+y = 250
+kind = "network"
+group = ""
+tech = ["traefik"]
+
+[[pods]]
+id = "zabbix"
+x = 100
+y = 420
+kind = "observability"
+group = ""
+tech = ["zabbix"]
+
+[[pods]]
+id = "wazuh"
+x = 290
+y = 420
+kind = "observability"
+group = ""
+tech = ["wazuh"]
+
+[[pods]]
+id = "web"
+x = 100
+y = 540
+kind = "app"
+group = ""
+tech = []
+
+[[pods]]
+id = "element"
+x = 515
+y = 140
+kind = "app"
+group = "front"
+tech = ["linux"]
+
+[[pods]]
+id = "block"
+x = 700
+y = 140
+kind = "network"
+group = "front"
+tech = ["traefik", "hardening"]
+
+[[pods]]
+id = "client_api"
+x = 885
+y = 140
+kind = "network"
+group = "front"
+tech = ["hardening"]
+
+[[pods]]
+id = "nofed"
+x = 1070
+y = 140
+kind = "observability"
+group = "front"
+tech = ["hardening"]
+
+[[pods]]
+id = "synapse"
+x = 515
+y = 266
+kind = "app"
+group = "server"
+tech = ["linux"]
+
+[[pods]]
+id = "postgres"
+x = 700
+y = 266
+kind = "app"
+group = "server"
+tech = ["postgresql"]
+
+[[pods]]
+id = "confd"
+x = 885
+y = 266
+kind = "control"
+group = "server"
+tech = ["ansible"]
+
+[[pods]]
+id = "register"
+x = 1070
+y = 266
+kind = "control"
+group = "server"
+tech = ["ansible", "hardening"]
+
+[[pods]]
+id = "relay"
+x = 515
+y = 392
+kind = "control"
+group = "bots"
+tech = ["python"]
+
+[[pods]]
+id = "keys"
+x = 700
+y = 392
+kind = "control"
+group = "bots"
+tech = ["python"]
+
+[[pods]]
+id = "hermes"
+x = 885
+y = 392
+kind = "ai"
+group = "bots"
+tech = ["python"]
+
+[[pods]]
+id = "webbot"
+x = 1070
+y = 392
+kind = "app"
+group = "bots"
+tech = []
+
+[[pods]]
+id = "alerts"
+x = 515
+y = 518
+kind = "observability"
+group = "rooms"
+tech = []
+
+[[pods]]
+id = "assistant"
+x = 700
+y = 518
+kind = "ai"
+group = "rooms"
+tech = []
+
+[[pods]]
+id = "topic"
+x = 885
+y = 518
+kind = "app"
+group = "rooms"
+tech = []
+
+[[pods]]
+id = "contact"
+x = 1070
+y = 518
+kind = "app"
+group = "rooms"
+tech = []
+
+[[flows]]
+id = "chat"
+path = ["phone", "cloudflare", "traefik", "client_api", "synapse", "postgres", "synapse", "assistant", "hermes"]
+
+[[flows]]
+id = "alert"
+path = ["zabbix", "relay", "keys", "synapse", "alerts", "phone"]
+
+[[flows]]
+id = "contact"
+path = ["web", "webbot", "synapse", "contact", "phone"]
+
+[[flows]]
+id = "probe"
+path = ["phone", "traefik", "block", "nofed", "register"]
+
+[[flows]]
+id = "deploy"
+path = ["confd", "register", "synapse", "postgres", "element"]
+
+[[incidents]]
+id = "templates"
+answer = 1
+
+[[incidents]]
+id = "decrypt"
+answer = 3
+
+[[incidents]]
+id = "nxdomain"
+answer = 2
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Matrix por dentro · Tito Pinardo Gutiérrez"
+description = "Mi propio servidor de mensajería: Synapse privado de verdad (sin registro ni federación), Element, avisos cifrados de extremo a extremo desde la monitorización y los bots que viven en él."
+
+[text.es.ui]
+slot = "1U · MATRIX"
+face_specs = "Synapse · Element · E2EE"
+state = "En producción"
+map_silk = "CHAT"
+map_title = "La mensajería por dentro"
+map_intro = "Aquí llegan Hermes, los avisos del servidor y los mensajes de esta web. Elige un recorrido."
+vm_title = "Contenedores de Matrix · Proxmox"
+vm_specs = "Synapse + PostgreSQL · Element aparte"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin dominios, salas, usuarios ni direcciones."
+
+[text.es.hero]
+kicker = "Unidad 1U · Comunicación"
+title = "Matrix · mi servidor de mensajería"
+tagline = "Un servidor de chat propio, cerrado: nadie puede registrarse y no habla con otros servidores. Desde el móvil hablo con Hermes, recibo los avisos importantes del homelab cifrados de extremo a extremo y me entero de los mensajes de esta web."
+grade = "Privado de verdad: sin registro ni federación"
+facts = [
+  { label = "Por qué propio", value = "Los avisos del servidor hablan de mi infraestructura y Hermes lee mi correo. Eso no tenía que pasar por un servicio de terceros." },
+  { label = "Cómo está montado", value = "Synapse con su PostgreSQL en un contenedor, Element en otro: el que tiene estado no se mezcla con un sitio estático. Paquetes oficiales, sin Docker." },
+  { label = "Quién escribe", value = "Cada bot con su usuario sin permisos de administración: el de alertas, Hermes y el de esta web. Si uno cae, no arrastra a los demás." },
+]
+
+[[text.es.stats]]
+value = "0"
+label = "registros abiertos y servidores federados"
+
+[[text.es.stats]]
+value = "E2EE"
+label = "en las salas de alertas, verificado en los eventos"
+
+[[text.es.stats]]
+value = "3"
+label = "bots, cada uno con su usuario y su sala"
+
+[[text.es.stats]]
+value = "5/5"
+label = "avisos fallidos que nadie había visto"
+
+[text.es.groups]
+front = "Entrada"
+server = "Servidor"
+bots = "Quién escribe"
+rooms = "Salas"
+
+[text.es.pods.phone]
+short = "Mi móvil"
+title = "Element en el móvil"
+text = "Desde aquí hablo con Hermes y recibo los avisos, sin VPN."
+
+[text.es.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "Delante del dominio de la mensajería."
+
+[text.es.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "La puerta pública: solo deja pasar lo que el cliente necesita."
+
+[text.es.pods.zabbix]
+short = "Zabbix"
+title = "Monitorización"
+text = "Manda sus problemas graves a la sala de alertas."
+
+[text.es.pods.wazuh]
+short = "Wazuh"
+title = "Seguridad"
+text = "Manda los eventos de nivel alto, agrupados para no inundar."
+
+[text.es.pods.web]
+short = "Esta web"
+title = "Esta web"
+text = "Avisa cuando alguien escribe por el formulario."
+
+[text.es.pods.element]
+short = "Element Web"
+title = "Element Web"
+text = "El cliente web, servido por nginx en un contenedor mínimo. Sin estado: se puede reconstruir en minutos."
+
+[text.es.pods.block]
+short = "Página bloqueada"
+title = "Página de prueba bloqueada"
+text = "Synapse enseña de serie una página de «está funcionando» que no se puede desactivar. Una regla de Traefik la reescribe para que dé 404 sin tocar lo que necesita el cliente."
+
+[text.es.pods.client_api]
+short = "API de cliente"
+title = "Solo la API de cliente"
+text = "El servidor solo sirve lo que usan las aplicaciones. Ni siquiera expone la parte que habla con otros servidores."
+
+[text.es.pods.nofed]
+short = "Sin federación"
+title = "Federación apagada"
+text = "No es un filtro: el servicio de federación no existe. Ningún otro servidor puede hablar con este."
+
+[text.es.pods.synapse]
+short = "Synapse"
+title = "Synapse"
+text = "El servidor de referencia de Matrix, del paquete oficial."
+
+[text.es.pods.postgres]
+short = "PostgreSQL"
+title = "PostgreSQL local"
+text = "Historial, salas y claves de dispositivos. Local porque es solo de Synapse: no hay que compartirlo."
+
+[text.es.pods.confd]
+short = "conf.d"
+title = "Configuración por encima"
+text = "Ansible no toca el fichero principal, que guarda las claves que genera el paquete: despliega solo un fichero de ajustes que Synapse fusiona."
+
+[text.es.pods.register]
+short = "Registro cerrado"
+title = "Registro cerrado"
+text = "Las cuentas solo se crean con un secreto que vive cifrado en el vault de Ansible."
+
+[text.es.pods.relay]
+short = "Relay cifrado"
+title = "Relay de alertas"
+text = "Un demonio con su propio dispositivo Matrix. Las herramientas de monitorización le pasan el aviso y él lo envía cifrado de verdad."
+
+[text.es.pods.keys]
+short = "Claves E2EE"
+title = "Claves del dispositivo"
+text = "Para cifrar hace falta un dispositivo con sesiones vivas. Por eso el relay sincroniza todo el rato: si me uno a una sala más tarde, se entera."
+
+[text.es.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "El asistente, con su propio usuario. Solo responde en la sala a la que lo invité primero."
+
+[text.es.pods.webbot]
+short = "Bot de la web"
+title = "Bot de esta web"
+text = "Un usuario propio que solo puede escribir en su sala. Si alguien comprometiera la web, el token no sirve para nada más."
+
+[text.es.pods.alerts]
+short = "Alertas"
+title = "Sala de alertas"
+text = "Solo lo grave: severidad alta en la monitorización y nivel 12 o más en seguridad."
+
+[text.es.pods.assistant]
+short = "Asistente"
+title = "Sala del asistente"
+text = "Donde hablo con Hermes."
+
+[text.es.pods.topic]
+short = "Salas por tema"
+title = "Salas por tema"
+text = "Una por vigilante (copias, certificados, red…), más correo y eventos. Cada una solo habla cuando hay algo."
+
+[text.es.pods.contact]
+short = "Web"
+title = "Sala de la web"
+text = "Los mensajes del formulario de contacto."
+
+[text.es.flows.chat]
+title = "Hablo con Hermes"
+steps = [
+  "Escribo en Element desde el móvil, fuera de casa y sin VPN.",
+  "Cloudflare recibe la petición.",
+  "Traefik la pasa al servidor de Matrix.",
+  "Solo existe la API de cliente: es lo que usa el móvil.",
+  "Synapse recibe el mensaje.",
+  "Lo guarda en su PostgreSQL.",
+  "Y lo reparte a los dispositivos de la sala.",
+  "La sala del asistente.",
+  "Hermes lo recibe y empieza su turno.",
+]
+
+[text.es.flows.alert]
+title = "Una alerta grave"
+steps = [
+  "La monitorización detecta un problema de severidad alta.",
+  "Lo pasa al relay local, con un secreto compartido para que nadie de la red pueda inyectar avisos falsos.",
+  "El relay lo cifra con las claves de su dispositivo.",
+  "Synapse lo guarda y lo reparte cifrado: solo los dispositivos de la sala pueden leerlo.",
+  "Llega a la sala de alertas.",
+  "Me suena el móvil.",
+]
+
+[text.es.flows.contact]
+title = "Alguien me escribe por la web"
+steps = [
+  "Alguien envía el formulario de esta web.",
+  "El bot propio de la web manda el aviso.",
+  "Synapse confirma con un identificador de evento. Sin esa confirmación, la web lo reintenta.",
+  "Llega a la sala de la web.",
+  "Lo veo en el móvil.",
+]
+
+[text.es.flows.probe]
+title = "Alguien husmea el servidor"
+steps = [
+  "Alguien en internet abre el dominio de la mensajería.",
+  "Traefik lo recibe.",
+  "Busca la página de «está funcionando»: recibe un 404.",
+  "Intenta hablar como otro servidor de Matrix: ese servicio no existe.",
+  "Intenta registrarse: el registro está cerrado. Solo puede ver la pantalla de inicio de sesión.",
+]
+
+[text.es.flows.deploy]
+title = "Ansible monta el servidor"
+steps = [
+  "Ansible despliega un fichero de ajustes al lado de la configuración que generó el paquete, sin tocar sus claves.",
+  "Registro cerrado y secreto de alta, desde el vault.",
+  "Synapse arranca y fusiona las dos configuraciones.",
+  "Conectado a su PostgreSQL local.",
+  "Element se despliega en su propio contenedor, mínimo.",
+]
+
+[text.es.incidents.templates]
+title = "Un canal de alertas que nunca había funcionado"
+meta = "17-09-2026 · alertas"
+symptom = "El canal de alertas graves hacia Matrix llevaba dos días creado. El relay estaba encendido y probado. Pero al revisar el histórico real, sus 5 avisos habían fallado todos."
+options = [
+  "El relay no tenía permisos en la sala",
+  "Al tipo de aviso le faltaban las plantillas de mensaje: Zabbix ni siquiera llamaba al script",
+  "El cifrado rechazaba los mensajes",
+  "El secreto compartido estaba mal",
+]
+cause = "Al crear el canal en Zabbix faltaron las plantillas de «problema», «recuperado» y «actualización». Sin texto que generar, Zabbix ni siquiera invocaba el script, y el error solo se veía en su histórico."
+fix = "Añadir las tres plantillas con el mismo formato que el canal antiguo y probar con un aviso real, no con un «el bot está encendido»."
+lesson = "Que un componente esté encendido no dice que funcione. Para saber si un canal de alertas funciona hay que mirar si llegaron las alertas."
+
+[text.es.incidents.decrypt]
+title = "«No se puede descifrar el mensaje»"
+meta = "17-09-2026 · cifrado"
+symptom = "Un audio de Hermes apareció en Element como «Unable to decrypt message», en el móvil y en el PC. Reiniciar el bot no lo arreglaba: los siguientes mensajes cifrados también fallaban."
+options = [
+  "El servidor perdió las claves de la sala",
+  "El móvil no tenía verificada la sesión",
+  "El audio era demasiado grande",
+  "Un script externo escribió en el almacén de claves del bot mientras el bot seguía vivo",
+]
+cause = "Un script que mandó un mensaje «desde fuera» abrió el almacén de cifrado del bot mientras el proceso seguía corriendo, y dejó corrupto en disco su estado de sesiones. Cada reinicio volvía a cargar el mismo estado roto."
+fix = "Poner en cuarentena el almacén corrupto (sin borrarlo) y dejar que el bot entrara con un dispositivo nuevo desde cero. Lo volví a verificar en Element; aquel audio se perdió."
+lesson = "El estado de cifrado es de un solo proceso. Nunca se toca sin parar el servicio y comprobar que de verdad se paró."
+
+[text.es.incidents.nxdomain]
+title = "«No se encuentra el servidor» recién creado"
+meta = "15-09-2026 · DNS"
+symptom = "Acababa de crear el registro público del cliente web. Resolvía bien en cualquier DNS público, pero desde casa el navegador decía que no existía."
+options = [
+  "Cloudflare aún no había propagado el registro",
+  "El navegador tenía el error en caché",
+  "El DNS de casa había guardado en caché el «no existe» de antes de crearlo",
+  "El router bloqueaba el dominio",
+]
+cause = "Alguien había preguntado por ese nombre antes de que existiera, y el DNS de casa guardó la respuesta negativa. Reiniciar el servicio no basta: esa caché se guarda en disco y se recarga."
+fix = "Vaciar la caché por su API. Desde entonces, al crear un registro nuevo, es un paso más del procedimiento."
+lesson = "Las cachés también guardan los «no». Y una caché persistente sobrevive al reinicio que debería limpiarla."
+
+[[text.es.timeline]]
+title = "Cliente y servidor"
+period = "15-09-2026"
+items = [
+  "Element Web en un contenedor mínimo con nginx.",
+  "Synapse con su PostgreSQL en otro, privado: sin registro ni federación.",
+  "Todo creado con Terraform y configurado con Ansible.",
+]
+
+[[text.es.timeline]]
+title = "Avisos cifrados"
+period = "16 y 17-09-2026"
+items = [
+  "Relay con dispositivo propio para enviar avisos cifrados de extremo a extremo.",
+  "Monitorización y seguridad conectadas, con umbrales más estrictos que el canal antiguo: solo lo que hay que revisar.",
+  "El canal arreglado de verdad tras mirar su histórico.",
+]
+
+[[text.es.timeline]]
+title = "Un espacio para la casa"
+period = "Septiembre y octubre de 2026"
+items = [
+  "Salas por tema para Hermes y sus vigilantes.",
+  "El bot propio de esta web, en su sala.",
+]
+
+[[text.es.decisions]]
+title = "Qué servidor"
+choice = "Synapse, el de referencia"
+why = "El más maduro y documentado. El argumento clásico de la alternativa, gastar menos, no pesa en este servidor."
+
+[[text.es.decisions]]
+title = "¿Público o detrás de la VPN?"
+choice = "Público, pero cerrado"
+why = "El objetivo era usarlo desde el móvil sin VPN. Se compensa con registro cerrado, federación apagada de verdad y solo la API de cliente expuesta."
+
+[[text.es.decisions]]
+title = "Un bot para todo o uno por función"
+choice = "Uno por función, sin administración"
+why = "El relay de alertas, Hermes y el bot de la web tienen usuarios distintos. Si uno se compromete, solo puede escribir en lo suyo."
+
+[text.es.tech_notes]
+terraform = "Crea los contenedores de Synapse y de Element."
+ansible = "Despliega Synapse con su configuración por encima de la del paquete, cierra el registro y guarda el secreto de alta cifrado."
+lxc = "Synapse y Element en contenedores separados: el que tiene estado no se mezcla con el estático."
+traefik = "La puerta pública, con una regla dedicada que esconde la página de prueba de Synapse."
+linux = "Paquetes oficiales y nginx con systemd, sin Docker."
+zabbix = "Manda sus problemas de severidad alta a la sala de alertas a través del relay."
+wazuh = "Manda sus eventos de nivel 12 o más, agrupados para no repetir."
+hardening = "Registro cerrado, federación inexistente, solo la API de cliente, página de prueba oculta y bots sin administración."
+python = "El relay de alertas con matrix-nio: sesión persistente, sincronización continua y un endpoint local protegido con secreto."
+postgresql = "La base de datos de Synapse, local y solo suya."
+
+[text.es.close]
+lessons = [
+  "Comprobar los canales de aviso por lo que llega, no por lo que está encendido.",
+  "El cifrado de extremo a extremo tiene estado: se trata como una base de datos de un solo proceso.",
+  "Público no tiene por qué significar abierto: lo que no se sirve no se puede atacar.",
+]
+next = [
+  "Avisos de «recuperado» en la sala de alertas, para cerrar cada problema.",
+  "Copias del almacén de claves de los bots, con el servicio parado.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Matrix · Tito Pinardo Gutiérrez"
+description = "My own messaging server: a truly private Synapse (no sign-ups, no federation), Element, end-to-end encrypted alerts from monitoring and the bots that live in it."
+
+[text.en.ui]
+slot = "1U · MATRIX"
+face_specs = "Synapse · Element · E2EE"
+state = "In production"
+map_silk = "CHAT"
+map_title = "Inside the messaging"
+map_intro = "Hermes, the server's alerts and this site's messages all arrive here. Pick a flow."
+vm_title = "Matrix containers · Proxmox"
+vm_specs = "Synapse + PostgreSQL · Element separate"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no domains, rooms, users or addresses."
+
+[text.en.hero]
+kicker = "1U unit · Communication"
+title = "Matrix · my messaging server"
+tagline = "A chat server of my own, closed: nobody can sign up and it doesn't talk to other servers. From my phone I talk to Hermes, get the homelab's important alerts end-to-end encrypted and hear about messages from this site."
+grade = "Truly private: no sign-ups, no federation"
+facts = [
+  { label = "Why my own", value = "Server alerts talk about my infrastructure and Hermes reads my email. None of that had to go through a third-party service." },
+  { label = "How it's set up", value = "Synapse with its PostgreSQL in one container, Element in another: the stateful one isn't mixed with a static site. Official packages, no Docker." },
+  { label = "Who writes", value = "Each bot with its own user and no admin rights: the alerts one, Hermes and this site's. If one falls, it doesn't drag the others down." },
+]
+
+[[text.en.stats]]
+value = "0"
+label = "open sign-ups and federated servers"
+
+[[text.en.stats]]
+value = "E2EE"
+label = "in the alert rooms, checked on the events"
+
+[[text.en.stats]]
+value = "3"
+label = "bots, each with its own user and room"
+
+[[text.en.stats]]
+value = "5/5"
+label = "failed alerts nobody had noticed"
+
+[text.en.groups]
+front = "Entrance"
+server = "Server"
+bots = "Who writes"
+rooms = "Rooms"
+
+[text.en.pods.phone]
+short = "My phone"
+title = "Element on my phone"
+text = "From here I talk to Hermes and get alerts, with no VPN."
+
+[text.en.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "In front of the messaging domain."
+
+[text.en.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "The public door: it only lets through what the client needs."
+
+[text.en.pods.zabbix]
+short = "Zabbix"
+title = "Monitoring"
+text = "Sends its serious problems to the alerts room."
+
+[text.en.pods.wazuh]
+short = "Wazuh"
+title = "Security"
+text = "Sends high-level events, grouped so as not to flood."
+
+[text.en.pods.web]
+short = "This site"
+title = "This site"
+text = "Sends a notice when someone writes through the contact form."
+
+[text.en.pods.element]
+short = "Element Web"
+title = "Element Web"
+text = "The web client, served by nginx from a minimal container. Stateless: it can be rebuilt in minutes."
+
+[text.en.pods.block]
+short = "Page blocked"
+title = "Test page blocked"
+text = "Synapse ships an «it works» page that can't be switched off. A Traefik rule rewrites it into a 404 without touching what the client needs."
+
+[text.en.pods.client_api]
+short = "Client API"
+title = "Client API only"
+text = "The server only serves what the apps use. It doesn't even expose the part that talks to other servers."
+
+[text.en.pods.nofed]
+short = "No federation"
+title = "Federation off"
+text = "It isn't a filter: the federation service doesn't exist. No other server can talk to this one."
+
+[text.en.pods.synapse]
+short = "Synapse"
+title = "Synapse"
+text = "The reference Matrix server, from the official package."
+
+[text.en.pods.postgres]
+short = "PostgreSQL"
+title = "Local PostgreSQL"
+text = "History, rooms and device keys. Local because it's Synapse's alone: nothing to share."
+
+[text.en.pods.confd]
+short = "conf.d"
+title = "Configuration on top"
+text = "Ansible doesn't touch the main file, which holds the keys the package generated: it only deploys a settings file Synapse merges in."
+
+[text.en.pods.register]
+short = "Sign-ups closed"
+title = "Sign-ups closed"
+text = "Accounts can only be created with a secret kept encrypted in the Ansible vault."
+
+[text.en.pods.relay]
+short = "Encrypted relay"
+title = "Alerts relay"
+text = "A daemon with its own Matrix device. Monitoring tools hand it the alert and it sends it truly encrypted."
+
+[text.en.pods.keys]
+short = "E2EE keys"
+title = "Device keys"
+text = "Encrypting needs a device with live sessions. That's why the relay syncs all the time: if I join a room later, it finds out."
+
+[text.en.pods.hermes]
+short = "Hermes"
+title = "Hermes"
+text = "The assistant, with its own user. It only answers in the room I first invited it to."
+
+[text.en.pods.webbot]
+short = "Site bot"
+title = "This site's bot"
+text = "A user of its own that can only write in its room. If someone compromised the site, the token is good for nothing else."
+
+[text.en.pods.alerts]
+short = "Alerts"
+title = "Alerts room"
+text = "Only what's serious: high severity in monitoring and level 12 or above in security."
+
+[text.en.pods.assistant]
+short = "Assistant"
+title = "Assistant room"
+text = "Where I talk to Hermes."
+
+[text.en.pods.topic]
+short = "Topic rooms"
+title = "Rooms by topic"
+text = "One per watcher (backups, certificates, network…), plus email and events. Each only speaks when there's something."
+
+[text.en.pods.contact]
+short = "Site"
+title = "Site room"
+text = "Messages from the contact form."
+
+[text.en.flows.chat]
+title = "I talk to Hermes"
+steps = [
+  "I type in Element on my phone, away from home and without VPN.",
+  "Cloudflare gets the request.",
+  "Traefik passes it to the Matrix server.",
+  "Only the client API exists: it's what the phone uses.",
+  "Synapse receives the message.",
+  "It stores it in its PostgreSQL.",
+  "And delivers it to the room's devices.",
+  "The assistant's room.",
+  "Hermes gets it and starts its turn.",
+]
+
+[text.en.flows.alert]
+title = "A serious alert"
+steps = [
+  "Monitoring spots a high-severity problem.",
+  "It hands it to the local relay, with a shared secret so nobody on the network can inject fake alerts.",
+  "The relay encrypts it with its device's keys.",
+  "Synapse stores and delivers it encrypted: only the room's devices can read it.",
+  "It reaches the alerts room.",
+  "My phone buzzes.",
+]
+
+[text.en.flows.contact]
+title = "Someone writes to me on the site"
+steps = [
+  "Someone sends this site's contact form.",
+  "The site's own bot sends the notice.",
+  "Synapse confirms with an event ID. Without that confirmation, the site retries.",
+  "It reaches the site's room.",
+  "I see it on my phone.",
+]
+
+[text.en.flows.probe]
+title = "Someone pokes at the server"
+steps = [
+  "Someone on the internet opens the messaging domain.",
+  "Traefik receives it.",
+  "They look for the «it works» page: they get a 404.",
+  "They try to talk as another Matrix server: that service doesn't exist.",
+  "They try to sign up: sign-ups are closed. All they see is the login screen.",
+]
+
+[text.en.flows.deploy]
+title = "Ansible builds the server"
+steps = [
+  "Ansible deploys a settings file next to the configuration the package generated, without touching its keys.",
+  "Sign-ups closed and the registration secret, from the vault.",
+  "Synapse starts and merges both configurations.",
+  "Connected to its local PostgreSQL.",
+  "Element is deployed in its own minimal container.",
+]
+
+[text.en.incidents.templates]
+title = "An alert channel that had never worked"
+meta = "17-09-2026 · alerts"
+symptom = "The serious-alerts channel to Matrix had been set up for two days. The relay was running and tested. But checking the real history, all 5 of its alerts had failed."
+options = [
+  "The relay had no permission in the room",
+  "The alert type had no message templates: Zabbix didn't even call the script",
+  "Encryption was rejecting the messages",
+  "The shared secret was wrong",
+]
+cause = "When the channel was created in Zabbix, the «problem», «recovery» and «update» templates were missing. With no text to generate, Zabbix never invoked the script, and the error only showed in its history."
+fix = "Add the three templates in the same format as the old channel and test with a real alert, not with «the bot is on»."
+lesson = "A component being on doesn't mean it works. To know whether an alert channel works, check whether the alerts arrived."
+
+[text.en.incidents.decrypt]
+title = "«Unable to decrypt message»"
+meta = "17-09-2026 · encryption"
+symptom = "A voice reply from Hermes showed up in Element as «Unable to decrypt message», on phone and PC. Restarting the bot didn't fix it: the next encrypted messages failed too."
+options = [
+  "The server lost the room keys",
+  "The phone hadn't verified the session",
+  "The audio was too big",
+  "An external script wrote to the bot's key store while the bot was still running",
+]
+cause = "A script that sent a message «from outside» opened the bot's encryption store while the process was still running, and left its session state corrupted on disk. Every restart loaded the same broken state."
+fix = "Quarantine the corrupted store (without deleting it) and let the bot log in with a brand-new device. I verified it again in Element; that voice note was lost."
+lesson = "Encryption state belongs to a single process. Never touch it without stopping the service and checking it really stopped."
+
+[text.en.incidents.nxdomain]
+title = "«Server not found», just created"
+meta = "15-09-2026 · DNS"
+symptom = "I had just created the web client's public record. It resolved fine on any public DNS, but from home the browser said it didn't exist."
+options = [
+  "Cloudflare hadn't propagated the record yet",
+  "The browser had the error cached",
+  "The home DNS had cached the «doesn't exist» from before it was created",
+  "The router was blocking the domain",
+]
+cause = "Someone had asked for that name before it existed, and the home DNS kept the negative answer. Restarting the service isn't enough: that cache is saved to disk and reloaded."
+fix = "Flush the cache through its API. Since then, creating a new record has one more step in the procedure."
+lesson = "Caches keep the «no»s too. And a persistent cache survives the restart that should clear it."
+
+[[text.en.timeline]]
+title = "Client and server"
+period = "15-09-2026"
+items = [
+  "Element Web in a minimal container with nginx.",
+  "Synapse with its PostgreSQL in another, private: no sign-ups, no federation.",
+  "All created with Terraform and configured with Ansible.",
+]
+
+[[text.en.timeline]]
+title = "Encrypted alerts"
+period = "16-17-09-2026"
+items = [
+  "A relay with its own device to send end-to-end encrypted alerts.",
+  "Monitoring and security connected, with stricter thresholds than the old channel: only what needs checking.",
+  "The channel truly fixed after checking its history.",
+]
+
+[[text.en.timeline]]
+title = "A space for the house"
+period = "September and October 2026"
+items = [
+  "Topic rooms for Hermes and its watchers.",
+  "This site's own bot, in its room.",
+]
+
+[[text.en.decisions]]
+title = "Which server"
+choice = "Synapse, the reference one"
+why = "The most mature and documented. The classic argument for the alternative, using less, doesn't matter on this server."
+
+[[text.en.decisions]]
+title = "Public or behind the VPN?"
+choice = "Public, but closed"
+why = "The goal was to use it from my phone without VPN. That's balanced with closed sign-ups, federation truly off and only the client API exposed."
+
+[[text.en.decisions]]
+title = "One bot for everything or one per job"
+choice = "One per job, no admin"
+why = "The alerts relay, Hermes and the site's bot have separate users. If one is compromised, it can only write in its own place."
+
+[text.en.tech_notes]
+terraform = "Creates the Synapse and Element containers."
+ansible = "Deploys Synapse with its configuration on top of the package's, closes sign-ups and keeps the registration secret encrypted."
+lxc = "Synapse and Element in separate containers: the stateful one isn't mixed with the static one."
+traefik = "The public door, with a dedicated rule that hides Synapse's test page."
+linux = "Official packages and nginx with systemd, no Docker."
+zabbix = "Sends its high-severity problems to the alerts room through the relay."
+wazuh = "Sends its level 12+ events, grouped to avoid repeats."
+hardening = "Closed sign-ups, non-existent federation, client API only, hidden test page and bots without admin."
+python = "The alerts relay with matrix-nio: persistent session, continuous sync and a local endpoint protected with a secret."
+postgresql = "Synapse's database, local and its own."
+
+[text.en.close]
+lessons = [
+  "Check alert channels by what arrives, not by what's switched on.",
+  "End-to-end encryption has state: treat it as a single-process database.",
+  "Public doesn't have to mean open: what isn't served can't be attacked.",
+]
+next = [
+  "«Recovered» notices in the alerts room, to close each problem.",
+  "Backups of the bots' key stores, with the service stopped.",
+]

@@ -3,6 +3,8 @@
 //! El contenido no cambia mientras el binario corre, así que cada página se
 //! renderiza una vez y se sirve desde memoria con su ETag.
 
+use std::collections::BTreeMap;
+
 use askama::Template;
 use bytes::Bytes;
 use serde::Serialize;
@@ -132,6 +134,25 @@ pub struct FlowView {
     pub steps: Vec<(String, String)>,
 }
 
+/// Una unidad en la lista del rack de la portada.
+pub struct RackView {
+    pub id: String,
+    pub n: usize,
+    pub url: String,
+    pub slot: String,
+    pub specs: String,
+    pub state: String,
+    pub status: String,
+    pub title: String,
+    pub tech_ids: String,
+}
+
+/// Unidad vecina en el rack, para pasar de una a otra.
+pub struct UnitNav {
+    pub url: String,
+    pub slot: String,
+}
+
 pub struct LinkView {
     pub a: String,
     pub b: String,
@@ -154,6 +175,7 @@ pub struct IndexTpl<'a> {
     pub flow_tabs: Vec<(String, String)>,
     pub links: Vec<LinkView>,
     pub legend: Vec<(&'static str, String)>,
+    pub rack: Vec<RackView>,
     pub turnstile_site_key: Option<&'a str>,
     pub i18n_json: String,
     pub jsonld: String,
@@ -389,6 +411,26 @@ pub fn index(
     .map(|k| (k, c.lab(&format!("legend_{k}")).to_owned()))
     .collect();
 
+    let rack = content
+        .units
+        .iter()
+        .enumerate()
+        .map(|(i, u)| {
+            let ut = u.texts(lang);
+            RackView {
+                id: u.id.clone(),
+                n: i + 1,
+                url: unit_url(lang, &u.id),
+                slot: ut.ui["slot"].clone(),
+                specs: ut.ui["face_specs"].clone(),
+                state: ut.ui["state"].clone(),
+                status: u.status.clone(),
+                title: ut.hero.title.clone(),
+                tech_ids: u.tech(site).join(" "),
+            }
+        })
+        .collect();
+
     let tpl = IndexTpl {
         i18n_json: script_json(&i18n(content, lang))?,
         jsonld: script_json(&jsonld(content, lang, public_url))?,
@@ -402,6 +444,7 @@ pub fn index(
         flow_tabs,
         links,
         legend,
+        rack,
         turnstile_site_key,
     };
     Ok(Page::new(tpl.render()?))
@@ -440,6 +483,16 @@ pub struct UnitTpl<'a> {
     pub flows: Vec<FlowView>,
     pub skills: Vec<SkillView>,
     pub incidents: Vec<IncidentView<'a>>,
+    pub common: &'a BTreeMap<String, String>,
+    pub status: &'a str,
+    /// «Posición 3 de 23 en el rack» y el estado, ya rellenos.
+    pub pos_label: String,
+    pub status_label: String,
+    pub prev: Option<UnitNav>,
+    pub next: Option<UnitNav>,
+    pub has_xp: bool,
+    /// Rótulo de cada bahía, numeradas según las que tenga la unidad.
+    pub bays: BTreeMap<&'static str, String>,
     pub host_tech: String,
     pub map_w: u32,
     pub map_h: u32,
@@ -448,7 +501,14 @@ pub struct UnitTpl<'a> {
 
 impl UnitTpl<'_> {
     pub fn ui(&self, key: &str) -> &str {
-        self.t.ui.get(key).map_or("", String::as_str)
+        self.t
+            .ui
+            .get(key)
+            .or_else(|| self.common.get(key))
+            .map_or("", String::as_str)
+    }
+    pub fn bay(&self, key: &str) -> &str {
+        self.bays.get(key).map_or("", String::as_str)
     }
 }
 
@@ -539,10 +599,10 @@ pub fn unit(
         .collect();
     // En el orden de la misión, que es el del árbol de habilidades.
     let skills = unit
-        .project_tech(site)
-        .iter()
+        .tech(site)
+        .into_iter()
         .map(|id| SkillView {
-            id: id.clone(),
+            id: id.to_owned(),
             name: tech_name(id),
             note: t.tech_notes[id].clone(),
         })
@@ -569,10 +629,40 @@ pub fn unit(
         .collect();
 
     let mt = content.texts(lang);
+    let mut ui = mt.unit_ui.clone();
+    ui.extend(t.ui.iter().map(|(k, v)| (k.clone(), v.clone())));
+    let pos = content
+        .units
+        .iter()
+        .position(|u| u.id == unit.id)
+        .unwrap_or_default();
+    let neighbour = |i: usize| {
+        content.units.get(i).map(|u| UnitNav {
+            url: unit_url(lang, &u.id),
+            slot: u.texts(lang).ui["slot"].clone(),
+        })
+    };
+    let mut bays = BTreeMap::new();
+    let mut n = 0;
+    for (key, label, on) in [
+        ("hero", unit.id.to_uppercase(), true),
+        ("map", t.ui["map_silk"].clone(), true),
+        ("skills", "SKILLS".into(), true),
+        ("xp", "XP ENGINE".into(), unit.xp.is_some()),
+        ("vram", "VRAM".into(), unit.vram.is_some()),
+        ("incidents", "LOGS".into(), !unit.incidents.is_empty()),
+        ("build", "BUILD".into(), true),
+        ("close", "EOF".into(), true),
+    ] {
+        if on {
+            bays.insert(key, format!("BAY {n:02} · {label}"));
+            n += 1;
+        }
+    }
     let data = serde_json::json!({
         "lang": lang.code(),
         "id": unit.id,
-        "ui": t.ui,
+        "ui": ui,
         "pods": unit.pods.iter().map(|n| serde_json::json!({
             "id": n.id, "x": n.x, "y": n.y, "short": t.pods[&n.id].short, "title": t.pods[&n.id].title, "text": t.pods[&n.id].text, "tech": n.tech,
         })).collect::<Vec<_>>(),
@@ -581,7 +671,9 @@ pub fn unit(
         })).collect::<Vec<_>>(),
         "host_tech": unit.host_tech,
         "xp": unit.xp,
-        "difficulties": t.xp.difficulties,
+        "difficulties": t.xp.as_ref().map(|x| &x.difficulties),
+        "vram": unit.vram,
+        "vram_text": t.vram,
         "map_w": MAP_W,
         "home": format!("/{}/", lang.code()),
         "achievement": {
@@ -602,6 +694,16 @@ pub fn unit(
         flows,
         skills,
         incidents,
+        common: &mt.unit_ui,
+        status: &unit.status,
+        pos_label: ui["rack_pos"]
+            .replace("{n}", &(pos + 1).to_string())
+            .replace("{total}", &content.units.len().to_string()),
+        status_label: ui[&format!("status_{}", unit.status)].clone(),
+        prev: pos.checked_sub(1).and_then(neighbour),
+        next: neighbour(pos + 1),
+        has_xp: unit.xp.is_some(),
+        bays,
         host_tech: unit.host_tech.join(" "),
         map_w: MAP_W,
         map_h: MAP_H,
@@ -643,10 +745,13 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
             "id": n.id, "x": n.x, "y": n.y, "title": t.nodes[&n.id].title, "text": t.nodes[&n.id].text,
             "unit": n.unit.as_deref().map(|u| unit_url(lang, u)),
         })).collect::<Vec<_>>(),
-        // Misiones con unidad propia: a dónde llevar y qué contar al filtrar.
-        "units": content.units.iter().map(|u| (u.project.clone(), serde_json::json!({
-            "url": unit_url(lang, &u.id), "notes": u.texts(lang).tech_notes,
-        }))).collect::<serde_json::Map<_, _>>(),
+        // Unidades del rack: a dónde llevar y qué contar al filtrar.
+        "units": content.units.iter().map(|u| serde_json::json!({
+            "id": u.id, "project": u.project, "url": unit_url(lang, &u.id),
+            "slot": u.texts(lang).ui["slot"], "tech": u.tech(site),
+            "notes": u.texts(lang).tech_notes,
+        })).collect::<Vec<_>>(),
+        "rack": t.rack,
         "incident_ui": t.incident_ui,
         "compare": t.compare,
         "personality": t.personality,

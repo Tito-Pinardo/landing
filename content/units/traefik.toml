@@ -1,0 +1,898 @@
+# Unidad 1U del rack: Traefik, la puerta pública.
+#
+# Fuente: Obsidian «Traefik - Edge Proxy», el incidente del 14-08 (disco y
+# bot) y la retirada de servicios del 26-09. Sin dominios ni direcciones.
+
+id = "traefik"
+status = "live"
+host_tech = ["lxc", "linux"]
+links = [
+  ["visitor", "cloudflare"],
+  ["cloudflare", "router"],
+  ["letsencrypt", "acme"],
+  ["git", "ansible"],
+]
+
+[[groups]]
+id = "entry"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "routes"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "backends"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "ops"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "visitor"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "cloudflare"
+x = 290
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "router"
+x = 290
+y = 250
+kind = "network"
+group = ""
+tech = []
+
+[[pods]]
+id = "letsencrypt"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "git"
+x = 100
+y = 540
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "ansible"
+x = 290
+y = 540
+kind = "control"
+group = ""
+tech = ["ansible"]
+
+[[pods]]
+id = "entrypoint"
+x = 515
+y = 140
+kind = "network"
+group = "entry"
+tech = ["traefik"]
+
+[[pods]]
+id = "tls"
+x = 700
+y = 140
+kind = "network"
+group = "entry"
+tech = ["traefik"]
+
+[[pods]]
+id = "realip"
+x = 885
+y = 140
+kind = "network"
+group = "entry"
+tech = ["traefik"]
+
+[[pods]]
+id = "acme"
+x = 1070
+y = 140
+kind = "control"
+group = "entry"
+tech = ["traefik"]
+
+[[pods]]
+id = "router_web"
+x = 515
+y = 266
+kind = "network"
+group = "routes"
+tech = ["traefik"]
+
+[[pods]]
+id = "redirect"
+x = 700
+y = 266
+kind = "network"
+group = "routes"
+tech = ["traefik"]
+
+[[pods]]
+id = "headers"
+x = 885
+y = 266
+kind = "network"
+group = "routes"
+tech = ["traefik", "hardening"]
+
+[[pods]]
+id = "dashboard"
+x = 1070
+y = 266
+kind = "control"
+group = "routes"
+tech = ["traefik", "hardening"]
+
+[[pods]]
+id = "landing"
+x = 515
+y = 392
+kind = "app"
+group = "backends"
+tech = []
+
+[[pods]]
+id = "media"
+x = 700
+y = 392
+kind = "compute"
+group = "backends"
+tech = []
+
+[[pods]]
+id = "chat"
+x = 885
+y = 392
+kind = "app"
+group = "backends"
+tech = []
+
+[[pods]]
+id = "games"
+x = 1070
+y = 392
+kind = "app"
+group = "backends"
+tech = []
+
+[[pods]]
+id = "logs"
+x = 515
+y = 518
+kind = "observability"
+group = "ops"
+tech = ["linux"]
+
+[[pods]]
+id = "rotate"
+x = 700
+y = 518
+kind = "control"
+group = "ops"
+tech = ["linux"]
+
+[[pods]]
+id = "systemd"
+x = 885
+y = 518
+kind = "control"
+group = "ops"
+tech = ["linux", "hardening"]
+
+[[pods]]
+id = "monitor"
+x = 1070
+y = 518
+kind = "observability"
+group = "ops"
+tech = []
+
+[[flows]]
+id = "request"
+path = ["visitor", "cloudflare", "router", "entrypoint", "tls", "realip", "router_web", "headers", "landing", "headers", "visitor"]
+
+[[flows]]
+id = "cert"
+path = ["acme", "cloudflare", "letsencrypt", "acme", "tls", "monitor"]
+
+[[flows]]
+id = "newroute"
+path = ["git", "ansible", "router_web", "systemd", "entrypoint", "monitor"]
+
+[[flows]]
+id = "www"
+path = ["visitor", "cloudflare", "entrypoint", "redirect", "visitor", "router_web", "landing"]
+
+[[flows]]
+id = "admin"
+path = ["visitor", "entrypoint", "dashboard", "visitor"]
+
+[[incidents]]
+id = "disk"
+answer = 2
+
+[[incidents]]
+id = "bot"
+answer = 1
+
+[[incidents]]
+id = "e526"
+answer = 3
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Traefik por dentro · Tito Pinardo Gutiérrez"
+description = "La única puerta pública del servidor: Traefik con certificados automáticos por DNS, rutas generadas por Ansible desde una sola lista, y las averías que la hicieron más pequeña y más segura."
+
+[text.es.ui]
+slot = "1U · TRAEFIK"
+face_specs = "Proxy inverso · TLS automático · LXC"
+state = "En producción"
+map_silk = "EDGE"
+map_title = "La puerta por dentro"
+map_intro = "Todo lo público entra por aquí y nada más. Elige un recorrido para ver cómo se decide a dónde va cada petición."
+vm_title = "Contenedor de Traefik · Proxmox"
+vm_specs = "binario oficial + systemd, sin Docker"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin dominios, direcciones ni puertos internos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Entrada pública"
+title = "Traefik · la única puerta"
+tagline = "Un proxy inverso en su propio contenedor que recibe todo el tráfico web de internet, pone el certificado y lo reparte por nombre. Las rutas no se tocan a mano: salen de la misma lista con la que Ansible genera el resto del homelab."
+grade = "Superficie reducida el 26-09-2026"
+facts = [
+  { label = "Por qué Traefik", value = "Certificados de Let's Encrypt automáticos, rutas en ficheros que se recargan sin cortar y un binario sin dependencias: cabe en un contenedor pequeño sin Docker." },
+  { label = "Qué publica", value = "Solo lo que tiene que verse desde fuera: esta web, la mensajería, la multimedia y los juegos. Los paneles internos se quitaron de internet y van por otra puerta con doble factor." },
+  { label = "Cómo se gestiona", value = "Una lista de servicios en el repositorio de infraestructura. Ansible genera una ruta por dominio y Traefik la recoge al vuelo." },
+]
+
+[[text.es.stats]]
+value = "36,6 GB"
+label = "de log sin rotar que encontré a tiempo"
+
+[[text.es.stats]]
+value = "91.000+"
+label = "peticiones de un «ataque» que era mi propio bot"
+
+[[text.es.stats]]
+value = "10"
+label = "servicios retirados de internet en un día"
+
+[[text.es.stats]]
+value = "1"
+label = "lista de servicios para Traefik y el panel de inicio"
+
+[text.es.groups]
+entry = "Entrada · TLS"
+routes = "Rutas por nombre"
+backends = "Servicios detrás"
+ops = "Operación"
+
+[text.es.pods.visitor]
+short = "Visitante"
+title = "Un visitante"
+text = "Cualquiera que abre una de mis webs."
+
+[text.es.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "Proxy delante de los dominios: oculta la IP de casa y filtra. También gestiona el DNS donde Traefik demuestra que el dominio es suyo."
+
+[text.es.pods.router]
+short = "Router"
+title = "Router MikroTik"
+text = "Reenvía el HTTPS que entra por la WAN, y solo ese, al contenedor de Traefik."
+
+[text.es.pods.letsencrypt]
+short = "Let's Encrypt"
+title = "Let's Encrypt"
+text = "La autoridad que firma los certificados, gratis y renovables cada 90 días."
+
+[text.es.pods.git]
+short = "Git"
+title = "Repositorio de infraestructura"
+text = "La lista de servicios publicados vive aquí, versionada: qué dominio va a qué servicio."
+
+[text.es.pods.ansible]
+short = "Ansible"
+title = "Ansible"
+text = "Lee la lista y escribe una ruta por dominio. La misma lista genera el panel de inicio del homelab."
+
+[text.es.pods.entrypoint]
+short = "Puerto 443"
+title = "Punto de entrada HTTPS"
+text = "Traefik escucha el HTTPS. El HTTP plano solo existe para redirigir a HTTPS."
+
+[text.es.pods.tls]
+short = "Certificado"
+title = "Terminación TLS"
+text = "Traefik presenta el certificado válido de cada dominio y descifra la petición."
+
+[text.es.pods.realip]
+short = "IP real"
+title = "IP real del visitante"
+text = "Detrás de Cloudflare todas las peticiones parecen venir de Cloudflare. Traefik solo se fía de la cabecera con la IP real si viene de los rangos de Cloudflare."
+
+[text.es.pods.acme]
+short = "ACME DNS-01"
+title = "Renovación por DNS"
+text = "Para demostrar que el dominio es mío, Traefik crea un registro temporal en el DNS de Cloudflare. No hace falta abrir ningún puerto extra y sirve para comodines."
+
+[text.es.pods.router_web]
+short = "Ruta por dominio"
+title = "Rutas"
+text = "Una ruta por dominio, en su propio fichero. Traefik mira el nombre pedido y elige el servicio."
+
+[text.es.pods.redirect]
+short = "Redirección 301"
+title = "Redirecciones"
+text = "Las variantes con «www» o sin ella mandan a la dirección canónica con un 301, declarado en la propia lista de servicios."
+
+[text.es.pods.headers]
+short = "Cabeceras"
+title = "Cabeceras de seguridad"
+text = "HSTS y el resto de cabeceras para que el navegador no acepte versiones sin cifrar."
+
+[text.es.pods.dashboard]
+short = "Panel"
+title = "Panel de Traefik"
+text = "Sin acceso inseguro, sin nombre público y limitado a la red de casa y a la VPN."
+
+[text.es.pods.landing]
+short = "Esta web"
+title = "Esta web"
+text = "Uno de los servicios detrás de la puerta. Tiene su propia unidad."
+
+[text.es.pods.media]
+short = "Multimedia"
+title = "Multimedia"
+text = "Plex y lo que lo rodea, para verlo fuera de casa."
+
+[text.es.pods.chat]
+short = "Mensajería"
+title = "Mensajería (Matrix)"
+text = "El servidor de chat y su cliente web."
+
+[text.es.pods.games]
+short = "Juegos (web)"
+title = "Webs de los juegos"
+text = "La web pública de los servidores de juego. El juego en sí no pasa por aquí: Traefik solo entiende HTTP."
+
+[text.es.pods.logs]
+short = "Logs de acceso"
+title = "Registro de accesos"
+text = "Una línea por petición: quién, qué y con qué resultado. Útil… si no se come el disco."
+
+[text.es.pods.rotate]
+short = "Rotación"
+title = "Rotación de logs"
+text = "Un fichero por día, siete días, comprimidos. Faltaba, y el log llegó a 36 GB."
+
+[text.es.pods.systemd]
+short = "systemd"
+title = "Servicio systemd"
+text = "El binario oficial con su unidad de systemd, sin Docker: menos piezas en la puerta más expuesta."
+
+[text.es.pods.monitor]
+short = "Vigilancia"
+title = "Vigilancia"
+text = "La monitorización comprueba que responde y el vigilante de certificados de Hermes avisa antes de que caduque ninguno."
+
+[text.es.flows.request]
+title = "Una petición a esta web"
+steps = [
+  "Un visitante abre esta web.",
+  "Cloudflare la recibe primero y la pasa a casa.",
+  "El router reenvía el HTTPS que viene de la WAN al contenedor de Traefik.",
+  "Traefik la recibe en su punto de entrada.",
+  "Presenta el certificado válido del dominio y descifra la petición.",
+  "Recupera la IP real del visitante, fiándose solo de la cabecera si viene de Cloudflare.",
+  "Mira el nombre pedido y encuentra su ruta.",
+  "Añade las cabeceras de seguridad.",
+  "La web responde desde su contenedor.",
+  "La respuesta vuelve cifrada con sus cabeceras.",
+  "Y llega al visitante.",
+]
+
+[text.es.flows.cert]
+title = "Un certificado se renueva solo"
+steps = [
+  "Faltan menos de 30 días para que caduque un certificado. Traefik inicia la renovación.",
+  "Crea un registro temporal en el DNS de Cloudflare para demostrar que el dominio es mío.",
+  "Let's Encrypt comprueba el registro y firma el certificado nuevo.",
+  "Traefik borra el registro temporal y guarda el certificado.",
+  "Desde la siguiente conexión, los visitantes reciben el nuevo. Sin reinicios.",
+  "Por si algo fallara, el vigilante de certificados de Hermes avisa con días de margen.",
+]
+
+[text.es.flows.newroute]
+title = "Publico un servicio nuevo"
+steps = [
+  "Añado una línea a la lista de servicios del repositorio: dominio y servicio.",
+  "Ansible genera el fichero de la ruta y la entrada del panel de inicio, revisando el cambio antes de aplicarlo.",
+  "Traefik detecta el fichero nuevo y carga la ruta sin cortar nada.",
+  "El servicio sigue igual de aislado: Traefik corre con su usuario y sus permisos.",
+  "La ruta ya responde.",
+  "Y la monitorización empieza a comprobarla.",
+]
+
+[text.es.flows.www]
+title = "Alguien escribe «www»"
+steps = [
+  "Un visitante escribe la dirección con «www».",
+  "Cloudflare la pasa a casa.",
+  "Traefik la recibe.",
+  "La ruta de esa variante es una redirección 301 a la dirección canónica.",
+  "El navegador vuelve a pedir, ahora a la buena.",
+  "Esta vez sí hay ruta al servicio.",
+  "Y la web responde. Antes de declararlo en la lista, esa variante daba un error 526.",
+]
+
+[text.es.flows.admin]
+title = "Alguien busca el panel desde fuera"
+steps = [
+  "Alguien intenta llegar al panel de Traefik desde internet.",
+  "El panel no tiene nombre público, así que ni siquiera hay ruta desde fuera.",
+  "Aunque la hubiera, solo acepta la red de casa y la VPN.",
+  "No consigue nada. Los paneles internos van por otra puerta, con doble factor.",
+]
+
+[text.es.incidents.disk]
+title = "El disco de la puerta al 80 %"
+meta = "14-08-2026 · disco"
+symptom = "Revisando los logs para otra cosa, el disco del contenedor de Traefik estaba al 80 % y subiendo. Si se llenaba, se caían una veintena de dominios a la vez."
+options = [
+  "Los certificados antiguos no se borraban",
+  "Una actualización había dejado copias del binario",
+  "El log de accesos llevaba meses sin rotar: 36,6 GB",
+  "Los registros temporales del DNS se acumulaban",
+]
+cause = "No había configuración de rotación para el log de accesos. Un fichero de 36,6 GB en un disco de 50."
+fix = "Rotación diaria, 7 días, comprimida. La primera rotación forzada intentó copiar el fichero entero con solo 9,5 GB libres: la paré a tiempo y vacié el original directamente, que es seguro porque Traefik escribe siempre al final."
+lesson = "Todo lo que escribe sin parar necesita rotación desde el primer día. Y la primera limpieza de algo enorme se piensa: el método normal puede ser justo el que llena el disco."
+
+[text.es.incidents.bot]
+title = "4.600 intentos al día contra el panel de juegos"
+meta = "14-08-2026 · tráfico"
+symptom = "El log mostraba miles de peticiones al día contra el panel de los servidores de juego. Parecía un ataque de fuerza bruta y estaba preparando un bloqueo automático."
+options = [
+  "Un bot de internet probando contraseñas",
+  "Mi propio bot de Discord preguntando el estado cada 10 segundos por el dominio público",
+  "Cloudflare reintentando peticiones",
+  "La monitorización comprobando el panel",
+]
+cause = "La IP de origen era la de casa. Era mi bot de Discord, que pedía el estado del panel cada 10 segundos por el dominio público: salía a internet, pasaba por Cloudflare y volvía a entrar. Más de 91.000 peticiones en una sola sesión."
+fix = "Que el bot hable con el panel por la red interna. El «ataque» desapareció del log."
+lesson = "Antes de bloquear, mirar de dónde viene. La mitad de los misterios del tráfico están en casa."
+
+[text.es.incidents.e526]
+title = "La dirección con «www» daba error 526"
+meta = "Octubre de 2026 · rutas"
+symptom = "Quien escribía la dirección de esta web con «www» delante se encontraba un error 526 de Cloudflare en vez de la web."
+options = [
+  "El certificado había caducado",
+  "El DNS no tenía el registro de «www»",
+  "Cloudflare estaba caído",
+  "Traefik no tenía ruta para esa variante del nombre",
+]
+cause = "Cloudflare mandaba la variante con «www» a casa, pero Traefik no tenía ninguna ruta ni certificado para ese nombre, así que la conexión segura fallaba."
+fix = "Un campo nuevo en la lista de servicios para declarar redirecciones: la variante con «www» responde con un 301 a la dirección canónica."
+lesson = "Cada nombre que apunta a casa necesita su destino declarado. Si la redirección vive en la lista, se genera y se revisa como todo lo demás."
+
+[[text.es.timeline]]
+title = "Una puerta para todo"
+period = "Verano de 2026"
+items = [
+  "Traefik en su contenedor con el binario oficial, sin Docker.",
+  "Certificados automáticos por DNS con Cloudflare.",
+  "Una veintena de dominios, cada uno con su ruta.",
+]
+
+[[text.es.timeline]]
+title = "Lo que encontré mirando los logs"
+period = "Agosto de 2026"
+items = [
+  "Log de 36,6 GB sin rotar: rotación diaria.",
+  "El «bot de fuerza bruta» era mi propio bot de Discord.",
+]
+
+[[text.es.timeline]]
+title = "Menos superficie"
+period = "26-09-2026"
+items = [
+  "Fuera de internet los paneles internos: hipervisor, automatizaciones, panel de inicio, el propio panel de Traefik y otros.",
+  "Borradas sus rutas y sus registros DNS; siguen en uso detrás de la puerta interna con doble factor.",
+  "Rutas generadas desde una sola lista en el repositorio, con redirecciones declaradas.",
+]
+
+[[text.es.decisions]]
+title = "Proxy público"
+choice = "Traefik en un contenedor, sin Docker"
+why = "Es la pieza más expuesta: cuantas menos capas, mejor. El binario oficial con systemd basta y se actualiza con Ansible."
+
+[[text.es.decisions]]
+title = "Cómo se prueban los dominios"
+choice = "Desafío DNS-01 en Cloudflare"
+why = "No obliga a abrir el puerto 80 al mundo, funciona aunque el servicio aún no esté listo y permite certificados comodín."
+
+[[text.es.decisions]]
+title = "Qué se publica"
+choice = "Solo lo que tiene que verse desde fuera"
+why = "Un panel publicado es una invitación. Los internos van por Caddy y Authelia, con doble factor y solo desde casa o la VPN."
+
+[text.es.tech_notes]
+traefik = "Proxy inverso de entrada: TLS automático por DNS, una ruta por dominio, redirecciones, cabeceras de seguridad e IP real solo desde Cloudflare."
+lxc = "Corre en su propio contenedor LXC, separado del resto de servicios."
+linux = "Servicio systemd con usuario propio, rotación de logs con logrotate y un disco que ya no se llena."
+git = "La lista de servicios publicados está versionada: cada dominio nuevo es un commit."
+ansible = "Genera las rutas y el panel de inicio desde la misma lista, mostrando el cambio antes de aplicarlo."
+hardening = "Cabeceras HSTS, panel sin acceso inseguro y limitado a la red de casa y la VPN, y paneles internos retirados de internet."
+
+[text.es.close]
+lessons = [
+  "La puerta más expuesta es la que menos piezas debe tener.",
+  "Mirar los logs de vez en cuando: el disco y el bot salieron así.",
+  "Publicar es fácil; despublicar lo que no hace falta es lo que de verdad reduce el riesgo.",
+]
+next = [
+  "Retomar un bloqueo automático basado en los logs, ahora que ya no hay ruido propio.",
+  "Llevar las cabeceras de seguridad comunes a la lista de servicios, para que cada ruta nueva las herede.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Traefik · Tito Pinardo Gutiérrez"
+description = "The server's only public door: Traefik with automatic DNS-validated certificates, routes generated by Ansible from a single list, and the failures that made it smaller and safer."
+
+[text.en.ui]
+slot = "1U · TRAEFIK"
+face_specs = "Reverse proxy · automatic TLS · LXC"
+state = "In production"
+map_silk = "EDGE"
+map_title = "Inside the door"
+map_intro = "Everything public comes in here and nothing else. Pick a flow to see how each request's destination is decided."
+vm_title = "Traefik container · Proxmox"
+vm_specs = "official binary + systemd, no Docker"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no domains, addresses or internal ports."
+
+[text.en.hero]
+kicker = "1U unit · Public entrance"
+title = "Traefik · the only door"
+tagline = "A reverse proxy in its own container that receives all web traffic from the internet, adds the certificate and hands it out by name. Routes aren't edited by hand: they come from the same list Ansible uses to generate the rest of the homelab."
+grade = "Surface reduced on 26-09-2026"
+facts = [
+  { label = "Why Traefik", value = "Automatic Let's Encrypt certificates, routes in files that reload without downtime and a dependency-free binary: it fits in a small container with no Docker." },
+  { label = "What it publishes", value = "Only what has to be seen from outside: this site, messaging, media and games. Internal panels were taken off the internet and go through another door with two-factor auth." },
+  { label = "How it's managed", value = "A list of services in the infrastructure repo. Ansible generates one route per domain and Traefik picks it up on the fly." },
+]
+
+[[text.en.stats]]
+value = "36.6 GB"
+label = "of unrotated log I caught in time"
+
+[[text.en.stats]]
+value = "91,000+"
+label = "requests from an «attack» that was my own bot"
+
+[[text.en.stats]]
+value = "10"
+label = "services taken off the internet in one day"
+
+[[text.en.stats]]
+value = "1"
+label = "service list for Traefik and the home dashboard"
+
+[text.en.groups]
+entry = "Entrance · TLS"
+routes = "Routes by name"
+backends = "Services behind"
+ops = "Operations"
+
+[text.en.pods.visitor]
+short = "Visitor"
+title = "A visitor"
+text = "Anyone opening one of my sites."
+
+[text.en.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "Proxy in front of the domains: hides my home IP and filters. It also runs the DNS where Traefik proves the domain is mine."
+
+[text.en.pods.router]
+short = "Router"
+title = "MikroTik router"
+text = "Forwards the HTTPS coming in on the WAN, and only that, to the Traefik container."
+
+[text.en.pods.letsencrypt]
+short = "Let's Encrypt"
+title = "Let's Encrypt"
+text = "The authority that signs the certificates, free and renewable every 90 days."
+
+[text.en.pods.git]
+short = "Git"
+title = "Infrastructure repository"
+text = "The list of published services lives here, versioned: which domain goes to which service."
+
+[text.en.pods.ansible]
+short = "Ansible"
+title = "Ansible"
+text = "Reads the list and writes one route per domain. The same list generates the homelab's start page."
+
+[text.en.pods.entrypoint]
+short = "Port 443"
+title = "HTTPS entry point"
+text = "Traefik listens for HTTPS. Plain HTTP only exists to redirect to HTTPS."
+
+[text.en.pods.tls]
+short = "Certificate"
+title = "TLS termination"
+text = "Traefik presents each domain's valid certificate and decrypts the request."
+
+[text.en.pods.realip]
+short = "Real IP"
+title = "Visitor's real IP"
+text = "Behind Cloudflare, every request seems to come from Cloudflare. Traefik only trusts the real-IP header if it comes from Cloudflare's ranges."
+
+[text.en.pods.acme]
+short = "ACME DNS-01"
+title = "Renewal through DNS"
+text = "To prove the domain is mine, Traefik creates a temporary record in Cloudflare's DNS. No extra port to open, and it works for wildcards."
+
+[text.en.pods.router_web]
+short = "Route per domain"
+title = "Routes"
+text = "One route per domain, in its own file. Traefik looks at the requested name and picks the service."
+
+[text.en.pods.redirect]
+short = "301 redirect"
+title = "Redirects"
+text = "Variants with or without «www» send you to the canonical address with a 301, declared in the service list itself."
+
+[text.en.pods.headers]
+short = "Headers"
+title = "Security headers"
+text = "HSTS and the other headers so the browser won't accept unencrypted versions."
+
+[text.en.pods.dashboard]
+short = "Dashboard"
+title = "Traefik dashboard"
+text = "No insecure access, no public name and limited to the home network and the VPN."
+
+[text.en.pods.landing]
+short = "This site"
+title = "This site"
+text = "One of the services behind the door. It has its own unit."
+
+[text.en.pods.media]
+short = "Media"
+title = "Media"
+text = "Plex and what surrounds it, to watch away from home."
+
+[text.en.pods.chat]
+short = "Messaging"
+title = "Messaging (Matrix)"
+text = "The chat server and its web client."
+
+[text.en.pods.games]
+short = "Games (web)"
+title = "Game websites"
+text = "The public site of the game servers. The game itself doesn't come through here: Traefik only speaks HTTP."
+
+[text.en.pods.logs]
+short = "Access logs"
+title = "Access log"
+text = "One line per request: who, what and the result. Useful… unless it eats the disk."
+
+[text.en.pods.rotate]
+short = "Rotation"
+title = "Log rotation"
+text = "One file per day, seven days, compressed. It was missing, and the log reached 36 GB."
+
+[text.en.pods.systemd]
+short = "systemd"
+title = "systemd service"
+text = "The official binary with its systemd unit, no Docker: fewer parts at the most exposed door."
+
+[text.en.pods.monitor]
+short = "Monitoring"
+title = "Monitoring"
+text = "Monitoring checks it answers and Hermes' certificate watcher warns before any of them expires."
+
+[text.en.flows.request]
+title = "A request to this site"
+steps = [
+  "A visitor opens this site.",
+  "Cloudflare gets it first and passes it home.",
+  "The router forwards HTTPS coming from the WAN to the Traefik container.",
+  "Traefik receives it at its entry point.",
+  "It presents the domain's valid certificate and decrypts the request.",
+  "It recovers the visitor's real IP, trusting the header only if it comes from Cloudflare.",
+  "It looks at the requested name and finds its route.",
+  "It adds the security headers.",
+  "The site answers from its container.",
+  "The response goes back encrypted with its headers.",
+  "And reaches the visitor.",
+]
+
+[text.en.flows.cert]
+title = "A certificate renews itself"
+steps = [
+  "A certificate has under 30 days left. Traefik starts the renewal.",
+  "It creates a temporary record in Cloudflare's DNS to prove the domain is mine.",
+  "Let's Encrypt checks the record and signs the new certificate.",
+  "Traefik removes the temporary record and stores the certificate.",
+  "From the next connection, visitors get the new one. No restarts.",
+  "In case something failed, Hermes' certificate watcher warns days ahead.",
+]
+
+[text.en.flows.newroute]
+title = "I publish a new service"
+steps = [
+  "I add a line to the service list in the repo: domain and service.",
+  "Ansible generates the route file and the start-page entry, showing the change before applying it.",
+  "Traefik spots the new file and loads the route without cutting anything.",
+  "The service stays just as isolated: Traefik runs with its own user and permissions.",
+  "The route is live.",
+  "And monitoring starts checking it.",
+]
+
+[text.en.flows.www]
+title = "Someone types «www»"
+steps = [
+  "A visitor types the address with «www».",
+  "Cloudflare passes it home.",
+  "Traefik receives it.",
+  "That variant's route is a 301 redirect to the canonical address.",
+  "The browser asks again, now for the right one.",
+  "This time there is a route to the service.",
+  "And the site answers. Before it was declared in the list, that variant returned a 526 error.",
+]
+
+[text.en.flows.admin]
+title = "Someone looks for the dashboard from outside"
+steps = [
+  "Someone tries to reach the Traefik dashboard from the internet.",
+  "The dashboard has no public name, so there isn't even a route from outside.",
+  "Even if there were, it only accepts the home network and the VPN.",
+  "Nothing gained. Internal panels go through another door, with two-factor auth.",
+]
+
+[text.en.incidents.disk]
+title = "The door's disk at 80 %"
+meta = "14-08-2026 · disk"
+symptom = "Checking the logs for something else, the Traefik container's disk was at 80 % and rising. If it filled up, about twenty domains would go down at once."
+options = [
+  "Old certificates weren't being deleted",
+  "An update had left copies of the binary",
+  "The access log hadn't been rotated for months: 36.6 GB",
+  "Temporary DNS records were piling up",
+]
+cause = "There was no rotation set up for the access log. A 36.6 GB file on a 50 GB disk."
+fix = "Daily rotation, 7 days, compressed. The first forced rotation tried to copy the whole file with only 9.5 GB free: I stopped it in time and emptied the original directly, which is safe because Traefik always writes at the end."
+lesson = "Anything that writes nonstop needs rotation from day one. And the first clean-up of something huge needs thought: the normal method can be exactly what fills the disk."
+
+[text.en.incidents.bot]
+title = "4,600 attempts a day against the game panel"
+meta = "14-08-2026 · traffic"
+symptom = "The log showed thousands of requests a day against the game servers' panel. It looked like a brute-force attack and I was preparing an automatic block."
+options = [
+  "An internet bot trying passwords",
+  "My own Discord bot asking for the status every 10 seconds through the public domain",
+  "Cloudflare retrying requests",
+  "Monitoring checking the panel",
+]
+cause = "The source IP was the home one. It was my Discord bot, asking the panel for its status every 10 seconds via the public domain: out to the internet, through Cloudflare and back in. Over 91,000 requests in a single session."
+fix = "Have the bot talk to the panel over the internal network. The «attack» vanished from the log."
+lesson = "Before blocking, look at where it comes from. Half the traffic mysteries are at home."
+
+[text.en.incidents.e526]
+title = "The «www» address gave a 526 error"
+meta = "October 2026 · routes"
+symptom = "Anyone typing this site's address with «www» in front got a Cloudflare 526 error instead of the site."
+options = [
+  "The certificate had expired",
+  "DNS had no «www» record",
+  "Cloudflare was down",
+  "Traefik had no route for that variant of the name",
+]
+cause = "Cloudflare sent the «www» variant home, but Traefik had no route or certificate for that name, so the secure connection failed."
+fix = "A new field in the service list to declare redirects: the «www» variant answers with a 301 to the canonical address."
+lesson = "Every name pointing home needs its destination declared. If the redirect lives in the list, it gets generated and reviewed like everything else."
+
+[[text.en.timeline]]
+title = "One door for everything"
+period = "Summer 2026"
+items = [
+  "Traefik in its container with the official binary, no Docker.",
+  "Automatic certificates through DNS with Cloudflare.",
+  "About twenty domains, each with its route.",
+]
+
+[[text.en.timeline]]
+title = "What I found reading the logs"
+period = "August 2026"
+items = [
+  "A 36.6 GB unrotated log: daily rotation.",
+  "The «brute-force bot» was my own Discord bot.",
+]
+
+[[text.en.timeline]]
+title = "Less surface"
+period = "26-09-2026"
+items = [
+  "Internal panels off the internet: hypervisor, automations, start page, Traefik's own dashboard and others.",
+  "Their routes and DNS records deleted; they're still in use behind the internal door with two-factor auth.",
+  "Routes generated from a single list in the repo, with declared redirects.",
+]
+
+[[text.en.decisions]]
+title = "Public proxy"
+choice = "Traefik in a container, no Docker"
+why = "It's the most exposed part: the fewer layers, the better. The official binary with systemd is enough and Ansible updates it."
+
+[[text.en.decisions]]
+title = "How domains are proven"
+choice = "DNS-01 challenge on Cloudflare"
+why = "No need to open port 80 to the world, it works even if the service isn't ready yet and it allows wildcard certificates."
+
+[[text.en.decisions]]
+title = "What gets published"
+choice = "Only what has to be seen from outside"
+why = "A published panel is an invitation. Internal ones go through Caddy and Authelia, with two-factor auth and only from home or the VPN."
+
+[text.en.tech_notes]
+traefik = "Entry reverse proxy: automatic TLS through DNS, one route per domain, redirects, security headers and real IP only from Cloudflare."
+lxc = "Runs in its own LXC container, separate from the other services."
+linux = "systemd service with its own user, log rotation with logrotate and a disk that no longer fills up."
+git = "The list of published services is versioned: every new domain is a commit."
+ansible = "Generates the routes and the start page from the same list, showing the change before applying it."
+hardening = "HSTS headers, a dashboard with no insecure access limited to home and the VPN, and internal panels taken off the internet."
+
+[text.en.close]
+lessons = [
+  "The most exposed door is the one that should have the fewest parts.",
+  "Read the logs now and then: the disk and the bot both turned up that way.",
+  "Publishing is easy; unpublishing what isn't needed is what really cuts risk.",
+]
+next = [
+  "Bring back automatic blocking based on the logs, now that my own noise is gone.",
+  "Move the common security headers into the service list, so every new route inherits them.",
+]

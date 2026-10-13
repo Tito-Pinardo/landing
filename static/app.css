@@ -923,10 +923,10 @@ body {
 
 /* ------------------------------------------------------------ unidades del rack (1U) */
 /* En la página principal: la pieza del laboratorio y la misión con unidad. */
-.lab-node.is-unit .node-box { stroke-dasharray: 7 4; }
-.lab-node.is-unit .node-led { fill: var(--muted); animation: none; }
-.node-unit-tag { fill: var(--accent-2); font: 700 11px var(--mono); pointer-events: none; }
-.lab-node.is-unit:hover .node-unit-tag { fill: var(--accent); }
+/* Todas las piezas del servidor tienen unidad: la etiqueta «1U» solo aparece
+   al pasar por encima o al elegirla, para no llenar el mapa de rótulos. */
+.node-unit-tag { fill: var(--accent-2); font: 700 11px var(--mono); pointer-events: none; opacity: 0; transition: opacity .2s; }
+.lab-node.is-unit:hover .node-unit-tag, .lab-node.is-unit:focus-visible .node-unit-tag, .lab-node.is-unit.is-active .node-unit-tag { opacity: 1; fill: var(--accent); }
 .console-unit { margin: 0 0 12px; }
 .quest-unit { display: grid; gap: 8px; margin-top: 14px; }
 /* La misión con unidad propia ocupa más sitio: es la que más hay que ver. */
@@ -1146,3 +1146,172 @@ body {
   .unit-tray { background: none; box-shadow: none; }
   .skill-notes { display: grid !important; }
 }
+
+/* ------------------------------------------------------------ sonido */
+.btn-sound { min-width: 42px; padding: 0 10px; }
+.snd-icon { display: inline-flex; align-items: flex-end; gap: 3px; height: 16px; }
+.snd-icon i { width: 3px; border-radius: 2px; background: var(--muted); height: 4px; transition: height .2s, background .2s; }
+.btn-sound.is-on .snd-icon i { background: var(--accent); animation: eq 1.1s ease-in-out infinite alternate; }
+.btn-sound.is-on .snd-icon i:nth-child(1) { height: 7px; animation-delay: -.3s; }
+.btn-sound.is-on .snd-icon i:nth-child(2) { height: 14px; animation-delay: -.7s; }
+.btn-sound.is-on .snd-icon i:nth-child(3) { height: 10px; }
+.btn-sound:not(.is-on) .snd-icon { position: relative; }
+.btn-sound:not(.is-on) .snd-icon::after { content: ""; position: absolute; left: -2px; right: -2px; top: 7px; height: 2px; background: var(--danger); transform: rotate(-35deg); border-radius: 2px; }
+@keyframes eq { to { transform: scaleY(.45); } }
+
+/* ------------------------------------------------------------ el rack en la portada */
+.rack { margin-top: 38px; }
+.rack-head h3 { margin: 0 0 6px; font-size: 1.25rem; }
+.rack-head p { margin: 0 0 8px; max-width: 70ch; }
+.rack-lit { color: var(--accent); font-weight: 600; }
+.rack-units {
+  list-style: none; margin: 14px 0 0; padding: 10px 30px;
+  background: linear-gradient(90deg, var(--rack-bg-2), var(--rack-bg) 6%, var(--rack-bg) 94%, var(--rack-bg-2));
+  border: 1px solid var(--chassis-edge); border-radius: 8px; box-shadow: var(--shadow);
+  display: grid; gap: 3px; counter-reset: ru;
+}
+.rack-unit a {
+  position: relative; display: grid; grid-template-columns: 38px 12px 30px minmax(150px, 1.1fr) minmax(0, 2fr) minmax(30px, .6fr) auto auto;
+  align-items: center; gap: 12px; height: 44px; padding: 0 14px 0 8px;
+  background: repeating-linear-gradient(90deg, transparent 0 3px, rgba(255, 255, 255, .025) 3px 4px), linear-gradient(180deg, var(--chassis-top), var(--chassis-bot));
+  border: 1px solid var(--chassis-edge); border-radius: 4px; color: var(--text); text-decoration: none;
+  box-shadow: inset 0 1px 0 var(--chassis-hi);
+  transition: transform .25s cubic-bezier(.3, .1, .2, 1), box-shadow .25s, opacity .25s, border-color .25s;
+}
+.rack-unit a:hover, .rack-unit a:focus-visible { transform: translateX(10px); border-color: var(--accent); box-shadow: inset 0 1px 0 var(--chassis-hi), -10px 0 18px rgba(0, 0, 0, .35); }
+.ru-n { font: 700 .7rem/1 var(--mono); color: var(--muted); }
+.ru-ear { width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, var(--chassis-hi), var(--chassis-edge) 70%); }
+.ru-leds { display: flex; gap: 5px; }
+.ru-leds i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+.ru-leds i + i { background: var(--accent-2); box-shadow: 0 0 6px var(--accent-2); animation: led-act 1.3s infinite steps(2, jump-none); }
+.rack-unit:nth-child(3n) .ru-leds i + i { animation-duration: .9s; }
+.rack-unit:nth-child(3n + 1) .ru-leds i + i { animation-duration: 1.9s; }
+.rack-unit:nth-child(4n) .ru-leds i + i { animation-duration: 2.6s; animation-delay: -.4s; }
+.status-retired .ru-leds i { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+.status-retired .ru-leds i + i { background: var(--muted); box-shadow: none; animation: none; }
+.status-lab .ru-leds i { background: var(--accent-2); box-shadow: 0 0 6px var(--accent-2); }
+.ru-name { display: grid; line-height: 1.1; min-width: 0; }
+.ru-name strong { font: 800 .86rem/1.1 var(--mono); letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ru-name small { font: 600 .66rem/1.2 var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ru-text { font-size: .86rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ru-vent { height: 18px; background: repeating-linear-gradient(90deg, var(--rack-hole) 0 4px, transparent 4px 8px); border-radius: 3px; opacity: .8; }
+.ru-state { font: 700 .62rem/1 var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--ok); padding: 4px 6px; border: 1px solid currentColor; border-radius: 5px; white-space: nowrap; }
+.status-retired .ru-state { color: var(--warn); }
+.status-lab .ru-state { color: var(--accent-2); }
+.ru-go { font: 700 .78rem/1 var(--mono); color: var(--accent); opacity: 0; transform: translateX(-6px); transition: opacity .2s, transform .2s; }
+.rack-unit a:hover .ru-go, .rack-unit a:focus-visible .ru-go { opacity: 1; transform: none; }
+.rack-unit.is-match a { border-color: var(--accent); box-shadow: inset 0 1px 0 var(--chassis-hi), 0 0 0 1px var(--accent), 0 0 18px var(--accent-soft); }
+.rack-unit.is-match .ru-go { opacity: 1; transform: none; }
+.rack-unit.is-dim a { opacity: .38; }
+/* Al aparecer, las unidades entran en el rack una tras otra. */
+html.js .rack-units.will-slide .rack-unit { opacity: 0; transform: translateX(-30px); }
+html.js .rack-units.is-in .rack-unit { opacity: 1; transform: none; transition: opacity .4s ease, transform .5s cubic-bezier(.2, .8, .2, 1); transition-delay: calc(var(--i, 0) * 45ms); }
+@media (max-width: 900px) {
+  .rack-unit a { grid-template-columns: 34px 30px minmax(0, 1fr) auto; }
+  .ru-ear, .ru-text, .ru-vent, .ru-go { display: none; }
+}
+@media (max-width: 640px) {
+  .rack-units { padding: 8px 10px; }
+  .rack-unit a { gap: 8px; padding: 0 8px; }
+  .rack-unit a:hover { transform: none; }
+}
+
+/* ------------------------------------------------------------ más vida en la unidad */
+.uf-fans { display: flex; gap: 6px; }
+.uf-fans i {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--chassis-edge) 0 18%, transparent 18% 33%, var(--chassis-edge) 33% 51%, transparent 51% 66%, var(--chassis-edge) 66% 84%, transparent 84%), var(--rack-hole);
+  box-shadow: inset 0 0 0 2px var(--chassis-edge);
+  animation: fan .35s linear infinite;
+}
+.uf-fans i:nth-child(2) { animation-duration: .31s; }
+.uf-fans i:nth-child(3) { animation-duration: .38s; }
+.unit-face .uf-fans i { animation: fan-up 1.6s cubic-bezier(.5, 0, .7, .4) both, fan .35s linear 1.6s infinite; }
+.status-retired .uf-fans i { animation-duration: 1.4s; }
+@keyframes fan { to { transform: rotate(360deg); } }
+@keyframes fan-up { from { transform: rotate(0); } to { transform: rotate(1080deg); } }
+.uf-leds .led-act.is-blink { animation: led-hit .35s steps(4, jump-none) 1; }
+@keyframes led-hit { 0%, 50% { opacity: .2; } 25%, 75% { opacity: 1; } }
+.status-live .uf-state { color: var(--ok); }
+.status-lab .uf-state { color: var(--accent-2); }
+.unit-pos { margin: 0 0 6px; font-family: var(--mono); }
+.status-live .unit-status { color: var(--ok); }
+.status-retired .unit-status { color: var(--warn); }
+.status-lab .unit-status { color: var(--accent-2); }
+@media (max-width: 640px) { .uf-fans { display: none; } }
+
+/* Las bahías se encienden al llegar: un parpadeo de pantalla CRT. */
+html.js .bay.will-power { opacity: 0; transform: translateY(14px); }
+html.js .bay.will-power.is-on { animation: bay-on .6s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes bay-on {
+  0% { opacity: 0; transform: translateY(14px); filter: brightness(2.2) saturate(.2); }
+  30% { opacity: .7; }
+  45% { opacity: .35; }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+.bay-silk::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 6px var(--ok); vertical-align: 1px; animation: led-act 2.1s infinite steps(2, jump-none); }
+.bay:nth-of-type(2n) .bay-silk::before { animation-duration: 1.4s; }
+
+/* Las piezas del mapa de una unidad respiran: su LED parpadea a su ritmo. */
+.unit-lab .lab-node .node-led { animation: led-act 1.6s infinite steps(2, jump-none); }
+.unit-lab .lab-node:nth-of-type(3n) .node-led { animation-duration: 1.1s; }
+.unit-lab .lab-node:nth-of-type(3n + 1) .node-led { animation-duration: 2.3s; animation-delay: -.6s; }
+.unit-lab .lab-node.is-active .node-led, .unit-lab .lab-node.is-lit .node-led { animation-duration: .25s; }
+
+/* Unidades vecinas: subir y bajar por el rack. */
+.unit-neighbours { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 26px 0 0; }
+.unit-neighbours a {
+  display: grid; gap: 4px; padding: 14px 18px; text-decoration: none; color: var(--text);
+  background: linear-gradient(180deg, var(--chassis-top), var(--chassis-bot)); border: 1px solid var(--chassis-edge); border-radius: 6px;
+  box-shadow: inset 0 1px 0 var(--chassis-hi); transition: transform .2s, border-color .2s;
+}
+.unit-neighbours a:hover, .unit-neighbours a:focus-visible { border-color: var(--accent); transform: translateY(-2px); }
+.unit-neighbours small { color: var(--muted); font: 600 .74rem/1 var(--mono); text-transform: uppercase; letter-spacing: .06em; }
+.unit-neighbours strong { font: 800 .95rem/1.2 var(--mono); }
+.un-next { text-align: right; grid-column: 2; }
+@media (prefers-reduced-motion: reduce) {
+  .uf-fans i, .bay-silk::before, .unit-lab .lab-node .node-led, .ru-leds i, .btn-sound.is-on .snd-icon i { animation: none !important; }
+  html.js .bay.will-power { opacity: 1; transform: none; }
+  html.js .rack-units.will-slide .rack-unit { opacity: 1; transform: none; }
+}
+@media print {
+  html.js .bay.will-power { opacity: 1 !important; transform: none !important; animation: none !important; }
+  .btn-sound, .unit-neighbours { display: none !important; }
+}
+
+/* ------------------------------------------------------------ simulador de VRAM (Hermes) */
+.vram { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 22px; margin-top: 14px; }
+.vram-controls { display: grid; gap: 14px; align-content: start; }
+.vram-apps { display: flex; flex-wrap: wrap; gap: 8px; }
+.vram-app { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); font-size: .86rem; cursor: pointer; }
+.vram-app:has(input:checked) { border-color: var(--warn); }
+.vram-app input { accent-color: var(--warn); }
+.vram-result { display: grid; gap: 12px; align-content: start; padding: 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); }
+/* La tarjeta gráfica: chapa verde, chips de memoria y la barra de VRAM. */
+.vram-card { position: relative; padding: 14px 14px 10px; border-radius: 10px; background: linear-gradient(160deg, #123a2a, #0b2219); border: 1px solid #1f5a41; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06); }
+.vram-chips { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 10px; }
+.vram-chips i { height: 14px; border-radius: 2px; background: #1d1f24; box-shadow: inset 0 0 0 1px #2c2f36; }
+.vram-bar { display: flex; height: 26px; border-radius: 5px; overflow: hidden; background: #0a1410; box-shadow: inset 0 0 0 1px #1f5a41; }
+.vram-bar span { display: block; height: 100%; transition: width .45s cubic-bezier(.2, .8, .2, 1); }
+.vb-reserved, .vram-legend .lg-reserved i { background: #64748b; }
+.vb-apps, .vram-legend .lg-apps i { background: var(--warn); }
+.vb-model, .vram-legend .lg-model i { background: var(--accent); }
+.vb-free { background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(255, 255, 255, .05) 6px 12px); }
+.vram-spill { height: 10px; margin-top: 6px; display: flex; justify-content: flex-end; opacity: 0; transition: opacity .3s; }
+.vram-spill.is-on { opacity: 1; }
+.vram-spill span { display: block; height: 100%; border-radius: 3px; background: repeating-linear-gradient(135deg, var(--danger) 0 5px, transparent 5px 9px); transition: width .45s; }
+.vram-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; list-style: none; margin: 10px 0 0; padding: 0; color: #cfe7db; }
+.vram-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.vram-legend .lg-cpu i { background: repeating-linear-gradient(135deg, var(--danger) 0 3px, transparent 3px 5px); }
+.vram.is-split .vram-card { animation: card-hot 1.2s ease-in-out infinite alternate; }
+@keyframes card-hot { to { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 0 22px rgba(248, 113, 113, .35); } }
+.vram-nums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.vram-nums div { padding: 10px 12px; border-radius: 9px; background: var(--surface); border: 1px solid var(--border); }
+.vram-nums dt { font-size: .76rem; color: var(--muted); }
+.vram-nums dd { margin: 2px 0 0; font: 800 1.3rem/1.1 var(--mono); }
+.vram-verdict { margin: 0; font-weight: 600; color: var(--ok); }
+.vram-verdict.is-bad { color: var(--danger); }
+@media (max-width: 860px) { .vram { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .vram.is-split .vram-card { animation: none; } .vram-bar span, .vram-spill span { transition: none; } }
+@media print { .vram { display: none !important; } }
+

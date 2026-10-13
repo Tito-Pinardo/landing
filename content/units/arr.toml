@@ -1,0 +1,825 @@
+# Unidad 1U del rack: la biblioteca automatizada.
+#
+# Fuente: Obsidian «Media ARR», Radarr y Sonarr. Se cuenta en genérico a
+# propósito (igual que en el laboratorio): sin fuentes de contenido,
+# descargas ni títulos.
+
+id = "arr"
+status = "live"
+host_tech = ["lxc", "docker"]
+links = [
+  ["family", "requests"],
+  ["plex", "stats"],
+]
+
+[[groups]]
+id = "ask"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "managers"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "files"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "care"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "family"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "plex"
+x = 290
+y = 110
+kind = "compute"
+group = ""
+tech = []
+
+[[pods]]
+id = "caddy"
+x = 100
+y = 250
+kind = "network"
+group = ""
+tech = []
+
+[[pods]]
+id = "pool"
+x = 290
+y = 420
+kind = "compute"
+group = ""
+tech = ["zfs"]
+
+[[pods]]
+id = "requests"
+x = 515
+y = 140
+kind = "app"
+group = "ask"
+tech = ["docker"]
+
+[[pods]]
+id = "stats"
+x = 700
+y = 140
+kind = "observability"
+group = "ask"
+tech = ["docker"]
+
+[[pods]]
+id = "authelia"
+x = 885
+y = 140
+kind = "observability"
+group = "ask"
+tech = ["hardening"]
+
+[[pods]]
+id = "stacks"
+x = 1070
+y = 140
+kind = "control"
+group = "ask"
+tech = ["docker"]
+
+[[pods]]
+id = "movies"
+x = 515
+y = 266
+kind = "app"
+group = "managers"
+tech = ["docker"]
+
+[[pods]]
+id = "series"
+x = 700
+y = 266
+kind = "app"
+group = "managers"
+tech = ["docker"]
+
+[[pods]]
+id = "profiles"
+x = 885
+y = 266
+kind = "control"
+group = "managers"
+tech = ["docker"]
+
+[[pods]]
+id = "subs"
+x = 1070
+y = 266
+kind = "app"
+group = "managers"
+tech = ["docker"]
+
+[[pods]]
+id = "import"
+x = 515
+y = 392
+kind = "control"
+group = "files"
+tech = []
+
+[[pods]]
+id = "names"
+x = 700
+y = 392
+kind = "app"
+group = "files"
+tech = []
+
+[[pods]]
+id = "hardlinks"
+x = 885
+y = 392
+kind = "compute"
+group = "files"
+tech = ["zfs"]
+
+[[pods]]
+id = "api"
+x = 1070
+y = 392
+kind = "control"
+group = "files"
+tech = ["python"]
+
+[[pods]]
+id = "db"
+x = 515
+y = 518
+kind = "app"
+group = "care"
+tech = []
+
+[[pods]]
+id = "disk"
+x = 700
+y = 518
+kind = "observability"
+group = "care"
+tech = ["lxc"]
+
+[[pods]]
+id = "probe"
+x = 885
+y = 518
+kind = "observability"
+group = "care"
+tech = ["linux"]
+
+[[pods]]
+id = "zabbix"
+x = 1070
+y = 518
+kind = "observability"
+group = "care"
+tech = ["zabbix"]
+
+[[flows]]
+id = "request"
+path = ["family", "requests", "movies", "profiles", "import", "names", "hardlinks", "pool", "subs", "plex", "family"]
+
+[[flows]]
+id = "panels"
+path = ["caddy", "authelia", "stacks", "series", "profiles"]
+
+[[flows]]
+id = "manual"
+path = ["series", "import", "api", "import", "names", "plex"]
+
+[[flows]]
+id = "broken"
+path = ["plex", "probe", "pool", "probe", "movies"]
+
+[[flows]]
+id = "full"
+path = ["movies", "db", "disk", "zabbix", "disk", "db"]
+
+[[incidents]]
+id = "dbfull"
+answer = 2
+
+[[incidents]]
+id = "pack"
+answer = 0
+
+[[incidents]]
+id = "header"
+answer = 3
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "La biblioteca automatizada por dentro · Tito Pinardo Gutiérrez"
+description = "Los servicios que mantienen la biblioteca multimedia de casa ordenada sola: peticiones, nombres y metadatos, perfiles de calidad e idioma y subtítulos, y las averías que salen de una biblioteca grande."
+
+[text.es.ui]
+slot = "1U · LIBRARY"
+face_specs = "*arr · perfiles · subtítulos"
+state = "En producción"
+map_silk = "LIB"
+map_title = "La biblioteca por dentro"
+map_intro = "Pedir algo, que llegue con buen nombre, en la calidad y el idioma de casa y con subtítulos: todo sin tocarlo. Elige un recorrido."
+vm_title = "Contenedor Docker · Proxmox"
+vm_specs = "un stack por función"
+outside = "Fuera"
+disclaimer = "Contado en genérico a propósito, igual que en el laboratorio: sin fuentes, descargas ni títulos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Multimedia"
+title = "La biblioteca automatizada"
+tagline = "Un conjunto de servicios que hace el trabajo aburrido de una biblioteca grande: cuando alguien de casa pide una película o una serie, se encarga de que llegue con su nombre correcto, sus metadatos, la calidad e idioma que elegí y sus subtítulos, y de que Plex la encuentre."
+grade = "Perfiles en castellano primero"
+facts = [
+  { label = "Por qué", value = "Ordenar a mano miles de ficheros es imposible de mantener. Con perfiles y reglas, la biblioteca se queda ordenada sola." },
+  { label = "Qué decide", value = "Perfiles de calidad e idioma: castellano primero, y para anime, japonés con subtítulos como respaldo." },
+  { label = "Dónde se ve", value = "Los paneles solo desde casa o la VPN, detrás de la puerta interna con doble factor." },
+]
+
+[[text.es.stats]]
+value = "3.295"
+label = "ficheros de vídeo revisados"
+
+[[text.es.stats]]
+value = "41"
+label = "películas en el idioma equivocado, limpiadas"
+
+[[text.es.stats]]
+value = "+74 GB"
+label = "de disco tras un «database or disk is full»"
+
+[[text.es.stats]]
+value = "2FA"
+label = "para entrar a cualquier panel"
+
+[text.es.groups]
+ask = "Pedir y ver"
+managers = "Gestores"
+files = "Ficheros"
+care = "Cuidados"
+
+[text.es.pods.family]
+short = "Familia"
+title = "La familia"
+text = "Pide lo que quiere ver desde una web sencilla."
+
+[text.es.pods.plex]
+short = "Plex"
+title = "Plex"
+text = "Donde acaba todo. Tiene su propia unidad."
+
+[text.es.pods.caddy]
+short = "Puerta interna"
+title = "Puerta interna"
+text = "La entrada a los paneles."
+
+[text.es.pods.pool]
+short = "Pool ZFS"
+title = "El pool de la biblioteca"
+text = "Donde viven los ficheros."
+
+[text.es.pods.requests]
+short = "Peticiones"
+title = "Peticiones"
+text = "Una web para pedir películas y series, que se las pasa a los gestores."
+
+[text.es.pods.stats]
+short = "Estadísticas"
+title = "Estadísticas de Plex"
+text = "Qué se ve, cuándo y cómo: si algo se convierte demasiado, se nota aquí."
+
+[text.es.pods.authelia]
+short = "Authelia"
+title = "Authelia"
+text = "Doble factor delante de todos los paneles."
+
+[text.es.pods.stacks]
+short = "Gestor stacks"
+title = "Gestor de stacks"
+text = "Cada grupo de servicios es un stack de Docker Compose."
+
+[text.es.pods.movies]
+short = "Películas"
+title = "Gestor de películas"
+text = "Sabe qué películas hay, cuáles faltan y en qué calidad están."
+
+[text.es.pods.series]
+short = "Series"
+title = "Gestor de series"
+text = "Lo mismo por temporadas y episodios."
+
+[text.es.pods.profiles]
+short = "Perfiles"
+title = "Perfiles de calidad e idioma"
+text = "Las reglas de qué versión es mejor: castellano primero, buena calidad sin pasarse de tamaño."
+
+[text.es.pods.subs]
+short = "Subtítulos"
+title = "Subtítulos"
+text = "Busca y sincroniza los subtítulos que faltan."
+
+[text.es.pods.import]
+short = "Importar"
+title = "Importación"
+text = "Cuando un fichero llega, se identifica y se mueve a su sitio."
+
+[text.es.pods.names]
+short = "Nombres"
+title = "Nombres y carpetas"
+text = "Título y año, siempre igual: así Plex lo reconoce a la primera."
+
+[text.es.pods.hardlinks]
+short = "Enlaces duros"
+title = "Enlaces duros"
+text = "Mover sin copiar: el mismo fichero en dos rutas no ocupa el doble."
+
+[text.es.pods.api]
+short = "API"
+title = "La API de los gestores"
+text = "Cuando la importación automática no puede, la API deja hacerla a mano con precisión."
+
+[text.es.pods.db]
+short = "Base SQLite"
+title = "Base de datos de los gestores"
+text = "Cada gestor guarda en SQLite lo que sabe de la biblioteca."
+
+[text.es.pods.disk]
+short = "Disco del CT"
+title = "Disco del contenedor"
+text = "Donde viven esas bases. Si se llena, fallan."
+
+[text.es.pods.probe]
+short = "ffprobe"
+title = "Revisar un fichero"
+text = "Mirar por dentro un fichero que no se reproduce, antes de culpar a la red."
+
+[text.es.pods.zabbix]
+short = "Zabbix"
+title = "Monitorización"
+text = "Vigila los discos y los contenedores Docker."
+
+[text.es.flows.request]
+title = "Alguien pide una película"
+steps = [
+  "Alguien de casa pide una película desde la web de peticiones.",
+  "La petición pasa al gestor de películas.",
+  "El gestor de películas la busca.",
+  "Los perfiles deciden qué versión vale: castellano, buena calidad, tamaño razonable.",
+  "Cuando llega, se importa.",
+  "Con su título y año, en su carpeta.",
+  "Movida con un enlace duro: sin copiar nada.",
+  "Al pool.",
+  "Llegan sus subtítulos.",
+  "Plex la encuentra a la primera.",
+  "Y aparece en la tele.",
+]
+
+[text.es.flows.panels]
+title = "Reviso los gestores"
+steps = [
+  "Abro un panel desde casa.",
+  "Authelia pide doble factor.",
+  "Desde el gestor de stacks veo los contenedores.",
+  "Reviso las series.",
+  "Y ajusto un perfil.",
+]
+
+[text.es.flows.manual]
+title = "Una importación que no puede ser automática"
+steps = [
+  "El gestor de series avisa: no puede importar algo solo.",
+  "La importación automática está bloqueada.",
+  "Con la API indico qué episodio es cada fichero.",
+  "La importación termina.",
+  "Con sus nombres correctos.",
+  "Y aparece en Plex.",
+]
+
+[text.es.flows.broken]
+title = "Una película que no se reproduce"
+steps = [
+  "Plex da «error de red» al reproducir una película.",
+  "Antes de tocar la red, miro el fichero por dentro.",
+  "En el pool, el fichero ocupa mucho menos de lo que dice.",
+  "Los primeros megas son ceros: el fichero está roto, no la red.",
+  "El gestor lo marca para volver a conseguirlo.",
+]
+
+[text.es.flows.full]
+title = "La base de datos se queda sin sitio"
+steps = [
+  "El gestor de películas empieza a fallar.",
+  "Su base de datos dice «database or disk is full».",
+  "El disco del contenedor estaba casi lleno.",
+  "La monitorización lo tenía en rojo.",
+  "Se amplía el disco en caliente.",
+  "Y la base vuelve a funcionar, sin perder nada.",
+]
+
+[text.es.incidents.dbfull]
+title = "«database or disk is full»"
+meta = "03-08-2026 · disco"
+symptom = "El gestor de películas registró 60 errores de base de datos en diez minutos."
+options = [
+  "La base de datos estaba corrupta",
+  "El pool de la biblioteca estaba lleno",
+  "El disco del contenedor donde viven las bases se había quedado casi sin espacio",
+  "Demasiadas peticiones a la vez",
+]
+cause = "No era la biblioteca, que tiene su propio pool, sino el disco del contenedor, donde viven las bases de datos, las imágenes de Docker y los registros."
+fix = "Ampliar el disco del contenedor en 74 GB desde el hipervisor, sin pararlo."
+lesson = "«Disco lleno» no dice qué disco. Mirar cuál, antes de borrar nada de la biblioteca."
+
+[text.es.incidents.pack]
+title = "Una temporada entera que no se importaba"
+meta = "11-07-2026 · importación"
+symptom = "Una temporada completa había llegado y estaba en la cola como terminada, pero el gestor se negaba a importarla y los episodios no aparecían."
+options = [
+  "Llegó como un único paquete asociado a la serie, no a episodios concretos, y no podía repartirlo solo",
+  "Los ficheros estaban dañados",
+  "La serie no estaba en el gestor",
+  "Faltaban permisos en la carpeta",
+]
+cause = "Al venir toda la temporada en un solo bloque, el gestor sabía de qué serie era pero no qué fichero correspondía a qué episodio, y bloquea la importación para no equivocarse."
+fix = "Importar a mano por la API, indicando cada episodio. Quedó documentado como procedimiento."
+lesson = "Cuando una automatización se para por prudencia, la salida no es saltársela sino darle el dato que le falta."
+
+[text.es.incidents.header]
+title = "«Error de red» que no era de red"
+meta = "04-09-2026 · reproducción"
+symptom = "Una película daba error de red al reproducirla en Plex, en cualquier dispositivo."
+options = [
+  "El router cortaba la conexión",
+  "La GPU fallaba al convertir",
+  "Plex tenía un fallo de versión",
+  "El fichero estaba roto: la cabecera a ceros y la mitad del tamaño sin datos",
+]
+cause = "El fichero tenía los primeros megas a cero y ocupaba en disco bastante menos de lo que decía su tamaño: estaba incompleto. Plex lo contaba como error de red."
+fix = "Confirmarlo mirando el fichero por dentro y pedir al gestor que lo consiga de nuevo."
+lesson = "El mensaje de error describe dónde se notó, no dónde está el fallo. Mirar el dato antes que el camino."
+
+[[text.es.timeline]]
+title = "Biblioteca ordenada"
+period = "Verano de 2026"
+items = [
+  "Gestores de películas y series, subtítulos y peticiones.",
+  "Perfiles en castellano y limpieza de lo que estaba en otro idioma.",
+]
+
+[[text.es.timeline]]
+title = "Detrás de la puerta interna"
+period = "Septiembre de 2026"
+items = [
+  "Todos los paneles con doble factor y solo desde casa o la VPN.",
+]
+
+[[text.es.decisions]]
+title = "Cómo se elige la versión"
+choice = "Perfiles explícitos"
+why = "Decidir caso a caso no escala. Un perfil dice qué idioma, calidad y tamaño son aceptables y el gestor aplica siempre lo mismo."
+
+[[text.es.decisions]]
+title = "Cómo se mueven los ficheros"
+choice = "Enlaces duros en el mismo pool"
+why = "Copiar duplicaría espacio y tiempo. Con enlaces duros mover es instantáneo y no ocupa más."
+
+[text.es.tech_notes]
+lxc = "El contenedor de Docker del servidor, con su disco ampliado cuando hizo falta."
+docker = "Cada servicio en su contenedor, agrupados en stacks de Docker Compose."
+zfs = "La biblioteca en su pool, con enlaces duros para mover sin copiar."
+python = "Scripts contra la API de los gestores para importaciones manuales y revisiones."
+linux = "ffprobe para mirar los ficheros por dentro."
+zabbix = "Vigila los discos y los contenedores."
+hardening = "Paneles solo detrás de la puerta interna con doble factor."
+
+[text.es.close]
+lessons = [
+  "Reglas antes que trabajo manual: los perfiles ordenan mejor que yo.",
+  "Leer bien qué disco está lleno y qué está roto de verdad.",
+]
+next = [
+  "Avisos de los gestores en una sala propia en vez de revisarlos a mano.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside the automated library · Tito Pinardo Gutiérrez"
+description = "The services that keep the home media library tidy on their own: requests, names and metadata, quality and language profiles and subtitles, and the failures that come with a big library."
+
+[text.en.ui]
+slot = "1U · LIBRARY"
+face_specs = "*arr · profiles · subtitles"
+state = "In production"
+map_silk = "LIB"
+map_title = "Inside the library"
+map_intro = "Ask for something and have it arrive with a good name, in the household's quality and language and with subtitles: all hands-off. Pick a flow."
+vm_title = "Docker container · Proxmox"
+vm_specs = "one stack per job"
+outside = "Outside"
+disclaimer = "Told generically on purpose, as in the lab: no sources, downloads or titles."
+
+[text.en.hero]
+kicker = "1U unit · Media"
+title = "The automated library"
+tagline = "A set of services doing the boring work of a big library: when someone at home asks for a film or series, they make sure it arrives with the right name, its metadata, the quality and language I chose and its subtitles, and that Plex finds it."
+grade = "Spanish-first profiles"
+facts = [
+  { label = "Why", value = "Sorting thousands of files by hand can't be kept up. With profiles and rules, the library stays tidy on its own." },
+  { label = "What it decides", value = "Quality and language profiles: Spanish first, and for anime, Japanese with subtitles as fallback." },
+  { label = "Where it's seen", value = "Panels only from home or the VPN, behind the internal door with two-factor." },
+]
+
+[[text.en.stats]]
+value = "3,295"
+label = "video files checked"
+
+[[text.en.stats]]
+value = "41"
+label = "films in the wrong language, cleaned up"
+
+[[text.en.stats]]
+value = "+74 GB"
+label = "of disk after a «database or disk is full»"
+
+[[text.en.stats]]
+value = "2FA"
+label = "to get into any panel"
+
+[text.en.groups]
+ask = "Ask and watch"
+managers = "Managers"
+files = "Files"
+care = "Care"
+
+[text.en.pods.family]
+short = "Family"
+title = "The family"
+text = "Asks for what they want to watch from a simple website."
+
+[text.en.pods.plex]
+short = "Plex"
+title = "Plex"
+text = "Where everything ends up. It has its own unit."
+
+[text.en.pods.caddy]
+short = "Internal door"
+title = "Internal door"
+text = "The way into the panels."
+
+[text.en.pods.pool]
+short = "ZFS pool"
+title = "The library pool"
+text = "Where the files live."
+
+[text.en.pods.requests]
+short = "Requests"
+title = "Requests"
+text = "A website to request films and series, which hands them to the managers."
+
+[text.en.pods.stats]
+short = "Statistics"
+title = "Plex statistics"
+text = "What's watched, when and how: if something converts too often, it shows here."
+
+[text.en.pods.authelia]
+short = "Authelia"
+title = "Authelia"
+text = "Two-factor in front of every panel."
+
+[text.en.pods.stacks]
+short = "Gestor stacks"
+title = "Stack manager"
+text = "Each group of services is a Docker Compose stack."
+
+[text.en.pods.movies]
+short = "Films"
+title = "Film manager"
+text = "Knows which films there are, which are missing and in what quality."
+
+[text.en.pods.series]
+short = "Series"
+title = "Series manager"
+text = "The same, by season and episode."
+
+[text.en.pods.profiles]
+short = "Profiles"
+title = "Quality and language profiles"
+text = "The rules for which version is best: Spanish first, good quality without going overboard on size."
+
+[text.en.pods.subs]
+short = "Subtitles"
+title = "Subtitles"
+text = "Finds and syncs missing subtitles."
+
+[text.en.pods.import]
+short = "Import"
+title = "Import"
+text = "When a file arrives, it's identified and moved into place."
+
+[text.en.pods.names]
+short = "Names"
+title = "Names and folders"
+text = "Title and year, always the same: so Plex recognises it first time."
+
+[text.en.pods.hardlinks]
+short = "Hard links"
+title = "Hard links"
+text = "Move without copying: the same file in two paths doesn't take double the space."
+
+[text.en.pods.api]
+short = "API"
+title = "The managers' API"
+text = "When automatic import can't, the API lets you do it by hand, precisely."
+
+[text.en.pods.db]
+short = "SQLite DB"
+title = "Managers' database"
+text = "Each manager keeps what it knows about the library in SQLite."
+
+[text.en.pods.disk]
+short = "CT disk"
+title = "Container disk"
+text = "Where those databases live. If it fills up, they fail."
+
+[text.en.pods.probe]
+short = "ffprobe"
+title = "Inspect a file"
+text = "Look inside a file that won't play, before blaming the network."
+
+[text.en.pods.zabbix]
+short = "Zabbix"
+title = "Monitoring"
+text = "Watches the disks and the Docker containers."
+
+[text.en.flows.request]
+title = "Someone requests a film"
+steps = [
+  "Someone at home requests a film from the requests site.",
+  "The request goes to the film manager.",
+  "The film manager looks for it.",
+  "The profiles decide which version is acceptable: Spanish, good quality, sensible size.",
+  "When it arrives, it's imported.",
+  "With its title and year, in its folder.",
+  "Moved with a hard link: nothing copied.",
+  "Onto the pool.",
+  "Its subtitles arrive.",
+  "Plex finds it first time.",
+  "And it shows up on the TV.",
+]
+
+[text.en.flows.panels]
+title = "I check the managers"
+steps = [
+  "I open a panel from home.",
+  "Authelia asks for two-factor.",
+  "From the stack manager I see the containers.",
+  "I check the series.",
+  "And tweak a profile.",
+]
+
+[text.en.flows.manual]
+title = "An import that can't be automatic"
+steps = [
+  "The series manager warns: it can't import something on its own.",
+  "Automatic import is blocked.",
+  "Through the API I say which episode each file is.",
+  "The import completes.",
+  "With the right names.",
+  "And it shows up in Plex.",
+]
+
+[text.en.flows.broken]
+title = "A film that won't play"
+steps = [
+  "Plex shows a «network error» when playing a film.",
+  "Before touching the network, I look inside the file.",
+  "On the pool, the file takes up much less than its stated size.",
+  "The first megabytes are zeros: the file is broken, not the network.",
+  "The manager flags it to get it again.",
+]
+
+[text.en.flows.full]
+title = "The database runs out of room"
+steps = [
+  "The film manager starts failing.",
+  "Its database says «database or disk is full».",
+  "The container's disk was nearly full.",
+  "Monitoring had it in red.",
+  "The disk is grown live.",
+  "And the database works again, nothing lost.",
+]
+
+[text.en.incidents.dbfull]
+title = "«database or disk is full»"
+meta = "03-08-2026 · disk"
+symptom = "The film manager logged 60 database errors in ten minutes."
+options = [
+  "The database was corrupted",
+  "The library pool was full",
+  "The container disk where the databases live was almost out of space",
+  "Too many requests at once",
+]
+cause = "It wasn't the library, which has its own pool, but the container's disk, where the databases, Docker images and logs live."
+fix = "Grow the container disk by 74 GB from the hypervisor, without stopping it."
+lesson = "«Disk full» doesn't say which disk. Check which one before deleting anything from the library."
+
+[text.en.incidents.pack]
+title = "A whole season that wouldn't import"
+meta = "11-07-2026 · import"
+symptom = "A full season had arrived and sat in the queue as finished, but the manager refused to import it and the episodes didn't appear."
+options = [
+  "It came as a single bundle tied to the series, not to specific episodes, and it couldn't split it on its own",
+  "The files were damaged",
+  "The series wasn't in the manager",
+  "The folder lacked permissions",
+]
+cause = "With the whole season in one block, the manager knew which series it was but not which file was which episode, and blocks the import so as not to get it wrong."
+fix = "Import by hand through the API, specifying each episode. Documented as a procedure."
+lesson = "When an automation stops out of caution, the way out isn't to bypass it but to give it the data it's missing."
+
+[text.en.incidents.header]
+title = "A «network error» that wasn't the network"
+meta = "04-09-2026 · playback"
+symptom = "A film gave a network error when played in Plex, on any device."
+options = [
+  "The router was cutting the connection",
+  "The GPU was failing to convert",
+  "Plex had a version bug",
+  "The file was broken: header zeroed and half its size with no data",
+]
+cause = "The file had its first megabytes zeroed and took up much less on disk than its stated size: it was incomplete. Plex reported it as a network error."
+fix = "Confirm it by looking inside the file and ask the manager to get it again."
+lesson = "An error message describes where it was noticed, not where the fault is. Look at the data before the path."
+
+[[text.en.timeline]]
+title = "A tidy library"
+period = "Summer 2026"
+items = [
+  "Film and series managers, subtitles and requests.",
+  "Spanish profiles and a clean-up of what was in another language.",
+]
+
+[[text.en.timeline]]
+title = "Behind the internal door"
+period = "September 2026"
+items = [
+  "Every panel with two-factor and only from home or the VPN.",
+]
+
+[[text.en.decisions]]
+title = "How the version is chosen"
+choice = "Explicit profiles"
+why = "Deciding case by case doesn't scale. A profile says which language, quality and size are acceptable and the manager always applies the same."
+
+[[text.en.decisions]]
+title = "How files are moved"
+choice = "Hard links on the same pool"
+why = "Copying would double space and time. With hard links moving is instant and takes no extra room."
+
+[text.en.tech_notes]
+lxc = "The server's Docker container, with its disk grown when needed."
+docker = "Each service in its container, grouped into Docker Compose stacks."
+zfs = "The library on its pool, with hard links to move without copying."
+python = "Scripts against the managers' API for manual imports and reviews."
+linux = "ffprobe to look inside files."
+zabbix = "Watches the disks and containers."
+hardening = "Panels only behind the internal door with two-factor."
+
+[text.en.close]
+lessons = [
+  "Rules before manual work: profiles sort better than I do.",
+  "Read carefully which disk is full and what's really broken.",
+]
+next = [
+  "Manager notifications in a room of their own instead of checking them by hand.",
+]

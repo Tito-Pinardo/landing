@@ -10,6 +10,7 @@
   const U = D.ui;
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const SVGNS = "http://www.w3.org/2000/svg";
+  const snd = (name) => window.tpSound?.play(name);
 
   // Mismo almacén que la página principal (logros compartidos).
   const store = {
@@ -38,12 +39,38 @@
     el._typing = setInterval(() => {
       i += 2;
       el.textContent = text.slice(0, i);
+      if (i % 6 === 0) snd("tick");
       if (i >= text.length) {
         clearInterval(el._typing);
         el.classList.remove("is-typing");
         done?.();
       }
     }, 16);
+  }
+
+  // La unidad sale del rack: roce de raíles y arranque de ventiladores.
+  snd2("slide");
+  setTimeout(() => snd2("boot"), 900);
+  function snd2(name) { window.tpSound?.play(name, { intro: true }); }
+
+  // LED de actividad del frontal: parpadea cuando se mueve algo dentro.
+  const actLed = $(".uf-leds .led-act");
+  function blinkFace() {
+    if (!actLed) return;
+    actLed.classList.remove("is-blink");
+    void actLed.offsetWidth;
+    actLed.classList.add("is-blink");
+  }
+
+  // Las bahías se encienden al llegar a ellas.
+  if (!reduceMotion && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) {
+        e.target.classList.add("is-on");
+        io.unobserve(e.target);
+      }
+    }, { rootMargin: "0px 0px -10% 0px" });
+    $$(".bay").forEach((b) => { b.classList.add("will-power"); io.observe(b); });
   }
 
   // Logro: entrar en una unidad. Se guarda con los de la página principal.
@@ -56,6 +83,7 @@
       el.className = "toast";
       el.setAttribute("role", "status");
       el.innerHTML = '<span class="toast-icon" aria-hidden="true">★</span><div><small></small><strong></strong><span class="toast-text"></span></div>';
+      snd("achievement");
       el.querySelector("small").textContent = D.achievement.label;
       el.querySelector("strong").textContent = D.achievement.title;
       el.querySelector(".toast-text").textContent = D.achievement.text;
@@ -136,6 +164,8 @@
       else {
         path.style.strokeDasharray = "";
         path.style.strokeDashoffset = "";
+        snd("hop");
+        blinkFace();
         done?.();
       }
     };
@@ -316,7 +346,8 @@
 
   // ------------------------------------------------------------ cálculo de XP
   const X = D.xp;
-  const xp = $("[data-xp]");
+  const xp = X && $("[data-xp]");
+  if (xp) {
   const xin = (k) => $(`[data-xp-in="${k}"]`, xp);
   const xout = (k) => $(`[data-xp-out="${k}"]`, xp);
   const base = xin("base");
@@ -375,12 +406,95 @@
   xp.addEventListener("input", recalc);
   xp.addEventListener("submit", (ev) => ev.preventDefault());
   recalc();
+  }
+
+  // ------------------------------------------------------------ VRAM
+  // Cuánto del modelo cabe en la GPU con lo que hay abierto en el PC. Lo que
+  // no cabe corre en la CPU y la velocidad cae: se interpola entre las
+  // medidas reales.
+  const V = D.vram, VT = D.vram_text;
+  const vf = V && $("[data-vram]");
+  if (vf) {
+    const gib = (mib) => `${fmtV.format(mib / 1024)} GiB`;
+    const fmtV = new Intl.NumberFormat(D.lang, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    const fmt1 = new Intl.NumberFormat(D.lang, { maximumFractionDigits: 1 });
+    const kvBox = $("[data-vram-kv]", vf);
+    V.kv.forEach(([id, mib], i) => {
+      const l = document.createElement("label");
+      l.className = "xp-diff-opt";
+      l.innerHTML = '<input type="radio" name="kv"><span></span>';
+      const inp = l.querySelector("input");
+      inp.value = id;
+      inp.checked = i === 0;
+      l.querySelector("span").textContent = `${VT.kv_names[id]} · ${gib(mib)}`;
+      kvBox.append(l);
+    });
+    const appBox = $("[data-vram-apps]", vf);
+    V.apps.forEach((a) => {
+      const l = document.createElement("label");
+      l.className = "vram-app";
+      l.innerHTML = '<input type="checkbox"><span></span>';
+      const inp = l.querySelector("input");
+      inp.name = a.id;
+      inp.checked = a.on;
+      l.querySelector("span").textContent = a.mib ? `${VT.app_names[a.id]} · ${a.mib} MiB` : VT.app_names[a.id];
+      appBox.append(l);
+    });
+    const speedAt = (pct) => {
+      const pts = V.speed;
+      if (pct <= pts[0][0]) return pts[0][1] * (pct / pts[0][0]);
+      for (let i = 1; i < pts.length; i++) {
+        const [p0, s0] = pts[i - 1], [p1, s1] = pts[i];
+        if (pct <= p1) return s0 + ((s1 - s0) * (pct - p0)) / (p1 - p0);
+      }
+      return pts[pts.length - 1][1];
+    };
+    const seg = (k) => $(`[data-vb="${k}"]`, vf);
+    const out = (k) => $(`[data-vram-out="${k}"]`, vf);
+    let lastFull = null;
+    function recalcV() {
+      const kvId = $("input[name=kv]:checked", vf).value;
+      const kv = V.kv.find(([id]) => id === kvId)[1];
+      const apps = V.apps.filter((a) => $(`input[name="${CSS.escape(a.id)}"]`, vf).checked).reduce((n, a) => n + a.mib, 0);
+      const think = $("input[name=think]:checked", vf).value === "1";
+      const model = V.model_mib + kv;
+      const room = Math.max(0, V.total_mib - V.reserved_mib - apps);
+      const onGpu = Math.min(model, room);
+      const pct = Math.round((onGpu / model) * 100);
+      const speed = speedAt(pct);
+      const tokens = V.tokens_pick + (think ? V.tokens_write_think : V.tokens_write_direct);
+      const secs = V.load_s + tokens / speed;
+      const w = (mib) => `${Math.max(0, (mib / V.total_mib) * 100).toFixed(2)}%`;
+      seg("reserved").style.width = w(V.reserved_mib);
+      seg("apps").style.width = w(Math.min(apps, V.total_mib - V.reserved_mib));
+      seg("model").style.width = w(onGpu);
+      seg("free").style.width = w(Math.max(0, room - onGpu));
+      const spill = $("[data-vram-spill]", vf);
+      spill.classList.toggle("is-on", model > room);
+      $("span", spill).style.width = `${Math.min(100, ((model - onGpu) / V.total_mib) * 100).toFixed(2)}%`;
+      out("pct").textContent = `${pct} %`;
+      out("speed").textContent = `${fmt1.format(speed)} tok/s`;
+      out("time").textContent = `≈ ${fmt1.format(secs)} s`;
+      out("free").textContent = gib(Math.max(0, room - onGpu));
+      const full = pct >= 100;
+      $("[data-vram-verdict]", vf).textContent = full ? VT.verdict_full : VT.verdict_split.replace("{gib}", gib(model - onGpu));
+      $("[data-vram-verdict]", vf).classList.toggle("is-bad", !full);
+      $("[data-vram-math]", vf).textContent = `${fmt1.format(V.load_s)} s + ${tokens} tok ÷ ${fmt1.format(speed)} tok/s = ${fmt1.format(secs)} s`;
+      vf.classList.toggle("is-split", !full);
+      if (lastFull !== null && lastFull !== full) snd(full ? "ok" : "err");
+      else if (lastFull !== null) snd("seek");
+      lastFull = full;
+    }
+    vf.addEventListener("input", recalcV);
+    vf.addEventListener("submit", (ev) => ev.preventDefault());
+    recalcV();
+  }
 
   // ------------------------------------------------------------ bitácora
   const incs = $$("[data-inc]");
   const solved = new Set(store.get(`unit:${D.id}:solved`, []).filter((id) => incs.some((i) => i.dataset.inc === id)));
   const score = $("[data-inc-score]");
-  const paintScore = () => { score.textContent = `${solved.size}/${incs.length} ${U.solved}`; };
+  const paintScore = () => { if (score) score.textContent = `${solved.size}/${incs.length} ${U.solved}`; };
 
   function markSolved(li, pick) {
     const answer = Number(li.dataset.answer);
@@ -403,12 +517,14 @@
         b.classList.add("is-wrong");
         b.disabled = true;
         fb.textContent = U.incident_wrong;
+        snd("err");
         li.classList.remove("is-shake");
         void li.offsetWidth;
         li.classList.add("is-shake");
         return;
       }
       fb.textContent = U.incident_right;
+      snd("ok");
       markSolved(li);
       solved.add(li.dataset.inc);
       store.set(`unit:${D.id}:solved`, [...solved]);

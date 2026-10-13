@@ -1,0 +1,1247 @@
+# Unidad 1U del rack: Hermes, el asistente de IA local.
+#
+# Fuente: las notas de Obsidian «Hermes - Cómo y cuándo usa el modelo»,
+# «Plan de mejora con IA local (8 GB)» y el runbook del asistente. Sin
+# direcciones, nombres de máquinas ni datos personales: solo cómo funciona.
+
+id = "hermes"
+project = "hermes"
+status = "live"
+host_tech = ["linux", "ansible"]
+links = [
+  ["tito", "matrix"],
+  ["ollama", "gpu"],
+  ["voice", "gpu"],
+  ["mail", "embed"],
+  ["calendar", "relay"],
+]
+
+# Simulador de VRAM con las medidas del 22-09-2026 (nvidia-smi y /api/ps).
+[vram]
+total_mib = 8192
+reserved_mib = 1760
+model_mib = 5141
+kv = [["f16", 1126], ["q8_0", 593]]
+speed = [[71.0, 17.5], [78.0, 20.0], [84.0, 33.1], [100.0, 73.0]]
+tokens_pick = 371
+tokens_write_think = 954
+tokens_write_direct = 150
+load_s = 2.8
+
+[[vram.apps]]
+id = "desktop"
+mib = 306
+on = true
+
+[[vram.apps]]
+id = "firefox"
+mib = 805
+on = true
+
+[[vram.apps]]
+id = "steam"
+mib = 228
+on = true
+
+[[vram.apps]]
+id = "vscode"
+mib = 145
+on = true
+
+[[vram.apps]]
+id = "element"
+mib = 88
+on = true
+
+[[groups]]
+id = "pc"
+x = 10
+y = 80
+w = 380
+h = 230
+
+[[groups]]
+id = "entry"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "turn"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "tools"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "memory"
+x = 420
+y = 458
+w = 760
+h = 104
+
+# Mi PC: la GPU donde corre el modelo
+[[pods]]
+id = "ollama"
+x = 100
+y = 140
+kind = "ai"
+group = "pc"
+tech = ["llm"]
+
+[[pods]]
+id = "voice"
+x = 290
+y = 140
+kind = "ai"
+group = "pc"
+tech = ["llm"]
+
+[[pods]]
+id = "gpu"
+x = 195
+y = 250
+kind = "compute"
+group = "pc"
+tech = []
+
+# Fuera
+[[pods]]
+id = "tito"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "mail"
+x = 290
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "calendar"
+x = 290
+y = 540
+kind = "edge"
+group = ""
+tech = []
+
+# Entrada
+[[pods]]
+id = "matrix"
+x = 515
+y = 140
+kind = "app"
+group = "entry"
+tech = []
+
+[[pods]]
+id = "bot"
+x = 700
+y = 140
+kind = "ai"
+group = "entry"
+tech = ["python"]
+
+[[pods]]
+id = "queue"
+x = 885
+y = 140
+kind = "control"
+group = "entry"
+tech = ["python"]
+
+[[pods]]
+id = "format"
+x = 1070
+y = 140
+kind = "app"
+group = "entry"
+tech = ["python"]
+
+# El turno, fase a fase
+[[pods]]
+id = "prompt"
+x = 515
+y = 266
+kind = "control"
+group = "turn"
+tech = ["python"]
+
+[[pods]]
+id = "hints"
+x = 700
+y = 266
+kind = "control"
+group = "turn"
+tech = ["python"]
+
+[[pods]]
+id = "think"
+x = 885
+y = 266
+kind = "ai"
+group = "turn"
+tech = ["llm", "python"]
+
+[[pods]]
+id = "guards"
+x = 1070
+y = 266
+kind = "observability"
+group = "turn"
+tech = ["python"]
+
+# Herramientas
+[[pods]]
+id = "tools"
+x = 515
+y = 392
+kind = "control"
+group = "tools"
+tech = ["python"]
+
+[[pods]]
+id = "status"
+x = 700
+y = 392
+kind = "observability"
+group = "tools"
+tech = ["python"]
+
+[[pods]]
+id = "watchers"
+x = 885
+y = 392
+kind = "observability"
+group = "tools"
+tech = ["python"]
+
+[[pods]]
+id = "relay"
+x = 1070
+y = 392
+kind = "control"
+group = "tools"
+tech = ["python"]
+
+# Memoria
+[[pods]]
+id = "embed"
+x = 515
+y = 518
+kind = "ai"
+group = "memory"
+tech = ["llm"]
+
+[[pods]]
+id = "qdrant"
+x = 700
+y = 518
+kind = "ai"
+group = "memory"
+tech = ["llm"]
+
+[[pods]]
+id = "notes"
+x = 885
+y = 518
+kind = "app"
+group = "memory"
+tech = []
+
+[[pods]]
+id = "recall"
+x = 1070
+y = 518
+kind = "app"
+group = "memory"
+tech = ["llm"]
+
+[[flows]]
+id = "turn"
+path = ["tito", "matrix", "bot", "prompt", "hints", "think", "ollama", "tools", "status", "think", "ollama", "guards", "format", "matrix", "tito"]
+
+[[flows]]
+id = "empty"
+path = ["bot", "think", "ollama", "tools", "qdrant", "think", "ollama", "relay", "calendar", "mail", "ollama", "guards", "matrix"]
+
+[[flows]]
+id = "offline"
+path = ["tito", "matrix", "bot", "queue", "gpu", "ollama", "bot", "matrix", "tito"]
+
+[[flows]]
+id = "voice"
+path = ["tito", "matrix", "bot", "voice", "bot", "ollama", "bot", "voice", "matrix", "tito"]
+
+[[flows]]
+id = "recall"
+path = ["tools", "embed", "qdrant", "notes", "recall", "qdrant", "ollama", "format"]
+
+[[flows]]
+id = "booking"
+path = ["mail", "embed", "qdrant", "bot", "ollama", "relay", "calendar", "matrix", "tito"]
+
+[[flows]]
+id = "watch"
+path = ["watchers", "status", "watchers", "format", "matrix", "tito"]
+
+[[incidents]]
+id = "date"
+answer = 2
+
+[[incidents]]
+id = "history"
+answer = 1
+
+[[incidents]]
+id = "slow"
+answer = 3
+
+[[incidents]]
+id = "ip"
+answer = 0
+
+[[incidents]]
+id = "silent"
+answer = 2
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Hermes por dentro · Tito Pinardo Gutiérrez"
+description = "Cómo responde un asistente de IA local con una GPU de 8 GB: las fases de cada turno, lo que decide el código sin preguntar al modelo, las guardias de salida y un simulador de VRAM con las medidas reales."
+
+[text.es.ui]
+slot = "1U · HERMES"
+face_specs = "qwen3:8b · 8 GB VRAM · 24 herramientas"
+state = "En producción"
+map_silk = "AI"
+map_title = "Un turno de chat por dentro"
+map_intro = "Cada pregunta pasa por varias fases antes de llegar a ti. Elige un recorrido para ver cuándo piensa el modelo, cuándo decide el código y qué se comprueba antes de enviar."
+vm_title = "Contenedor del asistente · Proxmox"
+vm_specs = "bot, conectores, vigilantes e índices"
+outside = "Fuera del servidor"
+disclaimer = "Reconstrucción a partir de mi documentación de Obsidian. Sin direcciones, nombres de máquinas ni datos personales: las respuestas de ejemplo son inventadas."
+
+[text.es.hero]
+kicker = "Unidad 1U · Proyecto personal en producción"
+title = "Hermes · asistente de IA local"
+tagline = "Un asistente en el chat que conoce el estado de mis servidores, mi agenda y mi documentación. El modelo corre en una GPU de 8 GB de mi PC: nada sale de mi red. Como el modelo es pequeño, la precisión no se le pide al modelo: se construye alrededor de él."
+grade = "117/120 en la batería, 23/23 en preguntas reales"
+facts = [
+  { label = "La regla", value = "Lo que se puede calcular, se calcula; al modelo solo se le pregunta lo que hace falta entender. Cada regla que se dejó en sus manos (fechas, días de la semana, sumas) acabó fallando, y dejó de fallar al pasarla a código." },
+  { label = "Dónde corre", value = "El bot, los conectores y los índices viven en un contenedor del servidor, encendidos siempre. El modelo de lenguaje, la voz y los embeddings, en la GPU de mi PC: si está apagado, las preguntas esperan en una cola." },
+  { label = "Lo que no puede hacer", value = "Por decisión mía, no enciende ni apaga servidores, no escribe notas, no envía correo y no ve documentos oficiales. Hay un caso de prueba que lo comprueba en cada medición." },
+]
+
+[[text.es.stats]]
+value = "4,2×"
+label = "más rápido al dejar el modelo entero en la GPU"
+
+[[text.es.stats]]
+value = "17,5 → 73"
+label = "tokens por segundo, liberando VRAM del escritorio"
+
+[[text.es.stats]]
+value = "4,7 → 0,7 s"
+label = "al redactar sin razonamiento cuando ya hay datos"
+
+[[text.es.stats]]
+value = "24"
+label = "herramientas: estado, agenda, correo y memoria"
+
+[[text.es.stats]]
+value = "0,09 ms"
+label = "lo que cuestan las guardias de salida"
+
+[[text.es.stats]]
+value = "~110"
+label = "pruebas sin modelo, más 48 casos × 3 semillas"
+
+[text.es.groups]
+pc = "Mi PC · GPU de 8 GB"
+entry = "Entrada y salida"
+turn = "El turno, fase a fase"
+tools = "Herramientas · lo hace el código"
+memory = "Memoria · búsqueda por significado"
+
+[text.es.pods.ollama]
+short = "qwen3:8b"
+title = "Modelo de lenguaje (Ollama)"
+text = "Un modelo de 8.000 millones de parámetros cuantizado a 4 bits: unos 5 GB. Se carga solo cuando se le pregunta y se descarga a los 5 minutos, para dejar la GPU libre para el resto del PC."
+
+[text.es.pods.voice]
+short = "Voz"
+title = "Voz (Whisper + síntesis)"
+text = "Whisper convierte los audios en texto y un sintetizador local responde con voz. También en la GPU del PC."
+
+[text.es.pods.gpu]
+short = "GPU 8 GB"
+title = "La GPU de 8 GB"
+text = "El límite de todo el diseño. Si el modelo no cabe entero, una parte corre en la CPU y la velocidad cae de 73 a 17 tokens por segundo. El simulador de abajo lo enseña con las medidas reales."
+
+[text.es.pods.tito]
+short = "Mi móvil"
+title = "Yo, desde Element"
+text = "Pregunto por texto o por audio desde el chat, esté donde esté."
+
+[text.es.pods.mail]
+short = "Correo"
+title = "Correo (solo lectura)"
+text = "Se indexa al instante en cuanto llega (IMAP IDLE), con el texto de los PDF adjuntos. Solo la bandeja principal: ni promociones ni redes sociales."
+
+[text.es.pods.calendar]
+short = "Calendario"
+title = "Calendario"
+text = "Lo único donde Hermes escribe: crea eventos desde correos de reserva y deja un 🗑️ para deshacerlo con una reacción."
+
+[text.es.pods.matrix]
+short = "Matrix"
+title = "Matrix (sala del asistente)"
+text = "Mi servidor de mensajería. Hermes tiene su propio usuario y verifica su dispositivo solo: nada de avisos de «fuente no verificada»."
+
+[text.es.pods.bot]
+short = "Hermes"
+title = "Hermes (el bot)"
+text = "El programa en Python que orquesta el turno: recibe el mensaje, prepara el contexto, llama al modelo, ejecuta herramientas y revisa la respuesta antes de enviarla."
+
+[text.es.pods.queue]
+short = "Cola"
+title = "Cola persistente"
+text = "Si el PC con la GPU está apagado, la pregunta no se pierde: se guarda en disco y se responde sola en cuanto vuelve."
+
+[text.es.pods.format]
+short = "Formato"
+title = "Maquetado"
+text = "Convierte el Markdown en HTML para Element y deja una versión en texto plano para las notificaciones. Todo lo que viene de fuera (asuntos, títulos) se escapa: es dato, no marcado."
+
+[text.es.pods.prompt]
+short = "1 · Contexto"
+title = "Fase 1 · Contexto que pone el código"
+text = "Instrucciones, la fecha de hoy con una tabla de los próximos 7 días y el historial resumido a pregunta y respuesta. El modelo no sabe qué día es: si no se le dice, razona con la fecha de su entrenamiento."
+
+[text.es.pods.hints]
+short = "2 · Pistas"
+title = "Fase 2 · Pistas según la pregunta"
+text = "Si la pregunta encaja con un patrón («qué pasó con…», «por dónde se entra…»), se añade una frase solo a ese turno. Nunca al prompt global: cuanto más texto general, peor elige un modelo de 8B."
+
+[text.es.pods.think]
+short = "3 · think on/off"
+title = "Fase 3 · Razonar solo donde aporta"
+text = "Pensar multiplica por seis el tiempo. Se enciende para elegir herramienta y calcular argumentos, y cuando un resultado viene vacío o con un aviso; se apaga para redactar con los datos delante."
+
+[text.es.pods.guards]
+short = "4 · Guardias"
+title = "Fase 4 · Guardias de salida"
+text = "Antes de enviar, el código compara la respuesta con las fuentes del turno: una IP o un importe que no aparece en ninguna se devuelve al modelo para corregir. Si insiste, se envía con un aviso."
+
+[text.es.pods.tools]
+short = "24 herramientas"
+title = "Herramientas"
+text = "Estado del servidor, agenda, correo y tres memorias. El código valida los argumentos antes de ejecutar («7» pasa a 7) y, si el modelo nombra una herramienta sin llamarla, le pide una vez que la llame."
+
+[text.es.pods.status]
+short = "Estado en vivo"
+title = "Estado del servidor"
+text = "Instantáneas de la monitorización y la seguridad, inventario de contenedores, ZFS y discos. Cada dato va con su antigüedad: si tiene más de 30 minutos, el modelo lo sabe."
+
+[text.es.pods.watchers]
+short = "7 vigilantes"
+title = "Los siete vigilantes"
+text = "Copias, certificados, almacenamiento, actualizaciones, uso anómalo, accesos fallidos y red. Cada uno con nombre de la mitología griega y su propia sala: solo hablan cuando encuentran algo raro."
+
+[text.es.pods.relay]
+short = "Relevo"
+title = "Relevo del código"
+text = "Cuando una pregunta en realidad son dos («¿cuánto costó la entrada de lo que tengo el jueves?»), el modelo fallaba 3 de 3. Ahora el código da el segundo paso: mira la agenda, coge el título y lo busca en el correo."
+
+[text.es.pods.embed]
+short = "Embeddings"
+title = "Embeddings"
+text = "Convierten cada texto en un vector de números para poder buscar por significado y no solo por palabras."
+
+[text.es.pods.qdrant]
+short = "Qdrant"
+title = "Qdrant (base vectorial)"
+text = "Guarda los vectores de las notas, los correos, los documentos que le paso y las conversaciones. El código busca en las tres memorias a la vez para que el modelo no tenga que adivinar cuál."
+
+[text.es.pods.notes]
+short = "Notas"
+title = "Mi documentación"
+text = "Procedimientos, incidentes y postmortems del homelab. Hermes los lee, pero nunca escribe en ellos."
+
+[text.es.pods.recall]
+short = "Conversaciones"
+title = "Memoria de conversaciones"
+text = "Cada conversación, también los audios transcritos, se indexa: «¿qué hice la semana pasada con…?» tiene respuesta."
+
+[text.es.flows.turn]
+title = "Una pregunta, fase a fase"
+steps = [
+  "Pregunto desde el móvil: «¿Hay alguna alerta en el servidor?»",
+  "El mensaje llega a mi servidor de Matrix, en la sala del asistente.",
+  "Hermes lo recoge. Lo primero no es llamar al modelo: es preparar lo que el modelo necesita saber.",
+  "Fase 1: el código pone la fecha de hoy, una tabla con los próximos 7 días y el historial resumido. Sin esto, el modelo cree que estamos en el año de su entrenamiento.",
+  "Fase 2: la pregunta no encaja con ningún patrón especial, así que no se añade ninguna pista. Menos texto, mejor elige.",
+  "Fase 3: todavía no se ha ejecutado ninguna herramienta, así que el modelo PIENSA: tiene que elegir cuál y con qué argumentos.",
+  "El modelo, en la GPU de mi PC, decide llamar a la herramienta de salud del servidor.",
+  "El código valida los argumentos contra el esquema y ejecuta la herramienta. El modelo nunca toca nada directamente.",
+  "Llegan las alertas activas, con la antigüedad de cada dato pegada al resultado.",
+  "Fase 3 otra vez: el resultado trae datos y no hay avisos, así que ahora el modelo NO piensa. Solo tiene que redactar.",
+  "Redacta la respuesta en 0,7 s en vez de 4,7 s, con la misma calidad.",
+  "Fase 4: las guardias comparan la respuesta con las fuentes. Ninguna IP ni importe inventados: adelante.",
+  "El Markdown se convierte en HTML para Element, con una copia en texto plano para la notificación.",
+  "Se envía a la sala y se indexa en la memoria de conversaciones.",
+  "Me llega la respuesta, con los datos y su antigüedad.",
+]
+
+[text.es.flows.empty]
+title = "Una búsqueda que vuelve vacía"
+steps = [
+  "Pregunta de dos pasos: «¿Cuánto me costó la entrada de lo que tengo esta semana?»",
+  "Hay que elegir herramienta: el modelo piensa.",
+  "Elige buscar en las memorias el concepto «entrada».",
+  "El código ejecuta la búsqueda.",
+  "Qdrant no encuentra nada útil con esas palabras.",
+  "Resultado vacío: el razonamiento se ENCIENDE otra vez. Sin esto, el modelo zanjaba con «no he encontrado nada» teniendo el dato a una llamada.",
+  "Aun pensando, con un modelo de 8B este caso fallaba 3 de cada 3 veces.",
+  "Así que el código toma el relevo: sabe que «lo que tengo esta semana» es un evento.",
+  "Consulta la agenda, filtrada con la propia pregunta, y saca el título exacto del evento.",
+  "Busca ese título en el correo y encuentra la confirmación con el importe.",
+  "El modelo recibe los datos ya reunidos y solo tiene que leerlos.",
+  "Las guardias comprueban que el importe de la respuesta aparece en el correo (o es una suma de importes que sí aparecen).",
+  "Respuesta correcta. Filtrar la agenda con la pregunta bajó el tiempo de 60-120 s a 31-41 s.",
+]
+
+[text.es.flows.offline]
+title = "El PC está apagado"
+steps = [
+  "Pregunto algo a las tres de la mañana.",
+  "Matrix lo recibe sin problema: el servidor está siempre encendido.",
+  "Hermes comprueba si el modelo está disponible. No lo está: mi PC está apagado.",
+  "La pregunta se guarda en una cola persistente, en disco. No se pierde ni se contesta mal.",
+  "Por la mañana enciendo el PC y la GPU vuelve a estar disponible.",
+  "Hermes detecta que el modelo responde y vacía la cola por orden.",
+  "Cada pregunta pasa por el turno completo, con la fecha de ahora, no la de cuando se preguntó.",
+  "La respuesta llega a la sala, marcada como respuesta en cola.",
+  "Me llega todo lo que pregunté durante la noche.",
+]
+
+[text.es.flows.voice]
+title = "Un audio"
+steps = [
+  "Le mando un audio desde el móvil.",
+  "Llega a Matrix como un fichero de audio.",
+  "Hermes ve que es audio y lo manda a transcribir.",
+  "Whisper lo convierte en texto en la GPU del PC.",
+  "Con el texto, el turno sigue como si lo hubiera escrito.",
+  "El modelo responde con sus fases de siempre.",
+  "Hermes prepara la respuesta en texto.",
+  "El sintetizador de voz local la convierte en audio.",
+  "Se envía a la sala como mensaje de voz, con el texto al lado.",
+  "La escucho en el móvil. La transcripción también queda en la memoria de conversaciones.",
+]
+
+[text.es.flows.recall]
+title = "Buscar en las tres memorias"
+steps = [
+  "Una herramienta de búsqueda recibe «¿qué pasó con el disco tras el corte de luz?».",
+  "La pregunta se convierte en un vector.",
+  "Qdrant busca por significado, no por palabras exactas.",
+  "En la documentación aparece el postmortem del apagón.",
+  "En las conversaciones aparece cuando lo hablamos aquella noche.",
+  "El código junta los resultados de las tres memorias y etiqueta de dónde viene cada uno. Antes el modelo confundía las tres búsquedas y llegó a decir que no tenía base semántica.",
+  "El modelo recibe los fragmentos con su fuente y los resume.",
+  "La respuesta sale con el enlace a la nota.",
+]
+
+[text.es.flows.booking]
+title = "Un correo con una reserva"
+steps = [
+  "Llega un correo de confirmación de una reserva.",
+  "Se indexa al momento, con el texto del PDF adjunto.",
+  "Queda guardado en la base vectorial para siempre.",
+  "El vigilante del correo lo pasa a Hermes sin que nadie pregunte.",
+  "El modelo responde a dos preguntas cerradas, sin herramientas: ¿es importante? ¿es una reserva con fecha y hora? Interpreta el texto, pero no decide nada.",
+  "El código decide: comprueba si se solapa con algo que ya existe. Esa comprobación evitó 4 duplicados reales.",
+  "No se solapa: se crea el evento con el lugar en su campo y la descripción ordenada. Una orden escrita dentro de un correo no puede crear ni borrar nada.",
+  "Aviso en la sala de eventos, con un 🗑️ para deshacerlo.",
+  "Me entero sin abrir el correo.",
+]
+
+[text.es.flows.watch]
+title = "Un vigilante encuentra algo"
+steps = [
+  "Uno de los siete vigilantes revisa su tema; por ejemplo, los certificados.",
+  "Consulta el estado real: fechas de caducidad de los certificados y de los dominios.",
+  "Encuentra uno que caduca pronto. Las fechas las calcula el código: el modelo llegó a confundir un certificado con el registro de un dominio.",
+  "Prepara un aviso con estructura: qué pasa, cuándo y qué hacer.",
+  "Lo publica en su propia sala. Si todo está bien, no dice nada.",
+  "Me llega solo cuando hay algo que mirar.",
+]
+
+[text.es.vram]
+title = "¿Cabe el modelo en la GPU?"
+intro = "Con 8 GB, cada megabyte cuenta: el escritorio, el navegador o Steam se quedan con memoria de la GPU, y lo que no cabe del modelo corre en la CPU, mucho más lenta. Cambia la configuración y mira qué pasa con las medidas reales."
+kv = "Caché KV (la memoria del contexto)"
+apps = "Abierto en el PC"
+think = "Al redactar la respuesta"
+think_on = "Pensando"
+think_off = "Directo"
+bar_reserved = "Controlador y sistema"
+bar_apps = "Programas abiertos"
+bar_model = "Modelo en la GPU"
+bar_cpu = "Lo que va a la CPU"
+free = "VRAM libre"
+in_gpu = "Modelo en la GPU"
+speed = "Velocidad"
+turn = "Turno con una herramienta"
+formula = "tiempo ≈ carga + (tokens al elegir + tokens al redactar) ÷ velocidad"
+verdict_full = "Cabe entero: la GPU trabaja sola y el turno va rápido."
+verdict_split = "No cabe: {gib} del modelo corren en la CPU y todo se arrastra."
+note = "Medidas del 22-09-2026 con nvidia-smi y la API de Ollama. La velocidad se interpola entre los puntos medidos (71 %, 78 %, 84 % y 100 % del modelo en la GPU); los tokens de redactar sin pensar son una estimación."
+noscript = "Con JavaScript activado puedes probar el simulador. En resumen: con el escritorio abierto solo cabía el 78 % del modelo (20 tokens/s); con la caché KV en q8_0 y el navegador y Steam cerrados, el 100 % (73 tokens/s)."
+
+[text.es.vram.kv_names]
+q8_0 = "q8_0 (cuantizada)"
+f16 = "f16 (por defecto)"
+
+[text.es.vram.app_names]
+desktop = "Escritorio (KDE)"
+firefox = "Firefox"
+steam = "Steam"
+vscode = "VS Code"
+element = "Element"
+
+[text.es.incidents.date]
+title = "«El año 2026 es inconsistente»"
+meta = "Septiembre de 2026 · agenda"
+symptom = "Al pedirle que creara un evento «el jueves que viene», Hermes respondió que la fecha no tenía sentido y que 2026 era «inconsistente». Otro día dijo «martes 28» cuando el 28 era lunes."
+options = [
+  "El reloj del contenedor estaba desincronizado",
+  "La zona horaria del calendario era otra",
+  "El modelo no sabe qué día es: razonaba con la fecha de su entrenamiento",
+  "Qdrant devolvía eventos antiguos",
+]
+cause = "Un modelo de lenguaje no tiene reloj. Sin una fecha en el contexto, razona con la de sus datos de entrenamiento, y calcular el día de la semana tampoco se le da bien."
+fix = "El código pone en cada turno la fecha y hora reales y una tabla con los próximos 7 días ya calculados. El día de la semana de cada evento también lo calcula el código."
+lesson = "Las fechas no se le piden al modelo: se le dan hechas."
+
+[text.es.incidents.history]
+title = "Después de una herramienta, ninguna más"
+meta = "Septiembre de 2026 · conversación"
+symptom = "Tras una pregunta que usaba una herramienta, las preguntas siguientes de la misma conversación no usaban ninguna, ni pidiéndoselo por su nombre. Reforzar las instrucciones dio 0 de 4."
+options = [
+  "Se acababa el contexto de 8.192 tokens",
+  "El historial arrastraba el JSON completo de las herramientas anteriores",
+  "El modelo se quedaba sin VRAM",
+  "La herramienta se desactivaba tras un error",
+]
+cause = "El historial guardaba los resultados intermedios de las herramientas, con JSON de muchos campos. Al modelo de 8B esos bloques le cambiaban el comportamiento en los turnos siguientes."
+fix = "El historial de turnos pasados se resume a solo pregunta y respuesta final, sin los pasos intermedios. Verificado: 3 de 3 en la conversación real que había fallado."
+lesson = "Cuando más instrucciones no arreglan algo, la causa suele ser estructural: hay que cambiar lo que recibe el modelo, no lo que se le pide."
+
+[text.es.incidents.slow]
+title = "141 segundos para una pregunta"
+meta = "22-09-2026 · rendimiento"
+symptom = "Por la tarde una pregunta sencilla tardó 141 s y un caso de la batería que por la mañana pasaba 5 de 5 fallaba 8 de 8, con el mismo código."
+options = [
+  "El prompt había crecido demasiado",
+  "Ollama tenía una versión con un fallo",
+  "La base vectorial estaba reindexando",
+  "Parte del modelo corría en la CPU porque el escritorio ocupaba la VRAM",
+]
+cause = "Con un juego y el navegador abiertos, solo cabía en la GPU el 66 % del modelo; el resto corría en la CPU a 10 tokens por segundo. Además, al repartirse, los cálculos cambian un poco y los casos que están al límite se vuelcan."
+fix = "Caché KV cuantizada a q8_0, flash attention, una sola petición y un solo modelo cargado a la vez. Con el navegador cerrado, el modelo entra al 100 %: de 17,5 a 73 tokens por segundo, y la batería subió de 106 a 114 de 120."
+lesson = "Antes de culpar al modelo, mira dónde corre. Ahora cada medición anota la versión de Ollama y qué porcentaje del modelo estaba en la GPU."
+
+[text.es.incidents.ip]
+title = "Una IP pública inventada"
+meta = "23-09-2026 · guardias"
+symptom = "Le pregunté por la IP pública de casa y respondió con una dirección con formato perfecto… que no era la mía. La correcta estaba en el resultado de la herramienta que acababa de usar."
+options = [
+  "El modelo la inventó aunque tenía la buena delante",
+  "La herramienta devolvía una IP antigua",
+  "Cloudflare enmascaraba la dirección",
+  "El router había cambiado de IP en ese momento",
+]
+cause = "Los modelos pequeños a veces completan con algo que «suena bien». Una IP con buen formato es justo eso: no hay manera de distinguirla a ojo."
+fix = "Una guardia de salida busca cada IP y cada importe de la respuesta en las fuentes del turno. Si no aparece (o no es una suma de importes que sí aparecen), se pide corregir; si insiste, se envía con un aviso. Cuesta 0,09 ms."
+lesson = "Las guardias no deben saltar con datos buenos: un aviso que salta de más enseña a ignorarlo. Por eso las sumas legítimas se aceptan, sin límite de conceptos."
+
+[text.es.incidents.silent]
+title = "Un día sin planes que no lo era"
+meta = "25-09-2026 · resumen diario"
+symptom = "El resumen de la mañana dijo que no tenía nada en la agenda. Sí tenía cosas."
+options = [
+  "El modelo resumió mal la lista de eventos",
+  "Los eventos estaban en otro calendario",
+  "El acceso al calendario había caducado y el error parecía una lista vacía",
+  "El resumen se generó antes de medianoche",
+]
+cause = "La autorización con el calendario se revocó por la noche. La consulta fallaba, y el resumen trataba el fallo como «no hay eventos»."
+fix = "Reautorizado, y ahora un fallo de una fuente se dice como fallo: «no he podido leer el calendario». Si el modelo redacta «no he encontrado nada» tras un error, el código añade el aviso."
+lesson = "«No hay nada» y «no he podido comprobarlo» no son lo mismo: el primero dice que el dato no existe y el segundo que el sistema está roto."
+
+[[text.es.timeline]]
+title = "Fase 0 · Medir mejor"
+period = "22-09-2026"
+items = [
+  "Una línea de log por llamada al modelo: tokens de entrada y salida, tiempo de carga, velocidad y qué porcentaje del modelo estaba en la GPU.",
+  "Detector de «narración»: cuando el modelo dice «usa la herramienta X» en vez de llamarla.",
+  "La primera medida real destapó el problema: 141 s en una pregunta, 954 tokens de razonamiento solo para redactar.",
+]
+
+[[text.es.timeline]]
+title = "Fase 1 · Que el modelo quepa en 8 GB"
+period = "22-09-2026"
+items = [
+  "Flash attention y caché KV en q8_0: el contexto ocupa la mitad.",
+  "Una sola petición y un solo modelo cargado a la vez: cada petición paralela añade su propia caché.",
+  "Descubrir que el cuello no era el modelo sino el escritorio: el navegador se llevaba 805 MiB de VRAM.",
+  "Resultado: 4,2× más rápido y 8 fallos menos en la batería.",
+]
+
+[[text.es.timeline]]
+title = "Fase 2 · Menos texto por turno (descartada)"
+period = "22-09-2026"
+items = [
+  "Juntar herramientas para enviar menos texto: de 24 a 16.",
+  "El prompt bajó, pero la batería también: de 118 a 112 de 120.",
+  "Lección: para un modelo de 8B, el nombre de una herramienta pesa más que su descripción, y esconder capacidades detrás de un parámetro las hace invisibles.",
+]
+
+[[text.es.timeline]]
+title = "Fase 3 · Robustez por código"
+period = "22 y 23-09-2026"
+items = [
+  "Validación de argumentos contra el esquema y errores legibles que el modelo puede corregir.",
+  "Razonamiento adaptativo: pensar para elegir, no para redactar (de 4,7 a 0,7 s).",
+  "Guardias de salida para IPs e importes, relevo del código en preguntas de dos pasos y avisos cuando una fuente se cae.",
+]
+
+[[text.es.timeline]]
+title = "Fase 4 y 5 · Modelo y dónde se procesa"
+period = "Pendiente"
+items = [
+  "Probar la misma familia con más bits (Q5_K_M) solo si cabe con el mismo contexto.",
+  "Mover el modelo al servidor cuando tenga una GPU propia: 1U de alto y 70 W por el slot. La candidata es una tarjeta pasiva de 16 GB.",
+]
+
+[[text.es.decisions]]
+title = "Dónde corre el modelo"
+choice = "En local, en mi GPU"
+why = "Nada sale de mi red: el asistente lee mi correo y mi agenda. Probé un modelo de 14B y no cabía en 8 GB: el mismo fallo y de 4 a 8 veces más lento. La CPU del servidor no tiene AVX2: serían minutos por respuesta."
+
+[[text.es.decisions]]
+title = "Cómo se consigue precisión con un modelo pequeño"
+choice = "Mover reglas del prompt al código"
+why = "Añadir texto al prompt empeoró la batería (96 frente a 105 de 111) y los ejemplos hacían que imitara la forma de la frase, no su sentido. Lo que funcionó fue que el código calcule fechas, días, vencimientos, sumas y tipos, y que el modelo solo entienda y redacte."
+
+[[text.es.decisions]]
+title = "Cómo se decide un cambio"
+choice = "Medirlo con 3 semillas, caso por caso"
+why = "Cada cambio se mide por separado y solo se despliega si no hay regresiones. Además de la batería, hay pruebas contra producción y preguntas reales, porque la batería usa datos sintéticos y no ve una herramienta caída."
+
+[[text.es.decisions]]
+title = "Qué puede tocar el modelo"
+choice = "Leer casi todo, escribir casi nada"
+why = "El modelo interpreta y el código decide si se escribe algo. Por eso una orden escrita dentro de un correo no puede crear ni borrar nada, y los reintentos automáticos nunca se aplican a herramientas de escritura."
+
+[text.es.tech_notes]
+python = "El bot entero: el bucle del turno, la validación de argumentos, las guardias, el relevo de las preguntas de dos pasos, los vigilantes y unas 110 pruebas sin modelo ni red."
+llm = "Ollama con qwen3:8b para el chat, un modelo de embeddings para buscar por significado, Qdrant como base vectorial y Whisper para la voz. Todo local, ajustado para caber en 8 GB de VRAM."
+linux = "Servicios systemd con permisos mínimos (rutas de solo lectura, sin privilegios), en un contenedor dedicado; la GPU en un PC con Linux."
+ansible = "El rol que despliega el bot, sus servicios y su configuración; los secretos van cifrados con Ansible Vault."
+
+[text.es.close]
+lessons = [
+  "Con un modelo pequeño, la precisión no sale del modelo: sale de lo que el código hace a su alrededor.",
+  "Cuanto más texto general recibe un modelo de 8B, peor elige. Aislar una tarea la arregla.",
+  "La memoria de la GPU es parte del diseño: un navegador abierto cambiaba la velocidad por cuatro y el resultado de la batería.",
+  "Medir con varias semillas y con preguntas reales: la mitad de los fallos importantes no salían en la batería.",
+]
+next = [
+  "Una GPU propia para el servidor, para que Hermes no dependa de que mi PC esté encendido.",
+  "Revisar los criterios de la batería: algunos casos medían la redacción y no el fondo.",
+  "Resolver las preguntas sobre incidentes pasados, que aún van a veces a las herramientas de estado actual.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Hermes · Tito Pinardo Gutiérrez"
+description = "How a local AI assistant answers on an 8 GB GPU: the phases of every turn, what the code decides without asking the model, the output guards and a VRAM simulator built from real measurements."
+
+[text.en.ui]
+slot = "1U · HERMES"
+face_specs = "qwen3:8b · 8 GB VRAM · 24 tools"
+state = "In production"
+map_silk = "AI"
+map_title = "A chat turn from the inside"
+map_intro = "Every question goes through several phases before it reaches you. Pick a flow to see when the model thinks, when the code decides and what gets checked before sending."
+vm_title = "Assistant container · Proxmox"
+vm_specs = "bot, connectors, watchers and indexes"
+outside = "Outside the server"
+disclaimer = "Rebuilt from my Obsidian documentation. No addresses, machine names or personal data: the example answers are made up."
+
+[text.en.hero]
+kicker = "1U unit · Personal project in production"
+title = "Hermes · local AI assistant"
+tagline = "A chat assistant that knows the state of my servers, my calendar and my documentation. The model runs on an 8 GB GPU in my PC: nothing leaves my network. Because the model is small, accuracy isn't asked of the model: it is built around it."
+grade = "117/120 on the test suite, 23/23 on real questions"
+facts = [
+  { label = "The rule", value = "Whatever can be computed, is computed; the model is only asked what needs understanding. Every rule left in its hands (dates, weekdays, sums) failed sooner or later, and stopped failing once moved into code." },
+  { label = "Where it runs", value = "The bot, the connectors and the indexes live in an always-on container on the server. The language model, voice and embeddings run on my PC's GPU: if it's off, questions wait in a queue." },
+  { label = "What it can't do", value = "By my choice, it doesn't start or stop servers, write notes, send email or see official documents. A test case checks it on every run." },
+]
+
+[[text.en.stats]]
+value = "4.2×"
+label = "faster with the whole model on the GPU"
+
+[[text.en.stats]]
+value = "17.5 → 73"
+label = "tokens per second, freeing desktop VRAM"
+
+[[text.en.stats]]
+value = "4.7 → 0.7 s"
+label = "writing without reasoning once the data is there"
+
+[[text.en.stats]]
+value = "24"
+label = "tools: status, calendar, email and memory"
+
+[[text.en.stats]]
+value = "0.09 ms"
+label = "what the output guards cost"
+
+[[text.en.stats]]
+value = "~110"
+label = "tests without the model, plus 48 cases × 3 seeds"
+
+[text.en.groups]
+pc = "My PC · 8 GB GPU"
+entry = "In and out"
+turn = "The turn, phase by phase"
+tools = "Tools · done by code"
+memory = "Memory · search by meaning"
+
+[text.en.pods.ollama]
+short = "qwen3:8b"
+title = "Language model (Ollama)"
+text = "An 8-billion-parameter model quantised to 4 bits: about 5 GB. It only loads when asked and unloads after 5 minutes, leaving the GPU free for the rest of the PC."
+
+[text.en.pods.voice]
+short = "Voice"
+title = "Voice (Whisper + speech)"
+text = "Whisper turns voice notes into text and a local speech synthesiser answers out loud. Also on the PC's GPU."
+
+[text.en.pods.gpu]
+short = "8 GB GPU"
+title = "The 8 GB GPU"
+text = "The limit behind the whole design. If the model doesn't fit, part of it runs on the CPU and speed drops from 73 to 17 tokens per second. The simulator below shows it with real measurements."
+
+[text.en.pods.tito]
+short = "My phone"
+title = "Me, on Element"
+text = "I ask by text or voice note from the chat, wherever I am."
+
+[text.en.pods.mail]
+short = "Email"
+title = "Email (read-only)"
+text = "Indexed the moment it arrives (IMAP IDLE), including the text of attached PDFs. Primary inbox only: no promotions or social."
+
+[text.en.pods.calendar]
+short = "Calendar"
+title = "Calendar"
+text = "The only thing Hermes writes to: it creates events from booking emails and leaves a 🗑️ to undo them with a reaction."
+
+[text.en.pods.matrix]
+short = "Matrix"
+title = "Matrix (assistant room)"
+text = "My own messaging server. Hermes has its own user and verifies its device on its own: no «unverified source» warnings."
+
+[text.en.pods.bot]
+short = "Hermes"
+title = "Hermes (the bot)"
+text = "The Python program that runs the turn: it gets the message, prepares the context, calls the model, runs tools and checks the answer before sending it."
+
+[text.en.pods.queue]
+short = "Queue"
+title = "Persistent queue"
+text = "If the GPU PC is off, the question isn't lost: it is saved to disk and answered on its own as soon as the PC is back."
+
+[text.en.pods.format]
+short = "Formatting"
+title = "Formatting"
+text = "Turns Markdown into HTML for Element and keeps a plain-text version for notifications. Anything from outside (subjects, titles) is escaped: it's data, not markup."
+
+[text.en.pods.prompt]
+short = "1 · Context"
+title = "Phase 1 · Context set by code"
+text = "Instructions, today's date with a table of the next 7 days, and history trimmed to question and answer. The model doesn't know what day it is: unless told, it reasons with its training date."
+
+[text.en.pods.hints]
+short = "2 · Hints"
+title = "Phase 2 · Hints from the question"
+text = "If the question matches a pattern («what happened with…», «how do I get into…»), one sentence is added to that turn only. Never to the global prompt: the more general text, the worse an 8B model chooses."
+
+[text.en.pods.think]
+short = "3 · think on/off"
+title = "Phase 3 · Reason only where it helps"
+text = "Thinking makes a call six times slower. It's on to pick a tool and work out arguments, and when a result comes back empty or with a warning; it's off to write with the data in front of it."
+
+[text.en.pods.guards]
+short = "4 · Guards"
+title = "Phase 4 · Output guards"
+text = "Before sending, the code compares the answer with the turn's sources: an IP or an amount that appears in none of them goes back to the model to fix. If it insists, it's sent with a warning."
+
+[text.en.pods.tools]
+short = "24 tools"
+title = "Tools"
+text = "Server status, calendar, email and three memories. The code validates arguments before running («7» becomes 7) and, if the model names a tool without calling it, asks once that it call it."
+
+[text.en.pods.status]
+short = "Live status"
+title = "Server status"
+text = "Monitoring and security snapshots, container inventory, ZFS and disks. Every value carries its age: if it's over 30 minutes old, the model knows."
+
+[text.en.pods.watchers]
+short = "7 watchers"
+title = "The seven watchers"
+text = "Backups, certificates, storage, updates, unusual usage, failed logins and network. Each named after Greek mythology, each with its own room: they only speak when they find something odd."
+
+[text.en.pods.relay]
+short = "Code relay"
+title = "Code relay"
+text = "When a question is really two («how much was the ticket for what I have on Thursday?»), the model failed 3 out of 3. Now the code takes the second step: it checks the calendar, takes the title and searches the email for it."
+
+[text.en.pods.embed]
+short = "Embeddings"
+title = "Embeddings"
+text = "Turn each text into a vector of numbers so search works by meaning, not just by words."
+
+[text.en.pods.qdrant]
+short = "Qdrant"
+title = "Qdrant (vector database)"
+text = "Stores the vectors of my notes, emails, the documents I send it and our conversations. The code searches all three memories at once so the model doesn't have to guess which."
+
+[text.en.pods.notes]
+short = "Notes"
+title = "My documentation"
+text = "Homelab procedures, incidents and postmortems. Hermes reads them but never writes to them."
+
+[text.en.pods.recall]
+short = "Conversations"
+title = "Conversation memory"
+text = "Every conversation, including transcribed voice notes, is indexed: «what did I do last week with…?» has an answer."
+
+[text.en.flows.turn]
+title = "One question, phase by phase"
+steps = [
+  "I ask from my phone: «Are there any alerts on the server?»",
+  "The message reaches my Matrix server, in the assistant's room.",
+  "Hermes picks it up. The first thing isn't calling the model: it's preparing what the model needs to know.",
+  "Phase 1: the code adds today's date, a table of the next 7 days and the trimmed history. Without it, the model thinks it's the year it was trained.",
+  "Phase 2: the question doesn't match any special pattern, so no hint is added. Less text, better choices.",
+  "Phase 3: no tool has run yet, so the model THINKS: it has to choose one and its arguments.",
+  "The model, on my PC's GPU, decides to call the server health tool.",
+  "The code checks the arguments against the schema and runs the tool. The model never touches anything directly.",
+  "The active alerts come back, each value tagged with its age.",
+  "Phase 3 again: the result has data and no warnings, so now the model does NOT think. It only has to write.",
+  "It writes the answer in 0.7 s instead of 4.7 s, with the same quality.",
+  "Phase 4: the guards compare the answer with the sources. No made-up IPs or amounts: go ahead.",
+  "Markdown becomes HTML for Element, with a plain-text copy for the notification.",
+  "It's sent to the room and indexed in conversation memory.",
+  "I get the answer, with the data and how old it is.",
+]
+
+[text.en.flows.empty]
+title = "A search that comes back empty"
+steps = [
+  "A two-step question: «How much was the ticket for what I have this week?»",
+  "A tool has to be chosen: the model thinks.",
+  "It chooses to search the memories for «ticket».",
+  "The code runs the search.",
+  "Qdrant finds nothing useful with those words.",
+  "Empty result: reasoning switches back ON. Without this, the model gave up with «I found nothing» while the answer was one call away.",
+  "Even thinking, an 8B model failed this case 3 times out of 3.",
+  "So the code takes over: it knows «what I have this week» is an event.",
+  "It checks the calendar, filtered with the question itself, and takes the event's exact title.",
+  "It searches the email for that title and finds the confirmation with the amount.",
+  "The model gets the data already gathered and just has to read it.",
+  "The guards check the amount in the answer appears in the email (or is a sum of amounts that do).",
+  "Right answer. Filtering the calendar with the question cut the time from 60-120 s to 31-41 s.",
+]
+
+[text.en.flows.offline]
+title = "The PC is off"
+steps = [
+  "I ask something at three in the morning.",
+  "Matrix gets it fine: the server is always on.",
+  "Hermes checks whether the model is available. It isn't: my PC is off.",
+  "The question goes into a persistent queue on disk. It isn't lost or answered badly.",
+  "In the morning I turn the PC on and the GPU is back.",
+  "Hermes sees the model responding and drains the queue in order.",
+  "Each question runs the full turn, with the current date, not the one when it was asked.",
+  "The answer reaches the room, marked as a queued reply.",
+  "I get everything I asked during the night.",
+]
+
+[text.en.flows.voice]
+title = "A voice note"
+steps = [
+  "I send a voice note from my phone.",
+  "It reaches Matrix as an audio file.",
+  "Hermes sees it's audio and sends it to be transcribed.",
+  "Whisper turns it into text on the PC's GPU.",
+  "With the text, the turn continues as if I'd typed it.",
+  "The model answers with its usual phases.",
+  "Hermes prepares the answer as text.",
+  "The local speech synthesiser turns it into audio.",
+  "It's sent to the room as a voice message, with the text alongside.",
+  "I listen on my phone. The transcript also goes into conversation memory.",
+]
+
+[text.en.flows.recall]
+title = "Searching the three memories"
+steps = [
+  "A search tool gets «what happened to the disk after the power cut?».",
+  "The question becomes a vector.",
+  "Qdrant searches by meaning, not exact words.",
+  "In the documentation, the blackout postmortem shows up.",
+  "In the conversations, the night we talked about it shows up.",
+  "The code merges the results from the three memories and labels where each comes from. The model used to mix up the three searches and once said it had no semantic database.",
+  "The model gets the fragments with their source and summarises them.",
+  "The answer comes with a link to the note.",
+]
+
+[text.en.flows.booking]
+title = "An email with a booking"
+steps = [
+  "A booking confirmation email arrives.",
+  "It's indexed straight away, including the text of the attached PDF.",
+  "It stays in the vector database for good.",
+  "The email watcher hands it to Hermes without anyone asking.",
+  "The model answers two closed questions, with no tools: is it important? is it a booking with a date and time? It interprets the text, but decides nothing.",
+  "The code decides: it checks whether it overlaps with something that already exists. That check stopped 4 real duplicates.",
+  "No overlap: the event is created with the place in its own field and a tidy description. An instruction written inside an email can't create or delete anything.",
+  "A notice in the events room, with a 🗑️ to undo it.",
+  "I find out without opening the email.",
+]
+
+[text.en.flows.watch]
+title = "A watcher finds something"
+steps = [
+  "One of the seven watchers checks its topic; certificates, say.",
+  "It checks the real state: expiry dates of certificates and domains.",
+  "It finds one expiring soon. The dates are worked out by code: the model once mixed up a certificate with a domain registration.",
+  "It prepares a structured notice: what's happening, when and what to do.",
+  "It posts it in its own room. If everything is fine, it says nothing.",
+  "I only hear about it when there's something to look at.",
+]
+
+[text.en.vram]
+title = "Does the model fit on the GPU?"
+intro = "With 8 GB every megabyte counts: the desktop, the browser or Steam take GPU memory, and whatever part of the model doesn't fit runs on the much slower CPU. Change the setup and see what happens, using real measurements."
+kv = "KV cache (the context's memory)"
+apps = "Open on the PC"
+think = "When writing the answer"
+think_on = "Thinking"
+think_off = "Direct"
+bar_reserved = "Driver and system"
+bar_apps = "Open programs"
+bar_model = "Model on the GPU"
+bar_cpu = "What goes to the CPU"
+free = "Free VRAM"
+in_gpu = "Model on the GPU"
+speed = "Speed"
+turn = "Turn with one tool"
+formula = "time ≈ load + (tokens to choose + tokens to write) ÷ speed"
+verdict_full = "It all fits: the GPU works alone and the turn is quick."
+verdict_split = "It doesn't fit: {gib} of the model runs on the CPU and everything crawls."
+note = "Measured on 22-09-2026 with nvidia-smi and the Ollama API. Speed is interpolated between the measured points (71 %, 78 %, 84 % and 100 % of the model on the GPU); the tokens for writing without thinking are an estimate."
+noscript = "Turn on JavaScript to try the simulator. In short: with the desktop open only 78 % of the model fitted (20 tokens/s); with the KV cache in q8_0 and the browser and Steam closed, 100 % (73 tokens/s)."
+
+[text.en.vram.kv_names]
+q8_0 = "q8_0 (quantised)"
+f16 = "f16 (default)"
+
+[text.en.vram.app_names]
+desktop = "Desktop (KDE)"
+firefox = "Firefox"
+steam = "Steam"
+vscode = "VS Code"
+element = "Element"
+
+[text.en.incidents.date]
+title = "«The year 2026 is inconsistent»"
+meta = "September 2026 · calendar"
+symptom = "Asked to create an event «next Thursday», Hermes said the date made no sense and that 2026 was «inconsistent». Another day it said «Tuesday the 28th» when the 28th was a Monday."
+options = [
+  "The container clock was out of sync",
+  "The calendar's time zone was different",
+  "The model doesn't know what day it is: it reasoned with its training date",
+  "Qdrant was returning old events",
+]
+cause = "A language model has no clock. Without a date in its context it reasons with the date of its training data, and working out weekdays isn't its strength either."
+fix = "On every turn the code adds the real date and time and a table of the next 7 days, already worked out. The weekday of each event is computed by code too."
+lesson = "Dates aren't asked of the model: they're handed to it ready-made."
+
+[text.en.incidents.history]
+title = "After one tool, no more"
+meta = "September 2026 · conversation"
+symptom = "After a question that used a tool, the following questions in the same conversation used none, even when asked by name. Strengthening the instructions scored 0 out of 4."
+options = [
+  "The 8,192-token context ran out",
+  "The history carried the full JSON of earlier tool calls",
+  "The model ran out of VRAM",
+  "The tool got disabled after an error",
+]
+cause = "The history kept the intermediate tool results, JSON with many fields. For the 8B model those blocks changed its behaviour in later turns."
+fix = "The history of past turns is trimmed to just the question and final answer, without the intermediate steps. Checked: 3 out of 3 on the real conversation that had failed."
+lesson = "When more instructions don't fix something, the cause is usually structural: change what the model receives, not what you ask of it."
+
+[text.en.incidents.slow]
+title = "141 seconds for one question"
+meta = "22-09-2026 · performance"
+symptom = "In the afternoon a simple question took 141 s, and a test case that passed 5 out of 5 in the morning failed 8 out of 8 with the same code."
+options = [
+  "The prompt had grown too big",
+  "Ollama had a buggy version",
+  "The vector database was reindexing",
+  "Part of the model ran on the CPU because the desktop was using the VRAM",
+]
+cause = "With a game and the browser open, only 66 % of the model fitted on the GPU; the rest ran on the CPU at 10 tokens per second. On top of that, splitting changes the maths slightly and borderline cases flip."
+fix = "KV cache quantised to q8_0, flash attention, one request and one loaded model at a time. With the browser closed the model fits at 100 %: from 17.5 to 73 tokens per second, and the suite went from 106 to 114 out of 120."
+lesson = "Before blaming the model, check where it runs. Every run now records the Ollama version and how much of the model was on the GPU."
+
+[text.en.incidents.ip]
+title = "A made-up public IP"
+meta = "23-09-2026 · guards"
+symptom = "I asked for my home public IP and it answered with a perfectly formatted address… that wasn't mine. The right one was in the result of the tool it had just used."
+options = [
+  "The model made it up even with the right one in front of it",
+  "The tool returned an old IP",
+  "Cloudflare masked the address",
+  "The router changed IP at that moment",
+]
+cause = "Small models sometimes fill in with something that «sounds right». A well-formatted IP is exactly that: there's no way to spot it by eye."
+fix = "An output guard looks for every IP and amount in the answer in the turn's sources. If it isn't there (or isn't a sum of amounts that are), it asks for a fix; if the model insists, it's sent with a warning. It costs 0.09 ms."
+lesson = "Guards must not fire on good data: a warning that fires too often teaches you to ignore it. That's why legitimate sums are accepted, with no limit on items."
+
+[text.en.incidents.silent]
+title = "An empty day that wasn't"
+meta = "25-09-2026 · daily digest"
+symptom = "The morning digest said I had nothing on. I did."
+options = [
+  "The model summarised the event list badly",
+  "The events were in another calendar",
+  "Calendar access had expired and the error looked like an empty list",
+  "The digest was generated before midnight",
+]
+cause = "The calendar authorisation was revoked overnight. The query failed, and the digest treated the failure as «no events»."
+fix = "Re-authorised, and a failing source is now reported as a failure: «I couldn't read the calendar». If the model writes «I found nothing» after an error, the code adds the warning."
+lesson = "«There's nothing» and «I couldn't check» aren't the same: the first says the data doesn't exist, the second says the system is broken."
+
+[[text.en.timeline]]
+title = "Phase 0 · Measure better"
+period = "22-09-2026"
+items = [
+  "One log line per model call: input and output tokens, load time, speed and how much of the model was on the GPU.",
+  "A «narration» detector: when the model says «use tool X» instead of calling it.",
+  "The first real measurement exposed the problem: 141 s for one question, 954 reasoning tokens just to write.",
+]
+
+[[text.en.timeline]]
+title = "Phase 1 · Make the model fit in 8 GB"
+period = "22-09-2026"
+items = [
+  "Flash attention and a q8_0 KV cache: the context takes half the space.",
+  "One request and one loaded model at a time: each parallel request adds its own cache.",
+  "Finding the bottleneck wasn't the model but the desktop: the browser was taking 805 MiB of VRAM.",
+  "Result: 4.2× faster and 8 fewer failures on the suite.",
+]
+
+[[text.en.timeline]]
+title = "Phase 2 · Less text per turn (dropped)"
+period = "22-09-2026"
+items = [
+  "Merging tools to send less text: from 24 to 16.",
+  "The prompt shrank, but so did the score: from 118 to 112 out of 120.",
+  "Lesson: for an 8B model a tool's name weighs more than its description, and hiding capabilities behind a parameter makes them invisible.",
+]
+
+[[text.en.timeline]]
+title = "Phase 3 · Robustness through code"
+period = "22-23-09-2026"
+items = [
+  "Argument validation against the schema and readable errors the model can fix.",
+  "Adaptive reasoning: think to choose, not to write (from 4.7 to 0.7 s).",
+  "Output guards for IPs and amounts, a code relay for two-step questions and warnings when a source is down.",
+]
+
+[[text.en.timeline]]
+title = "Phases 4 and 5 · Model and where it runs"
+period = "Pending"
+items = [
+  "Try the same family with more bits (Q5_K_M) only if it fits with the same context.",
+  "Move the model to the server once it has its own GPU: 1U high and 70 W from the slot. The candidate is a passive 16 GB card.",
+]
+
+[[text.en.decisions]]
+title = "Where the model runs"
+choice = "Locally, on my GPU"
+why = "Nothing leaves my network: the assistant reads my email and calendar. I tried a 14B model and it didn't fit in 8 GB: same failure and 4 to 8 times slower. The server CPU has no AVX2: it would be minutes per answer."
+
+[[text.en.decisions]]
+title = "How to get accuracy from a small model"
+choice = "Move rules from the prompt into code"
+why = "Adding text to the prompt made the suite worse (96 vs 105 out of 111) and examples made it copy the shape of a sentence, not its meaning. What worked was having the code compute dates, weekdays, expiries, sums and types, and leaving the model to understand and write."
+
+[[text.en.decisions]]
+title = "How a change gets accepted"
+choice = "Measured with 3 seeds, case by case"
+why = "Each change is measured on its own and only shipped with no regressions. Besides the suite there are tests against production and real questions, because the suite uses synthetic data and can't see a broken tool."
+
+[[text.en.decisions]]
+title = "What the model can touch"
+choice = "Read almost everything, write almost nothing"
+why = "The model interprets and the code decides whether anything gets written. That's why an instruction inside an email can't create or delete anything, and automatic retries never apply to write tools."
+
+[text.en.tech_notes]
+python = "The whole bot: the turn loop, argument validation, the guards, the relay for two-step questions, the watchers and about 110 tests with no model or network."
+llm = "Ollama with qwen3:8b for chat, an embedding model to search by meaning, Qdrant as the vector database and Whisper for voice. All local, tuned to fit in 8 GB of VRAM."
+linux = "systemd services with minimal permissions (read-only paths, no privileges) in a dedicated container; the GPU in a Linux PC."
+ansible = "The role that deploys the bot, its services and its configuration; secrets are encrypted with Ansible Vault."
+
+[text.en.close]
+lessons = [
+  "With a small model, accuracy doesn't come from the model: it comes from what the code does around it.",
+  "The more general text an 8B model receives, the worse it chooses. Isolating a task fixes it.",
+  "GPU memory is part of the design: an open browser changed the speed fourfold and the suite's result.",
+  "Measure with several seeds and with real questions: half the important failures never showed up in the suite.",
+]
+next = [
+  "A GPU of its own for the server, so Hermes doesn't depend on my PC being on.",
+  "Review the suite's criteria: some cases measured wording rather than substance.",
+  "Fix questions about past incidents, which still sometimes go to the live-status tools.",
+]

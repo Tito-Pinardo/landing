@@ -1,0 +1,836 @@
+# Unidad 1U del rack: n8n, las automatizaciones.
+#
+# Fuente: Obsidian «n8n - Automation» y sus tres postmortems (salto
+# silencioso, procesos de navegador huérfanos y permisos). Se cuenta en
+# genérico a propósito: sin fuentes, servicios de destino ni contenido.
+
+id = "n8n"
+status = "live"
+host_tech = ["lxc", "terraform", "ansible"]
+links = [
+  ["source", "browser"],
+  ["target", "confirm"],
+  ["zabbix", "memory"],
+]
+
+[[groups]]
+id = "flow"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "fetch"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "record"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "ops"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "source"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "target"
+x = 290
+y = 110
+kind = "app"
+group = ""
+tech = []
+
+[[pods]]
+id = "me"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "zabbix"
+x = 290
+y = 250
+kind = "observability"
+group = ""
+tech = ["zabbix"]
+
+[[pods]]
+id = "caddy"
+x = 100
+y = 420
+kind = "network"
+group = ""
+tech = []
+
+[[pods]]
+id = "timer"
+x = 515
+y = 140
+kind = "control"
+group = "flow"
+tech = ["docker"]
+
+[[pods]]
+id = "candidates"
+x = 700
+y = 140
+kind = "app"
+group = "flow"
+tech = ["docker"]
+
+[[pods]]
+id = "filter"
+x = 885
+y = 140
+kind = "control"
+group = "flow"
+tech = ["typescript"]
+
+[[pods]]
+id = "send"
+x = 1070
+y = 140
+kind = "app"
+group = "flow"
+tech = ["docker"]
+
+[[pods]]
+id = "browser"
+x = 515
+y = 266
+kind = "app"
+group = "fetch"
+tech = ["docker", "typescript"]
+
+[[pods]]
+id = "file"
+x = 700
+y = 266
+kind = "app"
+group = "fetch"
+tech = ["docker"]
+
+[[pods]]
+id = "byname"
+x = 885
+y = 266
+kind = "control"
+group = "fetch"
+tech = ["typescript"]
+
+[[pods]]
+id = "cleanup"
+x = 1070
+y = 266
+kind = "control"
+group = "fetch"
+tech = ["linux"]
+
+[[pods]]
+id = "confirm"
+x = 515
+y = 392
+kind = "observability"
+group = "record"
+tech = ["typescript"]
+
+[[pods]]
+id = "used"
+x = 700
+y = 392
+kind = "app"
+group = "record"
+tech = []
+
+[[pods]]
+id = "pending"
+x = 885
+y = 392
+kind = "observability"
+group = "record"
+tech = []
+
+[[pods]]
+id = "log"
+x = 1070
+y = 392
+kind = "observability"
+group = "record"
+tech = []
+
+[[pods]]
+id = "role"
+x = 515
+y = 518
+kind = "control"
+group = "ops"
+tech = ["ansible"]
+
+[[pods]]
+id = "uid"
+x = 700
+y = 518
+kind = "control"
+group = "ops"
+tech = ["linux", "docker"]
+
+[[pods]]
+id = "memory"
+x = 885
+y = 518
+kind = "observability"
+group = "ops"
+tech = ["linux"]
+
+[[pods]]
+id = "socket"
+x = 1070
+y = 518
+kind = "control"
+group = "ops"
+tech = ["docker", "hardening"]
+
+[[flows]]
+id = "run"
+path = ["timer", "source", "candidates", "filter", "used", "filter", "browser", "file", "byname", "send", "target", "confirm", "used", "cleanup"]
+
+[[flows]]
+id = "fail"
+path = ["send", "target", "confirm", "pending", "log", "timer"]
+
+[[flows]]
+id = "zombie"
+path = ["browser", "memory", "zabbix", "me", "browser", "memory"]
+
+[[flows]]
+id = "deploy"
+path = ["role", "uid", "socket", "timer", "caddy", "me"]
+
+[[incidents]]
+id = "skip"
+answer = 1
+
+[[incidents]]
+id = "zombies"
+answer = 3
+
+[[incidents]]
+id = "perms"
+answer = 0
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "n8n por dentro · Tito Pinardo Gutiérrez"
+description = "Las automatizaciones del homelab en n8n: un flujo programado con navegador sin cabeza, un registro que solo se escribe tras confirmar, y tres averías que enseñaron a no perder trabajo en silencio."
+
+[text.es.ui]
+slot = "1U · N8N"
+face_specs = "n8n · navegador sin cabeza · cada 30 min"
+state = "En producción"
+map_silk = "FLOW"
+map_title = "Un flujo por dentro"
+map_intro = "Cada media hora, un flujo busca novedades y las entrega a otro servicio. Elige un recorrido para ver dónde se puede perder algo y cómo se evita."
+vm_title = "Contenedor de automatizaciones · Proxmox"
+vm_specs = "n8n + navegador sin cabeza"
+outside = "Fuera"
+disclaimer = "Contado en genérico a propósito: sin las fuentes, los servicios de destino ni el contenido que se mueve."
+
+[text.es.hero]
+kicker = "Unidad 1U · Automatización"
+title = "n8n · lo que se hace solo"
+tagline = "Tareas que antes hacía a mano y ahora son flujos: cada 30 minutos uno revisa una web con un navegador sin cabeza, compara con lo que ya ha procesado, obtiene lo nuevo y lo entrega a otro servicio. Lo difícil no es hacerlo, es no perder nada cuando algo falla a mitad."
+grade = "Registro solo tras confirmar"
+facts = [
+  { label = "Por qué n8n", value = "Los flujos se ven como un grafo, cada ejecución queda registrada con sus datos y se puede relanzar. Para tareas programadas entre servicios, es más fácil de depurar que un script suelto." },
+  { label = "La regla", value = "Algo solo se marca como hecho cuando el servicio de destino confirma que lo recibió. Si no, se queda pendiente y la siguiente ejecución lo vuelve a intentar." },
+  { label = "Cómo se despliega", value = "Terraform crea el contenedor y un rol de Ansible levanta n8n, el navegador sin cabeza y el flujo. Las carpetas compartidas nacen con el dueño correcto." },
+]
+
+[[text.es.stats]]
+value = "2.104"
+label = "procesos de navegador huérfanos encontrados"
+
+[[text.es.stats]]
+value = "28 GB"
+label = "de RAM liberados al cerrarlos"
+
+[[text.es.stats]]
+value = "51"
+label = "ejecuciones fallidas por un permiso"
+
+[[text.es.stats]]
+value = "30 min"
+label = "entre ejecuciones"
+
+[text.es.groups]
+flow = "El flujo"
+fetch = "Obtener"
+record = "Registrar sin perder nada"
+ops = "Operación"
+
+[text.es.pods.source]
+short = "Fuente"
+title = "La web de origen"
+text = "De donde salen las novedades."
+
+[text.es.pods.target]
+short = "Destino"
+title = "El servicio de destino"
+text = "Quien recibe cada elemento y confirma si lo aceptó."
+
+[text.es.pods.me]
+short = "Yo"
+title = "Yo"
+text = "Reviso las ejecuciones fallidas cuando algo no cuadra."
+
+[text.es.pods.zabbix]
+short = "Zabbix"
+title = "Monitorización"
+text = "Vigila la memoria del contenedor."
+
+[text.es.pods.caddy]
+short = "Puerta interna"
+title = "Puerta interna"
+text = "El panel de n8n solo se abre desde casa o la VPN, con doble factor. Se retiró de internet."
+
+[text.es.pods.timer]
+short = "Cada 30 min"
+title = "Ejecución programada"
+text = "El disparador del flujo."
+
+[text.es.pods.candidates]
+short = "Novedades"
+title = "Lista de candidatos"
+text = "Lo que hay ahora en la fuente."
+
+[text.es.pods.filter]
+short = "Filtro"
+title = "Filtro contra el registro"
+text = "Se queda solo con lo que no se ha procesado ya."
+
+[text.es.pods.send]
+short = "Entregar"
+title = "Entrega"
+text = "Manda cada elemento al servicio de destino, con los datos de ese elemento y no los del primero de la tanda."
+
+[text.es.pods.browser]
+short = "Navegador"
+title = "Navegador sin cabeza"
+text = "Una pequeña API con Puppeteer que abre la web como lo haría una persona y descarga el fichero."
+
+[text.es.pods.file]
+short = "Fichero"
+title = "El fichero obtenido"
+text = "La API responde con su nombre; el contenido se queda en disco."
+
+[text.es.pods.byname]
+short = "Por su nombre"
+title = "Leer por su nombre exacto"
+text = "Cada elemento lee su fichero por el nombre que devolvió la API, no «el primero que haya en la carpeta»."
+
+[text.es.pods.cleanup]
+short = "Limpieza"
+title = "Limpieza"
+text = "Borra los ficheros temporales al terminar."
+
+[text.es.pods.confirm]
+short = "¿Confirmado?"
+title = "Confirmación"
+text = "Se cruza cada respuesta del destino con su elemento. Solo lo que se aceptó pasa al registro."
+
+[text.es.pods.used]
+short = "Registro"
+title = "Registro de procesados"
+text = "Evita repetir trabajo. Si algo entra aquí sin estar hecho, se pierde para siempre: nadie lo vuelve a intentar."
+
+[text.es.pods.pending]
+short = "Pendiente"
+title = "Pendiente"
+text = "Lo que falló se queda fuera del registro y vuelve a entrar en la siguiente ejecución."
+
+[text.es.pods.log]
+short = "Historial"
+title = "Historial de ejecuciones"
+text = "Cada ejecución, con los datos de cada nodo. De ahí salen los diagnósticos."
+
+[text.es.pods.role]
+short = "Rol de Ansible"
+title = "Rol de Ansible"
+text = "Levanta el stack, importa el flujo y crea las carpetas compartidas."
+
+[text.es.pods.uid]
+short = "Dueño 1000"
+title = "El dueño de las carpetas"
+text = "n8n corre sin root, con su usuario. Toda carpeta en la que tenga que escribir o borrar se crea con ese dueño."
+
+[text.es.pods.memory]
+short = "Memoria"
+title = "Memoria del contenedor"
+text = "Donde se notó que algo no cerraba lo que abría."
+
+[text.es.pods.socket]
+short = "Proxy de Docker"
+title = "Proxy del socket de Docker"
+text = "n8n no toca el socket de Docker directamente: pasa por un proxy que solo permite lo necesario."
+
+[text.es.flows.run]
+title = "Una ejecución normal"
+steps = [
+  "Pasan 30 minutos y salta el disparador.",
+  "Se consulta la fuente.",
+  "Llega la lista de novedades.",
+  "El filtro la compara con el registro.",
+  "Lo ya procesado se descarta.",
+  "Quedan dos elementos nuevos.",
+  "El navegador sin cabeza obtiene el fichero de cada uno.",
+  "La API responde con el nombre de cada fichero.",
+  "Cada elemento lee el suyo por su nombre exacto. Antes, con dos a la vez, podían cruzarse.",
+  "Se entregan al servicio de destino, cada uno con sus propios datos.",
+  "El destino responde por cada uno.",
+  "Se cruzan las respuestas con sus elementos: los dos, aceptados.",
+  "Solo ahora se escriben en el registro.",
+  "Y se limpian los temporales.",
+]
+
+[text.es.flows.fail]
+title = "Algo falla a mitad"
+steps = [
+  "Se entrega un elemento.",
+  "El destino no lo acepta.",
+  "La confirmación no llega.",
+  "El elemento se queda pendiente, fuera del registro.",
+  "El fallo queda en el historial para revisarlo.",
+  "En la siguiente ejecución vuelve a entrar como nuevo.",
+]
+
+[text.es.flows.zombie]
+title = "Un navegador que no se cierra"
+steps = [
+  "Una página tarda demasiado y la API da error.",
+  "Antes, el error soltaba la referencia al navegador pero no lo cerraba: el proceso seguía vivo.",
+  "La memoria del contenedor sube día tras día.",
+  "Hasta que me doy cuenta: 31 GB usados de 32.",
+  "Ahora cada error cierra el navegador antes de olvidarlo.",
+  "Los procesos huérfanos se quedan en cero.",
+]
+
+[text.es.flows.deploy]
+title = "Se despliega"
+steps = [
+  "Ansible aplica el rol.",
+  "Las carpetas compartidas, con el dueño del usuario de n8n.",
+  "El acceso a Docker, a través del proxy.",
+  "n8n arranca con su flujo importado.",
+  "El panel, detrás de la puerta interna.",
+  "Lo reviso desde casa o la VPN.",
+]
+
+[text.es.incidents.skip]
+title = "Elementos que desaparecían sin dejar rastro"
+meta = "Junio de 2026 · flujo"
+symptom = "Una ejecución encontró tres novedades. Solo una llegó al destino. Las otras dos no volvieron a intentarse nunca."
+options = [
+  "El destino las rechazaba por duplicadas",
+  "El registro apuntaba como hechos todos los encontrados, no los confirmados, y con varios a la vez los ficheros se cruzaban",
+  "La fuente las había retirado",
+  "El disparador se saltó una ejecución",
+]
+cause = "Dos fallos juntos. El registro se construía con todo lo que el filtro había visto como nuevo, no con lo que el destino había confirmado. Y con varios elementos en la misma tanda, la lectura de ficheros cogía «el que hubiera», no el de cada uno."
+fix = "Solo se registra lo que el destino confirma, cruzando cada respuesta con su elemento. Cada elemento lee su fichero por el nombre que devolvió la API y se envía con sus propios datos."
+lesson = "Un registro de «hechos» se escribe después de hacer, nunca antes. Si no, un fallo deja de ser temporal y se vuelve permanente y silencioso."
+
+[text.es.incidents.zombies]
+title = "31 GB de 32 en uso"
+meta = "05-09-2026 · memoria"
+symptom = "El contenedor estaba al borde de quedarse sin memoria. n8n en sí usaba 264 MB."
+options = [
+  "n8n tenía una fuga de memoria",
+  "El historial de ejecuciones era enorme",
+  "La caché del sistema no se liberaba",
+  "Más de 2.000 procesos de navegador huérfanos, acumulados durante semanas",
+]
+cause = "Ante cualquier error, la API soltaba su referencia al navegador sin cerrarlo. El proceso seguía vivo para siempre: 2.104 navegadores acumulados en 22 días."
+fix = "Cerrar el navegador en cada error antes de olvidarlo. Matar los huérfanos liberó unos 28 GB al instante y, desde el arreglo, el recuento se queda en cero aunque la web falle."
+lesson = "Soltar una referencia no libera lo que hay detrás. Lo que se abre, se cierra también en el camino del error."
+
+[text.es.incidents.perms]
+title = "La misma tarea, 51 veces"
+meta = "18-09-2026 · permisos"
+symptom = "Durante 28 horas, el flujo falló cada media hora y repetía el mismo trabajo una y otra vez."
+options = [
+  "La carpeta temporal la había creado root y n8n, sin root, no podía borrar: el error cortaba el flujo antes de registrar",
+  "El destino estaba caído",
+  "El disco estaba lleno",
+  "El disparador se había duplicado",
+]
+cause = "Tras pasar el servicio a código, el rol creaba esa carpeta sin dueño explícito. La limpieza fallaba con «Permission denied», cortaba el flujo antes de escribir el registro y la siguiente ejecución volvía a ver lo mismo como nuevo."
+fix = "Crear esa carpeta en la misma tarea que el resto, con el dueño del usuario de n8n, y relanzar el rol: solo cambió esa tarea."
+lesson = "Al pasar algo a código, lo que antes estaba bien «porque sí» hay que escribirlo: aquí, el dueño de una carpeta."
+
+[[text.es.timeline]]
+title = "El flujo"
+period = "Junio de 2026"
+items = [
+  "Primer flujo programado con navegador sin cabeza.",
+  "Arreglo del registro: solo tras confirmar.",
+]
+
+[[text.es.timeline]]
+title = "A código"
+period = "16-09-2026"
+items = [
+  "Contenedor nuevo con Terraform y rol de Ansible para todo el stack.",
+  "El antiguo, parado como margen.",
+  "Panel fuera de internet el 26-09.",
+]
+
+[[text.es.decisions]]
+title = "Cuándo se apunta algo como hecho"
+choice = "Cuando el destino lo confirma"
+why = "Apuntarlo antes es más sencillo y funciona el 99 % de las veces. El 1 % restante se pierde sin que nadie lo vea."
+
+[[text.es.decisions]]
+title = "Acceso a Docker"
+choice = "A través de un proxy limitado"
+why = "Dar a una herramienta de automatización el socket de Docker entero es darle el servidor. El proxy solo deja las operaciones que necesita."
+
+[text.es.tech_notes]
+terraform = "Crea el contenedor de las automatizaciones."
+ansible = "El rol que levanta n8n, el navegador sin cabeza y el flujo, con las carpetas y sus dueños."
+lxc = "Corre en su propio contenedor LXC."
+docker = "n8n, la API del navegador y el proxy del socket, en un mismo stack."
+linux = "Usuarios y dueños de las carpetas compartidas, y procesos que se cierran de verdad."
+typescript = "La API del navegador sin cabeza y los nodos de código del flujo, en JavaScript."
+zabbix = "Vigila la memoria del contenedor."
+hardening = "Panel solo detrás de la puerta interna, n8n sin root y Docker a través de un proxy."
+
+[text.es.close]
+lessons = [
+  "Registrar después de confirmar, no antes.",
+  "Lo que se abre se cierra también cuando hay error.",
+  "Al pasar algo a código, escribir hasta lo que parecía obvio.",
+]
+next = [
+  "Un aviso cuando un flujo falla varias veces seguidas, en vez de descubrirlo por el historial.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside n8n · Tito Pinardo Gutiérrez"
+description = "The homelab's automations in n8n: a scheduled flow with a headless browser, a record only written after confirmation, and three failures that taught me not to lose work silently."
+
+[text.en.ui]
+slot = "1U · N8N"
+face_specs = "n8n · headless browser · every 30 min"
+state = "In production"
+map_silk = "FLOW"
+map_title = "Inside a flow"
+map_intro = "Every half hour, a flow looks for new items and hands them to another service. Pick a flow to see where something could get lost and how that's avoided."
+vm_title = "Automation container · Proxmox"
+vm_specs = "n8n + headless browser"
+outside = "Outside"
+disclaimer = "Told generically on purpose: no sources, target services or the content being moved."
+
+[text.en.hero]
+kicker = "1U unit · Automation"
+title = "n8n · what happens on its own"
+tagline = "Tasks I used to do by hand that are now flows: every 30 minutes one checks a website with a headless browser, compares with what it has already processed, fetches what's new and hands it to another service. The hard part isn't doing it, it's not losing anything when something fails halfway."
+grade = "Recorded only after confirmation"
+facts = [
+  { label = "Why n8n", value = "Flows look like a graph, every run is logged with its data and can be rerun. For scheduled tasks between services it's easier to debug than a loose script." },
+  { label = "The rule", value = "Something is only marked done when the target service confirms it got it. Otherwise it stays pending and the next run tries again." },
+  { label = "How it's deployed", value = "Terraform creates the container and an Ansible role brings up n8n, the headless browser and the flow. Shared folders are created with the right owner." },
+]
+
+[[text.en.stats]]
+value = "2,104"
+label = "orphaned browser processes found"
+
+[[text.en.stats]]
+value = "28 GB"
+label = "of RAM freed by closing them"
+
+[[text.en.stats]]
+value = "51"
+label = "failed runs because of one permission"
+
+[[text.en.stats]]
+value = "30 min"
+label = "between runs"
+
+[text.en.groups]
+flow = "The flow"
+fetch = "Fetch"
+record = "Record without losing anything"
+ops = "Operations"
+
+[text.en.pods.source]
+short = "Source"
+title = "The source website"
+text = "Where the new items come from."
+
+[text.en.pods.target]
+short = "Target"
+title = "The target service"
+text = "Receives each item and confirms whether it accepted it."
+
+[text.en.pods.me]
+short = "Me"
+title = "Me"
+text = "I check failed runs when something doesn't add up."
+
+[text.en.pods.zabbix]
+short = "Zabbix"
+title = "Monitoring"
+text = "Watches the container's memory."
+
+[text.en.pods.caddy]
+short = "Internal door"
+title = "Internal door"
+text = "The n8n panel only opens from home or the VPN, with two-factor. It was taken off the internet."
+
+[text.en.pods.timer]
+short = "Every 30 min"
+title = "Scheduled run"
+text = "The flow's trigger."
+
+[text.en.pods.candidates]
+short = "New items"
+title = "Candidate list"
+text = "What's on the source right now."
+
+[text.en.pods.filter]
+short = "Filter"
+title = "Filter against the record"
+text = "Keeps only what hasn't been processed yet."
+
+[text.en.pods.send]
+short = "Deliver"
+title = "Delivery"
+text = "Sends each item to the target service, with that item's data and not the first one in the batch."
+
+[text.en.pods.browser]
+short = "Browser"
+title = "Headless browser"
+text = "A small Puppeteer API that opens the site the way a person would and downloads the file."
+
+[text.en.pods.file]
+short = "File"
+title = "The fetched file"
+text = "The API answers with its name; the content stays on disk."
+
+[text.en.pods.byname]
+short = "By its name"
+title = "Read by its exact name"
+text = "Each item reads its file by the name the API returned, not «whatever is first in the folder»."
+
+[text.en.pods.cleanup]
+short = "Clean-up"
+title = "Clean-up"
+text = "Deletes the temporary files at the end."
+
+[text.en.pods.confirm]
+short = "Confirmed?"
+title = "Confirmation"
+text = "Each response from the target is matched with its item. Only what was accepted goes into the record."
+
+[text.en.pods.used]
+short = "Record"
+title = "Processed record"
+text = "Avoids repeating work. If something gets in here without being done, it's lost for good: nobody tries it again."
+
+[text.en.pods.pending]
+short = "Pending"
+title = "Pending"
+text = "Whatever failed stays out of the record and comes back on the next run."
+
+[text.en.pods.log]
+short = "History"
+title = "Run history"
+text = "Every run, with each node's data. That's where diagnoses come from."
+
+[text.en.pods.role]
+short = "Ansible role"
+title = "Ansible role"
+text = "Brings up the stack, imports the flow and creates the shared folders."
+
+[text.en.pods.uid]
+short = "Owner 1000"
+title = "Folder owner"
+text = "n8n runs without root, as its own user. Every folder it has to write to or delete from is created with that owner."
+
+[text.en.pods.memory]
+short = "Memory"
+title = "Container memory"
+text = "Where it showed that something wasn't closing what it opened."
+
+[text.en.pods.socket]
+short = "Docker proxy"
+title = "Docker socket proxy"
+text = "n8n doesn't touch the Docker socket directly: it goes through a proxy that only allows what's needed."
+
+[text.en.flows.run]
+title = "A normal run"
+steps = [
+  "30 minutes pass and the trigger fires.",
+  "The source is checked.",
+  "The list of new items arrives.",
+  "The filter compares it with the record.",
+  "What's already processed is dropped.",
+  "Two new items are left.",
+  "The headless browser fetches each one's file.",
+  "The API answers with each file's name.",
+  "Each item reads its own by exact name. Before, with two at once, they could get crossed.",
+  "They're delivered to the target service, each with its own data.",
+  "The target answers for each one.",
+  "Responses are matched with their items: both accepted.",
+  "Only now are they written to the record.",
+  "And the temporary files are cleaned up.",
+]
+
+[text.en.flows.fail]
+title = "Something fails halfway"
+steps = [
+  "An item is delivered.",
+  "The target doesn't accept it.",
+  "No confirmation arrives.",
+  "The item stays pending, out of the record.",
+  "The failure stays in the history to review.",
+  "On the next run it comes back as new.",
+]
+
+[text.en.flows.zombie]
+title = "A browser that doesn't close"
+steps = [
+  "A page takes too long and the API errors.",
+  "Before, the error dropped the reference to the browser but didn't close it: the process stayed alive.",
+  "The container's memory climbs day after day.",
+  "Until I notice: 31 GB used out of 32.",
+  "Now every error closes the browser before forgetting it.",
+  "Orphaned processes stay at zero.",
+]
+
+[text.en.flows.deploy]
+title = "It gets deployed"
+steps = [
+  "Ansible applies the role.",
+  "Shared folders, owned by the n8n user.",
+  "Docker access, through the proxy.",
+  "n8n starts with its flow imported.",
+  "The panel, behind the internal door.",
+  "I check it from home or the VPN.",
+]
+
+[text.en.incidents.skip]
+title = "Items that vanished without a trace"
+meta = "June 2026 · flow"
+symptom = "A run found three new items. Only one reached the target. The other two were never tried again."
+options = [
+  "The target rejected them as duplicates",
+  "The record marked everything found as done, not what was confirmed, and with several at once the files got crossed",
+  "The source had removed them",
+  "The trigger skipped a run",
+]
+cause = "Two bugs together. The record was built from everything the filter saw as new, not from what the target confirmed. And with several items in one batch, file reading took «whatever was there», not each item's own."
+fix = "Only what the target confirms is recorded, matching each response with its item. Each item reads its file by the name the API returned and is sent with its own data."
+lesson = "A «done» record is written after doing, never before. Otherwise a failure stops being temporary and becomes permanent and silent."
+
+[text.en.incidents.zombies]
+title = "31 GB of 32 in use"
+meta = "05-09-2026 · memory"
+symptom = "The container was about to run out of memory. n8n itself was using 264 MB."
+options = [
+  "n8n had a memory leak",
+  "The run history was huge",
+  "The system cache wasn't being freed",
+  "Over 2,000 orphaned browser processes, piled up over weeks",
+]
+cause = "On any error, the API dropped its reference to the browser without closing it. The process lived forever: 2,104 browsers piled up over 22 days."
+fix = "Close the browser on every error before forgetting it. Killing the orphans freed about 28 GB at once and, since the fix, the count stays at zero even when the site fails."
+lesson = "Dropping a reference doesn't free what's behind it. Whatever is opened gets closed on the error path too."
+
+[text.en.incidents.perms]
+title = "The same job, 51 times"
+meta = "18-09-2026 · permissions"
+symptom = "For 28 hours the flow failed every half hour and repeated the same work over and over."
+options = [
+  "The temp folder had been created by root and n8n, without root, couldn't delete: the error cut the flow before recording",
+  "The target was down",
+  "The disk was full",
+  "The trigger had been duplicated",
+]
+cause = "After moving the service to code, the role created that folder without an explicit owner. Clean-up failed with «Permission denied», cut the flow before writing the record and the next run saw the same items as new again."
+fix = "Create that folder in the same task as the others, owned by the n8n user, and rerun the role: only that task changed."
+lesson = "When moving something to code, whatever used to be fine «just because» has to be written down: here, a folder's owner."
+
+[[text.en.timeline]]
+title = "The flow"
+period = "June 2026"
+items = [
+  "First scheduled flow with a headless browser.",
+  "Record fix: only after confirmation.",
+]
+
+[[text.en.timeline]]
+title = "To code"
+period = "16-09-2026"
+items = [
+  "A new container with Terraform and an Ansible role for the whole stack.",
+  "The old one, stopped as a fallback.",
+  "Panel off the internet on 26-09.",
+]
+
+[[text.en.decisions]]
+title = "When something is marked done"
+choice = "When the target confirms it"
+why = "Marking it earlier is simpler and works 99 % of the time. The other 1 % is lost without anyone seeing."
+
+[[text.en.decisions]]
+title = "Docker access"
+choice = "Through a limited proxy"
+why = "Giving an automation tool the whole Docker socket is giving it the server. The proxy only allows the operations it needs."
+
+[text.en.tech_notes]
+terraform = "Creates the automation container."
+ansible = "The role that brings up n8n, the headless browser and the flow, with the folders and their owners."
+lxc = "Runs in its own LXC container."
+docker = "n8n, the browser API and the socket proxy, in one stack."
+linux = "Users and owners of the shared folders, and processes that really get closed."
+typescript = "The headless browser API and the flow's code nodes, in JavaScript."
+zabbix = "Watches the container's memory."
+hardening = "Panel only behind the internal door, n8n without root and Docker through a proxy."
+
+[text.en.close]
+lessons = [
+  "Record after confirming, not before.",
+  "Whatever is opened gets closed on errors too.",
+  "When moving something to code, write down even what seemed obvious.",
+]
+next = [
+  "A warning when a flow fails several times in a row, instead of finding out from the history.",
+]

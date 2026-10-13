@@ -1,0 +1,934 @@
+# Unidad 1U del rack: el router MikroTik.
+#
+# Fuente: las notas de red de Obsidian (MikroTik, VLANs, WireGuard, auditoría
+# del 06-09) y los incidentes del 14-08, 17-09 y 30-09. Sin direcciones,
+# puertos ni claves: solo qué hace cada parte y por qué.
+
+id = "router"
+status = "live"
+host_tech = ["mikrotik"]
+links = [
+  ["internet", "ont"],
+  ["ont", "pppoe"],
+  ["internet", "cloudflare"],
+  ["phone", "internet"],
+]
+
+[[groups]]
+id = "wan"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "segments"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "home"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "guard"
+x = 420
+y = 458
+w = 760
+h = 104
+
+# Fuera
+[[pods]]
+id = "internet"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "ont"
+x = 290
+y = 110
+kind = "network"
+group = ""
+tech = []
+
+[[pods]]
+id = "cloudflare"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "phone"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+# WAN y entrada
+[[pods]]
+id = "pppoe"
+x = 515
+y = 140
+kind = "network"
+group = "wan"
+tech = ["mikrotik"]
+
+[[pods]]
+id = "nat"
+x = 700
+y = 140
+kind = "network"
+group = "wan"
+tech = ["mikrotik"]
+
+[[pods]]
+id = "fw"
+x = 885
+y = 140
+kind = "observability"
+group = "wan"
+tech = ["mikrotik", "hardening"]
+
+[[pods]]
+id = "wg"
+x = 1070
+y = 140
+kind = "network"
+group = "wan"
+tech = ["wireguard", "mikrotik"]
+
+# Segmentos
+[[pods]]
+id = "servers"
+x = 515
+y = 266
+kind = "compute"
+group = "segments"
+tech = ["vlan"]
+
+[[pods]]
+id = "wired"
+x = 700
+y = 266
+kind = "edge"
+group = "segments"
+tech = ["vlan"]
+
+[[pods]]
+id = "wifi"
+x = 885
+y = 266
+kind = "edge"
+group = "segments"
+tech = ["vlan"]
+
+[[pods]]
+id = "dhcp"
+x = 1070
+y = 266
+kind = "control"
+group = "segments"
+tech = ["mikrotik"]
+
+# Dentro de casa
+[[pods]]
+id = "ap"
+x = 515
+y = 392
+kind = "network"
+group = "home"
+tech = ["vlan"]
+
+[[pods]]
+id = "traefik"
+x = 700
+y = 392
+kind = "network"
+group = "home"
+tech = []
+
+[[pods]]
+id = "dns"
+x = 885
+y = 392
+kind = "network"
+group = "home"
+tech = ["dns"]
+
+[[pods]]
+id = "plex"
+x = 1070
+y = 392
+kind = "compute"
+group = "home"
+tech = []
+
+# Protección
+[[pods]]
+id = "lists"
+x = 515
+y = 518
+kind = "observability"
+group = "guard"
+tech = ["mikrotik", "hardening"]
+
+[[pods]]
+id = "hairpin"
+x = 700
+y = 518
+kind = "network"
+group = "guard"
+tech = ["mikrotik"]
+
+[[pods]]
+id = "script"
+x = 885
+y = 518
+kind = "control"
+group = "guard"
+tech = ["mikrotik"]
+
+[[pods]]
+id = "mgmt"
+x = 1070
+y = 518
+kind = "control"
+group = "guard"
+tech = ["mikrotik", "hardening"]
+
+[[flows]]
+id = "visit"
+path = ["internet", "cloudflare", "ont", "pppoe", "nat", "fw", "servers", "traefik"]
+
+[[flows]]
+id = "vpn"
+path = ["phone", "internet", "ont", "pppoe", "wg", "fw", "servers", "mgmt"]
+
+[[flows]]
+id = "wifi"
+path = ["ap", "wifi", "dhcp", "dns", "fw", "pppoe", "ont", "internet"]
+
+[[flows]]
+id = "isolation"
+path = ["wifi", "fw", "plex", "wifi", "fw", "servers", "fw", "wifi"]
+
+[[flows]]
+id = "bruteforce"
+path = ["internet", "pppoe", "fw", "lists", "fw", "lists", "fw"]
+
+[[flows]]
+id = "ipchange"
+path = ["pppoe", "script", "hairpin", "nat", "cloudflare"]
+
+[[incidents]]
+id = "hsts"
+answer = 1
+
+[[incidents]]
+id = "selfban"
+answer = 2
+
+[[incidents]]
+id = "askey"
+answer = 0
+
+[[incidents]]
+id = "laliga"
+answer = 3
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "El router por dentro · Tito Pinardo Gutiérrez"
+description = "El router MikroTik de casa por dentro: PPPoE, VLANs, cortafuegos con listas de bloqueo por etapas, WireGuard, hairpin NAT y las averías reales que enseñaron cada regla."
+
+[text.es.ui]
+slot = "1U · ROUTER"
+face_specs = "RB5009 · RouterOS 7 · 3 segmentos"
+state = "En producción"
+map_silk = "NET"
+map_title = "El router por dentro"
+map_intro = "Todo lo que entra o sale de casa pasa por aquí. Elige un recorrido para ver qué regla decide cada paso."
+vm_title = "MikroTik RB5009 · y lo que cuelga de él"
+vm_specs = "RouterOS 7"
+outside = "Fuera de casa"
+disclaimer = "Reconstrucción a partir de mi documentación de red: sin direcciones, puertos, claves ni nombres de equipos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Red de casa"
+title = "El router MikroTik"
+tagline = "Un MikroTik RB5009 sustituye al router de la operadora: el de fibra queda como simple puente. Separa la casa en segmentos, decide qué puede hablar con qué, abre la VPN para entrar desde fuera y solo deja pasar de internet lo que tiene destino."
+grade = "Auditado el 06-09-2026"
+facts = [
+  { label = "Por qué", value = "El router de la operadora no deja separar redes, ver qué entra ni montar una VPN propia. Con el MikroTik cada regla es mía y está documentada." },
+  { label = "Cómo está", value = "Fibra → equipo de la operadora en modo puente → MikroTik con PPPoE. Tres segmentos: servidores, cable de casa y WiFi con la tele. WireGuard en el propio router." },
+  { label = "Lo aprendido", value = "Cada regla del cortafuegos tiene detrás una avería: un certificado falso en toda la casa, un bloqueo a mí mismo y un WiFi que no conectaba." },
+]
+
+[[text.es.stats]]
+value = "3"
+label = "segmentos de red, cada uno con su DHCP"
+
+[[text.es.stats]]
+value = "3 etapas"
+label = "antes de bloquear a quien insiste por SSH"
+
+[[text.es.stats]]
+value = "1 regla"
+label = "de NAT mal acotada rompió HTTPS en toda la casa"
+
+[[text.es.stats]]
+value = "0"
+label = "servicios propios en el equipo de la operadora y en el AP"
+
+[text.es.groups]
+wan = "WAN y entrada"
+segments = "Segmentos (VLANs)"
+home = "Lo que hay detrás"
+guard = "Protección y automatismos"
+
+[text.es.pods.internet]
+short = "Internet"
+title = "Internet"
+text = "Cualquiera, desde cualquier sitio."
+
+[text.es.pods.ont]
+short = "Fibra (puente)"
+title = "Equipo de fibra en modo puente"
+text = "El equipo de la operadora solo convierte la fibra en Ethernet. Sin WiFi, sin DHCP, sin UPnP ni WPS: ningún servicio propio."
+
+[text.es.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "Delante de las webs públicas: oculta la IP de casa y filtra ataques antes de que lleguen."
+
+[text.es.pods.phone]
+short = "Móvil fuera"
+title = "Mi móvil, fuera de casa"
+text = "Con datos móviles y la VPN, entro a la red como si estuviera en casa."
+
+[text.es.pods.pppoe]
+short = "PPPoE"
+title = "Conexión PPPoE"
+text = "El router se autentica con la operadora y recibe la IP pública, que cambia de vez en cuando."
+
+[text.es.pods.nat]
+short = "NAT entrante"
+title = "Redirecciones (NAT)"
+text = "Solo se reenvía lo que tiene destino: la web va a Traefik y poco más. Cada regla está acotada a lo que entra por la WAN."
+
+[text.es.pods.fw]
+short = "Cortafuegos"
+title = "Cortafuegos"
+text = "Decide qué puede hablar con qué. Entre segmentos, por defecto, no: solo las excepciones documentadas."
+
+[text.es.pods.wg]
+short = "WireGuard"
+title = "VPN WireGuard"
+text = "Vive en el propio router: la saqué de un contenedor para no depender del servidor para entrar a arreglar el servidor."
+
+[text.es.pods.servers]
+short = "Servidores"
+title = "Segmento de servidores"
+text = "El servidor y mi PC de administración. Pueden iniciar conexiones hacia el resto; el resto no puede iniciarlas hacia aquí."
+
+[text.es.pods.wired]
+short = "Cable casa"
+title = "Segmento de cable"
+text = "Los equipos de casa conectados por cable. No pueden entrar al segmento de servidores."
+
+[text.es.pods.wifi]
+short = "WiFi · TV"
+title = "Segmento WiFi, TV y alarma"
+text = "Móviles, la tele y la alarma. El más aislado: no ve ni servidores ni cable, salvo el DNS y Plex."
+
+[text.es.pods.dhcp]
+short = "DHCP"
+title = "DHCP por segmento"
+text = "Cada segmento recibe direcciones de su propio rango, y todos apuntan al DNS de casa."
+
+[text.es.pods.ap]
+short = "AP WiFi"
+title = "Punto de acceso WiFi"
+text = "El antiguo router de la operadora, reconvertido: solo emite WiFi en el segmento que le toca. Sin DHCP, UPnP ni WPS."
+
+[text.es.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "La única puerta de las webs públicas. Tiene su propia unidad en el rack."
+
+[text.es.pods.dns]
+short = "DNS"
+title = "DNS de casa"
+text = "Resuelve los nombres internos y bloquea publicidad. Es la excepción que todos los segmentos pueden alcanzar."
+
+[text.es.pods.plex]
+short = "Plex"
+title = "Plex"
+text = "La otra excepción: la tele, desde el WiFi, puede ver la biblioteca."
+
+[text.es.pods.lists]
+short = "Lista de bloqueo"
+title = "Listas por etapas"
+text = "Quien abre conexiones nuevas una y otra vez pasa a una primera lista, luego a una segunda y al final a la de bloqueo durante un día. Un intento suelto no castiga a nadie."
+
+[text.es.pods.hairpin]
+short = "Hairpin NAT"
+title = "Hairpin NAT"
+text = "Para que, desde dentro de casa, la IP pública lleve al servicio interno igual que desde fuera."
+
+[text.es.pods.script]
+short = "Script de IP"
+title = "Script de IP dinámica"
+text = "Cuando la operadora cambia la IP pública, un script del router actualiza solo las reglas que dependen de ella."
+
+[text.es.pods.mgmt]
+short = "Gestión"
+title = "Gestión del router"
+text = "La administración solo se acepta desde el segmento de servidores y la VPN, con TLS 1.2 y criptografía fuerte en SSH."
+
+[text.es.flows.visit]
+title = "Alguien abre esta web"
+steps = [
+  "Un visitante pide la web desde cualquier parte del mundo.",
+  "Llega primero a Cloudflare, que la tiene en caché o la pide a casa.",
+  "La petición entra por la fibra. El equipo de la operadora solo hace de puente.",
+  "El MikroTik la recibe por la conexión PPPoE, con la IP pública de casa.",
+  "Una regla de NAT la reenvía a Traefik. Solo para lo que entra por la WAN: esa condición me la enseñó una avería.",
+  "El cortafuegos la deja pasar porque es una conexión con destino conocido.",
+  "Entra al segmento de servidores.",
+  "Traefik la recibe y la manda al contenedor de la web.",
+]
+
+[text.es.flows.vpn]
+title = "Entro desde fuera con la VPN"
+steps = [
+  "Estoy fuera de casa, con datos móviles.",
+  "El móvil abre el túnel WireGuard hacia la IP pública de casa.",
+  "Entra por la fibra.",
+  "El MikroTik recibe el paquete cifrado.",
+  "WireGuard comprueba la clave del móvil y abre el túnel. Si la clave no cuadra, ni siquiera responde.",
+  "El cortafuegos trata la VPN como el segmento de administración.",
+  "Desde ahí llego al servidor como si estuviera en casa.",
+  "Y a la gestión del router, que no acepta conexiones de ningún otro sitio.",
+]
+
+[text.es.flows.wifi]
+title = "Un móvil se conecta al WiFi"
+steps = [
+  "Un móvil se conecta al punto de acceso de casa.",
+  "El AP lo mete en el segmento WiFi, que es el más aislado.",
+  "El DHCP del router le da una dirección de ese segmento y el DNS de casa.",
+  "Sus consultas DNS van al DNS de casa, que bloquea publicidad y rastreadores.",
+  "El cortafuegos deja salir a internet.",
+  "Sale por la conexión PPPoE con la IP pública.",
+  "Y por la fibra.",
+  "El móvil navega sin poder ver los servidores.",
+]
+
+[text.es.flows.isolation]
+title = "Un dispositivo del WiFi intenta entrar"
+steps = [
+  "La tele, en el segmento WiFi, pide la biblioteca de Plex.",
+  "El cortafuegos tiene una excepción explícita para eso: adelante.",
+  "Plex le sirve la película.",
+  "Ahora un dispositivo del mismo segmento intenta entrar a otra cosa del servidor.",
+  "El cortafuegos busca una excepción. No la hay.",
+  "El tráfico nunca llega al segmento de servidores.",
+  "Se descarta en silencio, sin respuesta.",
+  "El dispositivo solo ve lo que se le ha permitido ver.",
+]
+
+[text.es.flows.bruteforce]
+title = "Alguien prueba contraseñas por SSH"
+steps = [
+  "Un bot de internet intenta entrar por SSH, una y otra vez.",
+  "Llega al router.",
+  "El primer intento: el cortafuegos apunta su dirección en la primera lista, un minuto.",
+  "Si vuelve dentro de ese minuto, pasa a la segunda lista.",
+  "El tercer intento seguido…",
+  "…lo deja en la lista de bloqueo durante un día.",
+  "A partir de ahí, todo lo que mande se descarta sin mirarlo. Revisé el orden de las etapas en la auditoría: el primer paquete no debe saltar las tres de golpe.",
+]
+
+[text.es.flows.ipchange]
+title = "La operadora cambia la IP"
+steps = [
+  "La conexión PPPoE se renegocia y llega una IP pública nueva.",
+  "El script del router lo detecta en la lista de la WAN.",
+  "Actualiza las reglas de hairpin NAT que tenían la IP antigua escrita.",
+  "Y las redirecciones vuelven a apuntar a la dirección correcta.",
+  "Fuera, el sincronizador del servidor actualiza Cloudflare para que los dominios sigan apuntando a casa.",
+]
+
+[text.es.incidents.hsts]
+title = "Certificados falsos en toda la casa"
+meta = "Junio de 2026 · NAT"
+symptom = "Desde casa, webs como Spotify daban error de certificado «autofirmado» y Firefox no dejaba ni añadir una excepción. Desde fuera iban bien."
+options = [
+  "El DNS de casa resolvía mal esos dominios",
+  "Una regla de NAT redirigía todo el HTTPS de dentro hacia Traefik",
+  "El antivirus del PC inspeccionaba el tráfico",
+  "La operadora interceptaba el HTTPS",
+]
+cause = "La regla que reenvía el 443 a Traefik no decía «solo lo que entra por la WAN». Interceptaba también tráfico de dentro, Traefik respondía con su certificado interno y las webs con HSTS no perdonan."
+fix = "Añadir a la regla la condición de interfaz WAN y vaciar las conexiones abiertas para que se rehicieran con la regla nueva."
+lesson = "Toda regla de redirección lleva su interfaz de entrada. Una regla demasiado amplia funciona… hasta que rompe algo lejos de donde está."
+
+[text.es.incidents.selfban]
+title = "Me bloqueé a mí mismo"
+meta = "14-08-2026 · cortafuegos"
+symptom = "Minutos después de añadir protección contra fuerza bruta al servidor de Minecraft, yo mismo no podía entrar a jugar."
+options = [
+  "El servidor de Minecraft se había caído",
+  "La regla estaba en la cadena equivocada",
+  "El cliente abre varias conexiones seguidas y subí de etapa en segundos",
+  "La IP de casa había cambiado",
+]
+cause = "El patrón por etapas que funciona con SSH no vale para un juego: el cliente abre varias conexiones nuevas al arrancar, así que pasaba las tres etapas en segundos y acababa en la lista de bloqueo un día entero."
+fix = "Quitar mi dirección de la lista y retirar la regla para ese servicio. La protección por etapas se queda donde tiene sentido: el acceso de administración."
+lesson = "Una regla de seguridad se prueba con el tráfico legítimo, no solo con el ataque. Lo que sirve para un protocolo no sirve para otro."
+
+[text.es.incidents.askey]
+title = "Un portátil que no conectaba al WiFi"
+meta = "30-09-2026 · WiFi"
+symptom = "Un portátil nuevo no se conectaba al WiFi de casa, y la VPN fallaba desde la propia WiFi. El resto de dispositivos iban bien."
+options = [
+  "El punto de acceso estaba cableado en el segmento equivocado",
+  "La contraseña del WiFi era incorrecta",
+  "El portátil tenía un driver antiguo",
+  "El DHCP se había quedado sin direcciones",
+]
+cause = "El punto de acceso estaba conectado al puerto del segmento de servidores, con una dirección que no le correspondía. Además, el equipo de la operadora tenía su propio WiFi encendido y competía con el de casa."
+fix = "Recablear el AP a su puerto, comprobar en la tabla de VLANs del router que estaba en su segmento y apagar en el equipo de la operadora y en el AP el WiFi sobrante, el DHCP, UPnP y WPS."
+lesson = "Comprobar en vivo, no en la documentación: la IP real del AP no era la del plan. Y apagar todo lo que un equipo no necesita: UPnP abre puertos sin pedir permiso y WPS se puede romper a fuerza bruta."
+
+[text.es.incidents.laliga]
+title = "Mis webs no cargan los sábados"
+meta = "10-10-2026 · fuera de mi red"
+symptom = "Un sábado por la tarde mis webs no cargaban desde fuera de casa. Con la VPN, sí. El servidor respondía perfectamente."
+options = [
+  "Cloudflare tenía una caída",
+  "Se había caducado el certificado",
+  "El router había cambiado de IP",
+  "Las operadoras bloqueaban IPs de Cloudflare por el fútbol",
+]
+cause = "En día de partido, las operadoras españolas bloquean IPs de Cloudflare para cortar retransmisiones piratas. Mis webs comparten esas IPs. No era un fallo mío."
+fix = "Comprobar el origen saltándose Cloudflare y mirar un servicio público que registra los bloqueos. Valoré quitar Cloudflare durante el partido o montar un proxy fuera; decidí no hacer nada: el bloqueo se levanta solo."
+lesson = "Antes de tocar nada, separar «mi sistema falla» de «algo entre el visitante y yo falla». Verificar el origen directamente lo aclara en un minuto."
+
+[[text.es.timeline]]
+title = "Fuera el router de la operadora"
+period = "Junio de 2026"
+items = [
+  "MikroTik RB5009 como router, con PPPoE propio; el equipo de la operadora, en puente.",
+  "WireGuard migrado de un contenedor al propio router: la VPN ya no depende del servidor.",
+  "Primera avería y primera lección: el NAT del HTTPS, acotado a la WAN.",
+]
+
+[[text.es.timeline]]
+title = "Segmentos y matriz de acceso"
+period = "Agosto de 2026"
+items = [
+  "Plan inicial de seis VLANs simplificado a tres segmentos que de verdad hacían falta.",
+  "Matriz de qué puede iniciar conexiones hacia qué, confirmada en vivo contra el router.",
+  "Excepciones explícitas: el DNS para todos y Plex para la tele.",
+]
+
+[[text.es.timeline]]
+title = "Auditoría y endurecimiento"
+period = "Septiembre de 2026"
+items = [
+  "Orden de las etapas de bloqueo revisado, TLS 1.2 en la gestión y criptografía fuerte en SSH.",
+  "Aviso de seguridad de RouterOS de septiembre: actualización a la versión corregida de la misma rama.",
+  "AP y equipo de fibra limpios: sin WiFi sobrante, DHCP, UPnP ni WPS.",
+]
+
+[[text.es.decisions]]
+title = "Dónde vive la VPN"
+choice = "En el router, no en el servidor"
+why = "Si la VPN depende del servidor, cuando el servidor falla no puedo entrar a arreglarlo. En el router está disponible mientras haya internet."
+
+[[text.es.decisions]]
+title = "Cuántos segmentos"
+choice = "Tres, no seis"
+why = "El plan original tenía seis VLANs. Cada una es una matriz de reglas que mantener; tres cubren lo que importa: servidores aparte, la casa aparte y lo inalámbrico, lo más aislado."
+
+[[text.es.decisions]]
+title = "Qué se abre a internet"
+choice = "Solo lo que tiene destino, y acotado a la WAN"
+why = "Cada puerto abierto es superficie. La web entra por Traefik y Cloudflare; los paneles internos no se publican: se llega a ellos por la VPN."
+
+[text.es.tech_notes]
+mikrotik = "RouterOS 7: PPPoE, NAT, cortafuegos con listas por etapas, DHCP por segmento, scripts que reaccionan al cambio de IP y gestión restringida."
+vlan = "Tres segmentos con una matriz de acceso explícita: servidores, cable de casa y WiFi con la tele, el más aislado."
+wireguard = "La VPN para entrar desde fuera, en el propio router, con acceso equivalente al segmento de administración."
+dns = "El DNS de casa es la excepción que todos los segmentos alcanzan; el DHCP de cada uno lo anuncia."
+hardening = "Bloqueo por etapas contra fuerza bruta, gestión solo desde dentro o la VPN, TLS 1.2, criptografía fuerte en SSH y servicios sobrantes apagados."
+
+[text.es.close]
+lessons = [
+  "Las reglas de red fallan lejos de donde están: una regla de NAT rompía HTTPS en el navegador.",
+  "Probar las reglas de seguridad con el tráfico legítimo, no solo con el ataque.",
+  "Comprobar el estado real del equipo antes de fiarse de la documentación.",
+]
+next = [
+  "Probar el hairpin de la VPN desde la propia WiFi, que sigue sin funcionar.",
+  "Llevar la configuración del router a código y revisarla con diff, como el resto de la infraestructura.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside the router · Tito Pinardo Gutiérrez"
+description = "My home MikroTik router from the inside: PPPoE, VLANs, a firewall with staged block lists, WireGuard, hairpin NAT and the real failures behind each rule."
+
+[text.en.ui]
+slot = "1U · ROUTER"
+face_specs = "RB5009 · RouterOS 7 · 3 segments"
+state = "In production"
+map_silk = "NET"
+map_title = "Inside the router"
+map_intro = "Everything coming into or leaving home goes through here. Pick a flow to see which rule decides each step."
+vm_title = "MikroTik RB5009 · and what hangs off it"
+vm_specs = "RouterOS 7"
+outside = "Outside home"
+disclaimer = "Rebuilt from my network documentation: no addresses, ports, keys or device names."
+
+[text.en.hero]
+kicker = "1U unit · Home network"
+title = "The MikroTik router"
+tagline = "A MikroTik RB5009 replaces the ISP router: the fibre box is left as a plain bridge. It splits the house into segments, decides what can talk to what, opens the VPN to get in from outside and only lets in from the internet what has somewhere to go."
+grade = "Audited on 06-09-2026"
+facts = [
+  { label = "Why", value = "The ISP router can't split networks, show what comes in or run my own VPN. With the MikroTik every rule is mine and documented." },
+  { label = "How it's set up", value = "Fibre → ISP box in bridge mode → MikroTik with PPPoE. Three segments: servers, wired home and Wi-Fi with the TV. WireGuard on the router itself." },
+  { label = "What it taught me", value = "Every firewall rule has a failure behind it: a fake certificate across the whole house, locking myself out, and a Wi-Fi that wouldn't connect." },
+]
+
+[[text.en.stats]]
+value = "3"
+label = "network segments, each with its own DHCP"
+
+[[text.en.stats]]
+value = "3 stages"
+label = "before blocking whoever keeps trying SSH"
+
+[[text.en.stats]]
+value = "1 rule"
+label = "of badly scoped NAT broke HTTPS across the house"
+
+[[text.en.stats]]
+value = "0"
+label = "own services left on the ISP box and the AP"
+
+[text.en.groups]
+wan = "WAN and inbound"
+segments = "Segments (VLANs)"
+home = "What sits behind"
+guard = "Protection and automation"
+
+[text.en.pods.internet]
+short = "Internet"
+title = "Internet"
+text = "Anyone, from anywhere."
+
+[text.en.pods.ont]
+short = "Fibre (bridge)"
+title = "Fibre box in bridge mode"
+text = "The ISP box only turns fibre into Ethernet. No Wi-Fi, no DHCP, no UPnP or WPS: no services of its own."
+
+[text.en.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "In front of the public sites: hides my home IP and filters attacks before they arrive."
+
+[text.en.pods.phone]
+short = "Phone outside"
+title = "My phone, away from home"
+text = "On mobile data with the VPN, I join the network as if I were home."
+
+[text.en.pods.pppoe]
+short = "PPPoE"
+title = "PPPoE connection"
+text = "The router authenticates with the ISP and gets the public IP, which changes now and then."
+
+[text.en.pods.nat]
+short = "Inbound NAT"
+title = "Port forwarding (NAT)"
+text = "Only what has somewhere to go is forwarded: the web goes to Traefik and little else. Every rule is scoped to traffic coming in on the WAN."
+
+[text.en.pods.fw]
+short = "Firewall"
+title = "Firewall"
+text = "Decides what can talk to what. Between segments the default is no: only the documented exceptions."
+
+[text.en.pods.wg]
+short = "WireGuard"
+title = "WireGuard VPN"
+text = "Lives on the router itself: I moved it out of a container so getting in to fix the server doesn't depend on the server."
+
+[text.en.pods.servers]
+short = "Servers"
+title = "Server segment"
+text = "The server and my admin PC. They can start connections towards the rest; the rest can't start them towards here."
+
+[text.en.pods.wired]
+short = "Wired home"
+title = "Wired segment"
+text = "Home devices on cable. They can't get into the server segment."
+
+[text.en.pods.wifi]
+short = "Wi-Fi · TV"
+title = "Wi-Fi, TV and alarm segment"
+text = "Phones, the TV and the alarm. The most isolated one: it sees neither servers nor wired, except DNS and Plex."
+
+[text.en.pods.dhcp]
+short = "DHCP"
+title = "DHCP per segment"
+text = "Each segment gets addresses from its own range, and all of them point at the home DNS."
+
+[text.en.pods.ap]
+short = "Wi-Fi AP"
+title = "Wi-Fi access point"
+text = "The old ISP router, repurposed: it only broadcasts Wi-Fi into its segment. No DHCP, UPnP or WPS."
+
+[text.en.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "The only door to the public sites. It has its own unit in the rack."
+
+[text.en.pods.dns]
+short = "DNS"
+title = "Home DNS"
+text = "Resolves internal names and blocks ads. It's the exception every segment can reach."
+
+[text.en.pods.plex]
+short = "Plex"
+title = "Plex"
+text = "The other exception: the TV, on Wi-Fi, can watch the library."
+
+[text.en.pods.lists]
+short = "Block lists"
+title = "Staged lists"
+text = "Whoever opens new connections again and again goes onto a first list, then a second, and finally the block list for a day. A single attempt punishes no one."
+
+[text.en.pods.hairpin]
+short = "Hairpin NAT"
+title = "Hairpin NAT"
+text = "So that, from inside the house, the public IP leads to the internal service just like from outside."
+
+[text.en.pods.script]
+short = "IP script"
+title = "Dynamic IP script"
+text = "When the ISP changes the public IP, a router script updates only the rules that depend on it."
+
+[text.en.pods.mgmt]
+short = "Management"
+title = "Router management"
+text = "Administration is only accepted from the server segment and the VPN, with TLS 1.2 and strong SSH crypto."
+
+[text.en.flows.visit]
+title = "Someone opens this site"
+steps = [
+  "A visitor asks for the site from anywhere in the world.",
+  "It reaches Cloudflare first, which has it cached or asks home for it.",
+  "The request comes in over the fibre. The ISP box is only a bridge.",
+  "The MikroTik receives it on the PPPoE connection, with the home public IP.",
+  "A NAT rule forwards it to Traefik. Only for traffic coming in on the WAN: a failure taught me that condition.",
+  "The firewall lets it through because it's a connection with a known destination.",
+  "It enters the server segment.",
+  "Traefik gets it and sends it to the site's container.",
+]
+
+[text.en.flows.vpn]
+title = "I get in from outside with the VPN"
+steps = [
+  "I'm away from home, on mobile data.",
+  "The phone opens the WireGuard tunnel to the home public IP.",
+  "It comes in over the fibre.",
+  "The MikroTik receives the encrypted packet.",
+  "WireGuard checks the phone's key and opens the tunnel. If the key doesn't match, it doesn't even answer.",
+  "The firewall treats the VPN like the admin segment.",
+  "From there I reach the server as if I were home.",
+  "And the router management, which accepts connections from nowhere else.",
+]
+
+[text.en.flows.wifi]
+title = "A phone joins the Wi-Fi"
+steps = [
+  "A phone connects to the home access point.",
+  "The AP puts it in the Wi-Fi segment, the most isolated one.",
+  "The router's DHCP gives it an address in that segment and the home DNS.",
+  "Its DNS queries go to the home DNS, which blocks ads and trackers.",
+  "The firewall lets it out to the internet.",
+  "Out through the PPPoE connection with the public IP.",
+  "And over the fibre.",
+  "The phone browses without being able to see the servers.",
+]
+
+[text.en.flows.isolation]
+title = "A Wi-Fi device tries to get in"
+steps = [
+  "The TV, on the Wi-Fi segment, asks for the Plex library.",
+  "The firewall has an explicit exception for that: go ahead.",
+  "Plex serves the film.",
+  "Now a device on the same segment tries to reach something else on the server.",
+  "The firewall looks for an exception. There isn't one.",
+  "The traffic never reaches the server segment.",
+  "It's silently dropped, no reply.",
+  "The device only sees what it's been allowed to see.",
+]
+
+[text.en.flows.bruteforce]
+title = "Someone tries passwords over SSH"
+steps = [
+  "An internet bot tries to log in over SSH, again and again.",
+  "It reaches the router.",
+  "First attempt: the firewall writes its address on the first list, for a minute.",
+  "If it comes back within that minute, it moves to the second list.",
+  "The third attempt in a row…",
+  "…puts it on the block list for a day.",
+  "From then on, everything it sends is dropped unseen. I reviewed the order of the stages in the audit: the first packet mustn't skip all three at once.",
+]
+
+[text.en.flows.ipchange]
+title = "The ISP changes the IP"
+steps = [
+  "The PPPoE connection renegotiates and a new public IP arrives.",
+  "The router script spots it on the WAN list.",
+  "It updates the hairpin NAT rules that had the old IP written in.",
+  "And the forwards point to the right address again.",
+  "Outside, the server's sync job updates Cloudflare so the domains still point home.",
+]
+
+[text.en.incidents.hsts]
+title = "Fake certificates across the house"
+meta = "June 2026 · NAT"
+symptom = "From home, sites like Spotify showed a «self-signed» certificate error and Firefox wouldn't even allow an exception. From outside they were fine."
+options = [
+  "The home DNS resolved those domains wrongly",
+  "A NAT rule was redirecting all inside HTTPS to Traefik",
+  "The PC's antivirus was inspecting traffic",
+  "The ISP was intercepting HTTPS",
+]
+cause = "The rule forwarding 443 to Traefik didn't say «only traffic coming in on the WAN». It caught inside traffic too, Traefik answered with its internal certificate and HSTS sites don't forgive."
+fix = "Add the WAN interface condition to the rule and flush open connections so they were rebuilt with the new rule."
+lesson = "Every forwarding rule carries its inbound interface. A rule that's too broad works… until it breaks something far from where it lives."
+
+[text.en.incidents.selfban]
+title = "I locked myself out"
+meta = "14-08-2026 · firewall"
+symptom = "Minutes after adding brute-force protection to the Minecraft server, I couldn't get in to play myself."
+options = [
+  "The Minecraft server had crashed",
+  "The rule was in the wrong chain",
+  "The client opens several connections at once and I climbed the stages in seconds",
+  "The home IP had changed",
+]
+cause = "The staged pattern that works for SSH doesn't suit a game: the client opens several new connections when it starts, so it went through the three stages in seconds and landed on the block list for a whole day."
+fix = "Take my address off the list and drop the rule for that service. Staged protection stays where it makes sense: admin access."
+lesson = "A security rule is tested with legitimate traffic, not just with the attack. What works for one protocol doesn't work for another."
+
+[text.en.incidents.askey]
+title = "A laptop that wouldn't join the Wi-Fi"
+meta = "30-09-2026 · Wi-Fi"
+symptom = "A new laptop couldn't join the home Wi-Fi, and the VPN failed from the home Wi-Fi itself. Every other device was fine."
+options = [
+  "The access point was cabled into the wrong segment",
+  "The Wi-Fi password was wrong",
+  "The laptop had an old driver",
+  "DHCP had run out of addresses",
+]
+cause = "The access point was plugged into the server segment's port, with an address that wasn't its own. On top of that, the ISP box had its own Wi-Fi on, competing with the home one."
+fix = "Re-cable the AP to its port, check in the router's VLAN table that it was in its segment, and turn off the spare Wi-Fi, DHCP, UPnP and WPS on the ISP box and the AP."
+lesson = "Check live, not in the docs: the AP's real IP wasn't the planned one. And switch off everything a device doesn't need: UPnP opens ports without asking and WPS can be brute-forced."
+
+[text.en.incidents.laliga]
+title = "My sites don't load on Saturdays"
+meta = "10-10-2026 · outside my network"
+symptom = "One Saturday afternoon my sites wouldn't load from outside home. With the VPN, they did. The server was answering perfectly."
+options = [
+  "Cloudflare was down",
+  "The certificate had expired",
+  "The router had changed IP",
+  "ISPs were blocking Cloudflare IPs because of football",
+]
+cause = "On match days Spanish ISPs block Cloudflare IPs to cut pirate streams. My sites share those IPs. It wasn't my fault."
+fix = "Check the origin bypassing Cloudflare and look at a public service that tracks the blocks. I considered dropping Cloudflare during matches or running a proxy elsewhere; I decided to do nothing: the block lifts on its own."
+lesson = "Before touching anything, separate «my system is failing» from «something between the visitor and me is failing». Checking the origin directly settles it in a minute."
+
+[[text.en.timeline]]
+title = "Out with the ISP router"
+period = "June 2026"
+items = [
+  "MikroTik RB5009 as the router, with its own PPPoE; the ISP box in bridge mode.",
+  "WireGuard moved from a container to the router itself: the VPN no longer depends on the server.",
+  "First failure, first lesson: HTTPS NAT scoped to the WAN.",
+]
+
+[[text.en.timeline]]
+title = "Segments and access matrix"
+period = "August 2026"
+items = [
+  "The initial six-VLAN plan simplified to the three segments that were really needed.",
+  "A matrix of what can start connections towards what, confirmed live against the router.",
+  "Explicit exceptions: DNS for everyone and Plex for the TV.",
+]
+
+[[text.en.timeline]]
+title = "Audit and hardening"
+period = "September 2026"
+items = [
+  "Order of the blocking stages reviewed, TLS 1.2 for management and strong SSH crypto.",
+  "September RouterOS security advisory: update to the fixed release in the same branch.",
+  "AP and fibre box cleaned up: no spare Wi-Fi, DHCP, UPnP or WPS.",
+]
+
+[[text.en.decisions]]
+title = "Where the VPN lives"
+choice = "On the router, not the server"
+why = "If the VPN depends on the server, when the server fails I can't get in to fix it. On the router it's there as long as there's internet."
+
+[[text.en.decisions]]
+title = "How many segments"
+choice = "Three, not six"
+why = "The original plan had six VLANs. Each one is a matrix of rules to maintain; three cover what matters: servers apart, the house apart and wireless, the most isolated."
+
+[[text.en.decisions]]
+title = "What's open to the internet"
+choice = "Only what has somewhere to go, scoped to the WAN"
+why = "Every open port is surface. The web comes in through Traefik and Cloudflare; internal panels aren't published: you reach them through the VPN."
+
+[text.en.tech_notes]
+mikrotik = "RouterOS 7: PPPoE, NAT, a firewall with staged lists, DHCP per segment, scripts reacting to IP changes and restricted management."
+vlan = "Three segments with an explicit access matrix: servers, wired home and Wi-Fi with the TV, the most isolated."
+wireguard = "The VPN to get in from outside, on the router itself, with access equal to the admin segment."
+dns = "The home DNS is the exception every segment can reach; each segment's DHCP announces it."
+hardening = "Staged brute-force blocking, management only from inside or the VPN, TLS 1.2, strong SSH crypto and spare services switched off."
+
+[text.en.close]
+lessons = [
+  "Network rules fail far from where they live: a NAT rule was breaking HTTPS in the browser.",
+  "Test security rules with legitimate traffic, not only with the attack.",
+  "Check the device's real state before trusting the documentation.",
+]
+next = [
+  "Get VPN hairpin working from the home Wi-Fi, which still doesn't.",
+  "Move the router configuration into code and review it with diffs, like the rest of the infrastructure.",
+]

@@ -1,0 +1,910 @@
+# Unidad 1U del rack: el clúster OKD (OpenShift).
+#
+# Fuente: Obsidian «Clúster OKD» y «OKD - Historial de instalación
+# 2026-09-14». Sin direcciones, dominios ni nombres internos.
+
+id = "okd"
+project = "okd"
+status = "lab"
+host_tech = ["proxmox", "terraform"]
+links = [
+  ["laptop", "installer"],
+  ["dns", "apivip"],
+  ["dns", "appsvip"],
+]
+
+[[groups]]
+id = "prep"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "nodes"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "control"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "apps"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "laptop"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "dns"
+x = 290
+y = 250
+kind = "network"
+group = ""
+tech = ["dns"]
+
+[[pods]]
+id = "installer"
+x = 290
+y = 110
+kind = "control"
+group = ""
+tech = ["openshift"]
+
+[[pods]]
+id = "registry"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "hdd"
+x = 290
+y = 540
+kind = "compute"
+group = ""
+tech = ["proxmox"]
+
+[[pods]]
+id = "config"
+x = 515
+y = 140
+kind = "control"
+group = "prep"
+tech = ["openshift"]
+
+[[pods]]
+id = "iso"
+x = 700
+y = 140
+kind = "control"
+group = "prep"
+tech = ["openshift"]
+
+[[pods]]
+id = "vms"
+x = 885
+y = 140
+kind = "control"
+group = "prep"
+tech = ["terraform", "proxmox"]
+
+[[pods]]
+id = "boot"
+x = 1070
+y = 140
+kind = "observability"
+group = "prep"
+tech = ["proxmox"]
+
+[[pods]]
+id = "master0"
+x = 515
+y = 266
+kind = "compute"
+group = "nodes"
+tech = ["openshift", "kubernetes"]
+
+[[pods]]
+id = "master1"
+x = 700
+y = 266
+kind = "compute"
+group = "nodes"
+tech = ["openshift", "kubernetes"]
+
+[[pods]]
+id = "master2"
+x = 885
+y = 266
+kind = "compute"
+group = "nodes"
+tech = ["openshift", "kubernetes"]
+
+[[pods]]
+id = "live"
+x = 1070
+y = 266
+kind = "observability"
+group = "nodes"
+tech = ["openshift"]
+
+[[pods]]
+id = "etcd"
+x = 515
+y = 392
+kind = "app"
+group = "control"
+tech = ["kubernetes"]
+
+[[pods]]
+id = "apivip"
+x = 700
+y = 392
+kind = "network"
+group = "control"
+tech = ["openshift"]
+
+[[pods]]
+id = "operators"
+x = 885
+y = 392
+kind = "observability"
+group = "control"
+tech = ["openshift"]
+
+[[pods]]
+id = "ostree"
+x = 1070
+y = 392
+kind = "control"
+group = "control"
+tech = ["openshift"]
+
+[[pods]]
+id = "appsvip"
+x = 515
+y = 518
+kind = "network"
+group = "apps"
+tech = ["openshift"]
+
+[[pods]]
+id = "console"
+x = 700
+y = 518
+kind = "app"
+group = "apps"
+tech = ["openshift"]
+
+[[pods]]
+id = "dashboard"
+x = 885
+y = 518
+kind = "app"
+group = "apps"
+tech = ["kubernetes", "ansible"]
+
+[[pods]]
+id = "route"
+x = 1070
+y = 518
+kind = "network"
+group = "apps"
+tech = ["openshift"]
+
+[[flows]]
+id = "install"
+path = ["laptop", "config", "installer", "iso", "vms", "boot", "master0", "registry", "master1", "master2", "etcd", "apivip", "operators"]
+
+[[flows]]
+id = "iso"
+path = ["iso", "boot", "hdd", "boot", "installer", "iso", "master0"]
+
+[[flows]]
+id = "app"
+path = ["laptop", "dns", "appsvip", "route", "dashboard"]
+
+[[flows]]
+id = "deploy"
+path = ["laptop", "dashboard", "apivip", "operators", "dashboard"]
+
+[[flows]]
+id = "slow"
+path = ["hdd", "etcd", "ostree", "master0", "operators"]
+
+[[incidents]]
+id = "iso"
+answer = 1
+
+[[incidents]]
+id = "overlay"
+answer = 3
+
+[[incidents]]
+id = "etcd"
+answer = 2
+
+[[incidents]]
+id = "ostree"
+answer = 0
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "El clúster OKD por dentro · Tito Pinardo Gutiérrez"
+description = "Un clúster OpenShift (OKD) de tres nodos en el homelab, instalado con el Agent-Based Installer sobre discos mecánicos: una ISO rota, un overlay que se llenaba, etcd lento y un timeout de cinco minutos que mataba la instalación."
+
+[text.es.ui]
+slot = "1U · OKD"
+face_specs = "OKD 4.19 · 3 nodos · 33 operadores"
+state = "Laboratorio"
+map_silk = "K8S"
+map_title = "El clúster por dentro"
+map_intro = "Tres máquinas virtuales que hacen a la vez de plano de control y de trabajo. Elige un recorrido para ver la instalación o una aplicación."
+vm_title = "Tres VMs en Proxmox"
+vm_specs = "clúster compacto"
+outside = "Fuera del clúster"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, dominios ni nombres internos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Laboratorio"
+title = "Clúster OKD (OpenShift)"
+tagline = "Para practicar OpenShift de verdad: tres nodos de plano de control que también ejecutan cargas, instalados con el Agent-Based Installer sobre VMs creadas por Terraform. Llegar a 3 de 3 nodos listos y 33 de 33 operadores sanos costó una sesión entera de averías, casi todas por ser discos mecánicos."
+grade = "3/3 nodos · 33/33 operadores"
+facts = [
+  { label = "Por qué", value = "OpenShift es lo que usan muchas empresas encima de Kubernetes. Instalarlo uno mismo enseña lo que el instalador hace por debajo." },
+  { label = "Cómo", value = "Las VMs las crea Terraform; el instalador genera una ISO con la configuración de red de cada nodo y el clúster se monta solo a partir de ahí." },
+  { label = "El reto", value = "Todo está pensado para SSD. En discos mecánicos, tres veces un tiempo de espera por defecto se quedó corto." },
+]
+
+[[text.es.stats]]
+value = "10"
+label = "configuraciones probadas hasta culpar a la ISO"
+
+[[text.es.stats]]
+value = "16 → 32 GB"
+label = "de RAM por nodo para el arranque"
+
+[[text.es.stats]]
+value = "6,6 s"
+label = "de escritura en etcd, frente a 200 ms"
+
+[[text.es.stats]]
+value = "33/33"
+label = "operadores sanos al terminar"
+
+[text.es.groups]
+prep = "Preparar"
+nodes = "Nodos"
+control = "Plano de control"
+apps = "Aplicaciones"
+
+[text.es.pods.laptop]
+short = "Mi portátil"
+title = "Mi portátil"
+text = "Desde aquí se genera todo y se lanza la instalación."
+
+[text.es.pods.dns]
+short = "DNS de casa"
+title = "DNS de casa"
+text = "Una zona propia para el laboratorio: la API y las aplicaciones del clúster."
+
+[text.es.pods.installer]
+short = "Instalador"
+title = "openshift-install"
+text = "Genera la ISO del instalador y sigue la instalación desde fuera."
+
+[text.es.pods.registry]
+short = "Registro"
+title = "Registro de imágenes"
+text = "De donde los nodos descargan el sistema y los componentes."
+
+[text.es.pods.hdd]
+short = "Discos HDD"
+title = "Discos mecánicos"
+text = "El cuello de botella de toda la instalación."
+
+[text.es.pods.config]
+short = "Configuración"
+title = "Configuración del clúster"
+text = "Nombre, redes, direcciones virtuales y la red de cada nodo, en dos ficheros."
+
+[text.es.pods.iso]
+short = "ISO"
+title = "ISO del instalador"
+text = "Una imagen de arranque con toda la configuración dentro."
+
+[text.es.pods.vms]
+short = "VMs Terraform"
+title = "VMs creadas con Terraform"
+text = "Tres VMs con CPU del host, 32 GB de RAM y la ISO como primer arranque."
+
+[text.es.pods.boot]
+short = "Arranque"
+title = "Orden de arranque"
+text = "Primero la ISO, luego el disco. Si la ISO sigue la primera al terminar, el nodo vuelve a instalarse."
+
+[text.es.pods.master0]
+short = "Nodo 0"
+title = "Nodo 0 (rendezvous)"
+text = "Coordina la instalación de los otros dos y luego se instala él."
+
+[text.es.pods.master1]
+short = "Nodo 1"
+title = "Nodo 1"
+text = "Plano de control y cargas de trabajo."
+
+[text.es.pods.master2]
+short = "Nodo 2"
+title = "Nodo 2"
+text = "Plano de control y cargas de trabajo."
+
+[text.es.pods.live]
+short = "Entorno live"
+title = "Entorno de instalación"
+text = "Mientras instala, cada nodo corre desde la ISO con un sistema de ficheros temporal en RAM."
+
+[text.es.pods.etcd]
+short = "etcd"
+title = "etcd"
+text = "La base de datos del clúster. Muy sensible a lo que tarda el disco en confirmar cada escritura."
+
+[text.es.pods.apivip]
+short = "VIP de la API"
+title = "Dirección virtual de la API"
+text = "Una dirección que pasa de nodo en nodo: no es una máquina más."
+
+[text.es.pods.operators]
+short = "Operadores"
+title = "Operadores del clúster"
+text = "Los 33 componentes que forman OpenShift. El clúster está sano cuando todos dicen disponible y no degradado."
+
+[text.es.pods.ostree]
+short = "rpm-ostree"
+title = "Sistema inmutable"
+text = "Cada nodo cambia de imagen del sistema entera al reiniciar. Si el cambio no termina a tiempo, se descarta."
+
+[text.es.pods.appsvip]
+short = "VIP de apps"
+title = "Dirección virtual de las aplicaciones"
+text = "La entrada a todo lo que se publica en el clúster."
+
+[text.es.pods.console]
+short = "Consola"
+title = "Consola web"
+text = "La consola de OpenShift."
+
+[text.es.pods.dashboard]
+short = "App de prueba"
+title = "Aplicación de prueba"
+text = "Un panel de servicios desplegado en el clúster con Ansible, para comprobar que se puede usar de verdad."
+
+[text.es.pods.route]
+short = "Route"
+title = "Route"
+text = "La forma de OpenShift de publicar un servicio por nombre."
+
+[text.es.flows.install]
+title = "La instalación"
+steps = [
+  "Escribo la configuración del clúster.",
+  "Con la red de cada nodo.",
+  "El instalador la mete en una ISO.",
+  "Queda lista la imagen de arranque.",
+  "Terraform crea las tres VMs.",
+  "Arrancan desde la ISO.",
+  "El nodo 0 coordina.",
+  "Los nodos descargan el sistema.",
+  "Se escribe en el disco del nodo 1.",
+  "Y en el del nodo 2.",
+  "etcd forma su grupo.",
+  "La dirección virtual de la API se levanta.",
+  "Y los 33 operadores terminan sanos.",
+]
+
+[text.es.flows.iso]
+title = "Una ISO que no arrancaba"
+steps = [
+  "La ISO de la versión más nueva se cuelga al cargar el arranque.",
+  "Pruebo firmware, buses de CD, tipos de CPU, configuración a mano y por Terraform.",
+  "Incluso QEMU puro, sin Proxmox y sin aceleración: falla igual.",
+  "No es mi servidor: es la ISO.",
+  "Cambio a la versión estable anterior.",
+  "Genero la ISO nueva con la misma configuración.",
+  "Y el nodo arranca.",
+]
+
+[text.es.flows.app]
+title = "Abro la aplicación de prueba"
+steps = [
+  "Desde casa abro la aplicación del laboratorio.",
+  "El DNS de casa resuelve su nombre a la dirección virtual de las aplicaciones.",
+  "La entrada del clúster recibe la petición.",
+  "La route la manda al servicio.",
+  "Y el panel responde desde el clúster.",
+]
+
+[text.es.flows.deploy]
+title = "Despliego en el clúster"
+steps = [
+  "Ansible prepara los recursos de la aplicación.",
+  "La aplicación es un panel de servicios.",
+  "Se envían a la API del clúster.",
+  "Los operadores hacen el resto.",
+  "Y la aplicación queda publicada.",
+]
+
+[text.es.flows.slow]
+title = "Lo que cuesta un disco mecánico"
+steps = [
+  "Los discos tardan en confirmar cada escritura.",
+  "etcd se queja: escrituras de hasta 6,6 segundos.",
+  "El cambio de imagen del sistema tarda más de lo que espera systemd.",
+  "Un nodo se queda con la imagen vieja.",
+  "Y los operadores tardan en ponerse de acuerdo. Con paciencia y timeouts más largos, terminan sanos.",
+]
+
+[text.es.incidents.iso]
+title = "Las VMs no arrancaban la ISO"
+meta = "14-09-2026 · instalación"
+symptom = "Las VMs se colgaban siempre en el mismo punto al cargar el arranque desde la ISO del instalador."
+options = [
+  "Faltaba memoria en las VMs",
+  "La ISO de esa versión concreta tenía un fallo de arranque",
+  "El hipervisor estaba mal configurado",
+  "La ISO se había descargado corrupta",
+]
+cause = "Se reproducía con 10 configuraciones distintas, incluido QEMU puro sin Proxmox y sin KVM, mientras que otra ISO pequeña arrancaba sin problema. La ISO de esa versión tenía un fallo en su catálogo de arranque."
+fix = "Usar la versión estable anterior del instalador, con la misma configuración. Arrancó a la primera con la CPU del host."
+lesson = "Antes de culpar a algo de fuera hay que descartar lo propio, una variable cada vez. Y cuando todo lo propio está descartado, toca cambiar de versión, no seguir probando."
+
+[text.es.incidents.overlay]
+title = "«No space left on device» en un nodo con disco libre"
+meta = "14-09-2026 · instalación"
+symptom = "Tras escribir el sistema en los tres discos, la instalación se quedó en silencio. La dirección virtual de la API nunca llegó a levantarse."
+options = [
+  "El disco virtual era demasiado pequeño",
+  "El registro de imágenes había fallado",
+  "La red entre nodos estaba cortada",
+  "El nodo seguía en el entorno de instalación, cuyo sistema temporal en RAM se había llenado de imágenes",
+]
+cause = "El nodo que coordina sigue en el entorno de la ISO hasta el final, y guarda todo en un sistema de ficheros temporal en RAM de la mitad de la memoria. Con 16 GB, eran 8 GB, y las imágenes descargadas pasaban de 17."
+fix = "Subir las VMs a 32 GB de RAM con Terraform y reiniciar."
+lesson = "Los requisitos mínimos son para el funcionamiento normal, no para el pico de la instalación. Y en discos lentos el pico dura más."
+
+[text.es.incidents.etcd]
+title = "etcd en bucle de reinicios"
+meta = "14-09-2026 · plano de control"
+symptom = "Un miembro de etcd llevaba más de 37 minutos sin estar sano, y con él el resto del plano de control."
+options = [
+  "El certificado de etcd era inválido",
+  "La red entre nodos perdía paquetes",
+  "Las escrituras en disco tardaban hasta 6,6 segundos, frente a los 200 ms que espera etcd",
+  "Faltaba CPU",
+]
+cause = "etcd confirma cada escritura en disco antes de seguir. Con todos los operadores arrancando a la vez sobre discos mecánicos, la espera superaba lo que tolera."
+fix = "Con el diagnóstico claro, darle una ventana más antes de tratarlo como límite de hardware. Se estabilizó solo y no volvió a reiniciarse."
+lesson = "Saber distinguir «roto» de «lento»: los registros decían exactamente qué tardaba y cuánto. Esperar fue una decisión, no una esperanza."
+
+[text.es.incidents.ostree]
+title = "Un nodo que no se unía"
+meta = "14-09-2026 · nodos"
+symptom = "Dos nodos ya estaban listos, pero el tercero no terminaba de unirse: su red no arrancaba y el servicio de Kubernetes fallaba en bucle."
+options = [
+  "El cambio de imagen del sistema tardó 5 minutos en un disco lento y systemd lo mató justo antes de terminar",
+  "El nodo tenía otra versión del instalador",
+  "Su disco estaba lleno",
+  "El DNS no resolvía su nombre",
+]
+cause = "Al reiniciar, cada nodo pasa a la imagen nueva del sistema. Copiar la configuración tardó unos 5 minutos, y el tiempo máximo de parada de ese servicio era exactamente 5 minutos: se descartó a milisegundos de terminar."
+fix = "Ampliar ese tiempo a 20 minutos y rehacer el cambio de imagen a mano con el mismo identificador exacto. El nodo se unió."
+lesson = "Tercera vez en un día que un tiempo por defecto pensado para SSD se quedaba corto. Ante algo «colgado» en disco lento, mirar primero los timeouts."
+
+[[text.es.timeline]]
+title = "Preparación"
+period = "Septiembre de 2026"
+items = [
+  "Zona DNS propia para el laboratorio y VMs con Terraform.",
+  "Configuración del clúster con red estática por nodo.",
+]
+
+[[text.es.timeline]]
+title = "La instalación"
+period = "14-09-2026"
+items = [
+  "ISO de la versión nueva descartada tras diez pruebas; la estable anterior arranca.",
+  "RAM, orden de arranque, etcd lento y un timeout de systemd, resueltos uno a uno.",
+  "3/3 nodos listos, 33/33 operadores sanos y consola accesible.",
+]
+
+[[text.es.timeline]]
+title = "Usarlo"
+period = "14-09-2026"
+items = [
+  "Una aplicación de prueba desplegada con Ansible y publicada con una route.",
+]
+
+[[text.es.decisions]]
+title = "Qué topología"
+choice = "Compacta: tres nodos que hacen de todo"
+why = "Con tres VMs se tiene un plano de control con quórum y sitio para cargas. Más nodos no caben con estos discos."
+
+[[text.es.decisions]]
+title = "Qué versión"
+choice = "La estable anterior, no la última"
+why = "La última tenía un fallo de arranque en su ISO. Para aprender OpenShift, la versión que funciona vale más que la más nueva."
+
+[[text.es.decisions]]
+title = "Cómo se crean las VMs"
+choice = "Con Terraform, como el resto"
+why = "Para poder destruir y volver a crear el clúster entero sin pasos manuales, y para que la RAM o el orden de arranque cambien con un commit."
+
+[text.es.tech_notes]
+openshift = "OKD instalado con el Agent-Based Installer: ISO con la configuración de red, direcciones virtuales para la API y las aplicaciones, operadores y routes."
+kubernetes = "Debajo de OpenShift: etcd, kubelet y los recursos de la aplicación de prueba."
+terraform = "Crea las tres VMs con su CPU, RAM, discos y orden de arranque."
+ansible = "Despliega la aplicación de prueba en el clúster."
+proxmox = "Las tres VMs del clúster, sobre los discos del servidor."
+dns = "Una zona propia del laboratorio en el DNS de casa para la API y las aplicaciones."
+
+[text.es.close]
+lessons = [
+  "Descartar lo propio, variable a variable, antes de culpar a lo de fuera.",
+  "En discos lentos, los timeouts por defecto son el primer sospechoso.",
+  "Distinguir «roto» de «lento» leyendo los registros.",
+]
+next = [
+  "Corregir un nodo que quedó degradado tras el arreglo manual de su imagen.",
+  "Discos SSD para etcd: es lo único que lo arregla de raíz.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside the OKD cluster · Tito Pinardo Gutiérrez"
+description = "A three-node OpenShift (OKD) cluster in the homelab, installed with the Agent-Based Installer on spinning disks: a broken ISO, an overlay that filled up, slow etcd and a five-minute timeout that killed the install."
+
+[text.en.ui]
+slot = "1U · OKD"
+face_specs = "OKD 4.19 · 3 nodes · 33 operators"
+state = "Lab"
+map_silk = "K8S"
+map_title = "Inside the cluster"
+map_intro = "Three virtual machines acting as both control plane and workers. Pick a flow to see the install or an application."
+vm_title = "Three VMs on Proxmox"
+vm_specs = "compact cluster"
+outside = "Outside the cluster"
+disclaimer = "Rebuilt from my documentation: no addresses, domains or internal names."
+
+[text.en.hero]
+kicker = "1U unit · Lab"
+title = "OKD cluster (OpenShift)"
+tagline = "To practise OpenShift for real: three control-plane nodes that also run workloads, installed with the Agent-Based Installer on VMs created by Terraform. Getting to 3 of 3 nodes ready and 33 of 33 healthy operators took a whole session of failures, almost all because of spinning disks."
+grade = "3/3 nodes · 33/33 operators"
+facts = [
+  { label = "Why", value = "OpenShift is what many companies run on top of Kubernetes. Installing it yourself teaches what the installer does underneath." },
+  { label = "How", value = "Terraform creates the VMs; the installer generates an ISO with each node's network configuration and the cluster assembles itself from there." },
+  { label = "The challenge", value = "Everything is designed for SSD. On spinning disks, three times a default timeout fell short." },
+]
+
+[[text.en.stats]]
+value = "10"
+label = "configurations tried before blaming the ISO"
+
+[[text.en.stats]]
+value = "16 → 32 GB"
+label = "of RAM per node for the install"
+
+[[text.en.stats]]
+value = "6.6 s"
+label = "etcd writes, against 200 ms"
+
+[[text.en.stats]]
+value = "33/33"
+label = "healthy operators at the end"
+
+[text.en.groups]
+prep = "Prepare"
+nodes = "Nodes"
+control = "Control plane"
+apps = "Applications"
+
+[text.en.pods.laptop]
+short = "My laptop"
+title = "My laptop"
+text = "Everything is generated and the install launched from here."
+
+[text.en.pods.dns]
+short = "Home DNS"
+title = "Home DNS"
+text = "A zone of its own for the lab: the cluster's API and applications."
+
+[text.en.pods.installer]
+short = "Installer"
+title = "openshift-install"
+text = "Generates the installer ISO and follows the install from outside."
+
+[text.en.pods.registry]
+short = "Registry"
+title = "Image registry"
+text = "Where nodes download the system and components."
+
+[text.en.pods.hdd]
+short = "HDDs"
+title = "Spinning disks"
+text = "The bottleneck of the whole install."
+
+[text.en.pods.config]
+short = "Configuration"
+title = "Cluster configuration"
+text = "Name, networks, virtual addresses and each node's network, in two files."
+
+[text.en.pods.iso]
+short = "ISO"
+title = "Installer ISO"
+text = "A boot image with all the configuration inside."
+
+[text.en.pods.vms]
+short = "Terraform VMs"
+title = "VMs created with Terraform"
+text = "Three VMs with host CPU, 32 GB of RAM and the ISO as first boot."
+
+[text.en.pods.boot]
+short = "Boot"
+title = "Boot order"
+text = "ISO first, then disk. If the ISO is still first when it finishes, the node installs itself again."
+
+[text.en.pods.master0]
+short = "Node 0"
+title = "Node 0 (rendezvous)"
+text = "Coordinates the other two's install and then installs itself."
+
+[text.en.pods.master1]
+short = "Node 1"
+title = "Node 1"
+text = "Control plane and workloads."
+
+[text.en.pods.master2]
+short = "Node 2"
+title = "Node 2"
+text = "Control plane and workloads."
+
+[text.en.pods.live]
+short = "Live env"
+title = "Install environment"
+text = "While installing, each node runs from the ISO with a temporary file system in RAM."
+
+[text.en.pods.etcd]
+short = "etcd"
+title = "etcd"
+text = "The cluster's database. Very sensitive to how long the disk takes to confirm each write."
+
+[text.en.pods.apivip]
+short = "API VIP"
+title = "API virtual address"
+text = "An address that moves from node to node: not another machine."
+
+[text.en.pods.operators]
+short = "Operators"
+title = "Cluster operators"
+text = "The 33 components that make up OpenShift. The cluster is healthy when all say available and not degraded."
+
+[text.en.pods.ostree]
+short = "rpm-ostree"
+title = "Immutable system"
+text = "Each node swaps its whole system image on reboot. If the swap doesn't finish in time, it's discarded."
+
+[text.en.pods.appsvip]
+short = "Apps VIP"
+title = "Applications virtual address"
+text = "The way into everything published on the cluster."
+
+[text.en.pods.console]
+short = "Console"
+title = "Web console"
+text = "The OpenShift console."
+
+[text.en.pods.dashboard]
+short = "Test app"
+title = "Test application"
+text = "A service dashboard deployed on the cluster with Ansible, to check it can really be used."
+
+[text.en.pods.route]
+short = "Route"
+title = "Route"
+text = "OpenShift's way of publishing a service by name."
+
+[text.en.flows.install]
+title = "The install"
+steps = [
+  "I write the cluster configuration.",
+  "With each node's network.",
+  "The installer puts it into an ISO.",
+  "The boot image is ready.",
+  "Terraform creates the three VMs.",
+  "They boot from the ISO.",
+  "Node 0 coordinates.",
+  "Nodes download the system.",
+  "It's written to node 1's disk.",
+  "And node 2's.",
+  "etcd forms its group.",
+  "The API virtual address comes up.",
+  "And the 33 operators end up healthy.",
+]
+
+[text.en.flows.iso]
+title = "An ISO that wouldn't boot"
+steps = [
+  "The newest version's ISO hangs while loading the boot.",
+  "I try firmware, CD buses, CPU types, manual and Terraform configuration.",
+  "Even plain QEMU, no Proxmox and no acceleration: same failure.",
+  "It isn't my server: it's the ISO.",
+  "I switch to the previous stable version.",
+  "I generate the new ISO with the same configuration.",
+  "And the node boots.",
+]
+
+[text.en.flows.app]
+title = "I open the test app"
+steps = [
+  "From home I open the lab application.",
+  "The home DNS resolves its name to the applications virtual address.",
+  "The cluster's ingress receives the request.",
+  "The route sends it to the service.",
+  "And the dashboard answers from the cluster.",
+]
+
+[text.en.flows.deploy]
+title = "I deploy to the cluster"
+steps = [
+  "Ansible prepares the application's resources.",
+  "The application is a service dashboard.",
+  "They're sent to the cluster API.",
+  "The operators do the rest.",
+  "And the application is published.",
+]
+
+[text.en.flows.slow]
+title = "What a spinning disk costs"
+steps = [
+  "The disks take a while to confirm each write.",
+  "etcd complains: writes of up to 6.6 seconds.",
+  "Swapping the system image takes longer than systemd waits.",
+  "A node is left on the old image.",
+  "And the operators take a while to agree. With patience and longer timeouts, they end up healthy.",
+]
+
+[text.en.incidents.iso]
+title = "The VMs wouldn't boot the ISO"
+meta = "14-09-2026 · install"
+symptom = "The VMs always hung at the same point while loading the boot from the installer ISO."
+options = [
+  "The VMs were short of memory",
+  "That specific version's ISO had a boot bug",
+  "The hypervisor was misconfigured",
+  "The ISO had downloaded corrupted",
+]
+cause = "It reproduced with 10 different configurations, including plain QEMU with no Proxmox and no KVM, while another small ISO booted fine. That version's ISO had a bug in its boot catalogue."
+fix = "Use the installer's previous stable version, with the same configuration. It booted first time with host CPU."
+lesson = "Before blaming something external, rule out your own side one variable at a time. And once all of that's ruled out, change version instead of trying more."
+
+[text.en.incidents.overlay]
+title = "«No space left on device» on a node with free disk"
+meta = "14-09-2026 · install"
+symptom = "After writing the system to all three disks, the install went silent. The API virtual address never came up."
+options = [
+  "The virtual disk was too small",
+  "The image registry had failed",
+  "The network between nodes was down",
+  "The node was still in the install environment, whose temporary RAM file system had filled with images",
+]
+cause = "The coordinating node stays in the ISO environment until the end, keeping everything in a temporary RAM file system half the size of memory. With 16 GB that was 8 GB, and the downloaded images exceeded 17."
+fix = "Raise the VMs to 32 GB of RAM with Terraform and reboot."
+lesson = "Minimum requirements are for normal operation, not the install's peak. And on slow disks the peak lasts longer."
+
+[text.en.incidents.etcd]
+title = "etcd in a restart loop"
+meta = "14-09-2026 · control plane"
+symptom = "One etcd member had been unhealthy for over 37 minutes, and the rest of the control plane with it."
+options = [
+  "The etcd certificate was invalid",
+  "The network between nodes was dropping packets",
+  "Disk writes took up to 6.6 seconds, against the 200 ms etcd expects",
+  "Not enough CPU",
+]
+cause = "etcd confirms each write on disk before carrying on. With every operator starting at once on spinning disks, the wait exceeded what it tolerates."
+fix = "With a clear diagnosis, give it one more window before treating it as a hardware limit. It stabilised on its own and didn't restart again."
+lesson = "Tell «broken» from «slow»: the logs said exactly what was slow and by how much. Waiting was a decision, not a hope."
+
+[text.en.incidents.ostree]
+title = "A node that wouldn't join"
+meta = "14-09-2026 · nodes"
+symptom = "Two nodes were ready, but the third wouldn't finish joining: its network wouldn't start and the Kubernetes service failed in a loop."
+options = [
+  "The system image swap took 5 minutes on a slow disk and systemd killed it just before it finished",
+  "The node had another installer version",
+  "Its disk was full",
+  "DNS didn't resolve its name",
+]
+cause = "On reboot each node moves to the new system image. Copying the configuration took about 5 minutes, and that service's maximum stop time was exactly 5 minutes: it was discarded milliseconds before finishing."
+fix = "Raise that time to 20 minutes and redo the image swap by hand with the exact same identifier. The node joined."
+lesson = "Third time in a day a default timeout meant for SSD fell short. When something «hangs» on a slow disk, check the timeouts first."
+
+[[text.en.timeline]]
+title = "Preparation"
+period = "September 2026"
+items = [
+  "A DNS zone for the lab and VMs with Terraform.",
+  "Cluster configuration with static networking per node.",
+]
+
+[[text.en.timeline]]
+title = "The install"
+period = "14-09-2026"
+items = [
+  "The new version's ISO ruled out after ten tests; the previous stable one boots.",
+  "RAM, boot order, slow etcd and a systemd timeout, solved one by one.",
+  "3/3 nodes ready, 33/33 healthy operators and the console reachable.",
+]
+
+[[text.en.timeline]]
+title = "Using it"
+period = "14-09-2026"
+items = [
+  "A test application deployed with Ansible and published with a route.",
+]
+
+[[text.en.decisions]]
+title = "Which topology"
+choice = "Compact: three nodes doing everything"
+why = "With three VMs you get a control plane with quorum and room for workloads. More nodes won't fit on these disks."
+
+[[text.en.decisions]]
+title = "Which version"
+choice = "The previous stable one, not the latest"
+why = "The latest had a boot bug in its ISO. To learn OpenShift, the version that works beats the newest one."
+
+[[text.en.decisions]]
+title = "How the VMs are created"
+choice = "With Terraform, like everything else"
+why = "So the whole cluster can be destroyed and recreated with no manual steps, and RAM or boot order change with a commit."
+
+[text.en.tech_notes]
+openshift = "OKD installed with the Agent-Based Installer: ISO with network configuration, virtual addresses for API and applications, operators and routes."
+kubernetes = "Under OpenShift: etcd, kubelet and the test app's resources."
+terraform = "Creates the three VMs with their CPU, RAM, disks and boot order."
+ansible = "Deploys the test application on the cluster."
+proxmox = "The cluster's three VMs, on the server's disks."
+dns = "A lab zone of its own in the home DNS for the API and applications."
+
+[text.en.close]
+lessons = [
+  "Rule out your own side, variable by variable, before blaming anything external.",
+  "On slow disks, default timeouts are the first suspect.",
+  "Tell «broken» from «slow» by reading the logs.",
+]
+next = [
+  "Fix a node left degraded after its image was fixed by hand.",
+  "SSDs for etcd: the only real fix.",
+]

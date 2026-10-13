@@ -1,0 +1,912 @@
+# Unidad 1U del rack: AMP, los servidores de juego.
+#
+# Fuente: Obsidian «AMP Game Servers», «AMP - Rendimiento para juegos» y la
+# publicación automática del 09-10. Sin dominios, nombres de servidores ni
+# direcciones.
+
+id = "amp"
+status = "live"
+host_tech = ["lxc", "proxmox", "terraform"]
+links = [
+  ["players", "router"],
+  ["router", "proxy"],
+  ["discord", "bot"],
+]
+
+[[groups]]
+id = "entry"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "games"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "perf"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "care"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "players"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "router"
+x = 290
+y = 110
+kind = "network"
+group = ""
+tech = ["mikrotik"]
+
+[[pods]]
+id = "cloudflare"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "sync"
+x = 290
+y = 250
+kind = "control"
+group = ""
+tech = ["python", "mikrotik"]
+
+[[pods]]
+id = "discord"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "host"
+x = 290
+y = 540
+kind = "control"
+group = ""
+tech = ["proxmox", "zfs"]
+
+[[pods]]
+id = "proxy"
+x = 515
+y = 140
+kind = "network"
+group = "entry"
+tech = []
+
+[[pods]]
+id = "ufw"
+x = 700
+y = 140
+kind = "observability"
+group = "entry"
+tech = ["hardening"]
+
+[[pods]]
+id = "panel"
+x = 885
+y = 140
+kind = "control"
+group = "entry"
+tech = ["docker"]
+
+[[pods]]
+id = "bot"
+x = 1070
+y = 140
+kind = "app"
+group = "entry"
+tech = ["typescript", "docker"]
+
+[[pods]]
+id = "modded"
+x = 515
+y = 266
+kind = "app"
+group = "games"
+tech = ["docker"]
+
+[[pods]]
+id = "other"
+x = 700
+y = 266
+kind = "app"
+group = "games"
+tech = ["docker"]
+
+[[pods]]
+id = "steam"
+x = 885
+y = 266
+kind = "app"
+group = "games"
+tech = ["docker"]
+
+[[pods]]
+id = "manager"
+x = 1070
+y = 266
+kind = "control"
+group = "games"
+tech = ["linux"]
+
+[[pods]]
+id = "disks"
+x = 515
+y = 392
+kind = "compute"
+group = "perf"
+tech = ["zfs", "linux"]
+
+[[pods]]
+id = "cpu"
+x = 700
+y = 392
+kind = "compute"
+group = "perf"
+tech = ["proxmox", "lxc"]
+
+[[pods]]
+id = "java"
+x = 885
+y = 392
+kind = "compute"
+group = "perf"
+tech = []
+
+[[pods]]
+id = "arc"
+x = 1070
+y = 392
+kind = "compute"
+group = "perf"
+tech = ["zfs"]
+
+[[pods]]
+id = "users"
+x = 515
+y = 518
+kind = "app"
+group = "care"
+tech = []
+
+[[pods]]
+id = "backup"
+x = 700
+y = 518
+kind = "control"
+group = "care"
+tech = ["linux"]
+
+[[pods]]
+id = "valid"
+x = 885
+y = 518
+kind = "observability"
+group = "care"
+tech = ["linux"]
+
+[[pods]]
+id = "zabbix"
+x = 1070
+y = 518
+kind = "observability"
+group = "care"
+tech = ["zabbix"]
+
+[[flows]]
+id = "start"
+path = ["panel", "manager", "modded", "sync", "router", "sync", "cloudflare", "players", "router", "proxy", "modded"]
+
+[[flows]]
+id = "stop"
+path = ["panel", "manager", "sync", "router", "cloudflare"]
+
+[[flows]]
+id = "play"
+path = ["players", "router", "ufw", "proxy", "modded", "disks", "arc", "modded", "proxy", "players"]
+
+[[flows]]
+id = "status"
+path = ["discord", "bot", "panel", "bot", "discord"]
+
+[[flows]]
+id = "blackout"
+path = ["host", "users", "backup", "valid", "users", "panel"]
+
+[[incidents]]
+id = "users"
+answer = 2
+
+[[incidents]]
+id = "cron"
+answer = 1
+
+[[incidents]]
+id = "wce"
+answer = 3
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Los servidores de juego por dentro · Tito Pinardo Gutiérrez"
+description = "Los servidores de juego de los amigos con AMP: puertos y DNS que se abren solos al encender un servidor y se cierran al apagarlo, discos 8,8 veces más rápidos sin comprar nada y una copia que llevaba 17 días vacía."
+
+[text.es.ui]
+slot = "1U · GAMES"
+face_specs = "AMP · Velocity · ZFS en espejo"
+state = "En producción"
+map_silk = "GAME"
+map_title = "Los servidores de juego por dentro"
+map_intro = "Encender un servidor en el panel abre el router y el DNS solo; apagarlo los cierra. Elige un recorrido."
+vm_title = "Contenedor de AMP · Proxmox"
+vm_specs = "una instancia Docker por juego"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin dominios, nombres de servidores, puertos ni direcciones."
+
+[text.es.hero]
+kicker = "Unidad 1U · Comunidad"
+title = "AMP · servidores de juego"
+tagline = "Minecraft con mods, otros Minecraft detrás de un proxy y juegos de Steam para los amigos, gestionados desde un panel. Lo que se abre a internet depende de lo que está encendido: al arrancar un servidor se crean su regla en el router y su nombre en Cloudflare, y a los 3 minutos de apagarlo desaparecen."
+grade = "Escrituras ×8,8 sin comprar hardware"
+facts = [
+  { label = "Por qué tanto cuidado", value = "Es lo único del homelab con puertos de juego abiertos a internet. Cuantos menos y menos tiempo, mejor." },
+  { label = "Cómo entran los Minecraft", value = "Todos por un mismo puerto, el de un proxy que elige el mundo según el nombre con el que entras." },
+  { label = "Rendimiento", value = "Los discos tenían la caché de escritura apagada de fábrica, la CPU repartida entre dos procesadores y Java mal ajustado. Todo corregido sin gastar." },
+]
+
+[[text.es.stats]]
+value = "108 → 946"
+label = "escrituras por segundo con fsync"
+
+[[text.es.stats]]
+value = "1 min"
+label = "en abrirse router y DNS al encender"
+
+[[text.es.stats]]
+value = "3 min"
+label = "apagado antes de cerrarlos"
+
+[[text.es.stats]]
+value = "17 días"
+label = "de copias vacías que nadie había visto"
+
+[text.es.groups]
+entry = "Entrada"
+games = "Servidores"
+perf = "Rendimiento"
+care = "Cuidados"
+
+[text.es.pods.players]
+short = "Jugadores"
+title = "Los amigos"
+text = "Desde sus casas, con el nombre del servidor."
+
+[text.es.pods.router]
+short = "Router"
+title = "Router"
+text = "Solo tiene abiertos los puertos de los servidores encendidos, con reglas creadas por la automatización."
+
+[text.es.pods.cloudflare]
+short = "Cloudflare"
+title = "DNS en Cloudflare"
+text = "Un nombre por servidor, que solo existe mientras está encendido. Sin proxy: los juegos no hablan HTTP."
+
+[text.es.pods.sync]
+short = "Publicador"
+title = "Publicador automático"
+text = "Cada minuto pregunta al panel qué está encendido y ajusta router y DNS. En el router solo puede tocar sus propias reglas."
+
+[text.es.pods.discord]
+short = "Discord"
+title = "Discord"
+text = "Donde los amigos ven qué servidores hay encendidos."
+
+[text.es.pods.host]
+short = "Hipervisor"
+title = "Hipervisor"
+text = "Corte de luz incluido: sin SAI, el servidor se apaga de golpe."
+
+[text.es.pods.proxy]
+short = "Proxy Velocity"
+title = "Proxy de Minecraft"
+text = "Un solo puerto para todos los Minecraft: según el nombre con el que entras, te manda a un mundo u otro."
+
+[text.es.pods.ufw]
+short = "Cortafuegos"
+title = "Cortafuegos del contenedor"
+text = "Entrada bloqueada salvo los puertos declarados. El panel los sincroniza cada cinco minutos; el panel y SSH, solo desde casa."
+
+[text.es.pods.panel]
+short = "Panel AMP"
+title = "Panel de AMP"
+text = "Desde donde se encienden, apagan y configuran los servidores. Ya no se publica en internet."
+
+[text.es.pods.bot]
+short = "Bot de estado"
+title = "Bot de estado"
+text = "Lee el panel con un usuario sin privilegios y publica el estado en Discord y en una web."
+
+[text.es.pods.modded]
+short = "Minecraft mods"
+title = "Minecraft con mods"
+text = "El servidor principal, con casi noventa mods, varios de ellos de rendimiento."
+
+[text.es.pods.other]
+short = "Otros mundos"
+title = "Otros Minecraft"
+text = "Mundos más pequeños, detrás del mismo proxy."
+
+[text.es.pods.steam]
+short = "Juegos Steam"
+title = "Juegos de Steam"
+text = "Servidores dedicados que se encienden cuando alguien quiere jugar."
+
+[text.es.pods.manager]
+short = "Gestor"
+title = "Gestor de instancias"
+text = "Cada servidor es un contenedor Docker propio. El gestor los arranca, los para y los actualiza."
+
+[text.es.pods.disks]
+short = "Discos SAS"
+title = "Cuatro discos en espejo"
+text = "Venían con la caché de escritura apagada. Encendida y guardada en el propio disco: las escrituras con fsync, de 108 a 946 por segundo."
+
+[text.es.pods.cpu]
+short = "CPU fijada"
+title = "CPU en un solo procesador"
+text = "El hipervisor daba hilos de los dos procesadores: Java tenía la memoria en uno y el trabajo en otro. Ahora el contenedor usa seis núcleos de uno solo."
+
+[text.es.pods.java]
+short = "Java"
+title = "Java ajustado"
+text = "Memoria reservada desde el arranque, páginas grandes y sin limpiezas forzadas cada 5 segundos. La compresión, solo una vez: en el proxy."
+
+[text.es.pods.arc]
+short = "Caché ZFS"
+title = "Caché de ZFS en RAM"
+text = "Ya servía más del 98 % de las lecturas: no hacía falta tocarla."
+
+[text.es.pods.users]
+short = "Usuarios"
+title = "Fichero de usuarios"
+text = "Donde AMP guarda cuentas y permisos. Con un corte de luz a mitad de escritura, se queda vacío."
+
+[text.es.pods.backup]
+short = "Copia 30 min"
+title = "Copia cada 30 minutos"
+text = "Desde el hipervisor, fuera del contenedor, las 100 últimas versiones."
+
+[text.es.pods.valid]
+short = "¿Es válida?"
+title = "Comprobar la copia"
+text = "Una copia vacía o con «{}» no cuenta como copia: el script la rechaza y avisa."
+
+[text.es.pods.zabbix]
+short = "Zabbix"
+title = "Monitorización"
+text = "Vigila el contenedor y los procesos de los servidores."
+
+[text.es.flows.start]
+title = "Enciendo un servidor"
+steps = [
+  "Enciendo un servidor desde el panel.",
+  "El gestor arranca su contenedor.",
+  "El servidor carga el mundo.",
+  "Al minuto, el publicador ve que está encendido.",
+  "Crea su regla en el router, solo con los puertos de juego: nada de consola ni administración.",
+  "Y su nombre…",
+  "…en Cloudflare.",
+  "Un amigo escribe ese nombre en el juego.",
+  "Entra por el router.",
+  "El proxy mira el nombre y le manda a su mundo.",
+  "Está dentro.",
+]
+
+[text.es.flows.stop]
+title = "Lo apago"
+steps = [
+  "Apago el servidor en el panel.",
+  "El gestor para su contenedor.",
+  "El publicador espera 3 minutos, por si es un reinicio.",
+  "Quita la regla del router.",
+  "Y el nombre de Cloudflare. No queda nada abierto.",
+]
+
+[text.es.flows.play]
+title = "Una partida"
+steps = [
+  "Un jugador se conecta.",
+  "Entra por el router.",
+  "Pasa el cortafuegos del contenedor, que solo admite los puertos declarados.",
+  "El proxy lo manda a su mundo.",
+  "El servidor guarda el mundo cada poco.",
+  "Las escrituras van al espejo de discos, ahora con caché: 8,8 veces más rápidas.",
+  "Las lecturas casi siempre salen de la caché de RAM.",
+  "El servidor responde.",
+  "Por el proxy, que comprime una sola vez.",
+  "Y al jugador.",
+]
+
+[text.es.flows.status]
+title = "Los amigos miran qué hay"
+steps = [
+  "Alguien pregunta en Discord qué servidores hay encendidos.",
+  "El bot lo sabe.",
+  "Lo consulta al panel con un usuario de solo lectura, por la red interna.",
+  "Recibe estado, dirección y carátula.",
+  "Y lo publica.",
+]
+
+[text.es.flows.blackout]
+title = "Un corte de luz"
+steps = [
+  "Se va la luz y el servidor se apaga de golpe.",
+  "AMP estaba escribiendo su fichero de usuarios: se queda vacío.",
+  "Pero cada 30 minutos se copió desde fuera del contenedor.",
+  "La última copia válida (no vacía, JSON de verdad) se identifica sola.",
+  "Se restaura con el panel parado.",
+  "Y el panel vuelve con todas sus cuentas.",
+]
+
+[text.es.incidents.users]
+title = "«No such user» después de un corte"
+meta = "16-07-2026 · panel"
+symptom = "Tras un corte de luz, no podía entrar al panel: «No such user». El bot de estado tampoco, y reintentaba miles de veces al día."
+options = [
+  "Alguien había borrado la cuenta",
+  "El disco del contenedor estaba lleno",
+  "El corte pilló a AMP escribiendo el fichero de usuarios y lo dejó vacío",
+  "La autenticación en dos pasos había caducado",
+]
+cause = "AMP no escribe su fichero de usuarios de forma atómica. Un apagado a mitad lo deja en «{}», y su propia copia rotativa cayó en la misma ventana. Es un fallo conocido de AMP."
+fix = "Recrear las cuentas, y una copia cada 30 minutos desde el hipervisor, fuera del contenedor, con las últimas 100 versiones."
+lesson = "Sin SAI, todo lo que escribe sin cuidado es un riesgo. La copia tiene que vivir fuera de lo que se rompe."
+
+[text.es.incidents.cron]
+title = "Una copia que nunca había copiado"
+meta = "02-08-2026 · copias"
+symptom = "Otro corte y otra vez el fichero vacío. Fui a restaurar la copia… y las copias de 17 días eran todas de 0 bytes."
+options = [
+  "El disco de las copias estaba lleno",
+  "El cron no encontraba el comando de Proxmox porque su PATH no lo incluye",
+  "El fichero estaba bloqueado",
+  "Las copias se borraban al rotar",
+]
+cause = "El script usaba un comando de Proxmox que vive en una carpeta que el PATH mínimo del cron no incluye. Fallaba en cada pasada desde el primer día, en silencio, y además el script daba por buena cualquier salida."
+fix = "Rutas absolutas, una prueba con el PATH real del cron y una comprobación de que cada copia es JSON de verdad: si sale vacía o «{}», se descarta y avisa."
+lesson = "Una copia no probada no es una copia. Se prueba como la ejecutará el sistema, no como la ejecuto yo."
+
+[text.es.incidents.wce]
+title = "Discos lentos sin motivo aparente"
+meta = "06-10-2026 · rendimiento"
+symptom = "Guardar el mundo costaba mucho y las escrituras con fsync se quedaban en 108 por segundo en un espejo de cuatro discos."
+options = [
+  "Uno de los discos estaba fallando",
+  "ZFS tenía la compresión mal configurada",
+  "La caché ARC era pequeña",
+  "Los discos venían de fábrica con la caché de escritura apagada",
+]
+cause = "Estos discos SAS traen la caché de escritura desactivada. Cada escritura esperaba al plato."
+fix = "Activarla y guardarla en el propio disco, con planificador «none» porque ZFS ya ordena la E/S. Es seguro con cortes: ZFS vacía la caché en cada transacción. De 108 a 946 escrituras con fsync por segundo."
+lesson = "Medir antes de comprar. Y apuntar que un disco de repuesto vendrá con la caché apagada otra vez."
+
+[[text.es.timeline]]
+title = "Los primeros servidores"
+period = "Verano de 2026"
+items = [
+  "AMP con una instancia Docker por juego y un proxy para todos los Minecraft.",
+  "Copias del fichero de usuarios tras el primer corte, y su arreglo cuando resultaron vacías.",
+]
+
+[[text.es.timeline]]
+title = "Cortafuegos y migración"
+period = "Septiembre de 2026"
+items = [
+  "Cortafuegos del contenedor con entrada bloqueada y puertos sincronizados por el panel.",
+  "Contenedor nuevo gestionado con Terraform.",
+]
+
+[[text.es.timeline]]
+title = "Rendimiento y apertura automática"
+period = "Octubre de 2026"
+items = [
+  "Caché de escritura, CPU en un solo procesador, Java y compresión ajustados.",
+  "Router y DNS que se abren y cierran solos según lo encendido.",
+  "Panel y gestión del bot fuera de internet.",
+]
+
+[[text.es.decisions]]
+title = "Qué se abre"
+choice = "Solo lo que está encendido, y solo sus puertos de juego"
+why = "Un puerto abierto para un servidor apagado no aporta nada y es superficie. La consola y la administración nunca se abren."
+
+[[text.es.decisions]]
+title = "Cómo mejorar sin comprar"
+choice = "Medir primero"
+why = "La CPU es la que es y un servidor de Minecraft depende de un solo hilo. Pero los discos, el reparto entre procesadores y Java tenían margen, y se midió antes y después con fio."
+
+[[text.es.decisions]]
+title = "Qué toca la automatización en el router"
+choice = "Solo sus propias reglas"
+why = "El usuario del router que usa el publicador solo puede crear y borrar reglas con su prefijo. Si fallara, no puede romper el resto del cortafuegos."
+
+[text.es.tech_notes]
+proxmox = "CPU fijada a un procesador, más memoria en caliente y copias del fichero de usuarios desde el hipervisor."
+lxc = "AMP corre en su propio contenedor, con los datos de juego montados desde el pool de ZFS."
+terraform = "Crea el contenedor de AMP; la fijación de CPU queda anotada porque Terraform no la ve."
+zfs = "Un espejo de cuatro discos para los mundos, compresión y caché en RAM con más del 98 % de aciertos."
+docker = "Cada servidor de juego y el panel, en su propio contenedor, más el bot de estado."
+mikrotik = "Reglas de entrada creadas y borradas por la automatización según lo encendido."
+linux = "Caché de escritura de los discos, planificador de E/S, cron con PATH correcto y copias comprobadas."
+zabbix = "Vigila el contenedor y sus procesos."
+hardening = "Cortafuegos con entrada bloqueada, panel y SSH solo desde casa, sin UPnP y puertos abiertos solo mientras hace falta."
+python = "El publicador que sincroniza panel, router y DNS cada minuto."
+typescript = "El bot que publica el estado de los servidores, en Node.js."
+
+[text.es.close]
+lessons = [
+  "Probar las copias restaurándolas, y con el entorno real del cron.",
+  "Abrir puertos según lo que está encendido, no por si acaso.",
+  "Medir antes de pensar en comprar.",
+]
+next = [
+  "Un SAI: es lo único que evita de raíz los apagados a mitad de escritura.",
+  "Un SSD para el mundo principal y pregenerar el mapa.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside the game servers · Tito Pinardo Gutiérrez"
+description = "Game servers for friends with AMP: ports and DNS that open by themselves when a server starts and close when it stops, disks 8.8 times faster without buying anything, and a backup that had been empty for 17 days."
+
+[text.en.ui]
+slot = "1U · GAMES"
+face_specs = "AMP · Velocity · mirrored ZFS"
+state = "In production"
+map_silk = "GAME"
+map_title = "Inside the game servers"
+map_intro = "Starting a server in the panel opens the router and DNS on its own; stopping it closes them. Pick a flow."
+vm_title = "AMP container · Proxmox"
+vm_specs = "one Docker instance per game"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no domains, server names, ports or addresses."
+
+[text.en.hero]
+kicker = "1U unit · Community"
+title = "AMP · game servers"
+tagline = "Modded Minecraft, other Minecraft worlds behind a proxy and Steam games for friends, managed from a panel. What's open to the internet depends on what's running: starting a server creates its router rule and its name on Cloudflare, and 3 minutes after it stops they're gone."
+grade = "Writes ×8.8 without buying hardware"
+facts = [
+  { label = "Why so much care", value = "It's the only part of the homelab with game ports open to the internet. The fewer and the shorter, the better." },
+  { label = "How Minecraft players get in", value = "All through one port, that of a proxy that picks the world based on the name you join with." },
+  { label = "Performance", value = "The disks shipped with write cache off, the CPU was split across two processors and Java was badly tuned. All fixed without spending." },
+]
+
+[[text.en.stats]]
+value = "108 → 946"
+label = "writes per second with fsync"
+
+[[text.en.stats]]
+value = "1 min"
+label = "for router and DNS to open on start"
+
+[[text.en.stats]]
+value = "3 min"
+label = "stopped before they close"
+
+[[text.en.stats]]
+value = "17 days"
+label = "of empty backups nobody had noticed"
+
+[text.en.groups]
+entry = "Entrance"
+games = "Servers"
+perf = "Performance"
+care = "Care"
+
+[text.en.pods.players]
+short = "Players"
+title = "Friends"
+text = "From their homes, using the server's name."
+
+[text.en.pods.router]
+short = "Router"
+title = "Router"
+text = "Only has the ports of running servers open, with rules created by the automation."
+
+[text.en.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare DNS"
+text = "One name per server, which only exists while it's running. No proxy: games don't speak HTTP."
+
+[text.en.pods.sync]
+short = "Publisher"
+title = "Automatic publisher"
+text = "Every minute it asks the panel what's running and adjusts router and DNS. On the router it can only touch its own rules."
+
+[text.en.pods.discord]
+short = "Discord"
+title = "Discord"
+text = "Where friends see which servers are up."
+
+[text.en.pods.host]
+short = "Hypervisor"
+title = "Hypervisor"
+text = "Power cuts included: with no UPS, the server switches off abruptly."
+
+[text.en.pods.proxy]
+short = "Velocity proxy"
+title = "Minecraft proxy"
+text = "One port for every Minecraft world: depending on the name you join with, it sends you to one world or another."
+
+[text.en.pods.ufw]
+short = "Firewall"
+title = "Container firewall"
+text = "Inbound blocked except declared ports. The panel syncs them every five minutes; the panel and SSH, only from home."
+
+[text.en.pods.panel]
+short = "AMP panel"
+title = "AMP panel"
+text = "Where servers are started, stopped and configured. No longer published on the internet."
+
+[text.en.pods.bot]
+short = "Status bot"
+title = "Status bot"
+text = "Reads the panel with an unprivileged user and posts the status to Discord and a website."
+
+[text.en.pods.modded]
+short = "Modded MC"
+title = "Modded Minecraft"
+text = "The main server, with almost ninety mods, several of them for performance."
+
+[text.en.pods.other]
+short = "Other worlds"
+title = "Other Minecraft worlds"
+text = "Smaller worlds, behind the same proxy."
+
+[text.en.pods.steam]
+short = "Steam games"
+title = "Steam games"
+text = "Dedicated servers that start when someone wants to play."
+
+[text.en.pods.manager]
+short = "Manager"
+title = "Instance manager"
+text = "Each server is its own Docker container. The manager starts, stops and updates them."
+
+[text.en.pods.disks]
+short = "SAS disks"
+title = "Four mirrored disks"
+text = "They came with write cache off. Turned on and saved on the disk itself: fsync writes, from 108 to 946 per second."
+
+[text.en.pods.cpu]
+short = "Pinned CPU"
+title = "CPU on a single processor"
+text = "The hypervisor gave threads from both processors: Java had its memory on one and its work on the other. Now the container uses six cores of a single one."
+
+[text.en.pods.java]
+short = "Java"
+title = "Tuned Java"
+text = "Memory reserved from start-up, huge pages and no forced clean-ups every 5 seconds. Compression only once: at the proxy."
+
+[text.en.pods.arc]
+short = "ZFS cache"
+title = "ZFS cache in RAM"
+text = "It already served over 98 % of reads: no need to touch it."
+
+[text.en.pods.users]
+short = "Users"
+title = "Users file"
+text = "Where AMP keeps accounts and permissions. With a power cut mid-write, it ends up empty."
+
+[text.en.pods.backup]
+short = "Backup 30 min"
+title = "Backup every 30 minutes"
+text = "From the hypervisor, outside the container, the last 100 versions."
+
+[text.en.pods.valid]
+short = "Is it valid?"
+title = "Check the backup"
+text = "An empty or «{}» copy doesn't count as a backup: the script rejects it and warns."
+
+[text.en.pods.zabbix]
+short = "Zabbix"
+title = "Monitoring"
+text = "Watches the container and the servers' processes."
+
+[text.en.flows.start]
+title = "I start a server"
+steps = [
+  "I start a server from the panel.",
+  "The manager starts its container.",
+  "The server loads the world.",
+  "A minute later, the publisher sees it's running.",
+  "It creates its rule on the router, with only the game ports: no console or admin.",
+  "And its name…",
+  "…on Cloudflare.",
+  "A friend types that name in the game.",
+  "They come in through the router.",
+  "The proxy looks at the name and sends them to their world.",
+  "They're in.",
+]
+
+[text.en.flows.stop]
+title = "I stop it"
+steps = [
+  "I stop the server in the panel.",
+  "The manager stops its container.",
+  "The publisher waits 3 minutes, in case it's a restart.",
+  "It removes the router rule.",
+  "And the Cloudflare name. Nothing is left open.",
+]
+
+[text.en.flows.play]
+title = "A game session"
+steps = [
+  "A player connects.",
+  "They come in through the router.",
+  "They pass the container firewall, which only allows declared ports.",
+  "The proxy sends them to their world.",
+  "The server saves the world every so often.",
+  "Writes go to the disk mirror, now with cache: 8.8 times faster.",
+  "Reads almost always come from the RAM cache.",
+  "The server answers.",
+  "Through the proxy, which compresses just once.",
+  "And to the player.",
+]
+
+[text.en.flows.status]
+title = "Friends check what's up"
+steps = [
+  "Someone asks on Discord which servers are running.",
+  "The bot knows.",
+  "It asks the panel with a read-only user, over the internal network.",
+  "It gets status, address and cover art.",
+  "And posts it.",
+]
+
+[text.en.flows.blackout]
+title = "A power cut"
+steps = [
+  "The power goes and the server switches off abruptly.",
+  "AMP was writing its users file: it's left empty.",
+  "But it was copied every 30 minutes from outside the container.",
+  "The last valid copy (not empty, real JSON) is found automatically.",
+  "It's restored with the panel stopped.",
+  "And the panel comes back with every account.",
+]
+
+[text.en.incidents.users]
+title = "«No such user» after a power cut"
+meta = "16-07-2026 · panel"
+symptom = "After a power cut I couldn't log into the panel: «No such user». Neither could the status bot, which retried thousands of times a day."
+options = [
+  "Someone had deleted the account",
+  "The container disk was full",
+  "The cut caught AMP writing its users file and left it empty",
+  "Two-factor had expired",
+]
+cause = "AMP doesn't write its users file atomically. A shutdown halfway leaves it as «{}», and its own rotating copy fell in the same window. It's a known AMP bug."
+fix = "Recreate the accounts, plus a backup every 30 minutes from the hypervisor, outside the container, keeping the last 100 versions."
+lesson = "Without a UPS, anything that writes carelessly is a risk. The backup has to live outside what breaks."
+
+[text.en.incidents.cron]
+title = "A backup that had never backed up"
+meta = "02-08-2026 · backups"
+symptom = "Another cut and the file was empty again. I went to restore the backup… and 17 days of backups were all 0 bytes."
+options = [
+  "The backup disk was full",
+  "Cron couldn't find the Proxmox command because its PATH doesn't include it",
+  "The file was locked",
+  "Backups were deleted on rotation",
+]
+cause = "The script used a Proxmox command living in a folder that cron's minimal PATH doesn't include. It failed on every run since day one, silently, and the script accepted any output as good."
+fix = "Absolute paths, a test with cron's real PATH and a check that each copy is real JSON: if it's empty or «{}», it's discarded and a warning is raised."
+lesson = "An untested backup isn't a backup. Test it the way the system will run it, not the way I run it."
+
+[text.en.incidents.wce]
+title = "Slow disks for no obvious reason"
+meta = "06-10-2026 · performance"
+symptom = "Saving the world was slow and fsync writes topped out at 108 per second on a four-disk mirror."
+options = [
+  "One of the disks was failing",
+  "ZFS compression was misconfigured",
+  "The ARC cache was small",
+  "The disks shipped with write cache switched off",
+]
+cause = "These SAS disks come with write cache disabled. Every write waited for the platter."
+fix = "Turn it on and save it on the disk itself, with the «none» scheduler since ZFS already orders I/O. Safe with power cuts: ZFS flushes the cache on every transaction. From 108 to 946 fsync writes per second."
+lesson = "Measure before buying. And note that a replacement disk will come with the cache off again."
+
+[[text.en.timeline]]
+title = "The first servers"
+period = "Summer 2026"
+items = [
+  "AMP with one Docker instance per game and a proxy for every Minecraft world.",
+  "Backups of the users file after the first cut, and their fix when they turned out empty.",
+]
+
+[[text.en.timeline]]
+title = "Firewall and migration"
+period = "September 2026"
+items = [
+  "Container firewall blocking inbound, with ports synced by the panel.",
+  "A new container managed with Terraform.",
+]
+
+[[text.en.timeline]]
+title = "Performance and automatic opening"
+period = "October 2026"
+items = [
+  "Write cache, CPU on one processor, Java and compression tuned.",
+  "Router and DNS that open and close by themselves based on what's running.",
+  "Panel and the bot's admin off the internet.",
+]
+
+[[text.en.decisions]]
+title = "What gets opened"
+choice = "Only what's running, and only its game ports"
+why = "An open port for a stopped server adds nothing and is surface. Console and admin are never opened."
+
+[[text.en.decisions]]
+title = "How to improve without buying"
+choice = "Measure first"
+why = "The CPU is what it is and a Minecraft server depends on a single thread. But the disks, the split across processors and Java had room, measured before and after with fio."
+
+[[text.en.decisions]]
+title = "What the automation touches on the router"
+choice = "Only its own rules"
+why = "The router user the publisher uses can only create and delete rules with its prefix. If it failed, it couldn't break the rest of the firewall."
+
+[text.en.tech_notes]
+proxmox = "CPU pinned to one processor, more memory live, and backups of the users file from the hypervisor."
+lxc = "AMP runs in its own container, with game data mounted from the ZFS pool."
+terraform = "Creates the AMP container; CPU pinning is noted because Terraform can't see it."
+zfs = "A four-disk mirror for the worlds, compression and RAM cache with over 98 % hits."
+docker = "Each game server and the panel in its own container, plus the status bot."
+mikrotik = "Inbound rules created and deleted by the automation based on what's running."
+linux = "Disk write cache, I/O scheduler, cron with the right PATH and verified backups."
+zabbix = "Watches the container and its processes."
+hardening = "Firewall blocking inbound, panel and SSH only from home, no UPnP and ports open only while needed."
+python = "The publisher that syncs panel, router and DNS every minute."
+typescript = "The bot that posts the servers' status, in Node.js."
+
+[text.en.close]
+lessons = [
+  "Test backups by restoring them, and with cron's real environment.",
+  "Open ports based on what's running, not just in case.",
+  "Measure before thinking about buying.",
+]
+next = [
+  "A UPS: the only thing that truly prevents shutdowns mid-write.",
+  "An SSD for the main world and pre-generating the map.",
+]

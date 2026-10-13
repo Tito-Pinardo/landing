@@ -1,0 +1,859 @@
+# Unidad 1U del rack: Paperless-ngx, los papeles de casa.
+#
+# Fuente: Obsidian «Paperless-ngx» (despliegue del 09-09 y migración a IaC
+# del 17-09). Sin direcciones, nombres internos ni nada del contenido.
+
+id = "paperless"
+status = "live"
+host_tech = ["lxc", "terraform", "ansible"]
+links = [
+  ["laptop", "caddy"],
+  ["caddy", "authelia"],
+  ["pc", "ollama"],
+]
+
+[[groups]]
+id = "door"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "stack"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "admin"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "watch"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "laptop"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "caddy"
+x = 290
+y = 110
+kind = "network"
+group = ""
+tech = []
+
+[[pods]]
+id = "authelia"
+x = 290
+y = 250
+kind = "observability"
+group = ""
+tech = ["hardening"]
+
+[[pods]]
+id = "pc"
+x = 100
+y = 420
+kind = "ai"
+group = ""
+tech = []
+
+[[pods]]
+id = "ollama"
+x = 290
+y = 420
+kind = "ai"
+group = ""
+tech = ["llm"]
+
+[[pods]]
+id = "host"
+x = 100
+y = 540
+kind = "control"
+group = ""
+tech = ["proxmox"]
+
+[[pods]]
+id = "firewall"
+x = 515
+y = 140
+kind = "observability"
+group = "door"
+tech = ["proxmox", "hardening"]
+
+[[pods]]
+id = "nginx"
+x = 700
+y = 140
+kind = "network"
+group = "door"
+tech = ["hardening"]
+
+[[pods]]
+id = "loopback"
+x = 885
+y = 140
+kind = "network"
+group = "door"
+tech = ["docker", "hardening"]
+
+[[pods]]
+id = "mfa"
+x = 1070
+y = 140
+kind = "observability"
+group = "door"
+tech = ["hardening"]
+
+[[pods]]
+id = "web"
+x = 515
+y = 266
+kind = "app"
+group = "stack"
+tech = ["docker"]
+
+[[pods]]
+id = "ocr"
+x = 700
+y = 266
+kind = "app"
+group = "stack"
+tech = ["docker"]
+
+[[pods]]
+id = "db"
+x = 885
+y = 266
+kind = "app"
+group = "stack"
+tech = ["docker", "postgresql"]
+
+[[pods]]
+id = "broker"
+x = 1070
+y = 266
+kind = "app"
+group = "stack"
+tech = ["docker", "redis"]
+
+[[pods]]
+id = "terraform"
+x = 515
+y = 392
+kind = "control"
+group = "admin"
+tech = ["terraform"]
+
+[[pods]]
+id = "pct"
+x = 700
+y = 392
+kind = "control"
+group = "admin"
+tech = ["ansible", "proxmox"]
+
+[[pods]]
+id = "nossh"
+x = 885
+y = 392
+kind = "observability"
+group = "admin"
+tech = ["hardening"]
+
+[[pods]]
+id = "vault"
+x = 1070
+y = 392
+kind = "control"
+group = "admin"
+tech = ["ansible"]
+
+[[pods]]
+id = "zabbix"
+x = 515
+y = 518
+kind = "observability"
+group = "watch"
+tech = ["zabbix"]
+
+[[pods]]
+id = "wazuh"
+x = 700
+y = 518
+kind = "observability"
+group = "watch"
+tech = ["wazuh"]
+
+[[pods]]
+id = "dump"
+x = 885
+y = 518
+kind = "control"
+group = "watch"
+tech = ["postgresql"]
+
+[[pods]]
+id = "oldct"
+x = 1070
+y = 518
+kind = "edge"
+group = "watch"
+tech = []
+
+[[flows]]
+id = "open"
+path = ["laptop", "caddy", "authelia", "caddy", "firewall", "nginx", "loopback", "web", "mfa", "laptop"]
+
+[[flows]]
+id = "scan"
+path = ["laptop", "web", "broker", "ocr", "ollama", "ocr", "db", "web"]
+
+[[flows]]
+id = "admin"
+path = ["vault", "pct", "host", "nossh", "web"]
+
+[[flows]]
+id = "migrate"
+path = ["terraform", "dump", "host", "dump", "db", "web", "zabbix", "wazuh", "oldct"]
+
+[[flows]]
+id = "intruder"
+path = ["laptop", "firewall", "laptop", "loopback"]
+
+[[incidents]]
+id = "ssh"
+answer = 2
+
+[[incidents]]
+id = "pmxcfs"
+answer = 1
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Paperless por dentro · Tito Pinardo Gutiérrez"
+description = "El archivo de documentos personales de casa: Paperless-ngx con OCR e IA local, en el contenedor más cerrado del homelab, sin SSH y administrado solo a través del hipervisor."
+
+[text.es.ui]
+slot = "1U · PAPERLESS"
+face_specs = "Paperless-ngx · OCR · sin SSH"
+state = "En producción"
+map_silk = "DOCS"
+map_title = "El archivo por dentro"
+map_intro = "Aquí viven papeles que no deben salir de casa. Elige un recorrido para ver cuántas puertas hay que pasar para llegar a ellos."
+vm_title = "Contenedor de Paperless · Proxmox"
+vm_specs = "sin privilegios, sin SSH"
+outside = "Fuera del contenedor"
+disclaimer = "Reconstrucción a partir de mi documentación. Ningún documento se abrió para hacer esto ni aparece aquí."
+
+[text.es.hero]
+kicker = "Unidad 1U · Documentos personales"
+title = "Paperless-ngx · el archivo de casa"
+tagline = "Escaneo un papel y Paperless lo lee con OCR, le pone título, etiquetas y tipo con ayuda de un modelo local, y lo guarda donde lo puedo encontrar buscando. Son documentos de identidad y de propiedad, así que es el contenedor más cerrado del servidor."
+grade = "137 documentos migrados 1:1"
+facts = [
+  { label = "Por qué tan cerrado", value = "No es papeleo cualquiera: catastro, empadronamiento, documentos oficiales. Si algo del homelab se filtra, que no sea esto." },
+  { label = "Cómo se entra", value = "Desde casa o la VPN, con doble factor en la puerta interna, por un HTTPS propio del contenedor. El servicio en sí solo escucha hacia dentro." },
+  { label = "Cómo se administra", value = "No tiene SSH ni usuarios. Ansible entra a través del hipervisor, y el cortafuegos rechaza todo lo demás." },
+]
+
+[[text.es.stats]]
+value = "0"
+label = "puertos de SSH y cuentas en el contenedor"
+
+[[text.es.stats]]
+value = "137"
+label = "documentos migrados y comprobados uno a uno"
+
+[[text.es.stats]]
+value = "3"
+label = "orígenes permitidos por el cortafuegos"
+
+[[text.es.stats]]
+value = "spa+eng"
+label = "OCR en español e inglés"
+
+[text.es.groups]
+door = "Puertas"
+stack = "Paperless"
+admin = "Administración sin SSH"
+watch = "Vigilancia y migración"
+
+[text.es.pods.laptop]
+short = "Mi portátil"
+title = "Mi portátil"
+text = "Desde casa o con la VPN."
+
+[text.es.pods.caddy]
+short = "Puerta interna"
+title = "Caddy"
+text = "Solo acepta la red de casa y valida el certificado del contenedor antes de pasarle nada."
+
+[text.es.pods.authelia]
+short = "Authelia"
+title = "Authelia"
+text = "Inicio de sesión con doble factor antes de llegar a Paperless."
+
+[text.es.pods.pc]
+short = "PC con GPU"
+title = "Mi PC con GPU"
+text = "Donde corre el modelo de lenguaje local."
+
+[text.es.pods.ollama]
+short = "Modelo local"
+title = "Modelo local (Ollama)"
+text = "Un modelo de visión y otro de embeddings. El PC solo acepta conexiones de este contenedor a ese puerto."
+
+[text.es.pods.host]
+short = "Hipervisor"
+title = "Hipervisor"
+text = "La única forma de entrar al contenedor: «pct exec» desde el propio Proxmox."
+
+[text.es.pods.firewall]
+short = "Cortafuegos"
+title = "Cortafuegos del contenedor"
+text = "Política de entrada: rechazar. Solo pasan la puerta interna y la monitorización al HTTPS, y el ping."
+
+[text.es.pods.nginx]
+short = "HTTPS propio"
+title = "nginx en el contenedor"
+text = "Termina el TLS dentro del propio contenedor: ni siquiera dentro de casa viajan los documentos sin cifrar."
+
+[text.es.pods.loopback]
+short = "Solo localhost"
+title = "Paperless solo en localhost"
+text = "La aplicación escucha únicamente hacia dentro del contenedor. Desde la red no se puede llegar a ella sin pasar por nginx."
+
+[text.es.pods.mfa]
+short = "Login propio"
+title = "Login de Paperless"
+text = "Detrás de todo, su propio usuario. Una llave más."
+
+[text.es.pods.web]
+short = "Paperless"
+title = "Paperless-ngx"
+text = "La aplicación oficial, en Docker. Clasifica, busca y guarda."
+
+[text.es.pods.ocr]
+short = "OCR + IA"
+title = "OCR y clasificación"
+text = "Lee el texto de cada escaneo y propone título, etiquetas y tipo con el modelo local. Un flujo automático lo aplica al entrar."
+
+[text.es.pods.db]
+short = "PostgreSQL"
+title = "PostgreSQL"
+text = "Metadatos, etiquetas y el índice de búsqueda."
+
+[text.es.pods.broker]
+short = "Redis"
+title = "Redis"
+text = "La cola de tareas: el OCR de cada documento se hace en segundo plano."
+
+[text.es.pods.terraform]
+short = "Terraform"
+title = "Terraform"
+text = "Crea el contenedor sin ninguna cuenta de usuario: el único del repositorio así."
+
+[text.es.pods.pct]
+short = "pct exec"
+title = "Ansible a través del hipervisor"
+text = "Un plugin de conexión que habla con el hipervisor y ejecuta dentro del contenedor. Nunca hay SSH al contenedor."
+
+[text.es.pods.nossh]
+short = "Sin SSH"
+title = "Sin SSH"
+text = "Ni servicio, ni claves, ni regla en el cortafuegos. No hay nada que atacar por ahí."
+
+[text.es.pods.vault]
+short = "Vault"
+title = "Secretos cifrados"
+text = "Las credenciales viven cifradas en el vault de Ansible, nunca en la documentación."
+
+[text.es.pods.zabbix]
+short = "Zabbix"
+title = "Zabbix"
+text = "Comprueba que el HTTPS responde. Es uno de los tres orígenes permitidos."
+
+[text.es.pods.wazuh]
+short = "Wazuh"
+title = "Wazuh"
+text = "Vigila los cambios en la configuración del stack."
+
+[text.es.pods.dump]
+short = "Volcado"
+title = "Volcado de la base"
+text = "La migración se hizo con un volcado de la base y un archivo de los ficheros, sin abrir ningún documento."
+
+[text.es.pods.oldct]
+short = "CT antiguo"
+title = "El contenedor antiguo"
+text = "Parado, no destruido: red de seguridad mientras no haya copias periódicas."
+
+[text.es.flows.open]
+title = "Abro un documento"
+steps = [
+  "Desde casa abro el archivo.",
+  "La puerta interna comprueba que vengo de la red de casa.",
+  "Authelia me pide contraseña y código.",
+  "Con la sesión, Caddy sigue.",
+  "El cortafuegos del contenedor solo deja pasar a Caddy.",
+  "nginx termina el TLS dentro del contenedor.",
+  "Y pasa la petición a Paperless, que solo escucha hacia dentro.",
+  "La aplicación recibe la petición.",
+  "Su propio login, la última llave.",
+  "Veo el documento.",
+]
+
+[text.es.flows.scan]
+title = "Entra un papel nuevo"
+steps = [
+  "Subo un escaneo.",
+  "Paperless lo recibe.",
+  "La tarea entra en la cola.",
+  "El OCR saca el texto, en español e inglés.",
+  "El modelo local propone título, etiquetas y tipo.",
+  "El flujo automático aplica la clasificación.",
+  "Todo queda indexado en PostgreSQL.",
+  "Y lo encuentro buscando cualquier palabra que contenga.",
+]
+
+[text.es.flows.admin]
+title = "Ansible lo administra"
+steps = [
+  "Ansible coge las credenciales del vault cifrado.",
+  "Se conecta al hipervisor, no al contenedor.",
+  "Y ejecuta las tareas dentro con «pct exec».",
+  "El contenedor no tiene SSH: no hay otra entrada.",
+  "Paperless queda actualizado y configurado.",
+]
+
+[text.es.flows.migrate]
+title = "La migración a código"
+steps = [
+  "Terraform crea el contenedor nuevo, sin cuentas.",
+  "En el viejo, volcado de la base y archivo de los ficheros, sin abrir nada.",
+  "Se mueven a través del hipervisor.",
+  "Se restauran en una base limpia.",
+  "Comprobado: 137 documentos y el mismo tamaño en los dos.",
+  "La aplicación responde por la misma puerta, con la misma IP.",
+  "Monitorización registrada de nuevo.",
+  "Y seguridad, con un agente nuevo.",
+  "El viejo, parado pero no borrado.",
+]
+
+[text.es.flows.intruder]
+title = "Alguien de la red lo intenta"
+steps = [
+  "Un dispositivo de la red intenta conectar al contenedor.",
+  "El cortafuegos rechaza todo lo que no sea la puerta interna o la monitorización.",
+  "Lo intenta contra la aplicación directamente.",
+  "Solo escucha en localhost: no hay nada al otro lado.",
+]
+
+[text.es.incidents.ssh]
+title = "Un SSH que no debía estar"
+meta = "17-09-2026 · auditoría"
+symptom = "El diseño decía «sin SSH». Antes de migrar, revisé el contenedor tal y como estaba."
+options = [
+  "Tenía una contraseña débil",
+  "La aplicación estaba expuesta a internet",
+  "El SSH estaba activo, con claves de root y una regla del cortafuegos que lo dejaba pasar",
+  "El cifrado estaba desactivado",
+]
+cause = "En algún momento se añadió acceso por SSH para arreglar algo y nunca se quitó, ni se reflejó en la documentación. El diseño y la realidad se habían separado."
+fix = "El contenedor nuevo nace de Terraform sin ninguna cuenta y Ansible lo administra a través del hipervisor: ya no hay SSH que alguien pueda volver a abrir por comodidad."
+lesson = "La documentación dice lo que quería hacer; el sistema, lo que hay. Antes de fiarse del diseño, comprobar el estado real."
+
+[text.es.incidents.pmxcfs]
+title = "Ansible no podía escribir el cortafuegos"
+meta = "17-09-2026 · migración"
+symptom = "El fichero del cortafuegos del contenedor no se podía escribir desde Ansible: «Operation not permitted», ni con la copia normal ni con la directa."
+options = [
+  "Faltaban permisos de root",
+  "Ese fichero vive en el sistema de ficheros del clúster de Proxmox, que no admite el reemplazo atómico",
+  "El fichero estaba bloqueado por el servicio",
+  "El disco estaba lleno",
+]
+cause = "La configuración del cortafuegos está en el sistema de ficheros especial de Proxmox. Ansible escribe en un temporal y lo renombra, y ese sistema no lo permite."
+fix = "Una tarea que compara el contenido y, solo si cambia, lo escribe con una redirección normal. Sigue siendo idempotente."
+lesson = "Las herramientas suponen un sistema de ficheros normal. Cuando no lo es, se respeta lo que la herramienta garantiza (idempotencia) aunque haya que hacerlo de otra manera."
+
+[[text.es.timeline]]
+title = "Despliegue"
+period = "09-09-2026"
+items = [
+  "Paperless con OCR en español, detrás de la puerta interna.",
+  "IA local para clasificar, con el modelo en mi PC.",
+]
+
+[[text.es.timeline]]
+title = "Migración a código"
+period = "17-09-2026"
+items = [
+  "Contenedor nuevo con Terraform, sin cuentas, y Ansible a través del hipervisor.",
+  "Cortafuegos con política de rechazo y tres orígenes permitidos.",
+  "Datos migrados sin abrir ningún documento y comprobados uno a uno.",
+]
+
+[[text.es.decisions]]
+title = "Cómo se administra"
+choice = "Sin SSH, a través del hipervisor"
+why = "Quien llega al hipervisor ya lo tiene todo; abrir además SSH en el contenedor solo añade una puerta."
+
+[[text.es.decisions]]
+title = "Dónde se cifra"
+choice = "Dentro del propio contenedor"
+why = "La puerta interna ya cifra, pero el tramo hasta el contenedor también pasa por la red. Con nginx dentro, los documentos nunca viajan en claro."
+
+[[text.es.decisions]]
+title = "El contenedor viejo"
+choice = "Parado, no destruido"
+why = "Sin copias periódicas todavía, el original es la vuelta atrás. Se borra cuando haya copia de verdad."
+
+[text.es.tech_notes]
+proxmox = "El cortafuegos del contenedor y la administración con «pct exec» desde el hipervisor."
+lxc = "Contenedor sin privilegios con anidamiento para poder correr Docker."
+terraform = "Crea el contenedor sin ninguna cuenta de usuario."
+ansible = "Despliega el stack a través del hipervisor y guarda las credenciales en el vault."
+docker = "Paperless, su base de datos y su cola, publicados solo hacia dentro."
+zabbix = "Comprueba que el HTTPS del contenedor responde."
+wazuh = "Vigila los cambios en la configuración."
+hardening = "Rechazo por defecto, sin SSH, TLS dentro del contenedor, doble factor delante y login propio detrás."
+postgresql = "La base de Paperless, migrada con un volcado sin abrir documentos."
+redis = "La cola donde esperan los OCR."
+llm = "Un modelo local propone título, etiquetas y tipo: los documentos no salen de casa."
+
+[text.es.close]
+lessons = [
+  "Lo más sensible se diseña desde el «no»: qué no tiene que poder pasar.",
+  "Comprobar el estado real antes de migrar: apareció un SSH que no estaba en ningún papel.",
+]
+next = [
+  "Copias periódicas cifradas fuera del servidor; después, borrar el contenedor viejo.",
+  "Activar el segundo factor propio de Paperless.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Paperless · Tito Pinardo Gutiérrez"
+description = "The home's personal document archive: Paperless-ngx with OCR and local AI, in the homelab's most locked-down container, with no SSH and managed only through the hypervisor."
+
+[text.en.ui]
+slot = "1U · PAPERLESS"
+face_specs = "Paperless-ngx · OCR · no SSH"
+state = "In production"
+map_silk = "DOCS"
+map_title = "Inside the archive"
+map_intro = "Papers that mustn't leave home live here. Pick a flow to see how many doors you have to go through to reach them."
+vm_title = "Paperless container · Proxmox"
+vm_specs = "unprivileged, no SSH"
+outside = "Outside the container"
+disclaimer = "Rebuilt from my documentation. No document was opened for this and none appears here."
+
+[text.en.hero]
+kicker = "1U unit · Personal documents"
+title = "Paperless-ngx · the home archive"
+tagline = "I scan a paper and Paperless reads it with OCR, gives it a title, tags and type with help from a local model, and files it where I can find it by searching. These are identity and property documents, so it's the most locked-down container on the server."
+grade = "137 documents migrated 1:1"
+facts = [
+  { label = "Why so locked down", value = "It isn't ordinary paperwork: land registry, residence certificates, official documents. If anything in the homelab leaks, it mustn't be this." },
+  { label = "How you get in", value = "From home or the VPN, with two-factor at the internal door, over the container's own HTTPS. The service itself only listens inwards." },
+  { label = "How it's managed", value = "It has no SSH and no users. Ansible goes in through the hypervisor, and the firewall drops everything else." },
+]
+
+[[text.en.stats]]
+value = "0"
+label = "SSH ports and accounts in the container"
+
+[[text.en.stats]]
+value = "137"
+label = "documents migrated and checked one by one"
+
+[[text.en.stats]]
+value = "3"
+label = "sources allowed by the firewall"
+
+[[text.en.stats]]
+value = "spa+eng"
+label = "OCR in Spanish and English"
+
+[text.en.groups]
+door = "Doors"
+stack = "Paperless"
+admin = "Management without SSH"
+watch = "Monitoring and migration"
+
+[text.en.pods.laptop]
+short = "My laptop"
+title = "My laptop"
+text = "From home or with the VPN."
+
+[text.en.pods.caddy]
+short = "Internal door"
+title = "Caddy"
+text = "Only accepts the home network and validates the container's certificate before passing anything on."
+
+[text.en.pods.authelia]
+short = "Authelia"
+title = "Authelia"
+text = "Two-factor login before reaching Paperless."
+
+[text.en.pods.pc]
+short = "GPU PC"
+title = "My GPU PC"
+text = "Where the local language model runs."
+
+[text.en.pods.ollama]
+short = "Local model"
+title = "Local model (Ollama)"
+text = "A vision model and an embedding model. The PC only accepts connections from this container on that port."
+
+[text.en.pods.host]
+short = "Hypervisor"
+title = "Hypervisor"
+text = "The only way into the container: «pct exec» from Proxmox itself."
+
+[text.en.pods.firewall]
+short = "Firewall"
+title = "Container firewall"
+text = "Inbound policy: drop. Only the internal door and monitoring reach the HTTPS, plus ping."
+
+[text.en.pods.nginx]
+short = "Own HTTPS"
+title = "nginx in the container"
+text = "Terminates TLS inside the container itself: not even inside the house do the documents travel unencrypted."
+
+[text.en.pods.loopback]
+short = "Localhost only"
+title = "Paperless on localhost only"
+text = "The app only listens inside the container. From the network you can't reach it without going through nginx."
+
+[text.en.pods.mfa]
+short = "Own login"
+title = "Paperless login"
+text = "Behind everything, its own user. One more key."
+
+[text.en.pods.web]
+short = "Paperless"
+title = "Paperless-ngx"
+text = "The official app, on Docker. It classifies, searches and stores."
+
+[text.en.pods.ocr]
+short = "OCR + AI"
+title = "OCR and classification"
+text = "Reads the text of each scan and suggests title, tags and type with the local model. An automatic workflow applies it on arrival."
+
+[text.en.pods.db]
+short = "PostgreSQL"
+title = "PostgreSQL"
+text = "Metadata, tags and the search index."
+
+[text.en.pods.broker]
+short = "Redis"
+title = "Redis"
+text = "The task queue: each document's OCR runs in the background."
+
+[text.en.pods.terraform]
+short = "Terraform"
+title = "Terraform"
+text = "Creates the container with no user account at all: the only one in the repo like that."
+
+[text.en.pods.pct]
+short = "pct exec"
+title = "Ansible through the hypervisor"
+text = "A connection plugin that talks to the hypervisor and runs inside the container. There's never SSH to the container."
+
+[text.en.pods.nossh]
+short = "No SSH"
+title = "No SSH"
+text = "No service, no keys, no firewall rule. Nothing to attack that way."
+
+[text.en.pods.vault]
+short = "Vault"
+title = "Encrypted secrets"
+text = "Credentials live encrypted in the Ansible vault, never in the documentation."
+
+[text.en.pods.zabbix]
+short = "Zabbix"
+title = "Zabbix"
+text = "Checks the HTTPS answers. It's one of the three allowed sources."
+
+[text.en.pods.wazuh]
+short = "Wazuh"
+title = "Wazuh"
+text = "Watches for changes in the stack's configuration."
+
+[text.en.pods.dump]
+short = "Dump"
+title = "Database dump"
+text = "The migration used a database dump and an archive of the files, without opening any document."
+
+[text.en.pods.oldct]
+short = "Old CT"
+title = "The old container"
+text = "Stopped, not destroyed: a safety net until there are regular backups."
+
+[text.en.flows.open]
+title = "I open a document"
+steps = [
+  "From home I open the archive.",
+  "The internal door checks I'm coming from the home network.",
+  "Authelia asks for password and code.",
+  "With the session, Caddy carries on.",
+  "The container firewall only lets Caddy through.",
+  "nginx terminates TLS inside the container.",
+  "And passes the request to Paperless, which only listens inwards.",
+  "The app receives the request.",
+  "Its own login, the last key.",
+  "I see the document.",
+]
+
+[text.en.flows.scan]
+title = "A new paper comes in"
+steps = [
+  "I upload a scan.",
+  "Paperless receives it.",
+  "The task goes into the queue.",
+  "OCR extracts the text, in Spanish and English.",
+  "The local model suggests title, tags and type.",
+  "The automatic workflow applies the classification.",
+  "Everything is indexed in PostgreSQL.",
+  "And I find it by searching any word it contains.",
+]
+
+[text.en.flows.admin]
+title = "Ansible manages it"
+steps = [
+  "Ansible takes the credentials from the encrypted vault.",
+  "It connects to the hypervisor, not the container.",
+  "And runs the tasks inside with «pct exec».",
+  "The container has no SSH: there's no other way in.",
+  "Paperless ends up updated and configured.",
+]
+
+[text.en.flows.migrate]
+title = "The migration to code"
+steps = [
+  "Terraform creates the new container, with no accounts.",
+  "On the old one, a database dump and an archive of the files, opening nothing.",
+  "They move through the hypervisor.",
+  "They're restored into a clean database.",
+  "Checked: 137 documents and the same size in both.",
+  "The app answers through the same door, on the same IP.",
+  "Monitoring registered again.",
+  "And security, with a new agent.",
+  "The old one, stopped but not deleted.",
+]
+
+[text.en.flows.intruder]
+title = "Someone on the network tries"
+steps = [
+  "A device on the network tries to connect to the container.",
+  "The firewall drops everything that isn't the internal door or monitoring.",
+  "It tries the app directly.",
+  "It only listens on localhost: there's nothing on the other side.",
+]
+
+[text.en.incidents.ssh]
+title = "An SSH that shouldn't have been there"
+meta = "17-09-2026 · audit"
+symptom = "The design said «no SSH». Before migrating, I checked the container as it actually was."
+options = [
+  "It had a weak password",
+  "The app was exposed to the internet",
+  "SSH was running, with root keys and a firewall rule letting it through",
+  "Encryption was disabled",
+]
+cause = "At some point SSH access was added to fix something and never removed, nor written into the documentation. Design and reality had drifted apart."
+fix = "The new container is born from Terraform with no accounts and Ansible manages it through the hypervisor: there's no SSH left for anyone to reopen for convenience."
+lesson = "Documentation says what you meant to do; the system, what there is. Before trusting the design, check the real state."
+
+[text.en.incidents.pmxcfs]
+title = "Ansible couldn't write the firewall"
+meta = "17-09-2026 · migration"
+symptom = "The container's firewall file couldn't be written from Ansible: «Operation not permitted», neither with the normal copy nor the direct one."
+options = [
+  "Root permissions were missing",
+  "That file lives on Proxmox's cluster file system, which doesn't allow atomic replacement",
+  "The file was locked by the service",
+  "The disk was full",
+]
+cause = "The firewall configuration lives on Proxmox's special file system. Ansible writes a temporary file and renames it, and that file system doesn't allow it."
+fix = "A task that compares the content and, only if it changed, writes it with a plain redirect. Still idempotent."
+lesson = "Tools assume a normal file system. When it isn't, keep what the tool guarantees (idempotence) even if you have to do it another way."
+
+[[text.en.timeline]]
+title = "Deployment"
+period = "09-09-2026"
+items = [
+  "Paperless with Spanish OCR, behind the internal door.",
+  "Local AI for classification, with the model on my PC.",
+]
+
+[[text.en.timeline]]
+title = "Migration to code"
+period = "17-09-2026"
+items = [
+  "A new container with Terraform, no accounts, and Ansible through the hypervisor.",
+  "A drop-by-default firewall with three allowed sources.",
+  "Data migrated without opening any document and checked one by one.",
+]
+
+[[text.en.decisions]]
+title = "How it's managed"
+choice = "No SSH, through the hypervisor"
+why = "Whoever reaches the hypervisor already has everything; opening SSH on the container as well only adds a door."
+
+[[text.en.decisions]]
+title = "Where it's encrypted"
+choice = "Inside the container itself"
+why = "The internal door already encrypts, but the hop to the container also crosses the network. With nginx inside, documents never travel in the clear."
+
+[[text.en.decisions]]
+title = "The old container"
+choice = "Stopped, not destroyed"
+why = "With no regular backups yet, the original is the way back. It gets deleted once there's a real backup."
+
+[text.en.tech_notes]
+proxmox = "The container firewall and management with «pct exec» from the hypervisor."
+lxc = "An unprivileged container with nesting so it can run Docker."
+terraform = "Creates the container with no user account."
+ansible = "Deploys the stack through the hypervisor and keeps credentials in the vault."
+docker = "Paperless, its database and its queue, published only inwards."
+zabbix = "Checks the container's HTTPS answers."
+wazuh = "Watches for configuration changes."
+hardening = "Drop by default, no SSH, TLS inside the container, two-factor in front and its own login behind."
+postgresql = "Paperless' database, migrated with a dump without opening documents."
+redis = "The queue where OCR jobs wait."
+llm = "A local model suggests title, tags and type: documents don't leave home."
+
+[text.en.close]
+lessons = [
+  "The most sensitive things are designed from the «no»: what must not be able to happen.",
+  "Check the real state before migrating: an SSH turned up that wasn't on any paper.",
+]
+next = [
+  "Regular encrypted backups off the server; then delete the old container.",
+  "Turn on Paperless' own second factor.",
+]

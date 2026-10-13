@@ -1,0 +1,929 @@
+# Unidad 1U del rack: Plex y la GPU.
+#
+# Fuente: Obsidian «Plex», «GPU Passthrough», el estado de Plex y la
+# transcodificación AV1 → HEVC. Sin direcciones, títulos ni rutas.
+
+id = "plex"
+status = "live"
+host_tech = ["lxc", "proxmox", "terraform"]
+links = [
+  ["tv", "router"],
+  ["phone", "traefik"],
+  ["gpu", "devices"],
+]
+
+[[groups]]
+id = "watch"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "transcode"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "gpuhost"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "library"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "tv"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "router"
+x = 290
+y = 110
+kind = "network"
+group = ""
+tech = ["vlan"]
+
+[[pods]]
+id = "phone"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "traefik"
+x = 290
+y = 250
+kind = "network"
+group = ""
+tech = ["traefik"]
+
+[[pods]]
+id = "gpu"
+x = 100
+y = 420
+kind = "compute"
+group = ""
+tech = []
+
+[[pods]]
+id = "zfs"
+x = 290
+y = 540
+kind = "compute"
+group = ""
+tech = ["zfs"]
+
+[[pods]]
+id = "plex"
+x = 515
+y = 140
+kind = "compute"
+group = "watch"
+tech = ["linux"]
+
+[[pods]]
+id = "direct"
+x = 700
+y = 140
+kind = "app"
+group = "watch"
+tech = []
+
+[[pods]]
+id = "sessions"
+x = 885
+y = 140
+kind = "observability"
+group = "watch"
+tech = []
+
+[[pods]]
+id = "update"
+x = 1070
+y = 140
+kind = "control"
+group = "watch"
+tech = ["linux"]
+
+[[pods]]
+id = "decode"
+x = 515
+y = 266
+kind = "compute"
+group = "transcode"
+tech = []
+
+[[pods]]
+id = "encode"
+x = 700
+y = 266
+kind = "compute"
+group = "transcode"
+tech = []
+
+[[pods]]
+id = "cpu"
+x = 885
+y = 266
+kind = "compute"
+group = "transcode"
+tech = []
+
+[[pods]]
+id = "detect"
+x = 1070
+y = 266
+kind = "observability"
+group = "transcode"
+tech = []
+
+[[pods]]
+id = "vfio"
+x = 515
+y = 392
+kind = "control"
+group = "gpuhost"
+tech = ["proxmox", "linux"]
+
+[[pods]]
+id = "driver"
+x = 700
+y = 392
+kind = "control"
+group = "gpuhost"
+tech = ["linux"]
+
+[[pods]]
+id = "devices"
+x = 885
+y = 392
+kind = "control"
+group = "gpuhost"
+tech = ["lxc"]
+
+[[pods]]
+id = "idmap"
+x = 1070
+y = 392
+kind = "control"
+group = "gpuhost"
+tech = ["lxc", "hardening"]
+
+[[pods]]
+id = "movies"
+x = 515
+y = 518
+kind = "app"
+group = "library"
+tech = ["zfs"]
+
+[[pods]]
+id = "scan"
+x = 700
+y = 518
+kind = "observability"
+group = "library"
+tech = ["linux"]
+
+[[pods]]
+id = "convert"
+x = 885
+y = 518
+kind = "compute"
+group = "library"
+tech = ["linux"]
+
+[[pods]]
+id = "live"
+x = 1070
+y = 518
+kind = "app"
+group = "library"
+tech = []
+
+[[flows]]
+id = "home"
+path = ["tv", "router", "plex", "movies", "zfs", "movies", "direct", "tv"]
+
+[[flows]]
+id = "away"
+path = ["phone", "traefik", "plex", "decode", "gpu", "encode", "sessions", "phone"]
+
+[[flows]]
+id = "av1"
+path = ["scan", "movies", "convert", "cpu", "encode", "gpu", "movies", "plex"]
+
+[[flows]]
+id = "boot"
+path = ["vfio", "driver", "gpu", "devices", "idmap", "plex", "detect"]
+
+[[flows]]
+id = "upgrade"
+path = ["update", "plex", "detect", "gpu"]
+
+[[incidents]]
+id = "cached"
+answer = 1
+
+[[incidents]]
+id = "nodes"
+answer = 3
+
+[[incidents]]
+id = "av1"
+answer = 2
+
+[[incidents]]
+id = "delete"
+answer = 0
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Plex y la GPU por dentro · Tito Pinardo Gutiérrez"
+description = "El servidor multimedia de casa: Plex en un contenedor sin privilegios con una GTX 1050 Ti para transcodificar por hardware, y lo que costó que la GPU siguiera funcionando tras cada cambio de driver."
+
+[text.es.ui]
+slot = "1U · PLEX"
+face_specs = "Plex · GTX 1050 Ti · NVENC"
+state = "En producción"
+map_silk = "MEDIA"
+map_title = "La multimedia por dentro"
+map_intro = "Una película puede llegar tal cual o convertirse al vuelo en la GPU. Elige un recorrido."
+vm_title = "Contenedor de Plex · Proxmox"
+vm_specs = "sin privilegios, con la GPU dentro"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, rutas, títulos ni nada de la biblioteca."
+
+[text.es.hero]
+kicker = "Unidad 1U · Multimedia"
+title = "Plex · con la GPU dentro"
+tagline = "El servidor multimedia de la casa. Cuando la tele o el móvil no pueden reproducir un formato, Plex lo convierte al vuelo en una GTX 1050 Ti que el contenedor ve como propia, sin cargar la CPU del servidor."
+grade = "Prioridad de la casa"
+facts = [
+  { label = "Por qué una GPU", value = "Convertir un 4K por CPU satura varios núcleos. Con la GPU, el mismo trabajo usa una fracción de uno." },
+  { label = "Cómo llega la GPU", value = "El driver vive en el hipervisor y el contenedor recibe sus dispositivos. Desde septiembre, en un contenedor sin privilegios con el mapeo de grupos justo." },
+  { label = "Lo difícil", value = "Que siga funcionando tras cada actualización del kernel o del driver: dos veces se rompió sin que nada dijera nada." },
+]
+
+[[text.es.stats]]
+value = "~30 %"
+label = "de un núcleo para un 4K convertido en la GPU"
+
+[[text.es.stats]]
+value = "3.295"
+label = "ficheros revisados buscando AV1"
+
+[[text.es.stats]]
+value = "12"
+label = "películas convertidas a HEVC"
+
+[[text.es.stats]]
+value = "0"
+label = "reinicios de Plex para arreglar la GPU la segunda vez"
+
+[text.es.groups]
+watch = "Ver"
+transcode = "Convertir al vuelo"
+gpuhost = "La GPU, del hipervisor al contenedor"
+library = "La biblioteca"
+
+[text.es.pods.tv]
+short = "La tele"
+title = "La tele de casa"
+text = "En el segmento WiFi, con una excepción en el cortafuegos solo para Plex."
+
+[text.es.pods.router]
+short = "Router"
+title = "Router"
+text = "Deja que la tele llegue a Plex y a nada más del servidor."
+
+[text.es.pods.phone]
+short = "Móvil fuera"
+title = "El móvil, fuera de casa"
+text = "Con una conexión peor, suele necesitar conversión."
+
+[text.es.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "La entrada desde fuera."
+
+[text.es.pods.gpu]
+short = "GTX 1050 Ti"
+title = "GTX 1050 Ti"
+text = "Una GPU modesta que codifica H.264 y HEVC por hardware, incluido HEVC de 10 bits con HDR. No sabe decodificar AV1."
+
+[text.es.pods.zfs]
+short = "Pool ZFS"
+title = "Almacenamiento"
+text = "La biblioteca vive en un pool ZFS de varios discos."
+
+[text.es.pods.plex]
+short = "Plex"
+title = "Plex Media Server"
+text = "El servidor, actualizado al canal beta porque el repositorio público va por detrás."
+
+[text.es.pods.direct]
+short = "Directo"
+title = "Reproducción directa"
+text = "Si el dispositivo entiende el formato, el fichero sale tal cual: ni GPU ni CPU."
+
+[text.es.pods.sessions]
+short = "Sesiones"
+title = "Sesiones"
+text = "Cada reproducción en curso, con su comando de conversión. Ahí se ve si va por GPU o por software."
+
+[text.es.pods.update]
+short = "Actualizar"
+title = "Actualización"
+text = "Paquete del canal beta, instalado dentro del contenedor y comprobado: versión, GPU detectada y migración de base de datos terminada."
+
+[text.es.pods.decode]
+short = "Decodificar"
+title = "Decodificación (NVDEC)"
+text = "La GPU descomprime el vídeo original."
+
+[text.es.pods.encode]
+short = "Codificar"
+title = "Codificación (NVENC)"
+text = "Y lo vuelve a comprimir al formato y calidad que pide el dispositivo."
+
+[text.es.pods.cpu]
+short = "CPU"
+title = "CPU, cuando no queda otra"
+text = "Lo que la GPU no sabe hacer (decodificar AV1) cae en la CPU."
+
+[text.es.pods.detect]
+short = "Detección"
+title = "Detección de hardware"
+text = "Plex mira una vez qué hardware tiene y lo recuerda. Si la GPU vuelve después, no se entera hasta reiniciar."
+
+[text.es.pods.vfio]
+short = "IOMMU"
+title = "IOMMU y arranque"
+text = "Parámetros del kernel para que la GPU tenga su grupo propio y se pueda asignar."
+
+[text.es.pods.driver]
+short = "Driver NVIDIA"
+title = "Driver en el hipervisor"
+text = "La versión se fija a propósito: cada kernel nuevo es una ocasión de que deje de compilar."
+
+[text.es.pods.devices]
+short = "Dispositivos"
+title = "Dispositivos de la GPU"
+text = "Los ficheros de dispositivo del hipervisor se pasan al contenedor, con su número exacto."
+
+[text.es.pods.idmap]
+short = "Sin privilegios"
+title = "Contenedor sin privilegios"
+text = "Solo el grupo de vídeo se mapea uno a uno; el resto va desplazado. El root del contenedor no es root del servidor."
+
+[text.es.pods.movies]
+short = "Biblioteca"
+title = "Biblioteca"
+text = "Películas y series en el pool, con un tiempo de acceso desactivado para ahorrar escrituras."
+
+[text.es.pods.scan]
+short = "Escaneo"
+title = "Escaneo de códecs"
+text = "Un recorrido de la biblioteca con ffprobe para saber qué códec tiene cada fichero."
+
+[text.es.pods.convert]
+short = "Conversión"
+title = "Conversión de la biblioteca"
+text = "Lo que ningún dispositivo de casa puede reproducir se convierte una vez y para siempre."
+
+[text.es.pods.live]
+short = "TV en directo"
+title = "Canales en directo"
+text = "Canales públicos de TDT, con su guía, servidos por la unidad de TV en directo."
+
+[text.es.flows.home]
+title = "Una película en la tele"
+steps = [
+  "La tele pide una película.",
+  "El router la deja llegar a Plex: es su única excepción.",
+  "Plex busca el fichero.",
+  "En la biblioteca.",
+  "El pool lo lee.",
+  "Vuelve a Plex.",
+  "La tele entiende el formato: reproducción directa, sin convertir nada.",
+  "Y se ve.",
+]
+
+[text.es.flows.away]
+title = "La misma película, fuera de casa"
+steps = [
+  "Desde el móvil, con datos, pido la misma película.",
+  "Entra por Traefik.",
+  "Plex ve que hace falta menos calidad.",
+  "La GPU decodifica el original.",
+  "Todo el trabajo pesado se queda en la GPU.",
+  "Y lo codifica a la calidad que aguanta la conexión.",
+  "En la sesión se ve que va por hardware.",
+  "Y llega al móvil sin cargar la CPU del servidor.",
+]
+
+[text.es.flows.av1]
+title = "Ficheros que nada en casa puede reproducir"
+steps = [
+  "Un escaneo de la biblioteca busca el códec de cada fichero.",
+  "Aparecen 14 en AV1; dos pares eran el mismo fichero enlazado dos veces: 12 películas.",
+  "Se convierten de una en una.",
+  "La CPU decodifica el AV1, porque esta GPU no sabe.",
+  "La GPU codifica en HEVC de 10 bits, conservando el HDR.",
+  "El trabajo de codificación, en la GPU.",
+  "El resultado sustituye al original.",
+  "Y Plex lo reproduce en cualquier dispositivo de casa.",
+]
+
+[text.es.flows.boot]
+title = "La GPU llega al contenedor"
+steps = [
+  "El hipervisor arranca con la IOMMU activa.",
+  "Carga el driver de NVIDIA, en su versión fijada.",
+  "La GPU queda lista.",
+  "Sus dispositivos se pasan al contenedor con su número exacto.",
+  "Sin privilegios: solo el grupo de vídeo coincide con el del hipervisor.",
+  "Plex arranca.",
+  "Y detecta la GPU. Si no estaba al arrancar, no la verá hasta reiniciarlo.",
+]
+
+[text.es.flows.upgrade]
+title = "Actualizo Plex"
+steps = [
+  "Instalo la versión nueva dentro del contenedor.",
+  "Plex arranca y migra su base de datos.",
+  "Compruebo que detecta la GPU.",
+  "Y que una conversión de prueba va por hardware.",
+]
+
+[text.es.incidents.cached]
+title = "La GPU estaba bien, pero Plex no la usaba"
+meta = "21-07-2026 · transcodificación"
+symptom = "Tras arreglar los dispositivos, la decodificación ya iba por GPU, pero la codificación seguía en la CPU. Probé incluso a quitar el límite de sesiones del driver: nada."
+options = [
+  "El límite de sesiones de NVENC de las GeForce",
+  "Plex había detectado el hardware al arrancar, sin GPU, y lo tenía guardado",
+  "El driver era incompatible",
+  "La película tenía un formato raro",
+]
+cause = "Plex detecta el hardware una vez y lo recuerda mientras el proceso vive. Cuando arrancó, la GPU no estaba disponible, y arreglarla por debajo no hacía que lo volviera a mirar."
+fix = "Reiniciar Plex en un momento sin nadie viendo nada. La siguiente conversión ya fue entera por GPU."
+lesson = "Arreglar la capa de abajo no basta si la de arriba guardó el estado roto. Hay que saber qué se cachea y cuándo se vuelve a mirar."
+
+[text.es.incidents.nodes]
+title = "La GPU desaparece del contenedor"
+meta = "Julio de 2026 · driver"
+symptom = "Tras una saga de actualizaciones del driver con un kernel nuevo, Plex volvió a convertir todo por CPU. En el hipervisor la GPU funcionaba."
+options = [
+  "La GPU se había estropeado",
+  "Plex había perdido la licencia",
+  "El contenedor no tenía memoria",
+  "Los ficheros de dispositivo del contenedor tenían otro número que los del hipervisor",
+]
+cause = "Los dispositivos de la GPU se crean al arrancar el driver con unos números concretos. Los que veía el contenedor no coincidían con los reales del hipervisor tras el cambio."
+fix = "La segunda vez que pasó, sin reiniciar Plex: recrear dentro del contenedor los dispositivos con los mismos números que el hipervisor. Y comprobar con una conversión de cinco fotogramas como usuario de Plex."
+lesson = "Hay que saber cómo comprobar de verdad que algo va por hardware: el comando de la sesión, la CPU del proceso y los dispositivos abiertos."
+
+[text.es.incidents.av1]
+title = "Películas que no se podían ver"
+meta = "06-08-2026 · formatos"
+symptom = "Algunas películas no se veían bien en ningún dispositivo de casa, ni siquiera convirtiéndolas al vuelo."
+options = [
+  "Los ficheros estaban dañados",
+  "Faltaba ancho de banda en la red",
+  "Estaban en AV1, que esta GPU no sabe decodificar, y convertirlas por CPU al vuelo no daba",
+  "Plex no tenía el códec instalado",
+]
+cause = "La GTX 1050 Ti es anterior a la decodificación de AV1 por hardware. Al vuelo, la CPU sola no llegaba a tiempo real en 4K."
+fix = "Convertir esas 12 películas una vez: decodificar por CPU y codificar HEVC de 10 bits en la GPU, conservando el HDR. Comprobado contra la lista del gestor de la biblioteca."
+lesson = "Si un trabajo caro se va a repetir en cada reproducción, se hace una vez y se guarda."
+
+[text.es.incidents.delete]
+title = "Borrar desde Plex no funcionaba"
+meta = "19-09-2026 · permisos"
+symptom = "Tras pasar Plex a un contenedor sin privilegios, al borrar contenido desde su interfaz daba error. Y ni siquiera el root del contenedor podía arreglar los permisos."
+options = [
+  "En un contenedor sin privilegios el root no es root: había que arreglar los permisos desde el hipervisor",
+  "Plex no tenía permiso de borrado activado",
+  "El pool estaba en solo lectura",
+  "Los ficheros estaban en uso",
+]
+cause = "Algunas carpetas no tenían permiso de escritura para el grupo. Y en este contenedor solo el grupo de vídeo coincide con el del hipervisor: el root de dentro no puede cambiar ficheros que no le pertenecen."
+fix = "Dar el permiso de grupo desde el hipervisor, solo en las carpetas que lo necesitaban, y probar a crear y borrar como el usuario de Plex. Sin parar Plex."
+lesson = "Un contenedor sin privilegios es más seguro precisamente porque su root no puede con todo. Eso cambia dónde se arreglan las cosas."
+
+[[text.es.timeline]]
+title = "GPU para Plex"
+period = "Primavera de 2026"
+items = [
+  "GTX 1050 Ti con su grupo IOMMU propio y el driver en el hipervisor.",
+  "Conversión por hardware en el contenedor de Plex.",
+]
+
+[[text.es.timeline]]
+title = "La saga del driver"
+period = "Julio de 2026"
+items = [
+  "Driver fijado a una versión que compila con el kernel nuevo.",
+  "Dispositivos y detección arreglados, y una forma fiable de comprobarlo.",
+]
+
+[[text.es.timeline]]
+title = "Biblioteca y contenedor nuevo"
+period = "Agosto y septiembre de 2026"
+items = [
+  "AV1 convertido a HEVC.",
+  "Plex en un contenedor sin privilegios gestionado con Terraform.",
+]
+
+[[text.es.decisions]]
+title = "Qué GPU"
+choice = "Una modesta, para conversión"
+why = "Para convertir vídeo no hace falta potencia de cálculo sino el bloque de codificación, y una GeForce pequeña lo tiene."
+
+[[text.es.decisions]]
+title = "Con privilegios o sin ellos"
+choice = "Sin privilegios, con el mapeo justo"
+why = "Con privilegios todo es más fácil, pero el root del contenedor sería el del servidor. Sin ellos, solo el grupo de vídeo se comparte."
+
+[[text.es.decisions]]
+title = "El driver"
+choice = "Fijado, no el último"
+why = "Plex es lo que más se usa en casa. Una versión que funciona con el kernel actual vale más que una más nueva que quizá no compile."
+
+[text.es.tech_notes]
+proxmox = "IOMMU, el driver de la GPU en el hipervisor y los permisos que el contenedor no puede tocar."
+lxc = "Contenedor sin privilegios con los dispositivos de la GPU pasados dentro y el grupo de vídeo mapeado uno a uno."
+terraform = "Crea el contenedor de Plex."
+zfs = "La biblioteca en un pool ZFS, con el tiempo de acceso desactivado."
+linux = "Driver fijado, ffmpeg y ffprobe para revisar y convertir la biblioteca, y comprobaciones por usuario."
+vlan = "La tele está en el segmento más aislado, con una excepción solo para Plex."
+traefik = "La entrada a Plex desde fuera de casa."
+hardening = "Contenedor sin privilegios y una única excepción de red para la tele."
+
+[text.es.close]
+lessons = [
+  "Comprobar por hardware de verdad, no por lo que dice el panel.",
+  "Saber qué guarda en caché cada capa y cuándo lo vuelve a mirar.",
+]
+next = [
+  "Una GPU con decodificación AV1 para dejar de convertir la biblioteca.",
+  "Pasar el driver a un repositorio firmado como manda la política actual de APT.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside Plex and the GPU · Tito Pinardo Gutiérrez"
+description = "The home media server: Plex in an unprivileged container with a GTX 1050 Ti for hardware transcoding, and what it took to keep the GPU working after every driver change."
+
+[text.en.ui]
+slot = "1U · PLEX"
+face_specs = "Plex · GTX 1050 Ti · NVENC"
+state = "In production"
+map_silk = "MEDIA"
+map_title = "Inside the media"
+map_intro = "A film can arrive as it is or be converted on the fly on the GPU. Pick a flow."
+vm_title = "Plex container · Proxmox"
+vm_specs = "unprivileged, with the GPU inside"
+outside = "Outside"
+disclaimer = "Rebuilt from my documentation: no addresses, paths, titles or anything from the library."
+
+[text.en.hero]
+kicker = "1U unit · Media"
+title = "Plex · with the GPU inside"
+tagline = "The home media server. When the TV or a phone can't play a format, Plex converts it on the fly on a GTX 1050 Ti that the container sees as its own, without loading the server's CPU."
+grade = "The household's priority"
+facts = [
+  { label = "Why a GPU", value = "Converting 4K on the CPU saturates several cores. With the GPU, the same work uses a fraction of one." },
+  { label = "How the GPU gets there", value = "The driver lives on the hypervisor and the container receives its devices. Since September, in an unprivileged container with exactly the group mapping it needs." },
+  { label = "The hard part", value = "Keeping it working after every kernel or driver update: twice it broke without anything saying so." },
+]
+
+[[text.en.stats]]
+value = "~30 %"
+label = "of one core for a 4K stream converted on the GPU"
+
+[[text.en.stats]]
+value = "3,295"
+label = "files checked looking for AV1"
+
+[[text.en.stats]]
+value = "12"
+label = "films converted to HEVC"
+
+[[text.en.stats]]
+value = "0"
+label = "Plex restarts to fix the GPU the second time"
+
+[text.en.groups]
+watch = "Watch"
+transcode = "Convert on the fly"
+gpuhost = "The GPU, from hypervisor to container"
+library = "The library"
+
+[text.en.pods.tv]
+short = "The TV"
+title = "The home TV"
+text = "On the Wi-Fi segment, with a firewall exception for Plex only."
+
+[text.en.pods.router]
+short = "Router"
+title = "Router"
+text = "Lets the TV reach Plex and nothing else on the server."
+
+[text.en.pods.phone]
+short = "Phone outside"
+title = "The phone, away from home"
+text = "On a worse connection, it usually needs converting."
+
+[text.en.pods.traefik]
+short = "Traefik"
+title = "Traefik"
+text = "The way in from outside."
+
+[text.en.pods.gpu]
+short = "GTX 1050 Ti"
+title = "GTX 1050 Ti"
+text = "A modest GPU that encodes H.264 and HEVC in hardware, including 10-bit HEVC with HDR. It can't decode AV1."
+
+[text.en.pods.zfs]
+short = "ZFS pool"
+title = "Storage"
+text = "The library lives on a multi-disk ZFS pool."
+
+[text.en.pods.plex]
+short = "Plex"
+title = "Plex Media Server"
+text = "The server, updated from the beta channel because the public repo lags behind."
+
+[text.en.pods.direct]
+short = "Direct"
+title = "Direct play"
+text = "If the device understands the format, the file goes out as it is: no GPU, no CPU."
+
+[text.en.pods.sessions]
+short = "Sessions"
+title = "Sessions"
+text = "Every playback in progress, with its conversion command. That's where you see whether it's on GPU or software."
+
+[text.en.pods.update]
+short = "Update"
+title = "Update"
+text = "Beta-channel package, installed inside the container and checked: version, GPU detected and database migration done."
+
+[text.en.pods.decode]
+short = "Decode"
+title = "Decoding (NVDEC)"
+text = "The GPU decompresses the original video."
+
+[text.en.pods.encode]
+short = "Encode"
+title = "Encoding (NVENC)"
+text = "And compresses it again to the format and quality the device asks for."
+
+[text.en.pods.cpu]
+short = "CPU"
+title = "CPU, when there's no choice"
+text = "Whatever the GPU can't do (decode AV1) falls to the CPU."
+
+[text.en.pods.detect]
+short = "Detection"
+title = "Hardware detection"
+text = "Plex checks its hardware once and remembers. If the GPU comes back later, it won't notice until restarted."
+
+[text.en.pods.vfio]
+short = "IOMMU"
+title = "IOMMU and boot"
+text = "Kernel parameters so the GPU gets its own group and can be assigned."
+
+[text.en.pods.driver]
+short = "NVIDIA driver"
+title = "Driver on the hypervisor"
+text = "The version is pinned on purpose: every new kernel is a chance for it to stop compiling."
+
+[text.en.pods.devices]
+short = "Devices"
+title = "GPU devices"
+text = "The hypervisor's device files are passed into the container, with their exact numbers."
+
+[text.en.pods.idmap]
+short = "Unprivileged"
+title = "Unprivileged container"
+text = "Only the video group is mapped one to one; the rest is shifted. Root in the container isn't root on the server."
+
+[text.en.pods.movies]
+short = "Library"
+title = "Library"
+text = "Films and series on the pool, with access time disabled to save writes."
+
+[text.en.pods.scan]
+short = "Scan"
+title = "Codec scan"
+text = "A walk through the library with ffprobe to find each file's codec."
+
+[text.en.pods.convert]
+short = "Conversion"
+title = "Library conversion"
+text = "What no device at home can play is converted once and for all."
+
+[text.en.pods.live]
+short = "Live TV"
+title = "Live channels"
+text = "Public free-to-air channels with their guide, served by the live TV unit."
+
+[text.en.flows.home]
+title = "A film on the TV"
+steps = [
+  "The TV asks for a film.",
+  "The router lets it reach Plex: its only exception.",
+  "Plex looks up the file.",
+  "In the library.",
+  "The pool reads it.",
+  "Back to Plex.",
+  "The TV understands the format: direct play, nothing converted.",
+  "And it plays.",
+]
+
+[text.en.flows.away]
+title = "The same film, away from home"
+steps = [
+  "From my phone, on mobile data, I ask for the same film.",
+  "It comes in through Traefik.",
+  "Plex sees it needs lower quality.",
+  "The GPU decodes the original.",
+  "All the heavy lifting stays on the GPU.",
+  "And encodes it at the quality the connection can take.",
+  "The session shows it's on hardware.",
+  "And it reaches the phone without loading the server's CPU.",
+]
+
+[text.en.flows.av1]
+title = "Files nothing at home could play"
+steps = [
+  "A library scan looks up each file's codec.",
+  "14 show up in AV1; two pairs were the same file linked twice: 12 films.",
+  "They're converted one by one.",
+  "The CPU decodes AV1, because this GPU can't.",
+  "The GPU encodes 10-bit HEVC, keeping HDR.",
+  "The encoding work, on the GPU.",
+  "The result replaces the original.",
+  "And Plex plays it on any device at home.",
+]
+
+[text.en.flows.boot]
+title = "The GPU reaches the container"
+steps = [
+  "The hypervisor boots with IOMMU on.",
+  "It loads the NVIDIA driver, at its pinned version.",
+  "The GPU is ready.",
+  "Its devices are passed into the container with their exact numbers.",
+  "Unprivileged: only the video group matches the hypervisor's.",
+  "Plex starts.",
+  "And detects the GPU. If it wasn't there at start-up, it won't see it until restarted.",
+]
+
+[text.en.flows.upgrade]
+title = "I update Plex"
+steps = [
+  "I install the new version inside the container.",
+  "Plex starts and migrates its database.",
+  "I check it detects the GPU.",
+  "And that a test conversion runs on hardware.",
+]
+
+[text.en.incidents.cached]
+title = "The GPU was fine, but Plex didn't use it"
+meta = "21-07-2026 · transcoding"
+symptom = "After fixing the devices, decoding was on the GPU again, but encoding stayed on the CPU. I even tried lifting the driver's session limit: nothing."
+options = [
+  "GeForce cards' NVENC session limit",
+  "Plex had detected the hardware at start-up, without the GPU, and kept that",
+  "The driver was incompatible",
+  "The film had an odd format",
+]
+cause = "Plex detects hardware once and remembers it while the process lives. When it started the GPU wasn't available, and fixing it underneath didn't make it look again."
+fix = "Restart Plex at a moment when nobody was watching anything. The next conversion ran fully on the GPU."
+lesson = "Fixing the layer below isn't enough if the layer above kept the broken state. You have to know what's cached and when it's checked again."
+
+[text.en.incidents.nodes]
+title = "The GPU vanishes from the container"
+meta = "July 2026 · driver"
+symptom = "After a run of driver updates with a new kernel, Plex went back to converting everything on the CPU. On the hypervisor the GPU worked."
+options = [
+  "The GPU had died",
+  "Plex had lost its licence",
+  "The container had no memory",
+  "The container's device files had different numbers from the hypervisor's",
+]
+cause = "The GPU's devices are created when the driver starts, with specific numbers. The ones the container saw didn't match the hypervisor's real ones after the change."
+fix = "The second time it happened, without restarting Plex: recreate the devices inside the container with the same numbers as the hypervisor. And check with a five-frame conversion as the Plex user."
+lesson = "Know how to really check something runs on hardware: the session's command, the process's CPU and the devices it has open."
+
+[text.en.incidents.av1]
+title = "Films that couldn't be watched"
+meta = "06-08-2026 · formats"
+symptom = "Some films didn't play well on any device at home, not even when converted on the fly."
+options = [
+  "The files were damaged",
+  "The network was short on bandwidth",
+  "They were AV1, which this GPU can't decode, and converting on the fly on the CPU wasn't fast enough",
+  "Plex didn't have the codec installed",
+]
+cause = "The GTX 1050 Ti predates hardware AV1 decoding. On the fly, the CPU alone couldn't keep up with 4K in real time."
+fix = "Convert those 12 films once: decode on the CPU and encode 10-bit HEVC on the GPU, keeping HDR. Checked against the library manager's list."
+lesson = "If an expensive job would be repeated on every playback, do it once and keep it."
+
+[text.en.incidents.delete]
+title = "Deleting from Plex didn't work"
+meta = "19-09-2026 · permissions"
+symptom = "After moving Plex to an unprivileged container, deleting content from its interface failed. And not even the container's root could fix the permissions."
+options = [
+  "In an unprivileged container root isn't root: the permissions had to be fixed from the hypervisor",
+  "Plex didn't have deletion enabled",
+  "The pool was read-only",
+  "The files were in use",
+]
+cause = "Some folders lacked group write permission. And in this container only the video group matches the hypervisor's: root inside can't change files it doesn't own."
+fix = "Grant the group permission from the hypervisor, only on the folders that needed it, and test creating and deleting as the Plex user. Without stopping Plex."
+lesson = "An unprivileged container is safer precisely because its root can't do everything. That changes where things get fixed."
+
+[[text.en.timeline]]
+title = "A GPU for Plex"
+period = "Spring 2026"
+items = [
+  "GTX 1050 Ti with its own IOMMU group and the driver on the hypervisor.",
+  "Hardware conversion in the Plex container.",
+]
+
+[[text.en.timeline]]
+title = "The driver saga"
+period = "July 2026"
+items = [
+  "Driver pinned to a version that builds with the new kernel.",
+  "Devices and detection fixed, and a reliable way to check it.",
+]
+
+[[text.en.timeline]]
+title = "Library and new container"
+period = "August and September 2026"
+items = [
+  "AV1 converted to HEVC.",
+  "Plex in an unprivileged container managed with Terraform.",
+]
+
+[[text.en.decisions]]
+title = "Which GPU"
+choice = "A modest one, for conversion"
+why = "Converting video doesn't need compute power but the encoding block, and a small GeForce has it."
+
+[[text.en.decisions]]
+title = "Privileged or not"
+choice = "Unprivileged, with just the right mapping"
+why = "Privileged makes everything easier, but the container's root would be the server's. Without it, only the video group is shared."
+
+[[text.en.decisions]]
+title = "The driver"
+choice = "Pinned, not the latest"
+why = "Plex is the most used thing at home. A version that works with the current kernel is worth more than a newer one that might not build."
+
+[text.en.tech_notes]
+proxmox = "IOMMU, the GPU driver on the hypervisor and the permissions the container can't touch."
+lxc = "An unprivileged container with the GPU's devices passed in and the video group mapped one to one."
+terraform = "Creates the Plex container."
+zfs = "The library on a ZFS pool, with access time disabled."
+linux = "Pinned driver, ffmpeg and ffprobe to review and convert the library, and per-user checks."
+vlan = "The TV sits on the most isolated segment, with an exception for Plex only."
+traefik = "The way into Plex from outside home."
+hardening = "An unprivileged container and a single network exception for the TV."
+
+[text.en.close]
+lessons = [
+  "Check on real hardware, not on what the panel says.",
+  "Know what each layer caches and when it checks again.",
+]
+next = [
+  "A GPU with AV1 decoding, to stop converting the library.",
+  "Move the driver to a signed repository as current APT policy requires.",
+]

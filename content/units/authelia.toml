@@ -1,0 +1,851 @@
+# Unidad 1U del rack: la puerta interna (Caddy + Authelia).
+#
+# Fuente: Obsidian «Caddy + Authelia», la auditoría de seguridad del 06-09 y
+# la retirada de paneles de internet del 26-09. Sin nombres internos.
+
+id = "authelia"
+status = "live"
+host_tech = ["docker", "linux"]
+links = [
+  ["laptop", "dns"],
+  ["phone", "vpn"],
+  ["vpn", "dns"],
+]
+
+[[groups]]
+id = "proxy"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "auth"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "panels"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "rules"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "laptop"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "phone"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "vpn"
+x = 290
+y = 250
+kind = "network"
+group = ""
+tech = ["wireguard"]
+
+[[pods]]
+id = "dns"
+x = 290
+y = 110
+kind = "network"
+group = ""
+tech = ["dns"]
+
+[[pods]]
+id = "internet"
+x = 100
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "caddy"
+x = 515
+y = 140
+kind = "network"
+group = "proxy"
+tech = ["docker"]
+
+[[pods]]
+id = "internaltls"
+x = 700
+y = 140
+kind = "network"
+group = "proxy"
+tech = ["docker"]
+
+[[pods]]
+id = "forward"
+x = 885
+y = 140
+kind = "control"
+group = "proxy"
+tech = ["docker", "hardening"]
+
+[[pods]]
+id = "headers"
+x = 1070
+y = 140
+kind = "network"
+group = "proxy"
+tech = ["docker"]
+
+[[pods]]
+id = "authelia"
+x = 515
+y = 266
+kind = "observability"
+group = "auth"
+tech = ["hardening", "docker"]
+
+[[pods]]
+id = "password"
+x = 700
+y = 266
+kind = "observability"
+group = "auth"
+tech = ["hardening"]
+
+[[pods]]
+id = "totp"
+x = 885
+y = 266
+kind = "observability"
+group = "auth"
+tech = ["hardening"]
+
+[[pods]]
+id = "session"
+x = 1070
+y = 266
+kind = "control"
+group = "auth"
+tech = ["hardening"]
+
+[[pods]]
+id = "stacks"
+x = 515
+y = 392
+kind = "control"
+group = "panels"
+tech = ["docker"]
+
+[[pods]]
+id = "library"
+x = 700
+y = 392
+kind = "compute"
+group = "panels"
+tech = ["docker"]
+
+[[pods]]
+id = "dnspanel"
+x = 885
+y = 392
+kind = "network"
+group = "panels"
+tech = ["dns"]
+
+[[pods]]
+id = "monitoring"
+x = 1070
+y = 392
+kind = "observability"
+group = "panels"
+tech = []
+
+[[pods]]
+id = "localbind"
+x = 515
+y = 518
+kind = "control"
+group = "rules"
+tech = ["docker", "hardening"]
+
+[[pods]]
+id = "lanonly"
+x = 700
+y = 518
+kind = "network"
+group = "rules"
+tech = ["hardening"]
+
+[[pods]]
+id = "policy"
+x = 885
+y = 518
+kind = "control"
+group = "rules"
+tech = ["hardening"]
+
+[[pods]]
+id = "reload"
+x = 1070
+y = 518
+kind = "control"
+group = "rules"
+tech = ["docker"]
+
+[[flows]]
+id = "login"
+path = ["laptop", "dns", "caddy", "forward", "authelia", "password", "totp", "session", "forward", "stacks", "caddy", "laptop"]
+
+[[flows]]
+id = "again"
+path = ["laptop", "caddy", "forward", "session", "forward", "library", "laptop"]
+
+[[flows]]
+id = "remote"
+path = ["phone", "vpn", "dns", "caddy", "forward", "authelia", "totp", "monitoring", "phone"]
+
+[[flows]]
+id = "bypass"
+path = ["laptop", "stacks", "localbind", "laptop", "caddy", "forward", "authelia"]
+
+[[flows]]
+id = "outside"
+path = ["internet", "lanonly", "policy"]
+
+[[incidents]]
+id = "directport"
+answer = 1
+
+[[incidents]]
+id = "published"
+answer = 2
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "La puerta interna por dentro · Tito Pinardo Gutiérrez"
+description = "Cómo se entra a los paneles internos del homelab: Caddy con certificados internos, Authelia con inicio de sesión único y doble factor, y por qué ningún panel queda a un puerto de distancia de saltárselo."
+
+[text.es.ui]
+slot = "1U · SSO + 2FA"
+face_specs = "Caddy · Authelia · solo LAN y VPN"
+state = "En producción"
+map_silk = "AUTH"
+map_title = "La puerta interna por dentro"
+map_intro = "Los paneles internos no se publican: se llega a ellos desde casa o la VPN, y siempre pasando por aquí. Elige un recorrido."
+vm_title = "Proxy interno · contenedor Docker"
+vm_specs = "Caddy + Authelia"
+outside = "Desde dónde se entra"
+disclaimer = "Reconstrucción a partir de mi documentación: sin nombres internos, direcciones ni usuarios."
+
+[text.es.hero]
+kicker = "Unidad 1U · Acceso a los paneles"
+title = "Caddy + Authelia · la puerta interna"
+tagline = "Traefik es la puerta a internet; esta es la de dentro. Caddy recibe las peticiones a los paneles del homelab y, antes de dejar pasar ninguna, le pregunta a Authelia si hay una sesión válida con doble factor."
+grade = "Doble factor por defecto"
+facts = [
+  { label = "Por qué dos puertas", value = "Lo público y lo de administración no deben compartir entrada. Si alguien encuentra un fallo en la puerta pública, los paneles no están detrás." },
+  { label = "Cómo decide", value = "Caddy hace una consulta de autorización a Authelia por cada petición. Authelia decide; el contenido no pasa por ella." },
+  { label = "La regla de oro", value = "Un panel protegido no puede ser alcanzable por su puerto directo: si lo es, la protección es decorativa." },
+]
+
+[[text.es.stats]]
+value = "2FA"
+label = "política por defecto para todo lo protegido"
+
+[[text.es.stats]]
+value = "0"
+label = "paneles internos con nombre público"
+
+[[text.es.stats]]
+value = "302"
+label = "lo que recibe quien llega sin sesión"
+
+[[text.es.stats]]
+value = "5 min"
+label = "de margen para revertir cada cambio de acceso"
+
+[text.es.groups]
+proxy = "Proxy interno"
+auth = "Autenticación"
+panels = "Paneles protegidos"
+rules = "Reglas que la hacen efectiva"
+
+[text.es.pods.laptop]
+short = "Mi portátil"
+title = "Mi portátil, en casa"
+text = "Desde la red de casa abro los paneles por su nombre interno."
+
+[text.es.pods.phone]
+short = "Móvil fuera"
+title = "El móvil, fuera de casa"
+text = "Desde fuera solo se llega con la VPN."
+
+[text.es.pods.vpn]
+short = "VPN"
+title = "VPN WireGuard"
+text = "Pone el móvil dentro de la red como si estuviera en casa."
+
+[text.es.pods.dns]
+short = "DNS de casa"
+title = "DNS de casa"
+text = "Los nombres internos solo existen aquí: fuera de casa no resuelven."
+
+[text.es.pods.internet]
+short = "Internet"
+title = "Internet"
+text = "Desde donde los paneles internos no se pueden alcanzar."
+
+[text.es.pods.caddy]
+short = "Caddy"
+title = "Caddy"
+text = "El proxy interno. Recibe la petición y, antes de tocar el panel, pide permiso a Authelia."
+
+[text.es.pods.internaltls]
+short = "TLS interno"
+title = "TLS interno"
+text = "Caddy firma sus propios certificados para los nombres internos: todo va cifrado también dentro de casa."
+
+[text.es.pods.forward]
+short = "Forward auth"
+title = "Consulta de autorización"
+text = "Por cada petición, Caddy pregunta a Authelia «¿esta sesión puede ver esto?». Si no, redirige al inicio de sesión."
+
+[text.es.pods.headers]
+short = "Cabeceras"
+title = "Cabeceras de identidad"
+text = "Cuando Authelia dice que sí, Caddy pasa al panel quién es el usuario y a qué grupos pertenece."
+
+[text.es.pods.authelia]
+short = "Authelia"
+title = "Authelia"
+text = "El servidor de inicio de sesión único: un login para todos los paneles, con su política de acceso."
+
+[text.es.pods.password]
+short = "Contraseña"
+title = "Primer factor"
+text = "Usuario y contraseña, con limitación de intentos."
+
+[text.es.pods.totp]
+short = "Código 2FA"
+title = "Segundo factor"
+text = "Un código temporal del móvil. La política por defecto lo exige para todo lo protegido."
+
+[text.es.pods.session]
+short = "Sesión"
+title = "Sesión"
+text = "Tras entrar, una cookie de sesión vale para todos los paneles durante un tiempo: no hay que repetir el login en cada uno."
+
+[text.es.pods.stacks]
+short = "Gestor stacks"
+title = "Gestor de contenedores"
+text = "El panel con más poder: gestiona los stacks de Docker. Doble factor y, después, su propio login."
+
+[text.es.pods.library]
+short = "Biblioteca"
+title = "Paneles de la biblioteca"
+text = "Los servicios que mantienen ordenada la biblioteca multimedia."
+
+[text.es.pods.dnspanel]
+short = "Panel DNS"
+title = "Panel del DNS"
+text = "La administración del DNS de casa, solo detrás de esta puerta."
+
+[text.es.pods.monitoring]
+short = "Monitorización"
+title = "Paneles de monitorización"
+text = "Métricas y seguridad, para revisarlas desde cualquier sitio con la VPN."
+
+[text.es.pods.localbind]
+short = "Solo localhost"
+title = "Puertos solo en localhost"
+text = "Los paneles protegidos publican su puerto solo hacia dentro del propio contenedor: el único camino para llegar es Caddy."
+
+[text.es.pods.lanonly]
+short = "Solo LAN · VPN"
+title = "Solo red de casa y VPN"
+text = "Los nombres internos no existen en internet y el cortafuegos no deja entrar desde fuera."
+
+[text.es.pods.policy]
+short = "Política"
+title = "Política de acceso"
+text = "Por defecto, doble factor. Las excepciones son explícitas y pocas."
+
+[text.es.pods.reload]
+short = "Recarga"
+title = "Recarga sin cortes"
+text = "Los cambios de configuración se validan y se recargan sin tirar el proxy."
+
+[text.es.flows.login]
+title = "Abro un panel por primera vez"
+steps = [
+  "Desde casa, abro el gestor de contenedores por su nombre interno.",
+  "El DNS de casa resuelve el nombre al proxy interno.",
+  "Caddy recibe la petición, cifrada con su certificado interno.",
+  "Antes de nada, consulta a Authelia si puedo pasar.",
+  "No hay sesión: Authelia me lleva a su página de inicio.",
+  "Primer factor: usuario y contraseña.",
+  "Segundo factor: el código temporal del móvil.",
+  "Authelia crea la sesión.",
+  "Caddy repite la consulta y ahora la respuesta es sí.",
+  "Pasa la petición al panel, que todavía me pide su propio login.",
+  "La respuesta vuelve por Caddy.",
+  "Y veo el panel.",
+]
+
+[text.es.flows.again]
+title = "Abro otro panel después"
+steps = [
+  "Un rato después abro otro panel distinto.",
+  "Caddy recibe la petición.",
+  "Consulta a Authelia.",
+  "La sesión sigue siendo válida: no hace falta volver a entrar.",
+  "Respuesta: sí.",
+  "La petición llega al panel de la biblioteca.",
+  "Lo veo directamente. Un login para todo.",
+]
+
+[text.es.flows.remote]
+title = "Lo reviso desde fuera"
+steps = [
+  "Estoy fuera de casa y quiero ver la monitorización.",
+  "Abro la VPN: el móvil pasa a estar dentro de la red.",
+  "Ahora el nombre interno sí resuelve.",
+  "Caddy recibe la petición.",
+  "Consulta a Authelia.",
+  "Sesión nueva en este dispositivo: inicio de sesión y código.",
+  "Con el segundo factor, adelante.",
+  "La petición llega al panel.",
+  "Lo reviso desde el móvil.",
+]
+
+[text.es.flows.bypass]
+title = "Alguien intenta saltarse la puerta"
+steps = [
+  "Un dispositivo de la red intenta ir directo al puerto del gestor de contenedores, sin pasar por Caddy.",
+  "El panel solo escucha dentro de su propio contenedor.",
+  "La conexión se rechaza: desde la red no hay nada en ese puerto.",
+  "Lo único que queda es la puerta de verdad.",
+  "Caddy recibe la petición.",
+  "Consulta a Authelia.",
+  "Y sin sesión con doble factor, no pasa.",
+]
+
+[text.es.flows.outside]
+title = "Alguien lo intenta desde internet"
+steps = [
+  "Alguien en internet busca los paneles internos.",
+  "Sus nombres no existen fuera de casa y el cortafuegos no deja entrar.",
+  "No hay nada que atacar: la política ni siquiera llega a evaluarse.",
+]
+
+[text.es.incidents.directport]
+title = "Una puerta con doble factor… y otra sin él"
+meta = "06-09-2026 · auditoría"
+symptom = "El gestor de contenedores ya pedía inicio de sesión y doble factor a través de la puerta interna. En la auditoría, aun así, lo marqué como hallazgo."
+options = [
+  "El código 2FA no caducaba",
+  "Su puerto seguía abierto en la red: se podía entrar sin pasar por Authelia",
+  "La sesión duraba demasiado",
+  "El certificado interno estaba caducado",
+]
+cause = "El contenedor publicaba su puerto en todas las interfaces. Quien estuviera en la red podía ir directo al puerto y saltarse Caddy y Authelia. Para un panel con acceso a Docker, eso es acceso de administrador."
+fix = "Publicar el puerto solo en localhost y comprobarlo: sin sesión, la puerta da 302 al login; el puerto directo, rechazado desde el PC. Con reversión automática a los 5 minutos por si me dejaba fuera."
+lesson = "La autenticación delante solo sirve si no hay otro camino. Hay que probar el atajo, no solo la puerta."
+
+[text.es.incidents.published]
+title = "Paneles internos con nombre público"
+meta = "26-09-2026 · superficie"
+symptom = "Revisando todo lo que se veía desde internet, varios paneles de administración tenían su propio nombre público y su ruta en la puerta de internet."
+options = [
+  "Cloudflare los publicaba por defecto",
+  "Un servicio los registraba solo al arrancar",
+  "Se habían ido publicando por comodidad, uno a uno",
+  "El DNS de casa se filtraba fuera",
+]
+cause = "Cada panel se había publicado en su momento para poder verlo desde fuera. Ninguno era grave por sí solo; juntos eran demasiada superficie."
+fix = "Retirar de internet sus rutas y sus registros DNS en un mismo día. Siguen en uso, pero detrás de esta puerta: desde casa o la VPN, con doble factor."
+lesson = "La comodidad publica cosas de una en una; la seguridad las revisa todas juntas."
+
+[[text.es.timeline]]
+title = "Caddy para los nombres internos"
+period = "Verano de 2026"
+items = [
+  "Un proxy interno con certificados propios para los nombres de casa.",
+  "Authelia delante de los paneles de la biblioteca.",
+]
+
+[[text.es.timeline]]
+title = "Auditoría de acceso"
+period = "06-09-2026"
+items = [
+  "Doble factor como política por defecto.",
+  "El gestor de contenedores, detrás de la puerta y con su puerto solo en localhost.",
+  "Cada cambio, con un temporizador de reversión de 5 minutos.",
+]
+
+[[text.es.timeline]]
+title = "Todo lo interno, por aquí"
+period = "26-09-2026"
+items = [
+  "Los paneles que se veían desde internet pasan a esta puerta.",
+  "El panel del DNS nuevo también, con su backend aceptando solo a Caddy.",
+]
+
+[[text.es.decisions]]
+title = "Dónde se autentica"
+choice = "Una vez, en Authelia, para todos los paneles"
+why = "Cada panel con su propio login débil es un punto flojo. Con inicio de sesión único, el doble factor protege todo a la vez."
+
+[[text.es.decisions]]
+title = "Qué pasa con los logins propios"
+choice = "Se conservan detrás del SSO"
+why = "Para el panel más delicado, el doble factor de Authelia no sustituye su login: lo precede. Dos llaves distintas."
+
+[[text.es.decisions]]
+title = "Cómo se aplica un cambio de acceso"
+choice = "Con reversión automática"
+why = "Un error en la puerta te deja fuera de la puerta. Cada cambio llevaba un temporizador que deshacía todo a los 5 minutos si no lo cancelaba tras probar."
+
+[text.es.tech_notes]
+linux = "Un contenedor Linux con Docker que agrupa el proxy interno y los paneles de la biblioteca."
+docker = "Caddy, Authelia y los paneles corren como contenedores; los protegidos publican su puerto solo en localhost."
+wireguard = "Desde fuera de casa, los paneles solo se alcanzan a través de la VPN."
+dns = "Los nombres internos solo resuelven en el DNS de casa, y su panel de administración está detrás de esta puerta."
+hardening = "Inicio de sesión único con doble factor por defecto, ningún panel con nombre público y ningún atajo por puerto directo."
+
+[text.es.close]
+lessons = [
+  "Separar la entrada pública de la de administración.",
+  "Probar el atajo: una puerta con doble factor no sirve si hay una ventana abierta al lado.",
+  "Cambios de acceso siempre con un camino de vuelta automático.",
+]
+next = [
+  "Integrar más paneles por OIDC para que dejen de necesitar su propia cuenta local.",
+  "Llevar la configuración de Caddy al repositorio de infraestructura, como las rutas de Traefik.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside the internal door · Tito Pinardo Gutiérrez"
+description = "How you get into the homelab's internal panels: Caddy with internal certificates, Authelia with single sign-on and two-factor auth, and why no panel is ever one port away from being bypassed."
+
+[text.en.ui]
+slot = "1U · SSO + 2FA"
+face_specs = "Caddy · Authelia · LAN and VPN only"
+state = "In production"
+map_silk = "AUTH"
+map_title = "Inside the internal door"
+map_intro = "Internal panels aren't published: you reach them from home or the VPN, and always through here. Pick a flow."
+vm_title = "Internal proxy · Docker container"
+vm_specs = "Caddy + Authelia"
+outside = "Where you come from"
+disclaimer = "Rebuilt from my documentation: no internal names, addresses or users."
+
+[text.en.hero]
+kicker = "1U unit · Access to the panels"
+title = "Caddy + Authelia · the internal door"
+tagline = "Traefik is the door to the internet; this is the one inside. Caddy receives requests to the homelab panels and, before letting any through, asks Authelia whether there's a valid session with two-factor auth."
+grade = "Two-factor by default"
+facts = [
+  { label = "Why two doors", value = "Public traffic and administration shouldn't share an entrance. If someone finds a flaw in the public door, the panels aren't behind it." },
+  { label = "How it decides", value = "Caddy makes an authorisation request to Authelia for every request. Authelia decides; the content doesn't go through it." },
+  { label = "The golden rule", value = "A protected panel must not be reachable on its direct port: if it is, the protection is decorative." },
+]
+
+[[text.en.stats]]
+value = "2FA"
+label = "default policy for everything protected"
+
+[[text.en.stats]]
+value = "0"
+label = "internal panels with a public name"
+
+[[text.en.stats]]
+value = "302"
+label = "what you get if you arrive without a session"
+
+[[text.en.stats]]
+value = "5 min"
+label = "to roll back every access change"
+
+[text.en.groups]
+proxy = "Internal proxy"
+auth = "Authentication"
+panels = "Protected panels"
+rules = "Rules that make it real"
+
+[text.en.pods.laptop]
+short = "My laptop"
+title = "My laptop, at home"
+text = "From the home network I open the panels by their internal name."
+
+[text.en.pods.phone]
+short = "Phone outside"
+title = "My phone, away from home"
+text = "From outside, you only get in with the VPN."
+
+[text.en.pods.vpn]
+short = "VPN"
+title = "WireGuard VPN"
+text = "Puts the phone inside the network as if it were home."
+
+[text.en.pods.dns]
+short = "Home DNS"
+title = "Home DNS"
+text = "Internal names only exist here: outside home they don't resolve."
+
+[text.en.pods.internet]
+short = "Internet"
+title = "Internet"
+text = "Where the internal panels can't be reached from."
+
+[text.en.pods.caddy]
+short = "Caddy"
+title = "Caddy"
+text = "The internal proxy. It gets the request and, before touching the panel, asks Authelia for permission."
+
+[text.en.pods.internaltls]
+short = "Internal TLS"
+title = "Internal TLS"
+text = "Caddy signs its own certificates for internal names: everything is encrypted inside the house too."
+
+[text.en.pods.forward]
+short = "Forward auth"
+title = "Authorisation request"
+text = "For every request, Caddy asks Authelia «can this session see this?». If not, it redirects to the login."
+
+[text.en.pods.headers]
+short = "Headers"
+title = "Identity headers"
+text = "When Authelia says yes, Caddy tells the panel who the user is and which groups they belong to."
+
+[text.en.pods.authelia]
+short = "Authelia"
+title = "Authelia"
+text = "The single sign-on server: one login for every panel, with its access policy."
+
+[text.en.pods.password]
+short = "Password"
+title = "First factor"
+text = "Username and password, with attempt limiting."
+
+[text.en.pods.totp]
+short = "2FA code"
+title = "Second factor"
+text = "A one-time code from the phone. The default policy requires it for everything protected."
+
+[text.en.pods.session]
+short = "Session"
+title = "Session"
+text = "Once in, a session cookie works for every panel for a while: no repeating the login on each one."
+
+[text.en.pods.stacks]
+short = "Gestor stacks"
+title = "Container manager"
+text = "The most powerful panel: it manages the Docker stacks. Two-factor and then its own login."
+
+[text.en.pods.library]
+short = "Library"
+title = "Library panels"
+text = "The services that keep the media library tidy."
+
+[text.en.pods.dnspanel]
+short = "DNS panel"
+title = "DNS panel"
+text = "Home DNS administration, only behind this door."
+
+[text.en.pods.monitoring]
+short = "Monitoring"
+title = "Monitoring panels"
+text = "Metrics and security, to check from anywhere with the VPN."
+
+[text.en.pods.localbind]
+short = "Localhost only"
+title = "Ports on localhost only"
+text = "Protected panels publish their port only inside their own container: the only way in is Caddy."
+
+[text.en.pods.lanonly]
+short = "LAN · VPN only"
+title = "Home network and VPN only"
+text = "Internal names don't exist on the internet and the firewall doesn't let anyone in from outside."
+
+[text.en.pods.policy]
+short = "Policy"
+title = "Access policy"
+text = "Two-factor by default. Exceptions are explicit and few."
+
+[text.en.pods.reload]
+short = "Reload"
+title = "Seamless reload"
+text = "Configuration changes are validated and reloaded without dropping the proxy."
+
+[text.en.flows.login]
+title = "I open a panel for the first time"
+steps = [
+  "From home, I open the container manager by its internal name.",
+  "The home DNS resolves the name to the internal proxy.",
+  "Caddy gets the request, encrypted with its internal certificate.",
+  "Before anything else, it asks Authelia whether I can go through.",
+  "No session: Authelia takes me to its login page.",
+  "First factor: username and password.",
+  "Second factor: the one-time code on my phone.",
+  "Authelia creates the session.",
+  "Caddy asks again and now the answer is yes.",
+  "It passes the request to the panel, which still asks for its own login.",
+  "The response comes back through Caddy.",
+  "And I see the panel.",
+]
+
+[text.en.flows.again]
+title = "I open another panel later"
+steps = [
+  "A while later I open a different panel.",
+  "Caddy gets the request.",
+  "It asks Authelia.",
+  "The session is still valid: no need to log in again.",
+  "Answer: yes.",
+  "The request reaches the library panel.",
+  "I see it straight away. One login for everything.",
+]
+
+[text.en.flows.remote]
+title = "I check it from outside"
+steps = [
+  "I'm away from home and want to see monitoring.",
+  "I turn on the VPN: the phone is now inside the network.",
+  "Now the internal name does resolve.",
+  "Caddy gets the request.",
+  "It asks Authelia.",
+  "New session on this device: login and code.",
+  "With the second factor, go ahead.",
+  "The request reaches the panel.",
+  "I check it on my phone.",
+]
+
+[text.en.flows.bypass]
+title = "Someone tries to skip the door"
+steps = [
+  "A device on the network tries to go straight to the container manager's port, without Caddy.",
+  "The panel only listens inside its own container.",
+  "The connection is refused: from the network there's nothing on that port.",
+  "All that's left is the real door.",
+  "Caddy gets the request.",
+  "It asks Authelia.",
+  "And without a two-factor session, it doesn't get through.",
+]
+
+[text.en.flows.outside]
+title = "Someone tries from the internet"
+steps = [
+  "Someone on the internet looks for the internal panels.",
+  "Their names don't exist outside home and the firewall doesn't let anyone in.",
+  "There's nothing to attack: the policy isn't even evaluated.",
+]
+
+[text.en.incidents.directport]
+title = "A door with two-factor… and another without"
+meta = "06-09-2026 · audit"
+symptom = "The container manager already asked for a login and two-factor through the internal door. Still, I flagged it in the audit."
+options = [
+  "The 2FA code didn't expire",
+  "Its port was still open on the network: you could get in without Authelia",
+  "The session lasted too long",
+  "The internal certificate had expired",
+]
+cause = "The container published its port on every interface. Anyone on the network could go straight to the port and skip Caddy and Authelia. For a panel with Docker access, that's admin access."
+fix = "Publish the port on localhost only, and check it: without a session the door returns a 302 to the login; the direct port is refused from the PC. With automatic rollback after 5 minutes in case I locked myself out."
+lesson = "Authentication in front only works if there's no other way round. You have to test the shortcut, not just the door."
+
+[text.en.incidents.published]
+title = "Internal panels with public names"
+meta = "26-09-2026 · surface"
+symptom = "Reviewing everything visible from the internet, several admin panels had their own public name and a route on the internet door."
+options = [
+  "Cloudflare published them by default",
+  "A service registered them on start-up",
+  "They'd been published one by one, for convenience",
+  "The home DNS leaked outside",
+]
+cause = "Each panel had been published at some point so I could see it from outside. None was serious on its own; together they were too much surface."
+fix = "Take their routes and DNS records off the internet on the same day. They're still in use, but behind this door: from home or the VPN, with two-factor."
+lesson = "Convenience publishes things one at a time; security reviews them all together."
+
+[[text.en.timeline]]
+title = "Caddy for internal names"
+period = "Summer 2026"
+items = [
+  "An internal proxy with its own certificates for home names.",
+  "Authelia in front of the library panels.",
+]
+
+[[text.en.timeline]]
+title = "Access audit"
+period = "06-09-2026"
+items = [
+  "Two-factor as the default policy.",
+  "The container manager behind the door, with its port on localhost only.",
+  "Every change with a 5-minute rollback timer.",
+]
+
+[[text.en.timeline]]
+title = "Everything internal, through here"
+period = "26-09-2026"
+items = [
+  "Panels that were visible from the internet move to this door.",
+  "The new DNS panel too, with its backend accepting only Caddy.",
+]
+
+[[text.en.decisions]]
+title = "Where you authenticate"
+choice = "Once, in Authelia, for every panel"
+why = "Every panel with its own weak login is a soft spot. With single sign-on, two-factor protects all of them at once."
+
+[[text.en.decisions]]
+title = "What about the panels' own logins"
+choice = "Kept behind the SSO"
+why = "For the most sensitive panel, Authelia's two-factor doesn't replace its login: it comes first. Two different keys."
+
+[[text.en.decisions]]
+title = "How an access change is applied"
+choice = "With automatic rollback"
+why = "A mistake in the door locks you out of the door. Every change had a timer that undid everything after 5 minutes unless I cancelled it after testing."
+
+[text.en.tech_notes]
+linux = "A Linux container with Docker that groups the internal proxy and the library panels."
+docker = "Caddy, Authelia and the panels run as containers; protected ones publish their port on localhost only."
+wireguard = "From outside home, the panels can only be reached through the VPN."
+dns = "Internal names only resolve on the home DNS, and its admin panel is behind this door."
+hardening = "Single sign-on with two-factor by default, no panel with a public name and no shortcut through a direct port."
+
+[text.en.close]
+lessons = [
+  "Keep the public entrance apart from the admin one.",
+  "Test the shortcut: a two-factor door is useless with an open window next to it.",
+  "Access changes always with an automatic way back.",
+]
+next = [
+  "Bring more panels in through OIDC so they no longer need their own local account.",
+  "Move the Caddy configuration into the infrastructure repo, like the Traefik routes.",
+]

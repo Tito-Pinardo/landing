@@ -42,6 +42,7 @@
     el._typing = setInterval(() => {
       i += 2;
       el.textContent = text.slice(0, i);
+      if (i % 6 === 0) window.tpSound?.play("tick");
       if (i >= text.length) {
         clearInterval(el._typing);
         el.classList.remove("is-typing");
@@ -209,6 +210,7 @@
     el.className = "toast";
     el.setAttribute("role", "status");
     el.innerHTML = '<span class="toast-icon" aria-hidden="true">★</span><div><small></small><strong></strong><span class="toast-text"></span></div>';
+    window.tpSound?.play("achievement");
     el.querySelector("small").textContent = T.ui.achievement_unlocked;
     el.querySelector("strong").textContent = a.title;
     el.querySelector(".toast-text").textContent = a.text;
@@ -315,6 +317,7 @@
     }
     filterStatus.hidden = tech === null;
     paintUnitLinks(tech, name);
+    paintRack(tech, name);
     if (tech !== null) {
       filterName.textContent = name;
       huntedSkills.add(tech);
@@ -326,7 +329,7 @@
   // habilidad y el botón entra en la unidad con esas piezas encendidas.
   function paintUnitLinks(tech, name) {
     for (const a of $$("[data-unit-link]")) {
-      const unit = T.units[a.dataset.unitLink];
+      const unit = T.units.find((u) => u.project === a.dataset.unitLink);
       const note = tech !== null ? unit?.notes[tech] : null;
       const box = a.closest(".quest-unit");
       $("[data-unit-note]", box).hidden = !note;
@@ -334,6 +337,42 @@
       $("[data-unit-label]", a).textContent = note ? fill(T.ui.unit_where, { skill: name }) : T.ui.unit_enter;
       a.href = note ? `${unit.url}#t=${encodeURIComponent(tech)}` : unit.url;
     }
+  }
+  // El rack de la portada: al filtrar se encienden las unidades que usan la
+  // habilidad y su enlace entra con esas piezas ya iluminadas.
+  const rackUnits = $$("[data-rack-unit]");
+  const rackLit = $("[data-rack-lit]");
+  function paintRack(tech, name) {
+    let n = 0;
+    for (const r of rackUnits) {
+      const hit = tech !== null && r.dataset.tech.split(" ").includes(tech);
+      if (hit) n++;
+      r.classList.toggle("is-match", hit);
+      r.classList.toggle("is-dim", tech !== null && !hit);
+      const a = $("a", r);
+      a.href = hit ? `${a.dataset.href}#t=${encodeURIComponent(tech)}` : a.dataset.href;
+    }
+    if (rackLit) {
+      rackLit.hidden = tech === null;
+      rackLit.textContent = tech === null ? "" : fill(T.rack.lit, { skill: name, n });
+    }
+  }
+  // Las unidades entran en el rack una tras otra al llegar a él, y suenan a
+  // disco al pasar por encima.
+  {
+    const list = $(".rack-units");
+    if (list && !reduceMotion && "IntersectionObserver" in window) {
+      rackUnits.forEach((r, i) => r.style.setProperty("--i", String(i)));
+      list.classList.add("will-slide");
+      const io = new IntersectionObserver((entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        list.classList.add("is-in");
+        window.tpSound?.play("seek");
+        io.disconnect();
+      }, { rootMargin: "0px 0px -15% 0px" });
+      io.observe(list);
+    }
+    rackUnits.forEach((r) => r.addEventListener("mouseenter", () => window.tpSound?.play("tick")));
   }
   $$(".skill").forEach((b) => b.addEventListener("click", () => {
     if (b.hasAttribute("data-unused")) return;
@@ -456,6 +495,7 @@
         path.style.strokeDasharray = "";
         path.style.strokeDashoffset = "";
         if (which === "a") packetGnome?.classList.add("is-idle");
+        window.tpSound?.play("hop");
         done?.();
       }
     };
@@ -755,9 +795,11 @@
         if (inc.solved) return;
         if (i !== c.answer) {
           b.classList.add("is-wrong");
+          window.tpSound?.play("err");
           return typeInto(consoleEl.text, `${IU.wrong} ${c.feedback[i]}`);
         }
         inc.solved = true;
+        window.tpSound?.play("ok");
         b.classList.add("is-right");
         $$("button", incEl.options).forEach((x) => { x.disabled = x !== b; });
         const res = document.createElement("div");
@@ -1080,10 +1122,22 @@
     },
     hermes() { closeTerminal(); hermesMenu(fill(H.greet_return, { zones: found.size })); },
     ssh(arg) {
-      const node = T.nodes.find((n) => n.unit && n.id === (arg || "").replace(/^.*@/, ""));
-      if (!node) return print(`ssh: ${arg || ""}: ${TT.no_such_file}`, "t-err");
-      print(`→ ${node.title}…`, "t-ok");
-      setTimeout(() => { location.href = node.unit; }, reduceMotion ? 0 : 600);
+      const id = (arg || "").replace(/^.*@/, "");
+      const node = T.nodes.find((n) => n.unit && n.id === id);
+      const unit = T.units.find((u) => u.id === id);
+      const url = node?.unit || unit?.url;
+      if (!url) {
+        print(`ssh: ${arg || ""}: ${TT.no_such_file}`, "t-err");
+        return print(T.units.map((u) => u.id).join("  "), "t-dim");
+      }
+      print(`→ ${node?.title || unit.slot}…`, "t-ok");
+      window.tpSound?.play("beep");
+      setTimeout(() => { location.href = url; }, reduceMotion ? 0 : 600);
+    },
+    sound(arg) {
+      const on = arg !== "off";
+      window.tpSound?.set(on);
+      print(on ? "🔊 ✓" : "🔇 ✓", "t-ok");
     },
     enanos(arg) { setGnomes(arg !== "off"); print(arg === "off" ? "😢" : "⛏️  ✓", "t-ok"); },
     gnomes(arg) { setGnomes(arg !== "off"); print(arg === "off" ? "😢" : "⛏️  ✓", "t-ok"); },
