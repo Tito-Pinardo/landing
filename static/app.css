@@ -1315,3 +1315,13 @@ html.js .bay.will-power.is-on { animation: bay-on .6s cubic-bezier(.2, .8, .2, 1
 @media (prefers-reduced-motion: reduce) { .vram.is-split .vram-card { animation: none; } .vram-bar span, .vram-spill span { transition: none; } }
 @media print { .vram { display: none !important; } }
 
+/* Barra superior en móvil: con el botón de sonido no cabía en 390 px. */
+@media (max-width: 520px) {
+  .topbar-actions { gap: 2px; }
+  .topbar-actions .btn { padding: 0 8px; min-height: 38px; font-size: .88rem; }
+  .btn-sound { min-width: 34px; padding: 0 7px; }
+}
+/* Los paneles del antes/después no deben ensancharse con su código. */
+.ba-pane { min-width: 0; }
+/* La entrada en 3D de las zonas que aún no se ven no debe crear scroll lateral. */
+main { overflow-x: clip; }
