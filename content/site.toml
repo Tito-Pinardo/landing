@@ -26,6 +26,7 @@ achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "p
 name = "Tito Pinardo Gutiérrez"
 github = "https://github.com/Tito-Pinardo"
 linkedin = "https://www.linkedin.com/in/tito-pinardo-gutierrez-b7341b293"
+profiles = ["https://www.tecnoempleo.com/tito-pinardo-gutierrez.mpt"]
 cv_es = "/static/cv/Tito_Pinardo_CV_ES.pdf"
 cv_en = "/static/cv/Tito_Pinardo_CV_EN.pdf"
 

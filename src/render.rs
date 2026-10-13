@@ -856,7 +856,15 @@ fn article_card(content: &Content, a: &Article, lang: Lang) -> ArticleCard {
 
 fn author(content: &Content, public_url: &str) -> serde_json::Value {
     let p = &content.site.person;
-    serde_json::json!({"@type": "Person", "name": p.name, "url": public_url, "sameAs": [p.github, p.linkedin]})
+    serde_json::json!({"@type": "Person", "name": p.name, "url": public_url, "sameAs": same_as(p)})
+}
+
+/// Perfiles que son la misma persona: GitHub, LinkedIn y los demás.
+fn same_as(p: &crate::content::Person) -> Vec<&str> {
+    [p.github.as_str(), p.linkedin.as_str()]
+        .into_iter()
+        .chain(p.profiles.iter().map(String::as_str))
+        .collect()
 }
 
 fn crumbs(items: &[(&str, String)]) -> serde_json::Value {
@@ -1059,7 +1067,7 @@ fn jsonld(content: &Content, lang: Lang, public_url: &str) -> serde_json::Value 
         "jobTitle": t.hero.role,
         "description": t.meta.description,
         "address": {"@type": "PostalAddress", "addressLocality": "Alcalá de Henares", "addressRegion": "Madrid", "addressCountry": "ES"},
-        "sameAs": [p.github, p.linkedin],
+        "sameAs": same_as(p),
         "knowsAbout": content.site.tech.iter().map(|x| &x.name).collect::<Vec<_>>(),
         "knowsLanguage": ["es", "en"],
     })

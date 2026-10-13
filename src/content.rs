@@ -85,6 +85,9 @@ pub struct Person {
     pub name: String,
     pub github: String,
     pub linkedin: String,
+    /// Otros perfiles públicos que son míos (para «sameAs» en buscadores).
+    #[serde(default)]
+    pub profiles: Vec<String>,
     pub cv_es: String,
     pub cv_en: String,
 }
