@@ -276,7 +276,7 @@
           paintZones();
           if (found.size === zoneIds.length) unlock("explorer");
         }
-        if (id === "now") loadLive();
+        if (id === "now" || id === "lab") loadLive();
         hermesZone(id);
         if (id === "lab" && !labState.autoplayed && !reduceMotion) {
           labState.autoplayed = true;
@@ -839,6 +839,25 @@
   $("[data-incident-exit]")?.addEventListener("click", closeIncident);
 
   // ------------------------------------------------------------ datos en vivo
+  // Estado real de una unidad del rack a partir de sus piezas del
+  // laboratorio: caída si alguna lo está, apagada si todas lo están, en
+  // marcha si alguna funciona. Sin datos (el router, XPIFY) se queda lo fijo.
+  function unitLive(ids, nodes) {
+    const st = ids.map((id) => nodes[id]).filter(Boolean);
+    if (!st.length) return null;
+    if (st.includes("down")) return "down";
+    if (st.every((x) => x === "off")) return "off";
+    return "up";
+  }
+  function paintRackLive(nodes) {
+    for (const r of rackUnits) {
+      const st = unitLive((r.dataset.nodes || "").split(" ").filter(Boolean), nodes);
+      r.classList.remove("live-up", "live-off", "live-down");
+      if (!st) continue;
+      r.classList.add("live-" + st);
+      $("[data-ru-state]", r).textContent = T.rack["live_" + st];
+    }
+  }
   let live = null;
   let liveLoading = null;
   const rtf = "Intl" in window && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat(T.lang, { numeric: "auto" }) : null;
@@ -899,6 +918,7 @@
         if (st) n.classList.add("st-" + st);
       });
     }
+    if (h?.nodes) paintRackLive(h.nodes);
     const bars = $("[data-uptime-bars]");
     if (h?.daily?.length && bars) {
       const w = 300 / h.daily.length;

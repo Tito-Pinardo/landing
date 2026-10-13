@@ -985,6 +985,9 @@ hacker = "¡Bandera encontrada! Tenías madera de sysadmin."
 # unidad puede sobrescribir cualquiera en su `[text.es.ui]`.
 # ---------------------------------------------------------------------------
 [unit_ui]
+live_up = "En marcha"
+live_off = "Apagada"
+live_down = "Caída"
 back = "Volver al rack"
 crumb_rack = "Rack"
 crumb_lab = "Laboratorio"
@@ -1031,6 +1034,9 @@ status_retired = "Retirada"
 status_lab = "Laboratorio"
 
 [rack]
+live_up = "En marcha"
+live_off = "Apagada"
+live_down = "Caída"
 title = "El rack, unidad a unidad"
 intro = "Cada pieza del servidor tiene su propia unidad: entra en cualquiera para verla por dentro, con sus recorridos, sus averías y por qué está montada así."
 enter = "Entrar"

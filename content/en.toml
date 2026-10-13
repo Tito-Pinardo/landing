@@ -973,6 +973,9 @@ hacker = "Flag found! You've got the makings of a sysadmin."
 # in its own `[text.en.ui]`.
 # ---------------------------------------------------------------------------
 [unit_ui]
+live_up = "Running"
+live_off = "Switched off"
+live_down = "Down"
 back = "Back to the rack"
 crumb_rack = "Rack"
 crumb_lab = "Lab"
@@ -1019,6 +1022,9 @@ status_retired = "Retired"
 status_lab = "Lab"
 
 [rack]
+live_up = "Running"
+live_off = "Switched off"
+live_down = "Down"
 title = "The rack, unit by unit"
 intro = "Every part of the server has its own unit: step into any of them to see it from the inside, with its flows, its failures and why it is built that way."
 enter = "Enter"

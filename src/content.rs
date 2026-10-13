@@ -464,7 +464,16 @@ const UI_KEYS: &[&str] = &[
     "sound_on",
     "sound_off",
 ];
-const RACK_KEYS: &[&str] = &["title", "intro", "enter", "lit", "units"];
+const RACK_KEYS: &[&str] = &[
+    "title",
+    "intro",
+    "enter",
+    "lit",
+    "units",
+    "live_up",
+    "live_off",
+    "live_down",
+];
 const LAB_KEYS: &[&str] = &[
     "intro",
     "server_title",

@@ -1189,7 +1189,6 @@ body {
 .rack-unit:nth-child(4n) .ru-leds i + i { animation-duration: 2.6s; animation-delay: -.4s; }
 .status-retired .ru-leds i { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
 .status-retired .ru-leds i + i { background: var(--muted); box-shadow: none; animation: none; }
-.status-lab .ru-leds i { background: var(--accent-2); box-shadow: 0 0 6px var(--accent-2); }
 .ru-name { display: grid; line-height: 1.1; min-width: 0; }
 .ru-name strong { font: 800 .86rem/1.1 var(--mono); letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ru-name small { font: 600 .66rem/1.2 var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1325,3 +1324,19 @@ html.js .bay.will-power.is-on { animation: bay-on .6s cubic-bezier(.2, .8, .2, 1
 .ba-pane { min-width: 0; }
 /* La entrada en 3D de las zonas que aún no se ven no debe crear scroll lateral. */
 main { overflow-x: clip; }
+
+/* Estado real (de /api/status) en el rack y en el frontal de cada unidad:
+   manda sobre el estado fijo de la unidad. */
+.rack-unit.live-up .ru-leds i:first-child { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+.rack-unit.live-up .ru-state { color: var(--ok); }
+.rack-unit.live-off .ru-leds i { background: var(--muted); box-shadow: none; opacity: .45; animation: none; }
+.rack-unit.live-off .ru-state { color: var(--muted); }
+.rack-unit.live-off .ru-name, .rack-unit.live-off .ru-text { opacity: .7; }
+.rack-unit.live-down .ru-leds i { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: led-act .6s infinite steps(2, jump-none); }
+.rack-unit.live-down .ru-state { color: var(--danger); }
+.unit.live-up .uf-state { color: var(--ok); }
+.unit.live-off .uf-state { color: var(--muted); }
+.unit.live-off .uf-leds i { background: var(--muted); box-shadow: none; opacity: .45; animation: none; }
+.unit.live-off .uf-fans i { animation: none; }
+.unit.live-down .uf-state { color: var(--danger); }
+.unit.live-down .uf-leds .led-pwr { background: var(--danger); box-shadow: 0 0 8px var(--danger); }

@@ -306,6 +306,9 @@ pub const COMMON_KEYS: &[&str] = &[
     "status_live",
     "status_retired",
     "status_lab",
+    "live_up",
+    "live_off",
+    "live_down",
 ];
 
 /// Claves que solo hacen falta si la unidad tiene calculadora de XP.

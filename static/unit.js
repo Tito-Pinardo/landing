@@ -62,6 +62,24 @@
     actLed.classList.add("is-blink");
   }
 
+  // El frontal enseña el estado real de la máquina (el mismo dato que los
+  // LEDs del laboratorio). Si no hay datos, se queda el estado fijo.
+  if (D.live_nodes?.length) {
+    fetch("/api/status", { headers: { accept: "application/json" } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const nodes = data?.homelab?.nodes;
+        if (!nodes) return;
+        const st = D.live_nodes.map((id) => nodes[id]).filter(Boolean);
+        if (!st.length) return;
+        const live = st.includes("down") ? "down" : st.every((x) => x === "off") ? "off" : "up";
+        doc.querySelector("[data-unit]")?.classList.add("live-" + live);
+        const el = $("[data-uf-state]");
+        if (el) el.textContent = U["live_" + live];
+      })
+      .catch(() => {});
+  }
+
   // Las bahías se encienden al llegar a ellas.
   if (!reduceMotion && "IntersectionObserver" in window) {
     const io = new IntersectionObserver((entries) => {

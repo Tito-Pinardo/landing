@@ -373,7 +373,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
     </div>
     <ol class="rack-units">
     {% for r in rack %}
-      <li class="rack-unit status-{{ r.status }}" data-rack-unit="{{ r.id }}" data-tech="{{ r.tech_ids }}">
+      <li class="rack-unit status-{{ r.status }}" data-rack-unit="{{ r.id }}" data-tech="{{ r.tech_ids }}" data-nodes="{{ r.nodes }}">
         <a href="{{ r.url }}" data-href="{{ r.url }}">
           <span class="ru-n" aria-hidden="true">U{{ "{:02}"|format(r.n) }}</span>
           <span class="ru-ear" aria-hidden="true"></span>
@@ -381,7 +381,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
           <span class="ru-name"><strong>{{ r.slot }}</strong><small>{{ r.specs }}</small></span>
           <span class="ru-text">{{ r.title }}</span>
           <span class="ru-vent" aria-hidden="true"></span>
-          <span class="ru-state">{{ r.state }}</span>
+          <span class="ru-state" data-ru-state>{{ r.state }}</span>
           <span class="ru-go">{{ c.t.rack["enter"] }} →</span>
         </a>
       </li>

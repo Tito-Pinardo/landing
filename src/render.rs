@@ -145,6 +145,9 @@ pub struct RackView {
     pub status: String,
     pub title: String,
     pub tech_ids: String,
+    /// Piezas del laboratorio que llevan a esta unidad: su estado en vivo
+    /// es el de la unidad.
+    pub nodes: String,
 }
 
 /// Unidad vecina en el rack, para pasar de una a otra.
@@ -212,6 +215,15 @@ pub fn ctx<'a>(content: &'a Content, lang: Lang, asset_v: &'a str, public_url: &
         },
         path: String::new(),
     }
+}
+
+/// Piezas del laboratorio que llevan a una unidad.
+fn unit_nodes<'a>(site: &'a crate::content::Site, unit: &str) -> Vec<&'a str> {
+    site.nodes
+        .iter()
+        .filter(|n| n.unit.as_deref() == Some(unit))
+        .map(|n| n.id.as_str())
+        .collect()
 }
 
 fn unit_url(lang: Lang, id: &str) -> String {
@@ -427,6 +439,7 @@ pub fn index(
                 status: u.status.clone(),
                 title: ut.hero.title.clone(),
                 tech_ids: u.tech(site).join(" "),
+                nodes: unit_nodes(site, &u.id).join(" "),
             }
         })
         .collect();
@@ -675,6 +688,7 @@ pub fn unit(
         "vram": unit.vram,
         "vram_text": t.vram,
         "map_w": MAP_W,
+        "live_nodes": unit_nodes(site, &unit.id),
         "home": format!("/{}/", lang.code()),
         "achievement": {
             "label": c.ui("achievement_unlocked"),
