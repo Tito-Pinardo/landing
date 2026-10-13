@@ -448,7 +448,7 @@ title = "Publico un servicio nuevo"
 steps = [
   "Añado una línea a la lista de servicios del repositorio: dominio y servicio.",
   "Ansible genera el fichero de la ruta y la entrada del panel de inicio, revisando el cambio antes de aplicarlo.",
-  "Y crea solo el registro DNS del dominio en Cloudflare, con proxy: no hay que entrar al panel para nada.",
+  "Si es un servicio del servidor, crea solo su registro DNS en Cloudflare, con proxy: no hay que entrar al panel para nada.",
   "Traefik detecta el fichero nuevo y carga la ruta sin cortar nada.",
   "El servicio sigue igual de aislado: Traefik corre con su usuario y sus permisos.",
   "La ruta ya responde.",
@@ -564,6 +564,11 @@ why = "Es la pieza más expuesta: cuantas menos capas, mejor. El binario oficial
 title = "Cómo se prueban los dominios"
 choice = "Desafío DNS-01 en Cloudflare"
 why = "No obliga a abrir el puerto 80 al mundo, funciona aunque el servicio aún no esté listo y permite certificados comodín."
+
+[[text.es.decisions]]
+title = "Cuántos dominios"
+choice = "Tres, cada uno con su uso"
+why = "Uno para esta web y los proyectos personales que se pueden ver en público, otro para los juegos y otro para los servicios del servidor. Separarlos deja claro qué es qué. El registro DNS se crea y se borra solo en el de los servicios del servidor, que es el que crece con cada servicio nuevo; los otros dos se cuidan a mano a propósito."
 
 [[text.es.decisions]]
 title = "Qué se publica"
@@ -784,7 +789,7 @@ title = "I publish a new service"
 steps = [
   "I add a line to the service list in the repo: domain and service.",
   "Ansible generates the route file and the start-page entry, showing the change before applying it.",
-  "And it creates the domain's DNS record in Cloudflare by itself, proxied: no need to open the dashboard at all.",
+  "If it's a server service, it creates its DNS record in Cloudflare by itself, proxied: no need to open the dashboard at all.",
   "Traefik spots the new file and loads the route without cutting anything.",
   "The service stays just as isolated: Traefik runs with its own user and permissions.",
   "The route is live.",
@@ -900,6 +905,11 @@ why = "It's the most exposed part: the fewer layers, the better. The official bi
 title = "How domains are proven"
 choice = "DNS-01 challenge on Cloudflare"
 why = "No need to open port 80 to the world, it works even if the service isn't ready yet and it allows wildcard certificates."
+
+[[text.en.decisions]]
+title = "How many domains"
+choice = "Three, each with its own use"
+why = "One for this site and the personal projects that can be seen in public, one for the games and one for the server's services. Keeping them apart makes it clear what's what. DNS records are created and deleted automatically only on the server-services one, which grows with every new service; the other two are looked after by hand on purpose."
 
 [[text.en.decisions]]
 title = "What gets published"
