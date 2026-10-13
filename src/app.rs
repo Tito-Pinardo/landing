@@ -41,6 +41,8 @@ struct Inner {
     content: Content,
     asset_v: String,
     pages: [Page; 2],
+    /// Unidades del rack: (id, página en cada idioma).
+    units: Vec<(String, [Page; 2])>,
     not_found: [Page; 2],
     db: PgPool,
     http: reqwest::Client,
@@ -63,6 +65,14 @@ impl AppState {
             render::index(&content, Lang::Es, &asset_v, &cfg.public_url, site_key)?,
             render::index(&content, Lang::En, &asset_v, &cfg.public_url, site_key)?,
         ];
+        let units = content
+            .units
+            .iter()
+            .map(|u| {
+                let page = |lang| render::unit(&content, u, lang, &asset_v, &cfg.public_url);
+                Ok((u.id.clone(), [page(Lang::Es)?, page(Lang::En)?]))
+            })
+            .collect::<anyhow::Result<_>>()?;
         let not_found = Lang::ALL.map(|lang| {
             use askama::Template;
             let c = render::ctx(&content, lang, &asset_v, &cfg.public_url);
@@ -73,6 +83,7 @@ impl AppState {
             content,
             asset_v,
             pages,
+            units,
             not_found,
             db,
             http,
@@ -84,6 +95,14 @@ impl AppState {
     fn page(&self, lang: Lang) -> &Page {
         &self.0.pages[lang as usize]
     }
+
+    fn unit(&self, id: &str, lang: Lang) -> Option<&Page> {
+        self.0
+            .units
+            .iter()
+            .find(|(u, _)| u == id)
+            .map(|(_, p)| &p[lang as usize])
+    }
 }
 
 pub fn router(state: AppState) -> Router {
@@ -93,6 +112,8 @@ pub fn router(state: AppState) -> Router {
         .route("/{lang}", get(lang_no_slash))
         .route("/{lang}/", get(page))
         .route("/{lang}/contact", post(contact_form))
+        .route("/{lang}/{unit}", get(unit_no_slash))
+        .route("/{lang}/{unit}/", get(unit_page))
         .route("/api/contact", post(contact_json))
         .route("/api/status", get(status))
         .route("/healthz", get(healthz))
@@ -179,6 +200,28 @@ async fn page(
     serve_page(st.page(lang), &headers, "public, max-age=300, s-maxage=600")
 }
 
+async fn unit_page(
+    State(st): State<AppState>,
+    Path((lang, unit)): Path<(String, String)>,
+    headers: HeaderMap,
+) -> Response {
+    match Lang::from_code(&lang).and_then(|l| st.unit(&unit, l)) {
+        Some(page) => serve_page(page, &headers, "public, max-age=300, s-maxage=600"),
+        None => not_found(State(st), headers).await,
+    }
+}
+
+async fn unit_no_slash(
+    State(st): State<AppState>,
+    Path((lang, unit)): Path<(String, String)>,
+    headers: HeaderMap,
+) -> Response {
+    match Lang::from_code(&lang).filter(|l| st.unit(&unit, *l).is_some()) {
+        Some(l) => Redirect::permanent(&format!("/{}/{unit}/", l.code())).into_response(),
+        None => not_found(State(st), headers).await,
+    }
+}
+
 fn serve_page(page: &Page, req: &HeaderMap, cache: &'static str) -> Response {
     let etag = HeaderValue::from_str(&page.etag).expect("etag válido");
     let mut res = if req.get(header::IF_NONE_MATCH) == Some(&etag) {
@@ -211,7 +254,7 @@ async fn not_found(State(st): State<AppState>, headers: HeaderMap) -> Response {
 /// pueden cachear "para siempre" con `?v=`.
 fn asset_version() -> String {
     let mut h = Sha256::new();
-    for name in ["app.css", "app.js"] {
+    for name in ["app.css", "app.js", "unit.js"] {
         if let Some(f) = Assets::get(name) {
             h.update(f.metadata.sha256_hash());
         }
@@ -275,11 +318,15 @@ async fn sitemap(State(st): State<AppState>) -> impl IntoResponse {
     let mut xml = String::from(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n",
     );
-    for lang in Lang::ALL {
-        xml.push_str(&format!(
-            "<url><loc>{u}/{l}/</loc><xhtml:link rel=\"alternate\" hreflang=\"es\" href=\"{u}/es/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"{u}/en/\"/></url>\n",
-            l = lang.code()
-        ));
+    let paths =
+        std::iter::once(String::new()).chain(st.0.units.iter().map(|(id, _)| format!("{id}/")));
+    for path in paths {
+        for lang in Lang::ALL {
+            xml.push_str(&format!(
+                "<url><loc>{u}/{l}/{path}</loc><xhtml:link rel=\"alternate\" hreflang=\"es\" href=\"{u}/es/{path}\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"{u}/en/{path}\"/></url>\n",
+                l = lang.code()
+            ));
+        }
     }
     xml.push_str("</urlset>\n");
     (

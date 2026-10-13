@@ -196,7 +196,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
   </p>
   <ol class="quests">
   {% for p in projects %}
-    <li id="quest-{{ p.id }}" class="quest{% if p.featured %} is-featured{% endif %}" data-tech="{{ p.tech_ids }}">
+    <li id="quest-{{ p.id }}" class="quest{% if p.featured %} is-featured{% endif %}{% if p.unit_url.is_some() %} has-unit{% endif %}" data-tech="{{ p.tech_ids }}">
       <article>
         <header>
           <span class="badge badge-{{ p.status }}">{{ p.status_label }}</span>
@@ -206,6 +206,12 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
         <ul class="chips" aria-label="Stack">
         {% for (id, name) in p.tech %}<li data-chip="{{ id }}">{{ name }}</li>{% endfor %}
         </ul>
+        {% if let Some(url) = p.unit_url %}
+        <div class="quest-unit">
+          <p class="unit-note small" data-unit-note hidden></p>
+          <a class="btn btn-sm btn-unit" href="{{ url }}" data-unit-link="{{ p.id }}" title="{{ c.ui("unit_badge") }}"><span class="unit-icon" aria-hidden="true"></span><span data-unit-label>{{ c.ui("unit_enter") }}</span> →</a>
+        </div>
+        {% endif %}
         <details>
           <summary>{{ p.context }}</summary>
           <div class="quest-body">
@@ -290,11 +296,12 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
         {% for l in links %}<line class="lab-link" data-a="{{ l.a }}" data-b="{{ l.b }}" x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}"/>{% endfor %}
         <g class="flow-layer" data-flow-layer></g>
         {% for n in nodes %}
-        <a class="lab-node kind-{{ n.kind }}" href="#node-{{ n.id }}" data-node="{{ n.id }}" data-group="{{ n.group }}" aria-label="{{ n.title }}">
+        <a class="lab-node kind-{{ n.kind }}{% if n.unit_url.is_some() %} is-unit{% endif %}" href="#node-{{ n.id }}" data-node="{{ n.id }}" data-group="{{ n.group }}" aria-label="{{ n.title }}">
           <rect class="node-halo" x="{{ n.x - 86 }}" y="{{ n.y - 26 }}" width="172" height="52" rx="16"/>
           <rect class="node-box" x="{{ n.x - 80 }}" y="{{ n.y - 20 }}" width="160" height="40" rx="11"/>
           <circle class="node-led" cx="{{ n.x - 64 }}" cy="{{ n.y }}" r="4"/>
           <text x="{{ n.x + 6 }}" y="{{ n.y + 5 }}" text-anchor="middle">{{ n.short }}</text>
+          {% if n.unit_url.is_some() %}<text class="node-unit-tag" x="{{ n.x + 72 }}" y="{{ n.y - 24 }}" text-anchor="end">1U ↗</text>{% endif %}
         </a>
         {% endfor %}
         <circle class="packet-glow" r="16" cx="-50" cy="-50" data-packet-glow/>
@@ -312,6 +319,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
         </div>
         <p class="console-text" data-console-text>{{ c.lab("pick_node") }}</p>
         <ol class="console-trail" data-console-trail></ol>
+        <p class="console-unit" data-console-unit hidden><a class="btn btn-sm btn-primary btn-unit" href="#" data-console-unit-link><span class="unit-icon" aria-hidden="true"></span>{{ c.ui("unit_enter") }} →</a></p>
         <div class="console-b" data-console-b hidden>
           <p class="console-b-title"><span class="dot-b" aria-hidden="true"></span><strong data-console-b-title></strong> <span class="muted small" data-console-b-step></span></p>
           <p class="console-b-text small" data-console-b-text></p>
@@ -350,6 +358,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
         <h3>{{ n.title }}</h3>
         <p>{{ n.text }}</p>
         {% if !n.tech.is_empty() %}<ul class="chips">{% for x in n.tech %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}
+        {% if let Some(url) = n.unit_url %}<p><a class="btn btn-sm btn-unit" href="{{ url }}">{{ c.ui("unit_enter") }} →</a></p>{% endif %}
       </li>
     {% endfor %}
     </ol>

@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.meta.title }}{% endblock %}
+{% block description %}{{ t.meta.description }}{% endblock %}
+
+{% block head %}
+<link rel="canonical" href="{{ url }}">
+<link rel="alternate" hreflang="es" href="{{ c.public_url }}/es/{{ id }}/">
+<link rel="alternate" hreflang="en" href="{{ c.public_url }}/en/{{ id }}/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{ t.meta.title }}">
+<meta property="og:description" content="{{ t.meta.description }}">
+<meta property="og:url" content="{{ url }}">
+<meta property="og:image" content="{{ c.public_url }}/static/og.png">
+<meta property="og:image:alt" content="{{ c.t.meta.og_image_alt }}">
+<meta property="og:locale" content="{% if c.lang == "es" %}es_ES{% else %}en_GB{% endif %}">
+<meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
+{% block nav %}
+<nav class="crumbs" aria-label="breadcrumb">
+  <ol>
+    <li><a href="/{{ c.lang }}/">{{ ui("crumb_rack") }}</a></li>
+    <li><a href="{{ back_url }}">{{ ui("crumb_lab") }}</a></li>
+    <li aria-current="page">{{ ui("slot") }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block actions %}
+<a class="btn btn-ghost" href="{{ back_url }}">← <span class="hide-sm">{{ ui("back") }}</span></a>
+{% endblock %}
+
+{% block main %}
+<div class="unit" data-unit>
+
+<!-- =========================== FRONTAL DE LA UNIDAD =========================== -->
+<div class="unit-face" data-unit-face>
+  <span class="uf-ear" aria-hidden="true"><i></i><i></i></span>
+  <span class="uf-leds" aria-hidden="true"><i class="led-pwr"></i><i class="led-act"></i><i class="led-net"></i></span>
+  <span class="uf-label"><strong>{{ ui("slot") }}</strong><span>{{ ui("face_specs") }}</span></span>
+  <span class="uf-vent" aria-hidden="true"></span>
+  <span class="uf-state">{{ ui("retired") }}</span>
+  <span class="uf-handle" aria-hidden="true"></span>
+  <span class="uf-gnome" aria-hidden="true"><svg viewBox="0 0 40 52">{% include "gnome.svg" %}</svg></span>
+  <span class="uf-ear uf-ear-r" aria-hidden="true"><i></i><i></i></span>
+  <p class="uf-pull" aria-hidden="true">{{ ui("pull") }}</p>
+</div>
+
+<div class="unit-inside" data-unit-inside>
+<div class="unit-tray">
+
+<!-- ================================ FICHA ================================ -->
+<section class="bay unit-hero" aria-labelledby="unit-title">
+  <p class="bay-silk" aria-hidden="true">BAY 00 · {{ id|upper }}</p>
+  <p class="kicker">{{ t.hero.kicker }}</p>
+  <h1 id="unit-title">{{ t.hero.title }}</h1>
+  <p class="unit-grade"><span aria-hidden="true">★</span> {{ t.hero.grade }}</p>
+  <p class="lead">{{ t.hero.tagline }}</p>
+  <dl class="unit-facts">
+  {% for f in t.hero.facts %}
+    <div><dt>{{ f.label }}</dt><dd>{{ f.value }}</dd></div>
+  {% endfor %}
+  </dl>
+  <ul class="unit-stats">
+  {% for s in t.stats %}
+    <li><strong>{{ s.value }}</strong><span>{{ s.label }}</span></li>
+  {% endfor %}
+  </ul>
+</section>
+
+<!-- ================================ MAPA ================================ -->
+<section class="bay" id="map" aria-labelledby="map-title">
+  <p class="bay-silk" aria-hidden="true">BAY 01 · K3S</p>
+  <h2 id="map-title">{{ ui("map_title") }}</h2>
+  <p class="muted">{{ ui("map_intro") }}</p>
+  <div class="lab unit-lab" data-ulab>
+    <div class="lab-flows">
+      <p class="lab-flows-title"><strong>{{ ui("flows_title") }}</strong> <span class="muted small">{{ ui("flows_hint") }}</span></p>
+      <ul class="flow-buttons">
+      {% for f in flows %}<li><a class="flow-btn" href="#uflow-{{ f.id }}" data-uflow="{{ f.id }}"><span class="flow-dot" aria-hidden="true"></span>{{ f.title }}</a></li>{% endfor %}
+      </ul>
+    </div>
+
+    <div class="lab-screen">
+      <div class="lab-map-wrap" data-umap-wrap>
+      <svg class="lab-map" viewBox="0 0 {{ map_w }} {{ map_h }}" role="group" aria-label="{{ ui("vm_title") }}">
+        <defs>
+          <pattern id="ugrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="grid-line"/></pattern>
+          <filter id="uglow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <rect width="{{ map_w }}" height="{{ map_h }}" fill="url(#ugrid)"/>
+        <text class="lab-outside" x="20" y="56">{{ ui("outside") }}</text>
+        <rect class="lab-server unit-vm" data-host-tech="{{ host_tech }}" x="400" y="30" width="790" height="560" rx="22"/>
+        <text class="lab-server-title" x="424" y="62">{{ ui("vm_title") }}</text>
+        <text class="lab-server-specs" x="1166" y="62" text-anchor="end">{{ ui("vm_specs") }}</text>
+        {% for g in groups %}
+        <g class="lab-group" data-group="{{ g.id }}">
+          <rect x="{{ g.x }}" y="{{ g.y }}" width="{{ g.w }}" height="{{ g.h }}" rx="14"/>
+          <text x="{{ g.x + 14 }}" y="{{ g.y + 20 }}">{{ g.label }}</text>
+        </g>
+        {% endfor %}
+        {% for l in links %}<line class="lab-link" x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}"/>{% endfor %}
+        <g class="flow-layer" data-uflow-layer></g>
+        {% for n in pods %}
+        <a class="lab-node kind-{{ n.kind }}" href="#pod-{{ n.id }}" data-pod="{{ n.id }}" data-group="{{ n.group }}" data-tech="{{ n.tech_ids }}" aria-label="{{ n.title }}">
+          <rect class="node-halo" x="{{ n.x - 86 }}" y="{{ n.y - 26 }}" width="172" height="52" rx="16"/>
+          <rect class="node-box" x="{{ n.x - 80 }}" y="{{ n.y - 20 }}" width="160" height="40" rx="11"/>
+          <circle class="node-led" cx="{{ n.x - 64 }}" cy="{{ n.y }}" r="4"/>
+          <text x="{{ n.x + 6 }}" y="{{ n.y + 5 }}" text-anchor="middle">{{ n.short }}</text>
+        </a>
+        {% endfor %}
+        <circle class="packet-glow unit-packet-glow" r="16" cx="-50" cy="-50" data-upacket-glow/>
+        <circle class="packet" r="7" cx="-50" cy="-50" data-upacket/>
+      </svg>
+      </div>
+
+      <div class="lab-console js-only" aria-live="polite">
+        <div class="console-head">
+          <span class="mini-hermes" aria-hidden="true">{% include "hermes.svg" %}</span>
+          <div class="console-title"><strong data-uconsole-title>{{ ui("narrator") }}</strong><span class="muted small" data-uconsole-step>{{ ui("narrator_role") }}</span></div>
+        </div>
+        <p class="console-text" data-uconsole-text>{{ ui("pick") }}</p>
+        <ol class="console-trail" data-uconsole-trail></ol>
+        <ul class="chips console-chips" data-uconsole-chips></ul>
+        <div class="console-controls" data-uconsole-controls hidden>
+          <button type="button" class="btn btn-sm btn-ghost" data-uflow-prev>← {{ ui("prev") }}</button>
+          <button type="button" class="btn btn-sm" data-uflow-play>{{ ui("pause") }}</button>
+          <button type="button" class="btn btn-sm btn-ghost" data-uflow-next>{{ ui("next") }} →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-lists">
+    {% for f in flows %}
+      <details id="uflow-{{ f.id }}" class="flow-list">
+        <summary>{{ f.title }}</summary>
+        <ol>{% for (pod, text) in f.steps %}<li><strong>{{ pod }}</strong> — {{ text }}</li>{% endfor %}</ol>
+      </details>
+    {% endfor %}
+    </div>
+
+    <ol class="lab-nodes">
+    {% for n in pods %}
+      <li id="pod-{{ n.id }}" class="lab-info kind-{{ n.kind }}">
+        <h3>{{ n.title }}</h3>
+        <p>{{ n.text }}</p>
+        {% if !n.tech.is_empty() %}<ul class="chips">{% for x in n.tech %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}
+      </li>
+    {% endfor %}
+    </ol>
+  </div>
+</section>
+
+<!-- ============================ HABILIDADES ============================ -->
+<section class="bay" id="skills" aria-labelledby="skills-title">
+  <p class="bay-silk" aria-hidden="true">BAY 02 · SKILLS</p>
+  <h2 id="skills-title">{{ ui("tech_title") }}</h2>
+  <p class="muted js-only">{{ ui("tech_intro") }}</p>
+  <div class="unit-skills js-only">
+    <ul class="unit-skill-list">
+    {% for s in skills %}<li><button type="button" class="unit-skill" data-skill="{{ s.id }}" aria-pressed="false">{{ s.name }}</button></li>{% endfor %}
+    </ul>
+    <div class="unit-skill-panel" data-skill-panel hidden>
+      <p class="usp-name"><strong data-skill-name></strong></p>
+      <p data-skill-note></p>
+      <p class="usp-actions"><a class="btn btn-sm" href="/{{ c.lang }}/#quests" data-skill-all>{{ ui("tech_all") }} →</a> <button type="button" class="btn btn-sm btn-ghost" data-skill-clear>{{ ui("tech_clear") }}</button></p>
+    </div>
+  </div>
+  <dl class="skill-notes">
+  {% for s in skills %}
+    <div id="t-{{ s.id }}" data-skill-note-for="{{ s.id }}"><dt>{{ s.name }}</dt><dd>{{ s.note }}</dd></div>
+  {% endfor %}
+  </dl>
+</section>
+
+<!-- ============================== CÁLCULO XP ============================== -->
+<section class="bay" id="xp" aria-labelledby="xp-title">
+  <p class="bay-silk" aria-hidden="true">BAY 03 · XP ENGINE</p>
+  <h2 id="xp-title">{{ ui("xp_title") }}</h2>
+  <p class="muted">{{ ui("xp_intro") }}</p>
+  <noscript><p class="muted small">{{ ui("xp_noscript") }}</p></noscript>
+  <form class="xp-calc js-only" data-xp>
+    <div class="xp-controls">
+      <label class="xp-field"><span>{{ ui("xp_base") }} <output data-xp-out="base"></output></span><input type="range" name="base" data-xp-in="base"></label>
+      <fieldset class="xp-field xp-diff">
+        <legend>{{ ui("xp_difficulty") }}</legend>
+        <div class="xp-diff-opts" data-xp-diffs></div>
+      </fieldset>
+      <label class="xp-field"><span>{{ ui("xp_accuracy") }} <output data-xp-out="acc"></output></span><input type="range" name="acc" min="0" max="100" value="80" data-xp-in="acc"></label>
+      <label class="xp-field"><span>{{ ui("xp_time") }} <output data-xp-out="time"></output></span><input type="range" name="time" min="30" max="480" step="15" value="180" data-xp-in="time"></label>
+    </div>
+    <div class="xp-result" aria-live="polite">
+      <p class="xp-label">{{ ui("xp_result") }}</p>
+      <p class="xp-big"><span data-xp-total>0</span> <small>XP</small></p>
+      <p class="xp-formula"><code>{{ ui("xp_formula") }}</code></p>
+      <p class="xp-math"><code data-xp-math></code></p>
+      <div class="xp-level">
+        <p class="xp-label">{{ ui("xp_level") }}</p>
+        <p class="xp-lvl"><span data-xp-level>1</span></p>
+        <svg class="pc-bar" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect class="pc-bar-bg" width="100" height="6" rx="3"/><rect class="pc-bar-xp" width="0" height="6" rx="3" data-xp-bar/></svg>
+        <p class="muted small">{{ ui("xp_level_note") }}</p>
+      </div>
+    </div>
+  </form>
+</section>
+
+<!-- ============================== BITÁCORA ============================== -->
+<section class="bay" id="incidents" aria-labelledby="inc-title">
+  <p class="bay-silk" aria-hidden="true">BAY 04 · LOGS</p>
+  <h2 id="inc-title">{{ ui("incidents_title") }} <span class="inc-score js-only" data-inc-score></span></h2>
+  <p class="muted">{{ ui("incidents_intro") }}</p>
+  <ol class="incidents">
+  {% for i in incidents %}
+    <li class="inc" data-inc="{{ i.id }}" data-answer="{{ i.answer }}">
+      <article>
+        <header>
+          <p class="inc-n">#{{ i.n }}</p>
+          <h3>{{ i.title }}</h3>
+          <p class="inc-meta">{{ i.meta }}</p>
+        </header>
+        <p class="inc-symptom">{{ i.symptom }}</p>
+        <div class="inc-guess js-only">
+          <p class="small"><strong>{{ ui("incident_guess") }}</strong></p>
+          <ul class="inc-options">
+          {% for o in i.options %}<li><button type="button" class="inc-opt" data-opt="{{ loop.index0 }}">{{ o }}</button></li>{% endfor %}
+          </ul>
+          <p class="inc-feedback small" data-inc-feedback aria-live="polite"></p>
+        </div>
+        <details class="inc-answer" data-inc-answer>
+          <summary>{{ ui("incident_reveal") }}</summary>
+          <dl>
+            <div><dt>{{ ui("cause") }}</dt><dd>{{ i.cause }}</dd></div>
+            <div><dt>{{ ui("fix") }}</dt><dd>{{ i.fix }}</dd></div>
+            <div class="inc-lesson"><dt>{{ ui("lesson") }}</dt><dd>{{ i.lesson }}</dd></div>
+          </dl>
+        </details>
+      </article>
+    </li>
+  {% endfor %}
+  </ol>
+</section>
+
+<!-- ============================ CONSTRUCCIÓN ============================ -->
+<section class="bay" id="build" aria-labelledby="build-title">
+  <p class="bay-silk" aria-hidden="true">BAY 05 · BUILD</p>
+  <div class="unit-build">
+    <div>
+      <h2 id="build-title">{{ ui("timeline_title") }}</h2>
+      <ol class="timeline">
+      {% for p in t.timeline %}
+        <li>
+          <p class="tl-period">{{ p.period }}</p>
+          <h3>{{ p.title }}</h3>
+          <ul class="bullets">{% for x in p.items %}<li>{{ x }}</li>{% endfor %}</ul>
+        </li>
+      {% endfor %}
+      </ol>
+    </div>
+    <div>
+      <h2>{{ ui("decisions_title") }}</h2>
+      <ul class="decisions">
+      {% for d in t.decisions %}
+        <li class="card"><p class="muted small">{{ d.title }}</p><h3>{{ d.choice }}</h3><p>{{ d.why }}</p></li>
+      {% endfor %}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CIERRE ============================== -->
+<section class="bay" id="close" aria-labelledby="close-title">
+  <p class="bay-silk" aria-hidden="true">BAY 06 · EOF</p>
+  <div class="unit-close">
+    <div class="card">
+      <h2 id="close-title">{{ ui("lessons_title") }}</h2>
+      <ul class="bullets">{% for x in t.close.lessons %}<li>{{ x }}</li>{% endfor %}</ul>
+    </div>
+    <div class="card">
+      <h2>{{ ui("next_title") }}</h2>
+      <ul class="bullets">{% for x in t.close.next %}<li>{{ x }}</li>{% endfor %}</ul>
+    </div>
+    <div class="card unit-cta">
+      <h2>{{ ui("cta_title") }}</h2>
+      <p>{{ ui("cta_text") }}</p>
+      <p class="cta">
+        <a class="btn btn-primary" href="{{ c.cv_url }}" download>{{ c.ui("download_cv") }}</a>
+        <a class="btn" href="/{{ c.lang }}/#contact">{{ c.ui("contact") }}</a>
+        <a class="btn btn-ghost" href="{{ back_url }}">← {{ ui("back") }}</a>
+      </p>
+    </div>
+  </div>
+  <p class="muted small">{{ ui("disclaimer") }}</p>
+</section>
+
+</div>
+</div>
+</div>
+
+<noscript><p class="section narrow muted small">{{ ui("noscript") }}</p></noscript>
+<div class="toasts" data-toasts aria-live="polite"></div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/json" id="unit-data">{{ data_json|safe }}</script>
+<script src="/static/unit.js?v={{ c.asset_v }}" defer></script>
+{% endblock %}

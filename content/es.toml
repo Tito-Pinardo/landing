@@ -37,6 +37,9 @@ noscript = "Esta página funciona sin JavaScript; con él tendrás el mapa inter
 quick_on = "Estás en la vista rápida."
 quick_off = "Volver a la vista completa"
 lab_quick = "El mapa interactivo del servidor y sus recorridos animados están en la vista completa."
+unit_enter = "Entrar en la unidad 1U"
+unit_where = "Ver dónde usé {skill}"
+unit_badge = "Tiene unidad propia en el rack"
 
 [hero]
 kicker = "Hola, soy"
@@ -469,6 +472,11 @@ short = "OpenShift"
 title = "Clúster OpenShift (OKD)"
 text = "Tres nodos para practicar OpenShift: 3/3 Ready y 33/33 operadores sanos."
 
+[nodes.xpify]
+short = "XPIFY · K3s"
+title = "XPIFY (unidad 1U)"
+text = "Aquí vivió mi proyecto final: una VM con un clúster K3s entero (frontend, API, Keycloak, PostgreSQL, Redis, Argo CD y observabilidad). Hoy está retirada, pero puedes entrar en su unidad y verla por dentro."
+
 [nodes.backup]
 short = "Respaldo Git"
 title = "Respaldo del repositorio"
@@ -596,6 +604,17 @@ steps = [
   "El binario de Rust ya tiene la página renderizada en memoria: responde en microsegundos.",
   "La respuesta vuelve por Cloudflare, que guarda una copia de lo que se puede cachear.",
   "Y ya la estás viendo. Todo el viaje, en milisegundos.",
+]
+
+[flows.xpify]
+title = "Un jugador entra en XPIFY"
+steps = [
+  "Un estudiante abre XPIFY, mi proyecto final, cuando estaba en producción.",
+  "Cloudflare recibe la visita y la protege, igual que hoy con esta web.",
+  "El router la deja pasar solo hacia el proxy.",
+  "Traefik ve el dominio de XPIFY y lo manda a su máquina virtual.",
+  "Proxmox ejecutaba esa VM junto al resto del laboratorio.",
+  "Dentro había un clúster K3s entero. Pulsa la pieza y entra en la unidad para verlo.",
 ]
 
 [flows.contact]
@@ -780,6 +799,7 @@ help = [
   ["hermes", "llama a Hermes, tu guía"],
   ["challenge", "un reto: encuentra la bandera"],
   ["submit <flag>", "entrega la bandera"],
+  ["ssh xpify", "entra en la unidad de XPIFY"],
   ["clear", "limpia la pantalla"],
   ["exit", "cierra la terminal"],
 ]
@@ -810,6 +830,7 @@ detective = { title = "Detective", text = "Has resuelto un caso del modo detecti
 hacker = { title = "Hacker ético", text = "Has encontrado la bandera de la terminal." }
 
 gnome_friend = { title = "Amigo de los enanitos", text = "Has charlado con cinco enanitos." }
+insider = { title = "Dentro de la máquina", text = "Has entrado en una unidad del rack." }
 
 [gnomes]
 toggle = "Enanitos"

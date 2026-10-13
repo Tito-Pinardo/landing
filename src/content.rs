@@ -9,6 +9,8 @@ use std::collections::{BTreeMap, HashSet};
 use anyhow::{Context, Result, bail, ensure};
 use serde::{Deserialize, Serialize};
 
+use crate::unit::{self, Unit};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Lang {
@@ -135,6 +137,9 @@ pub struct Node {
     /// Grupo dentro del servidor; vacío si la pieza está fuera.
     pub group: String,
     pub tech: Vec<String>,
+    /// Unidad del rack (página propia) en la que se puede entrar desde aquí.
+    #[serde(default)]
+    pub unit: Option<String>,
 }
 
 /// Zona rectangular del servidor en el mapa del laboratorio.
@@ -401,6 +406,7 @@ pub struct Content {
     pub site: Site,
     pub es: Texts,
     pub en: Texts,
+    pub units: Vec<Unit>,
 }
 
 /// Zonas (secciones) en el orden en que aparecen en la página.
@@ -441,6 +447,9 @@ const UI_KEYS: &[&str] = &[
     "quick_on",
     "quick_off",
     "lab_quick",
+    "unit_enter",
+    "unit_where",
+    "unit_badge",
 ];
 const LAB_KEYS: &[&str] = &[
     "intro",
@@ -549,11 +558,49 @@ impl Content {
 
     /// Carga el contenido compilado en el binario.
     pub fn embedded() -> Result<Content> {
-        Self::parse(
+        let mut content = Self::parse(
             include_str!("../content/site.toml"),
             include_str!("../content/es.toml"),
             include_str!("../content/en.toml"),
-        )
+        )?;
+        content.units = unit::EMBEDDED
+            .iter()
+            .map(|src| Unit::parse(src))
+            .collect::<Result<_>>()?;
+        content.validate_units()?;
+        Ok(content)
+    }
+
+    pub fn unit(&self, id: &str) -> Option<&Unit> {
+        self.units.iter().find(|u| u.id == id)
+    }
+
+    /// Unidad de una misión, si la tiene.
+    pub fn project_unit(&self, project: &str) -> Option<&Unit> {
+        self.units.iter().find(|u| u.project == project)
+    }
+
+    fn validate_units(&self) -> Result<()> {
+        let mut ids = HashSet::new();
+        for u in &self.units {
+            ensure!(ids.insert(u.id.as_str()), "unidad repetida {}", u.id);
+            ensure!(
+                !["contact", "static", "api"].contains(&u.id.as_str()),
+                "unidad {}: el id choca con una ruta",
+                u.id
+            );
+            u.validate(&self.site)?;
+        }
+        for n in &self.site.nodes {
+            if let Some(id) = &n.unit {
+                ensure!(
+                    self.unit(id).is_some(),
+                    "nodo {}: unidad desconocida {id}",
+                    n.id
+                );
+            }
+        }
+        Ok(())
     }
 
     pub fn parse(site: &str, es: &str, en: &str) -> Result<Content> {
@@ -561,6 +608,7 @@ impl Content {
             site: toml::from_str(site).context("content/site.toml")?,
             es: toml::from_str(es).context("content/es.toml")?,
             en: toml::from_str(en).context("content/en.toml")?,
+            units: Vec::new(),
         };
         content.validate()?;
         Ok(content)

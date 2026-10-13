@@ -2,6 +2,8 @@
 
 Mi web personal: quién soy, qué sé hacer y en qué trabajo, en español e inglés. Te guía **Hermes**, un compañero sin IA (guionizado) que ofrece un tour, un atajo para RR. HH. y comentarios según lo que haces. El **laboratorio** enseña mi servidor por dentro: 17 recorridos animados en cinco categorías (tu visita, un mensaje de contacto, una pregunta a mi asistente de IA, una intrusión frenada, la renovación de certificados, el cambio de IP, la actualización de contenedores, una noche de juegos…) en los que un paquete viaja de pieza en pieza mientras Hermes narra cada paso. El mapa muestra el estado real de cada pieza (LEDs) y se pueden **comparar dos recorridos** a la vez. En el **modo detective** el visitante investiga averías reales del homelab buscando pistas en el mapa hasta dar con la causa. Además: árbol de habilidades que crece y filtra los proyectos, un deslizador de antes/después (a mano frente a como código), una terminal con un pequeño reto de bandera, logros y formulario de contacto. Para quien tenga prisa hay una **vista rápida** con lo esencial.
 
+Los proyectos con más miga tienen su propia **unidad del rack**: una página a la que se entra como si sacaras un servidor de 1U. La de **XPIFY** (`/es/xpify/`, mi proyecto final) enseña su clúster K3s por dentro con seis recorridos animados (inicio de sesión OIDC, una misión, el chat entre réplicas, el ranking, el despliegue con GitOps y una alerta), qué usé de cada habilidad, el cálculo de XP real para jugar con él y la bitácora de incidencias como adivinanza. Se llega desde su pieza del laboratorio, desde su misión (al filtrar por una habilidad, la misión cuenta para qué la usé y abre la unidad con esas piezas encendidas) o con `ssh xpify` en la terminal.
+
 ## Cómo está hecha
 
 - **Rust + Axum.** Las páginas se renderizan una vez al arrancar (plantillas `askama` compiladas) y se sirven desde memoria con ETag. Detrás de Cloudflare casi ninguna visita llega al servidor.
@@ -16,8 +18,9 @@ Mi web personal: quién soy, qué sé hacer y en qué trabajo, en español e ing
 |---|---|
 | `content/site.toml` | Datos que no dependen del idioma: tecnologías, proyectos, piezas y grupos del servidor y recorridos |
 | `content/es.toml`, `content/en.toml` | Textos, con las mismas claves (el servidor no arranca si falta alguna) |
+| `content/units/*.toml` | Unidades del rack: mapa, recorridos y textos ES/EN de cada una (se validan contra `site.toml`) |
 | `templates/` | Plantillas HTML (y el avatar de Hermes en SVG) |
-| `static/` | CSS, JS, imágenes y CV (se compilan dentro del binario) |
+| `static/` | CSS, JS (`app.js` para la portada, `unit.js` para las unidades), imágenes y CV (se compilan dentro del binario) |
 | `migrations/` | Esquema de PostgreSQL |
 | `src/` | Servidor |
 | `docs/PLAN.md` | Plan, decisiones y fases |

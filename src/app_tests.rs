@@ -156,6 +156,42 @@ async fn unknown_paths_are_404_pages(db: PgPool) {
 }
 
 #[sqlx::test]
+async fn rack_units_have_their_own_page(db: PgPool) {
+    let (app, _) = router(db, config(false));
+
+    let (status, h, body) = send(&app, get("/es/xpify/")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(body.contains("<html lang=\"es\""));
+    assert!(
+        body.contains("href=\"/en/xpify/\""),
+        "el cambio de idioma se queda en la unidad"
+    );
+    assert!(body.contains("/static/unit.js?v="));
+    assert!(h.contains_key(header::ETAG));
+
+    let (status, _, body) = send(&app, get("/en/xpify/")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(body.contains("<html lang=\"en\""));
+
+    let (status, h, _) = send(&app, get("/es/xpify")).await;
+    assert_eq!(status, StatusCode::PERMANENT_REDIRECT);
+    assert_eq!(h[header::LOCATION], "/es/xpify/");
+
+    for uri in ["/es/no-existe/", "/es/no-existe", "/fr/xpify/"] {
+        let (status, _, _) = send(&app, get(uri)).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
+    }
+
+    // La portada lleva a la unidad desde la misión y desde el laboratorio.
+    let (_, _, body) = send(&app, get("/es/")).await;
+    assert!(body.contains("data-unit-link=\"xpify\""));
+    assert!(body.contains("href=\"/es/xpify/\""));
+
+    let (_, _, body) = send(&app, get("/sitemap.xml")).await;
+    assert!(body.contains("<loc>https://example.org/en/xpify/</loc>"));
+}
+
+#[sqlx::test]
 async fn versioned_assets_are_immutable(db: PgPool) {
     let (app, _) = router(db, config(false));
     let (status, h, _) = send(&app, get("/static/app.css?v=abc")).await;

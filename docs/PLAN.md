@@ -45,6 +45,7 @@ Visitante ─▶ Cloudflare (caché en el borde, Turnstile) ─▶ Traefik (CT 1
    - Certificado: el token de Cloudflare en uso llega a los 3 dominios. Comprobarlo en el primer despliegue.
 3b. **Más interactividad** ✅ (04-10): Hermes como guía guionizado (tour, modo RR. HH., consejos por zona, reacciones), laboratorio con el servidor por dentro (32 piezas en 7 grupos) y 17 recorridos animados en 5 categorías con narración; apariciones al hacer scroll y contadores.
 4. **Datos en vivo** ✅ (04-10): actividad pública de GitHub y estado agregado del homelab (servicios en marcha y disponibilidad a 30 días, publicado desde el host cada 5 min; solo agregados).
+4b. **Unidades del rack** ✅ (13-10): páginas propias para los proyectos con más miga, como si sacaras un servidor de 1U del rack. La primera es XPIFY (`/es/xpify/`): su VM de K3s por dentro (23 piezas, 6 recorridos animados), qué usé de cada habilidad, el cálculo de XP real para jugar con él, la bitácora de incidencias como adivinanza, cómo se construyó y las decisiones. Se entra desde su pieza del laboratorio, desde su misión (al filtrar por una habilidad, la misión cuenta para qué la usé y el botón abre la unidad con esas piezas encendidas) o con `ssh xpify` en la terminal. Contenido en `content/units/xpify.toml`, sacado de la memoria del TFG y de su documentación técnica, sin direcciones ni dominios.
 5. **Lanzamiento**: reglas de caché de Cloudflare, SEO (Open Graph, JSON-LD `Person`, sitemap) y enlazarla desde LinkedIn y GitHub.
 
 ## Fuentes de contenido

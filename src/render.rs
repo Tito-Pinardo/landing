@@ -9,6 +9,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use crate::content::{Content, Lang, ProjectStatus, Texts, ZONES};
+use crate::unit::{MAP_H, MAP_W, Unit, UnitText};
 
 pub struct Page {
     pub body: Bytes,
@@ -39,6 +40,9 @@ pub struct Ctx<'a> {
     pub github: &'a str,
     pub linkedin: &'a str,
     pub cv_url: &'a str,
+    /// Ruta de la página dentro del idioma ("" en la portada, "xpify/" en
+    /// una unidad): el cambio de idioma lleva a la misma página.
+    pub path: String,
 }
 
 impl Ctx<'_> {
@@ -93,6 +97,8 @@ pub struct ProjectView {
     pub repo: Option<String>,
     pub tech: Vec<(String, String)>,
     pub tech_ids: String,
+    /// URL de su unidad en el rack, si la tiene.
+    pub unit_url: Option<String>,
 }
 
 pub struct NodeView {
@@ -105,6 +111,8 @@ pub struct NodeView {
     pub title: String,
     pub text: String,
     pub tech: Vec<String>,
+    pub tech_ids: String,
+    pub unit_url: Option<String>,
 }
 
 pub struct GroupView {
@@ -180,7 +188,12 @@ pub fn ctx<'a>(content: &'a Content, lang: Lang, asset_v: &'a str, public_url: &
             Lang::Es => &p.cv_es,
             Lang::En => &p.cv_en,
         },
+        path: String::new(),
     }
+}
+
+fn unit_url(lang: Lang, id: &str) -> String {
+    format!("/{}/{id}/", lang.code())
 }
 
 pub fn index(
@@ -284,6 +297,7 @@ pub fn index(
                     .map(|id| (id.clone(), tech_name(id)))
                     .collect(),
                 tech_ids: p.tech.join(" "),
+                unit_url: content.project_unit(&p.id).map(|u| unit_url(lang, &u.id)),
             }
         })
         .collect();
@@ -301,6 +315,8 @@ pub fn index(
             title: t.nodes[&n.id].title.clone(),
             text: t.nodes[&n.id].text.clone(),
             tech: n.tech.iter().map(|id| tech_name(id)).collect(),
+            tech_ids: n.tech.join(" "),
+            unit_url: n.unit.as_deref().map(|u| unit_url(lang, u)),
         })
         .collect();
     let pos = |id: &str| {
@@ -391,6 +407,210 @@ pub fn index(
     Ok(Page::new(tpl.render()?))
 }
 
+pub struct SkillView {
+    pub id: String,
+    pub name: String,
+    pub note: String,
+}
+
+pub struct IncidentView<'a> {
+    pub id: &'a str,
+    pub n: usize,
+    pub title: &'a str,
+    pub meta: &'a str,
+    pub symptom: &'a str,
+    pub options: &'a [String],
+    pub answer: usize,
+    pub cause: &'a str,
+    pub fix: &'a str,
+    pub lesson: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "unit.html")]
+pub struct UnitTpl<'a> {
+    pub c: Ctx<'a>,
+    pub id: &'a str,
+    pub t: &'a UnitText,
+    pub url: String,
+    pub back_url: String,
+    pub pods: Vec<NodeView>,
+    pub groups: Vec<GroupView>,
+    pub links: Vec<LinkView>,
+    pub flows: Vec<FlowView>,
+    pub skills: Vec<SkillView>,
+    pub incidents: Vec<IncidentView<'a>>,
+    pub host_tech: String,
+    pub map_w: u32,
+    pub map_h: u32,
+    pub data_json: String,
+}
+
+impl UnitTpl<'_> {
+    pub fn ui(&self, key: &str) -> &str {
+        self.t.ui.get(key).map_or("", String::as_str)
+    }
+}
+
+/// Página de una unidad del rack.
+pub fn unit(
+    content: &Content,
+    unit: &Unit,
+    lang: Lang,
+    asset_v: &str,
+    public_url: &str,
+) -> anyhow::Result<Page> {
+    let site = &content.site;
+    let t = unit.texts(lang);
+    let mut c = ctx(content, lang, asset_v, public_url);
+    c.path = format!("{}/", unit.id);
+    let tech_name = |id: &str| {
+        site.tech
+            .iter()
+            .find(|x| x.id == id)
+            .map(|x| x.name.clone())
+            .unwrap_or_default()
+    };
+
+    let pods: Vec<NodeView> = unit
+        .pods
+        .iter()
+        .map(|n| NodeView {
+            id: n.id.clone(),
+            x: n.x,
+            y: n.y,
+            kind: n.kind.clone(),
+            group: n.group.clone(),
+            short: t.pods[&n.id].short.clone(),
+            title: t.pods[&n.id].title.clone(),
+            text: t.pods[&n.id].text.clone(),
+            tech: n.tech.iter().map(|id| tech_name(id)).collect(),
+            tech_ids: n.tech.join(" "),
+            unit_url: None,
+        })
+        .collect();
+    let pos = |id: &str| {
+        pods.iter()
+            .find(|n| n.id == id)
+            .map(|n| (n.x, n.y))
+            .unwrap_or_default()
+    };
+    let links = unit
+        .links
+        .iter()
+        .map(|[a, b]| {
+            let ((x1, y1), (x2, y2)) = (pos(a), pos(b));
+            LinkView {
+                a: a.clone(),
+                b: b.clone(),
+                x1,
+                y1,
+                x2,
+                y2,
+            }
+        })
+        .collect();
+    let groups = unit
+        .groups
+        .iter()
+        .map(|g| GroupView {
+            id: g.id.clone(),
+            x: g.x,
+            y: g.y,
+            w: g.w,
+            h: g.h,
+            label: t.groups[&g.id].clone(),
+        })
+        .collect();
+    let flows = unit
+        .flows
+        .iter()
+        .map(|f| FlowView {
+            id: f.id.clone(),
+            category: String::new(),
+            title: t.flows[&f.id].title.clone(),
+            steps: f
+                .path
+                .iter()
+                .zip(&t.flows[&f.id].steps)
+                .map(|(pod, text)| (t.pods[pod].title.clone(), text.clone()))
+                .collect(),
+        })
+        .collect();
+    // En el orden de la misión, que es el del árbol de habilidades.
+    let skills = unit
+        .project_tech(site)
+        .iter()
+        .map(|id| SkillView {
+            id: id.clone(),
+            name: tech_name(id),
+            note: t.tech_notes[id].clone(),
+        })
+        .collect();
+    let incidents = unit
+        .incidents
+        .iter()
+        .enumerate()
+        .map(|(n, i)| {
+            let it = &t.incidents[&i.id];
+            IncidentView {
+                id: &i.id,
+                n: n + 1,
+                title: &it.title,
+                meta: &it.meta,
+                symptom: &it.symptom,
+                options: &it.options,
+                answer: i.answer,
+                cause: &it.cause,
+                fix: &it.fix,
+                lesson: &it.lesson,
+            }
+        })
+        .collect();
+
+    let mt = content.texts(lang);
+    let data = serde_json::json!({
+        "lang": lang.code(),
+        "id": unit.id,
+        "ui": t.ui,
+        "pods": unit.pods.iter().map(|n| serde_json::json!({
+            "id": n.id, "x": n.x, "y": n.y, "short": t.pods[&n.id].short, "title": t.pods[&n.id].title, "text": t.pods[&n.id].text, "tech": n.tech,
+        })).collect::<Vec<_>>(),
+        "flows": unit.flows.iter().map(|f| serde_json::json!({
+            "id": f.id, "title": t.flows[&f.id].title, "path": f.path, "steps": t.flows[&f.id].steps,
+        })).collect::<Vec<_>>(),
+        "host_tech": unit.host_tech,
+        "xp": unit.xp,
+        "difficulties": t.xp.difficulties,
+        "map_w": MAP_W,
+        "home": format!("/{}/", lang.code()),
+        "achievement": {
+            "label": c.ui("achievement_unlocked"),
+            "title": mt.achievements["insider"].title,
+            "text": mt.achievements["insider"].text,
+        },
+    });
+
+    let tpl = UnitTpl {
+        url: format!("{public_url}{}", unit_url(lang, &unit.id)),
+        back_url: format!("/{}/#lab", lang.code()),
+        id: &unit.id,
+        t,
+        pods,
+        groups,
+        links,
+        flows,
+        skills,
+        incidents,
+        host_tech: unit.host_tech.join(" "),
+        map_w: MAP_W,
+        map_h: MAP_H,
+        data_json: script_json(&data)?,
+        c,
+    };
+    Ok(Page::new(tpl.render()?))
+}
+
 /// Textos que necesita el JavaScript (terminal, logros, datos en vivo).
 fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
     let t = content.texts(lang);
@@ -421,7 +641,12 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
         "hermes": t.hermes,
         "nodes": site.nodes.iter().map(|n| serde_json::json!({
             "id": n.id, "x": n.x, "y": n.y, "title": t.nodes[&n.id].title, "text": t.nodes[&n.id].text,
+            "unit": n.unit.as_deref().map(|u| unit_url(lang, u)),
         })).collect::<Vec<_>>(),
+        // Misiones con unidad propia: a dónde llevar y qué contar al filtrar.
+        "units": content.units.iter().map(|u| (u.project.clone(), serde_json::json!({
+            "url": unit_url(lang, &u.id), "notes": u.texts(lang).tech_notes,
+        }))).collect::<serde_json::Map<_, _>>(),
         "incident_ui": t.incident_ui,
         "compare": t.compare,
         "personality": t.personality,
@@ -494,6 +719,24 @@ mod tests {
     fn script_json_cannot_close_the_tag() {
         let s = script_json(&serde_json::json!({"x": "</script><script>alert(1)"})).unwrap();
         assert!(!s.contains("</"));
+    }
+
+    #[test]
+    fn units_render_in_both_languages() {
+        let content = Content::embedded().unwrap();
+        for u in &content.units {
+            for lang in Lang::ALL {
+                let page = unit(&content, u, lang, "test", "https://example.org").unwrap();
+                let html = std::str::from_utf8(&page.body).unwrap();
+                assert!(
+                    html.contains(&format!("href=\"/{}/{}/\"", lang.other().code(), u.id)),
+                    "el cambio de idioma lleva a la misma unidad"
+                );
+                for p in &u.pods {
+                    assert!(html.contains(&format!("data-pod=\"{}\"", p.id)));
+                }
+            }
+        }
     }
 
     #[test]

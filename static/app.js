@@ -314,11 +314,25 @@
       $$("[data-chip]", q).forEach((c) => c.classList.toggle("is-hit", c.dataset.chip === tech));
     }
     filterStatus.hidden = tech === null;
+    paintUnitLinks(tech, name);
     if (tech !== null) {
       filterName.textContent = name;
       huntedSkills.add(tech);
       store.set("skills", [...huntedSkills]);
       if (huntedSkills.size >= 3) unlock("skill_hunter");
+    }
+  }
+  // Misiones con unidad propia: al filtrar, cuentan para qué usé la
+  // habilidad y el botón entra en la unidad con esas piezas encendidas.
+  function paintUnitLinks(tech, name) {
+    for (const a of $$("[data-unit-link]")) {
+      const unit = T.units[a.dataset.unitLink];
+      const note = tech !== null ? unit?.notes[tech] : null;
+      const box = a.closest(".quest-unit");
+      $("[data-unit-note]", box).hidden = !note;
+      $("[data-unit-note]", box).textContent = note || "";
+      $("[data-unit-label]", a).textContent = note ? fill(T.ui.unit_where, { skill: name }) : T.ui.unit_enter;
+      a.href = note ? `${unit.url}#t=${encodeURIComponent(tech)}` : unit.url;
     }
   }
   $$(".skill").forEach((b) => b.addEventListener("click", () => {
@@ -332,6 +346,15 @@
     scrollTo($("#quests"));
   }));
   $("[data-filter-clear]")?.addEventListener("click", () => filterBy(null));
+  // Desde una unidad: «ver todas mis misiones con esta habilidad».
+  {
+    const m = /^#skill=([\w-]+)$/.exec(location.hash);
+    const b = m && $(`.skill[data-tech="${CSS.escape(m[1])}"]`);
+    if (b) {
+      window.history.replaceState(null, "", "#quests");
+      setTimeout(() => b.click(), 300);
+    }
+  }
 
   // ------------------------------------------------------------ laboratorio
   // Recorridos animados: un paquete viaja de pieza en pieza por el camino
@@ -350,6 +373,12 @@
     controls: $("[data-console-controls]"),
     play: $("[data-flow-play]"),
   };
+  const consoleUnit = $("[data-console-unit]");
+  function showUnit(node) {
+    if (!consoleUnit) return;
+    consoleUnit.hidden = !node?.unit;
+    if (node?.unit) $("a", consoleUnit).href = node.unit;
+  }
   const opened = new Set(store.get("nodes", []));
   const flowsDone = new Set(store.get("flowsDone", []));
   const labState = { flow: null, step: -1, playing: false, timer: 0, anim: 0, autoplayed: false };
@@ -484,6 +513,7 @@
   }
 
   function labStartFlow(id) {
+    showUnit(null);
     const flow = T.flows.find((f) => f.id === id);
     if (!flow || !layer) return;
     cancelAnimationFrame(labState.anim);
@@ -567,6 +597,7 @@
     labState.step = flow.path.length;
     paintTrail(flow, flow.path.length);
     typeInto(consoleEl.text, H.flow_done);
+    showUnit(nodeById[flow.path[flow.path.length - 1]]);
     flowsDone.add(flow.id);
     store.set("flowsDone", [...flowsDone]);
     $(`[data-flow="${flow.id}"]`)?.classList.add("is-done");
@@ -613,6 +644,7 @@
     consoleEl.controls.hidden = true;
     consoleEl.trail.replaceChildren();
     layer.replaceChildren();
+    showUnit(null);
   }
 
   labNodes.forEach((n) => n.addEventListener("click", (ev) => {
@@ -626,6 +658,7 @@
     consoleEl.title.textContent = node.title;
     consoleEl.step.textContent = "";
     typeInto(consoleEl.text, node.text);
+    showUnit(node);
     opened.add(node.id);
     store.set("nodes", [...opened]);
     if (opened.size >= 5) unlock("architect");
@@ -1046,6 +1079,12 @@
       }
     },
     hermes() { closeTerminal(); hermesMenu(fill(H.greet_return, { zones: found.size })); },
+    ssh(arg) {
+      const node = T.nodes.find((n) => n.unit && n.id === (arg || "").replace(/^.*@/, ""));
+      if (!node) return print(`ssh: ${arg || ""}: ${TT.no_such_file}`, "t-err");
+      print(`→ ${node.title}…`, "t-ok");
+      setTimeout(() => { location.href = node.unit; }, reduceMotion ? 0 : 600);
+    },
     enanos(arg) { setGnomes(arg !== "off"); print(arg === "off" ? "😢" : "⛏️  ✓", "t-ok"); },
     gnomes(arg) { setGnomes(arg !== "off"); print(arg === "off" ? "😢" : "⛏️  ✓", "t-ok"); },
   };

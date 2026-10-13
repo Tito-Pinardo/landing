@@ -37,6 +37,9 @@ noscript = "This page works without JavaScript; with it you get the interactive 
 quick_on = "You're in quick view."
 quick_off = "Back to the full view"
 lab_quick = "The interactive server map and its animated journeys are in the full view."
+unit_enter = "Open the 1U unit"
+unit_where = "See where I used {skill}"
+unit_badge = "Has its own unit in the rack"
 
 [hero]
 kicker = "Hi, I'm"
@@ -465,6 +468,11 @@ short = "OpenShift"
 title = "OpenShift cluster (OKD)"
 text = "Three nodes to practise OpenShift: 3/3 Ready and 33/33 healthy operators."
 
+[nodes.xpify]
+short = "XPIFY · K3s"
+title = "XPIFY (1U unit)"
+text = "My final project lived here: a VM running a whole K3s cluster (frontend, API, Keycloak, PostgreSQL, Redis, Argo CD and observability). It is retired now, but you can open its unit and look inside."
+
 [nodes.backup]
 short = "Git backup"
 title = "Repository backup"
@@ -592,6 +600,17 @@ steps = [
   "The Rust binary already has the page rendered in memory: it answers in microseconds.",
   "The response goes back through Cloudflare, which keeps a copy of whatever can be cached.",
   "And you're looking at it. The whole trip, in milliseconds.",
+]
+
+[flows.xpify]
+title = "A player opens XPIFY"
+steps = [
+  "A student opens XPIFY, my final project, back when it was in production.",
+  "Cloudflare receives the visit and shields it, just as it does for this site today.",
+  "The router only lets it through to the proxy.",
+  "Traefik sees the XPIFY domain and sends it to its virtual machine.",
+  "Proxmox ran that VM alongside the rest of the lab.",
+  "Inside was a whole K3s cluster. Click the part and open the unit to see it.",
 ]
 
 [flows.contact]
@@ -770,6 +789,7 @@ help = [
   ["hermes", "call Hermes, your guide"],
   ["challenge", "a challenge: find the flag"],
   ["submit <flag>", "hand in the flag"],
+  ["ssh xpify", "open the XPIFY unit"],
   ["clear", "clear the screen"],
   ["exit", "close the terminal"],
 ]
@@ -798,6 +818,7 @@ detective = { title = "Detective", text = "You solved a detective mode case." }
 hacker = { title = "Ethical hacker", text = "You found the terminal flag." }
 
 gnome_friend = { title = "Gnome whisperer", text = "You chatted with five gnomes." }
+insider = { title = "Inside the machine", text = "You opened a unit in the rack." }
 
 [gnomes]
 toggle = "Gnomes"

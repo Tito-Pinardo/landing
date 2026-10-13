@@ -1,0 +1,1270 @@
+# Unidad 1U del rack: XPIFY por dentro.
+#
+# Una "unidad" es la página propia de un proyecto con mucha miga: se entra
+# desde su pieza en el laboratorio o desde su misión. Arriba va lo que no
+# depende del idioma (mapa, recorridos, reglas del cálculo de XP) y abajo los
+# textos en `[text.es]` y `[text.en]`, con las mismas claves.
+#
+# Fuente: la memoria del TFG y la documentación técnica del proyecto. Sin
+# direcciones, dominios ni nombres internos: solo qué hacía cada pieza.
+
+id = "xpify"
+# Misión (site.toml) a la que pertenece.
+project = "xpify"
+# Lo que tenía la propia máquina: se ilumina el marco de la VM.
+host_tech = ["proxmox", "linux", "kubernetes"]
+# Conexiones fijas del mapa; los recorridos dibujan su camino encima.
+links = [
+  ["player", "cloudflare"],
+  ["friend", "cloudflare"],
+  ["cloudflare", "homeedge"],
+  ["homeedge", "traefik"],
+  ["github", "ci"],
+  ["ci", "registry"],
+]
+
+# Cálculo de XP tal y como lo hacía el backend:
+# XP = base × dificultad × (accuracy_base + acierto × accuracy_weight) × tiempo
+# y nivel = floor(level_constant × √XP total) + 1.
+[xp]
+base_min = 50
+base_max = 300
+base_default = 100
+difficulty = [1.0, 1.2, 1.5, 1.85]
+# Segundos: por debajo de cada límite se aplica su factor; por encima del
+# último, `time_slow`.
+time_limits = [150, 240, 360]
+time_factors = [1.25, 1.1, 1.0]
+time_slow = 0.9
+accuracy_base = 0.6
+accuracy_weight = 0.7
+level_constant = 0.05
+
+# ---------------------------------------------------------------------------
+# Mapa de la VM. Lienzo de 1200x630; `group` vacío = fuera de la VM.
+# ---------------------------------------------------------------------------
+
+[[groups]]
+id = "deploy"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "app"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "data"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "obs"
+x = 420
+y = 458
+w = 760
+h = 104
+
+# Fuera de la VM
+[[pods]]
+id = "player"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "friend"
+x = 290
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "cloudflare"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "homeedge"
+x = 290
+y = 250
+kind = "network"
+group = ""
+tech = ["traefik", "proxmox"]
+
+[[pods]]
+id = "github"
+x = 100
+y = 420
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "ci"
+x = 290
+y = 420
+kind = "control"
+group = ""
+tech = ["gitlab-ci", "docker"]
+
+[[pods]]
+id = "registry"
+x = 290
+y = 540
+kind = "control"
+group = ""
+tech = ["docker"]
+
+# Entrada y despliegue
+[[pods]]
+id = "traefik"
+x = 515
+y = 140
+kind = "network"
+group = "deploy"
+tech = ["traefik", "kubernetes"]
+
+[[pods]]
+id = "argocd"
+x = 700
+y = 140
+kind = "control"
+group = "deploy"
+tech = ["argocd", "git", "kubernetes"]
+
+[[pods]]
+id = "secrets"
+x = 885
+y = 140
+kind = "control"
+group = "deploy"
+tech = ["kubernetes"]
+
+[[pods]]
+id = "migrations"
+x = 1070
+y = 140
+kind = "control"
+group = "deploy"
+tech = ["postgresql", "kubernetes"]
+
+# Aplicación
+[[pods]]
+id = "frontend"
+x = 515
+y = 266
+kind = "app"
+group = "app"
+tech = ["nextjs", "typescript"]
+
+[[pods]]
+id = "backend"
+x = 700
+y = 266
+kind = "app"
+group = "app"
+tech = ["nestjs", "typescript", "docker"]
+
+[[pods]]
+id = "ws"
+x = 885
+y = 266
+kind = "app"
+group = "app"
+tech = ["nestjs", "typescript", "redis"]
+
+[[pods]]
+id = "keycloak"
+x = 1070
+y = 266
+kind = "app"
+group = "app"
+tech = ["keycloak"]
+
+# Datos
+[[pods]]
+id = "postgres"
+x = 515
+y = 392
+kind = "compute"
+group = "data"
+tech = ["postgresql", "kubernetes"]
+
+[[pods]]
+id = "redis"
+x = 700
+y = 392
+kind = "compute"
+group = "data"
+tech = ["redis"]
+
+[[pods]]
+id = "minio"
+x = 885
+y = 392
+kind = "compute"
+group = "data"
+tech = ["docker"]
+
+[[pods]]
+id = "pvc"
+x = 1070
+y = 392
+kind = "compute"
+group = "data"
+tech = ["kubernetes"]
+
+# Observabilidad
+[[pods]]
+id = "promtail"
+x = 515
+y = 518
+kind = "observability"
+group = "obs"
+tech = ["prometheus"]
+
+[[pods]]
+id = "loki"
+x = 700
+y = 518
+kind = "observability"
+group = "obs"
+tech = ["prometheus"]
+
+[[pods]]
+id = "prometheus"
+x = 885
+y = 518
+kind = "observability"
+group = "obs"
+tech = ["prometheus"]
+
+[[pods]]
+id = "grafana"
+x = 1070
+y = 518
+kind = "observability"
+group = "obs"
+tech = ["prometheus"]
+
+# ---------------------------------------------------------------------------
+# Recorridos: el camino real que hacía cada cosa.
+# ---------------------------------------------------------------------------
+
+[[flows]]
+id = "login"
+path = ["player", "cloudflare", "homeedge", "traefik", "frontend", "keycloak", "player", "keycloak", "frontend", "keycloak", "frontend", "player"]
+
+[[flows]]
+id = "mission"
+path = ["player", "cloudflare", "homeedge", "traefik", "backend", "postgres", "backend", "redis", "ws", "player"]
+
+[[flows]]
+id = "chat"
+path = ["player", "cloudflare", "homeedge", "traefik", "ws", "postgres", "ws", "redis", "ws", "friend"]
+
+[[flows]]
+id = "ranking"
+path = ["player", "cloudflare", "homeedge", "traefik", "frontend", "backend", "redis", "postgres", "redis", "frontend", "player"]
+
+[[flows]]
+id = "deploy"
+path = ["github", "ci", "registry", "github", "argocd", "secrets", "migrations", "postgres", "backend", "frontend", "traefik"]
+
+[[flows]]
+id = "alert"
+path = ["backend", "promtail", "loki", "grafana", "prometheus", "grafana", "player"]
+
+# ---------------------------------------------------------------------------
+# Bitácora: fallos reales. `answer` es el índice de la causa correcta.
+# ---------------------------------------------------------------------------
+
+[[incidents]]
+id = "doublexp"
+answer = 1
+
+[[incidents]]
+id = "redirect"
+answer = 2
+
+[[incidents]]
+id = "oom"
+answer = 0
+
+[[incidents]]
+id = "hydration"
+answer = 2
+
+[[incidents]]
+id = "lock"
+answer = 1
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "XPIFY por dentro · Tito Pinardo Gutiérrez"
+description = "Mi proyecto final de ASIR + DAW (10/10): una plataforma de aprendizaje gamificada en Kubernetes con GitOps, Keycloak, tiempo real y observabilidad. Entra en la unidad y mírala por dentro."
+
+[text.es.ui]
+back = "Volver al rack"
+crumb_rack = "Rack"
+crumb_lab = "Laboratorio"
+slot = "1U · XPIFY"
+face_specs = "K3s · 1 nodo · 23 piezas"
+retired = "Retirada · reconstruida"
+pull = "Tirando de la unidad…"
+map_title = "La VM por dentro"
+map_intro = "Pulsa una pieza para ver qué hacía o elige un recorrido y sigue el paquete."
+vm_title = "VM con K3s · Proxmox"
+vm_specs = "namespaces xpify y db"
+outside = "Fuera de la VM"
+flows_title = "Recorridos"
+flows_hint = "Pulsa uno y sigue el paquete."
+play = "Reproducir"
+pause = "Pausa"
+prev = "Anterior"
+next = "Siguiente"
+step = "Paso"
+of = "de"
+pick = "Pulsa una pieza o elige un recorrido. Si vienes de una habilidad, ya están encendidas las piezas donde la usé."
+narrator = "Hermes"
+narrator_role = "de visita en la unidad"
+tech_title = "Lo que usé de mi árbol"
+tech_intro = "Pulsa una habilidad: se encienden en el mapa las piezas donde la usé y te cuento para qué."
+tech_all = "Ver todas mis misiones con esta habilidad"
+tech_clear = "Apagar"
+xp_title = "Calcula tu XP"
+xp_intro = "El mismo cálculo que hacía el backend al terminar una misión. Mueve los controles y mira cuánto ganarías."
+xp_base = "XP base de la misión"
+xp_difficulty = "Dificultad"
+xp_accuracy = "Acierto"
+xp_time = "Tiempo empleado"
+xp_minutes = "min"
+xp_result = "XP ganada"
+xp_formula = "XP = base × dificultad × precisión × velocidad"
+xp_level = "Nivel tras 10 misiones como esta"
+xp_level_note = "El nivel crece con la raíz cuadrada del XP total: los primeros llegan rápido y los altos cuestan de verdad."
+xp_noscript = "Con JavaScript activado puedes probar la calculadora."
+incidents_title = "Bitácora de incidencias"
+incidents_intro = "Fallos reales que nos costaron horas. Lee el síntoma, elige la causa que creas y mira cómo se arregló."
+incident_guess = "¿Qué crees que pasaba?"
+incident_wrong = "No era eso. Prueba otra."
+incident_right = "¡Exacto!"
+incident_reveal = "Ver la solución"
+cause = "Causa"
+fix = "Solución"
+lesson = "Lección"
+solved = "resueltas"
+timeline_title = "Cómo se construyó"
+decisions_title = "Decisiones (y por qué)"
+lessons_title = "Lo que me llevé"
+next_title = "Si siguiera"
+cta_title = "¿Hablamos?"
+cta_text = "Puedo enseñar el código y contar cualquiera de estas decisiones en detalle en una entrevista."
+disclaimer = "Reconstrucción a partir de la memoria y la documentación del proyecto: sin direcciones, dominios ni nombres internos."
+noscript = "Esta página funciona sin JavaScript; con él la unidad se abre, el paquete recorre el mapa y puedes jugar con la calculadora y la bitácora."
+
+[text.es.hero]
+kicker = "Unidad 1U · Proyecto final ASIR + DAW"
+title = "XPIFY"
+tagline = "Una plataforma de aprendizaje que se juega como un videojuego: misiones, XP, niveles, alianzas, rankings y chat en tiempo real. Por debajo, un clúster de Kubernetes desplegado con GitOps."
+grade = "10/10 · evaluada en producción"
+facts = [
+  { label = "Mi parte", value = "El backend (NestJS, PostgreSQL, Keycloak, WebSockets), toda la infraestructura y el despliegue (K3s, Argo CD, CI/CD, observabilidad) y parte del frontend. Éramos dos." },
+  { label = "Dónde vivía", value = "En una VM con K3s dentro de este mismo servidor Proxmox, detrás del Traefik de casa y de Cloudflare, igual que esta web." },
+  { label = "Hoy", value = "Retirada tras la evaluación. Esta unidad es su reconstrucción, pieza a pieza." },
+]
+
+[[text.es.stats]]
+value = "10/10"
+label = "nota del tribunal, con la plataforma funcionando"
+
+[[text.es.stats]]
+value = "22"
+label = "tipos de pregunta en el editor visual"
+
+[[text.es.stats]]
+value = "40+"
+label = "endpoints documentados con Swagger"
+
+[[text.es.stats]]
+value = "180 ms"
+label = "P95 con 500 usuarios a la vez (k6)"
+
+[[text.es.stats]]
+value = "1,2 GB → 180 MB"
+label = "imagen Docker tras el multi-stage"
+
+[[text.es.stats]]
+value = "150 → 2 ms"
+label = "Top 10 del ranking con caché en Redis"
+
+[text.es.groups]
+deploy = "Entrada y despliegue"
+app = "Aplicación · namespace xpify"
+data = "Datos · con volúmenes persistentes"
+obs = "Observabilidad"
+
+[text.es.pods.player]
+short = "Jugador"
+title = "Jugador"
+text = "Un estudiante desde el navegador o el móvil. La interfaz se adaptaba a escritorio, tablet y teléfono."
+
+[text.es.pods.friend]
+short = "Su alianza"
+title = "Compañero de alianza"
+text = "Otro jugador de la misma alianza, conectado a otra réplica del backend. Aun así le llegaba todo al momento."
+
+[text.es.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "DNS y proxy por delante: la IP de casa no se veía y el HTTPS empezaba aquí."
+
+[text.es.pods.homeedge]
+short = "Traefik de casa"
+title = "Traefik del homelab"
+text = "La entrada pública de todo mi servidor. Reenviaba los dominios de XPIFY a la VM del clúster, igual que hoy reenvía esta web a su contenedor."
+
+[text.es.pods.github]
+short = "GitHub"
+title = "Repositorio (monorepo)"
+text = "Frontend, backend, tipos compartidos y manifiestos de Kubernetes en un mismo repositorio. Lo que hay en Git es lo que corre."
+
+[text.es.pods.ci]
+short = "CI/CD"
+title = "Integración continua"
+text = "En cada push: lint, tests (Jest y Playwright, con informes JUnit) y build de las imágenes. Con husky ni siquiera se podía commitear código con errores."
+
+[text.es.pods.registry]
+short = "Registro"
+title = "Registro de imágenes (GHCR)"
+text = "Las imágenes se publicaban con dos etiquetas: latest y el hash del commit, para saber siempre qué versión exacta estaba desplegada."
+
+[text.es.pods.traefik]
+short = "Traefik Ingress"
+title = "Traefik (Ingress de K3s)"
+text = "Repartía el tráfico dentro del clúster: la web al frontend, /api al backend y el login a Keycloak. Certificados de Let's Encrypt automáticos."
+
+[text.es.pods.argocd]
+short = "Argo CD"
+title = "Argo CD (GitOps)"
+text = "Vigilaba el repositorio y dejaba el clúster igual que lo descrito en Git. Nada se aplicaba a mano con kubectl."
+
+[text.es.pods.secrets]
+short = "Secrets"
+title = "Secrets de Kubernetes"
+text = "Contraseñas de la base de datos, Keycloak y MinIO fuera del repositorio: se creaban aparte en el clúster y los pods las leían como variables."
+
+[text.es.pods.migrations]
+short = "Migraciones"
+title = "Job de migraciones"
+text = "Un Job que aplicaba los cambios de esquema antes de arrancar la nueva versión del backend. Así un despliegue nunca encontraba tablas a medias."
+
+[text.es.pods.frontend]
+short = "Next.js"
+title = "Frontend (Next.js 14)"
+text = "SPA con renderizado en servidor: carga inicial por debajo de 500 ms. Los rankings públicos se leían en componentes de servidor y la sesión vivía en una cookie HTTP-Only."
+
+[text.es.pods.backend]
+short = "NestJS ×3"
+title = "Backend (NestJS, 3 réplicas)"
+text = "Mi parte principal: la API REST, un monolito modular con un módulo por dominio (misiones, alianzas, usuarios), guards de JWT y roles, y transacciones al dar XP."
+
+[text.es.pods.ws]
+short = "Socket.io"
+title = "Tiempo real (Socket.io)"
+text = "Gateway de WebSockets: chat de alianza, avisos de XP y rankings que se movían sin recargar. El JWT se comprobaba ya en el handshake."
+
+[text.es.pods.keycloak]
+short = "Keycloak"
+title = "Keycloak (identidad)"
+text = "Login con OIDC y PKCE, realm propio, roles de administrador y estudiante. El backend validaba cada token con las claves públicas de Keycloak."
+
+[text.es.pods.postgres]
+short = "PostgreSQL 16"
+title = "PostgreSQL 16"
+text = "StatefulSet con volumen propio. UUID como claves, preguntas en JSONB (nuevos tipos sin tocar el esquema) e índices pensados para el ranking."
+
+[text.es.pods.redis]
+short = "Redis"
+title = "Redis"
+text = "Dos trabajos: puente de Socket.io entre las réplicas del backend y caché del ranking (Top 10 en 2 ms en vez de 150)."
+
+[text.es.pods.minio]
+short = "MinIO (S3)"
+title = "MinIO"
+text = "Almacenamiento compatible con S3 para los avatares. Un Job creaba los buckets al desplegar."
+
+[text.es.pods.pvc]
+short = "Volúmenes (PVC)"
+title = "Volúmenes persistentes"
+text = "PostgreSQL, Redis y MinIO guardaban sus datos en volúmenes. Lo probé matando el pod de la base de datos: volvía con todo intacto."
+
+[text.es.pods.promtail]
+short = "Promtail"
+title = "Promtail"
+text = "Leía los logs de cada pod directamente del nodo y agrupaba las trazas de error de varias líneas en un solo evento."
+
+[text.es.pods.loki]
+short = "Loki"
+title = "Loki"
+text = "Guardaba los logs con etiquetas (namespace, servicio) para buscarlos desde Grafana sin entrar en ningún pod."
+
+[text.es.pods.prometheus]
+short = "Prometheus"
+title = "Prometheus"
+text = "Métricas de CPU, memoria y disco de cada contenedor a través de cAdvisor, sin agentes extra."
+
+[text.es.pods.grafana]
+short = "Grafana"
+title = "Grafana"
+text = "Paneles ya provisionados y siete reglas de alerta: consumo de recursos y errores en los logs."
+
+[text.es.flows.login]
+title = "Inicio de sesión (OIDC + PKCE)"
+steps = [
+  "Pulsas «Entrar».",
+  "La petición entra por Cloudflare, ya con HTTPS.",
+  "El Traefik de casa la manda a la VM del clúster.",
+  "El Ingress decide: la web va al frontend.",
+  "Next.js te redirige a Keycloak con un reto PKCE.",
+  "Keycloak te enseña su formulario de acceso.",
+  "Escribes tus credenciales (o entras con Google o GitHub).",
+  "Son correctas: Keycloak te devuelve con un código de un solo uso.",
+  "El servidor de Next.js recoge el código. El navegador nunca llega a ver el token.",
+  "Intercambio por el canal trasero: código + verificador PKCE a cambio de un JWT.",
+  "La sesión se guarda en una cookie HTTP-Only (patrón BFF): un XSS no puede leerla.",
+  "Dentro. Cada petición a la API lleva el JWT y el backend comprueba su firma.",
+]
+
+[text.es.flows.mission]
+title = "Terminas una misión"
+steps = [
+  "Respondes la última pregunta y se envían tus respuestas con lo que tardaste en cada una.",
+  "Entra por Cloudflare…",
+  "…y por el Traefik de casa.",
+  "El Ingress manda /api al backend.",
+  "El guard valida el JWT y el rol. Empieza una transacción: corrige y calcula el XP.",
+  "Guarda el intento. Una restricción única impide cobrar dos veces la misma misión.",
+  "Confirma la transacción y actualiza el XP de tu alianza.",
+  "Invalida el ranking en caché: el siguiente que lo pida verá tu nueva posición.",
+  "Emite el evento mission_completed por el WebSocket.",
+  "Confeti y «+120 XP» en pantalla, sin recargar.",
+]
+
+[text.es.flows.chat]
+title = "Chat de alianza entre réplicas"
+steps = [
+  "Escribes en el chat de tu alianza.",
+  "Entra por Cloudflare…",
+  "…y por el Traefik de casa.",
+  "El Ingress lo pasa al WebSocket. Te ha tocado la réplica 1 del backend.",
+  "La réplica 1 guarda el mensaje antes de emitirlo: recargar ya no lo borra.",
+  "Lo publica en la sala de la alianza (máximo 5 mensajes por segundo).",
+  "Tu compañero está conectado a la réplica 2, que no sabe nada de tu socket…",
+  "…pero Redis hace de puente entre réplicas y le pasa el mensaje.",
+  "La réplica 2 lo emite a su sala.",
+  "Tu compañero lo ve al instante. Sin Redis, cada réplica era una isla.",
+]
+
+[text.es.flows.ranking]
+title = "Abres el ranking"
+steps = [
+  "Abres la clasificación global.",
+  "Cloudflare…",
+  "…y el Traefik de casa.",
+  "El Ingress manda la página al frontend.",
+  "Un componente de servidor de Next.js pide el Top al backend: el HTML llega ya relleno.",
+  "El backend mira primero en la caché.",
+  "Si la caché está vacía (alguien acaba de sumar XP)…",
+  "…consulta PostgreSQL con un índice descendente sobre el XP: solo lee el principio.",
+  "Guarda el resultado en Redis para los siguientes: 2 ms en vez de 150.",
+  "Next.js renderiza la tabla en el servidor.",
+  "Ves el ranking al cargar, y luego se mueve en vivo por WebSocket.",
+]
+
+[text.es.flows.deploy]
+title = "Despliegue con GitOps"
+steps = [
+  "Hago push a la rama principal.",
+  "CI: lint, tests unitarios y de extremo a extremo, y build multi-stage de las imágenes.",
+  "Publica las imágenes con la etiqueta del commit.",
+  "Se actualiza la versión en los manifiestos del repositorio.",
+  "Argo CD ve que Git y el clúster ya no coinciden y empieza a sincronizar.",
+  "Los Secrets ya están en el clúster: nunca pasan por Git.",
+  "Antes que nada, el Job de migraciones…",
+  "…aplica los cambios de esquema en PostgreSQL.",
+  "Las réplicas del backend se renuevan una a una; la sonda de vida decide cuándo una está lista.",
+  "Después el frontend.",
+  "El Ingress ya sirve la nueva versión. Ni un kubectl a mano.",
+]
+
+[text.es.flows.alert]
+title = "Un error a las tantas"
+steps = [
+  "El backend lanza un error con su traza de varias líneas.",
+  "Promtail lo lee del nodo y junta la traza en un solo evento.",
+  "Loki lo guarda con sus etiquetas: namespace y servicio.",
+  "Una regla de Grafana ve errores en los logs del backend y salta la alerta.",
+  "Prometheus aporta el contexto: CPU y memoria del pod en ese momento.",
+  "En el panel se ve todo junto: qué falló, cuándo y con qué consumo.",
+  "Se arregla antes de que el jugador lo note (o casi).",
+]
+
+[text.es.xp]
+difficulties = ["Fácil", "Media", "Difícil", "Épica"]
+
+[text.es.incidents.doublexp]
+title = "El doble XP"
+meta = "15-01-2026 · Crítica: afectaba a la integridad de los datos"
+symptom = "Con mala conexión, algunos usuarios cobraban dos veces el XP de la misma misión."
+options = [
+  "El cálculo de XP sumaba mal los aciertos.",
+  "El navegador reenviaba la petición y el backend procesaba las dos a la vez.",
+  "Redis devolvía un ranking antiguo.",
+]
+cause = "Un reintento del cliente mandaba el mismo POST dos veces y las dos transacciones corrían en paralelo. Supusimos que la transacción bloquearía la fila, pero con el aislamiento por defecto de PostgreSQL (READ COMMITTED) no es así."
+fix = "Una restricción única sobre (usuario, misión). El segundo intento falla en la propia base de datos y el backend responde lo mismo que al primero: la operación se vuelve idempotente."
+lesson = "Las garantías, en la base de datos; no en la esperanza de que el cliente no repita."
+
+[text.es.incidents.redirect]
+title = "El bucle infinito"
+meta = "20-01-2026 · Bloqueante: nadie podía iniciar sesión"
+symptom = "Al pulsar «Entrar», el navegador rebotaba entre la aplicación y Keycloak hasta rendirse con ERR_TOO_MANY_REDIRECTS."
+options = [
+  "El certificado de Let's Encrypt había caducado.",
+  "Las cookies de sesión estaban bloqueadas.",
+  "Keycloak creía que la conexión no era segura.",
+]
+cause = "Traefik terminaba el HTTPS y hablaba con Keycloak por HTTP interno. Keycloak veía HTTP, redirigía a HTTPS… y Traefik se lo devolvía otra vez."
+fix = "Que el proxy diga la verdad: la cabecera X-Forwarded-Proto: https en el middleware de Traefik. Keycloak supo que el cliente ya venía por HTTPS."
+lesson = "Detrás de un proxy, las aplicaciones solo saben lo que el proxy les cuenta."
+
+[text.es.incidents.oom]
+title = "La build que se quedaba sin memoria"
+meta = "02-02-2026 · Media: retrasaba cada despliegue unos 20 minutos"
+symptom = "El pipeline fallaba en npm run build con «JavaScript heap out of memory»."
+options = [
+  "Next.js consumía demasiada memoria generando las páginas estáticas.",
+  "Había una fuga de memoria en el backend.",
+  "La imagen base de Docker estaba corrupta.",
+]
+cause = "La compilación de Next.js, junto con otras tareas del runner, se comía los 7 GB de la máquina de CI."
+fix = "Más memoria para Node (NODE_OPTIONS=--max-old-space-size=4096) y sin source maps en producción: un 40 % menos de consumo."
+lesson = "El CI también es producción: hay que medirlo y darle recursos como a todo lo demás."
+
+[text.es.incidents.hydration]
+title = "La hora que no cuadraba"
+meta = "Media: la consola se llenaba de avisos"
+symptom = "React avisaba sin parar: «Text content did not match. Server: 10:00 AM, Client: 11:00 AM»."
+options = [
+  "El reloj del servidor estaba mal.",
+  "Una dependencia de React estaba desactualizada.",
+  "El servidor renderizaba la hora en UTC y el navegador en la hora de España.",
+]
+cause = "Se pintaban horas con toLocaleTimeString() durante el renderizado. El HTML del servidor (UTC) y el del cliente no coincidían y se rompía la hidratación."
+fix = "Tiempos relativos («hace 5 minutos») donde se podía y, donde no, pintar la hora solo en el cliente con un hook useMounted."
+lesson = "Si el resultado depende de dónde se ejecuta, no puede renderizarse en los dos sitios."
+
+[text.es.incidents.lock]
+title = "Cinco minutos sin servicio"
+meta = "Alta: la aplicación dejó de responder durante un despliegue"
+symptom = "Durante un despliegue la aplicación se quedó colgada unos cinco minutos."
+options = [
+  "Traefik perdió la ruta al backend.",
+  "Añadir una columna con valor por defecto reescribió y bloqueó la tabla de usuarios.",
+  "El pod de PostgreSQL se reinició.",
+]
+cause = "Una migración hacía ALTER TABLE users ADD COLUMN bio TEXT DEFAULT '…'. En la versión que usábamos eso puede reescribir la tabla entera, y una tabla con carga se queda bloqueada mientras tanto."
+fix = "Partirla en tres pasos: añadir la columna sin valor por defecto, rellenar en segundo plano y fijar el valor por defecto al final."
+lesson = "Una migración también es código de producción: se revisa pensando en la carga, no solo en el esquema."
+
+[[text.es.timeline]]
+title = "Fundamentos"
+period = "Iteración 1"
+items = [
+  "Monorepo y docker-compose con PostgreSQL 16 y Redis 7 antes de escribir lógica de negocio.",
+  "API en NestJS con validación de datos y logs de cada petición.",
+  "Keycloak, «el primer muro»: realm, clientes, roles y validación del JWT.",
+  "Misiones con preguntas en JSONB y los primeros tests del cálculo de XP (incluido el tramposo que responde en 0 segundos).",
+]
+
+[[text.es.timeline]]
+title = "Experiencia de juego"
+period = "Iteración 2"
+items = [
+  "Interfaz con tema propio, panel con nivel y avatar, y mapa de misiones.",
+  "Bucle de juego: máquina de estados, arrastrar y soltar, confeti, sonidos y pantalla que tiembla al fallar.",
+  "Alianzas con código de invitación y sucesión automática si se va el líder.",
+  "Pruebas con compañeros: «va lento al pasar de pregunta» → precarga de la siguiente.",
+]
+
+[[text.es.timeline]]
+title = "Tiempo real y escala"
+period = "Iteración 3"
+items = [
+  "Gateway de WebSockets con el JWT comprobado en el handshake.",
+  "Chat persistente y salas por alianza.",
+  "Redis como puente entre réplicas y caché del ranking.",
+  "Límite de mensajes por segundo y avatares en MinIO.",
+]
+
+[[text.es.timeline]]
+title = "Producción"
+period = "Iteración 4"
+items = [
+  "Dockerfiles multi-stage: de 1,2 GB a 180 MB.",
+  "K3s en una VM de mi Proxmox, Traefik, Let's Encrypt y GitOps con Argo CD.",
+  "Pruebas de carga con k6 → índices que faltaban → la CPU de la base de datos bajó al 15 %.",
+  "Volúmenes probados matando pods, cabeceras de seguridad, Prometheus, Loki, Grafana y la versión 1.0.0.",
+]
+
+[[text.es.decisions]]
+title = "Next.js frente a React a secas o Remix"
+choice = "Next.js 14 (App Router)"
+why = "Renderizado en servidor para cargar en menos de 500 ms y leer los rankings públicos sin exponer más endpoints."
+
+[[text.es.decisions]]
+title = "NestJS frente a Django o Go"
+choice = "NestJS"
+why = "TypeScript en las dos partes con los mismos tipos, una estructura modular que obliga a ordenar el código y buen soporte de WebSockets."
+
+[[text.es.decisions]]
+title = "PostgreSQL frente a MongoDB"
+choice = "PostgreSQL con JSONB"
+why = "Integridad referencial donde importa y JSONB para las preguntas: nuevos tipos de ejercicio sin migrar el esquema. Lo mejor de los dos mundos."
+
+[[text.es.decisions]]
+title = "¿Microservicios?"
+choice = "Monolito modular, y dicho tal cual"
+why = "Un módulo por dominio con límites claros, pero sin pagar la latencia y las transacciones distribuidas de servicios separados que el proyecto no necesitaba."
+
+[[text.es.decisions]]
+title = "IDs enteros o UUID"
+choice = "UUID"
+why = "Nadie puede adivinar cuántos usuarios hay ni recorrerlos de uno en uno, y fusionar datos en el futuro no choca."
+
+[text.es.tech_notes]
+nestjs = "Toda la API: un módulo por dominio, guards de JWT y roles, transacciones al dar XP y el gateway de WebSockets."
+typescript = "Backend y frontend en TypeScript, con los mismos tipos compartidos en el monorepo."
+nextjs = "Contribuí al frontend: componentes de servidor para los rankings y la sesión con NextAuth en una cookie HTTP-Only."
+postgresql = "Esquema con UUID, preguntas en JSONB, índices para el ranking y la restricción única que acabó con el doble XP."
+keycloak = "Login OIDC con PKCE, realm propio, roles de administrador y estudiante, y validación del JWT con sus claves públicas."
+kubernetes = "Clúster K3s de un nodo: Deployments, PostgreSQL en StatefulSet, volúmenes, Jobs de migración y rutas de Traefik."
+argocd = "GitOps: Argo CD dejaba el clúster igual que lo descrito en Git. Nada se aplicaba a mano."
+gitlab-ci = "Lint, tests (Jest y Playwright con informes JUnit), build multi-stage y publicación de imágenes con la etiqueta del commit."
+prometheus = "Prometheus con cAdvisor, Loki y Promtail para los logs, y siete reglas de alerta en Grafana."
+docker = "Imágenes multi-stage de 1,2 GB a 180 MB; en local todo arrancaba con docker-compose."
+redis = "Puente de Socket.io entre réplicas y caché del ranking: de 150 ms a 2 ms."
+traefik = "Ingress de K3s con Let's Encrypt, detrás del Traefik de casa. El bucle con Keycloak se arregló con X-Forwarded-Proto."
+linux = "El nodo lo preparé desde cero: sistema, cortafuegos y K3s."
+proxmox = "La VM del clúster vivía en mi servidor Proxmox, junto al resto del homelab."
+git = "Monorepo con ramas por funcionalidad y hooks (husky y lint-staged) que no dejaban commitear código con errores."
+
+[text.es.close]
+lessons = [
+  "Lo más difícil no fue el código, sino que Keycloak, NestJS y Next.js se entendieran: tokens, roles y redirecciones entre contenedores.",
+  "JSONB para las preguntas fue un acierto: fuimos añadiendo tipos hasta llegar a 22 sin migrar el esquema.",
+  "Medir antes de optimizar: k6 señaló exactamente qué índice faltaba.",
+  "En un equipo de dos, hablar a tiempo pesa tanto como cualquier patrón de diseño.",
+]
+next = [
+  "Clúster de varios nodos con alta disponibilidad.",
+  "Integración con Moodle o Canvas mediante LTI.",
+  "Generar preguntas con IA a partir de los apuntes.",
+  "Analítica del aprendizaje para el profesorado.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside XPIFY · Tito Pinardo Gutiérrez"
+description = "My ASIR + DAW final project (graded 10/10): a gamified learning platform on Kubernetes with GitOps, Keycloak, real time and observability. Open the unit and look inside."
+
+[text.en.ui]
+back = "Back to the rack"
+crumb_rack = "Rack"
+crumb_lab = "Lab"
+slot = "1U · XPIFY"
+face_specs = "K3s · 1 node · 23 parts"
+retired = "Retired · rebuilt"
+pull = "Pulling the unit out…"
+map_title = "Inside the VM"
+map_intro = "Click a part to see what it did, or pick a flow and follow the packet."
+vm_title = "K3s VM · Proxmox"
+vm_specs = "xpify and db namespaces"
+outside = "Outside the VM"
+flows_title = "Flows"
+flows_hint = "Pick one and follow the packet."
+play = "Play"
+pause = "Pause"
+prev = "Back"
+next = "Next"
+step = "Step"
+of = "of"
+pick = "Click a part or pick a flow. If you came from a skill, the parts where I used it are already lit."
+narrator = "Hermes"
+narrator_role = "visiting the unit"
+tech_title = "What I used from my skill tree"
+tech_intro = "Pick a skill: the parts where I used it light up on the map and I tell you what for."
+tech_all = "See all my quests with this skill"
+tech_clear = "Turn off"
+xp_title = "Work out your XP"
+xp_intro = "The same calculation the backend ran when you finished a mission. Move the controls and see how much you would earn."
+xp_base = "Mission base XP"
+xp_difficulty = "Difficulty"
+xp_accuracy = "Accuracy"
+xp_time = "Time taken"
+xp_minutes = "min"
+xp_result = "XP earned"
+xp_formula = "XP = base × difficulty × accuracy × speed"
+xp_level = "Level after 10 missions like this"
+xp_level_note = "Level grows with the square root of total XP: the first ones come fast and the high ones take real effort."
+xp_noscript = "Turn on JavaScript to try the calculator."
+incidents_title = "Incident log"
+incidents_intro = "Real failures that cost us hours. Read the symptom, pick the cause you think it was and see how it was fixed."
+incident_guess = "What do you think was going on?"
+incident_wrong = "Not that one. Try another."
+incident_right = "Exactly!"
+incident_reveal = "Show the fix"
+cause = "Cause"
+fix = "Fix"
+lesson = "Lesson"
+solved = "solved"
+timeline_title = "How it was built"
+decisions_title = "Decisions (and why)"
+lessons_title = "What I took away"
+next_title = "If I kept going"
+cta_title = "Shall we talk?"
+cta_text = "I can show the code and walk through any of these decisions in detail in an interview."
+disclaimer = "Rebuilt from the project report and technical docs: no addresses, domains or internal names."
+noscript = "This page works without JavaScript; with it the unit slides out, the packet travels the map and you can play with the calculator and the incident log."
+
+[text.en.hero]
+kicker = "1U unit · ASIR + DAW final project"
+title = "XPIFY"
+tagline = "A learning platform you play like a video game: missions, XP, levels, alliances, leaderboards and real-time chat. Underneath, a Kubernetes cluster deployed with GitOps."
+grade = "10/10 · assessed in production"
+facts = [
+  { label = "My part", value = "The backend (NestJS, PostgreSQL, Keycloak, WebSockets), all the infrastructure and deployment (K3s, Argo CD, CI/CD, observability) and part of the frontend. We were a team of two." },
+  { label = "Where it lived", value = "In a K3s VM inside this very Proxmox server, behind my home Traefik and Cloudflare, just like this website." },
+  { label = "Today", value = "Retired after the assessment. This unit rebuilds it piece by piece." },
+]
+
+[[text.en.stats]]
+value = "10/10"
+label = "panel grade, with the platform running"
+
+[[text.en.stats]]
+value = "22"
+label = "question types in the visual editor"
+
+[[text.en.stats]]
+value = "40+"
+label = "endpoints documented with Swagger"
+
+[[text.en.stats]]
+value = "180 ms"
+label = "P95 with 500 concurrent users (k6)"
+
+[[text.en.stats]]
+value = "1.2 GB → 180 MB"
+label = "Docker image after the multi-stage build"
+
+[[text.en.stats]]
+value = "150 → 2 ms"
+label = "leaderboard Top 10 with a Redis cache"
+
+[text.en.groups]
+deploy = "Ingress and deployment"
+app = "Application · xpify namespace"
+data = "Data · on persistent volumes"
+obs = "Observability"
+
+[text.en.pods.player]
+short = "Player"
+title = "Player"
+text = "A student on a browser or phone. The interface adapted to desktop, tablet and mobile."
+
+[text.en.pods.friend]
+short = "Ally"
+title = "Alliance teammate"
+text = "Another player in the same alliance, connected to a different backend replica. Everything still reached them instantly."
+
+[text.en.pods.cloudflare]
+short = "Cloudflare"
+title = "Cloudflare"
+text = "DNS and proxy in front: my home IP stayed hidden and HTTPS started here."
+
+[text.en.pods.homeedge]
+short = "Home Traefik"
+title = "Homelab Traefik"
+text = "The public entrance to my whole server. It forwarded the XPIFY domains to the cluster VM, just as it forwards this website to its container today."
+
+[text.en.pods.github]
+short = "GitHub"
+title = "Repository (monorepo)"
+text = "Frontend, backend, shared types and Kubernetes manifests in a single repository. What is in Git is what runs."
+
+[text.en.pods.ci]
+short = "CI/CD"
+title = "Continuous integration"
+text = "On every push: lint, tests (Jest and Playwright, with JUnit reports) and image builds. With husky you could not even commit code with errors."
+
+[text.en.pods.registry]
+short = "Registry"
+title = "Image registry (GHCR)"
+text = "Images were tagged twice: latest and the commit hash, so we always knew exactly which version was deployed."
+
+[text.en.pods.traefik]
+short = "Traefik Ingress"
+title = "Traefik (K3s Ingress)"
+text = "Routed traffic inside the cluster: the site to the frontend, /api to the backend and login to Keycloak. Automatic Let's Encrypt certificates."
+
+[text.en.pods.argocd]
+short = "Argo CD"
+title = "Argo CD (GitOps)"
+text = "Watched the repository and kept the cluster exactly as described in Git. Nothing was applied by hand with kubectl."
+
+[text.en.pods.secrets]
+short = "Secrets"
+title = "Kubernetes Secrets"
+text = "Database, Keycloak and MinIO passwords out of the repository: created separately in the cluster and read by the pods as variables."
+
+[text.en.pods.migrations]
+short = "Migrations"
+title = "Migration Job"
+text = "A Job that applied schema changes before the new backend version started. A deployment never met half-built tables."
+
+[text.en.pods.frontend]
+short = "Next.js"
+title = "Frontend (Next.js 14)"
+text = "An SPA with server-side rendering: first load under 500 ms. Public leaderboards were read in server components and the session lived in an HTTP-only cookie."
+
+[text.en.pods.backend]
+short = "NestJS ×3"
+title = "Backend (NestJS, 3 replicas)"
+text = "My main part: the REST API, a modular monolith with one module per domain (missions, alliances, users), JWT and role guards, and transactions when awarding XP."
+
+[text.en.pods.ws]
+short = "Socket.io"
+title = "Real time (Socket.io)"
+text = "WebSocket gateway: alliance chat, XP notifications and leaderboards that moved without reloading. The JWT was checked right at the handshake."
+
+[text.en.pods.keycloak]
+short = "Keycloak"
+title = "Keycloak (identity)"
+text = "Login with OIDC and PKCE, its own realm, admin and student roles. The backend validated every token with Keycloak's public keys."
+
+[text.en.pods.postgres]
+short = "PostgreSQL 16"
+title = "PostgreSQL 16"
+text = "A StatefulSet with its own volume. UUID keys, questions in JSONB (new types without touching the schema) and indexes designed for the leaderboard."
+
+[text.en.pods.redis]
+short = "Redis"
+title = "Redis"
+text = "Two jobs: Socket.io bridge between backend replicas and leaderboard cache (Top 10 in 2 ms instead of 150)."
+
+[text.en.pods.minio]
+short = "MinIO (S3)"
+title = "MinIO"
+text = "S3-compatible storage for avatars. A Job created the buckets on deployment."
+
+[text.en.pods.pvc]
+short = "Volumes (PVC)"
+title = "Persistent volumes"
+text = "PostgreSQL, Redis and MinIO kept their data on volumes. I tested it by killing the database pod: it came back with everything intact."
+
+[text.en.pods.promtail]
+short = "Promtail"
+title = "Promtail"
+text = "Read every pod's logs straight from the node and merged multi-line error traces into a single event."
+
+[text.en.pods.loki]
+short = "Loki"
+title = "Loki"
+text = "Stored logs with labels (namespace, service) so they could be searched from Grafana without getting into any pod."
+
+[text.en.pods.prometheus]
+short = "Prometheus"
+title = "Prometheus"
+text = "CPU, memory and disk metrics for every container through cAdvisor, with no extra agents."
+
+[text.en.pods.grafana]
+short = "Grafana"
+title = "Grafana"
+text = "Provisioned dashboards and seven alert rules: resource usage and errors in the logs."
+
+[text.en.flows.login]
+title = "Signing in (OIDC + PKCE)"
+steps = [
+  "You click «Sign in».",
+  "The request comes in through Cloudflare, already over HTTPS.",
+  "The home Traefik sends it to the cluster VM.",
+  "The Ingress decides: the site goes to the frontend.",
+  "Next.js redirects you to Keycloak with a PKCE challenge.",
+  "Keycloak shows its sign-in form.",
+  "You type your credentials (or use Google or GitHub).",
+  "They are right: Keycloak sends you back with a one-time code.",
+  "The Next.js server picks up the code. The browser never sees the token.",
+  "Back-channel exchange: code + PKCE verifier for a JWT.",
+  "The session is stored in an HTTP-only cookie (BFF pattern): an XSS cannot read it.",
+  "You are in. Every API call carries the JWT and the backend checks its signature.",
+]
+
+[text.en.flows.mission]
+title = "You finish a mission"
+steps = [
+  "You answer the last question and your answers are sent with the time each one took.",
+  "In through Cloudflare…",
+  "…and the home Traefik.",
+  "The Ingress sends /api to the backend.",
+  "The guard validates the JWT and role. A transaction starts: it marks the answers and works out the XP.",
+  "Saves the attempt. A unique constraint stops anyone cashing in the same mission twice.",
+  "Commits the transaction and updates your alliance's XP.",
+  "Invalidates the cached leaderboard: the next request sees your new position.",
+  "Emits the mission_completed event over the WebSocket.",
+  "Confetti and «+120 XP» on screen, no reload.",
+]
+
+[text.en.flows.chat]
+title = "Alliance chat across replicas"
+steps = [
+  "You type in your alliance chat.",
+  "In through Cloudflare…",
+  "…and the home Traefik.",
+  "The Ingress hands it to the WebSocket. You landed on backend replica 1.",
+  "Replica 1 saves the message before emitting it: reloading no longer loses it.",
+  "It publishes it to the alliance room (at most 5 messages per second).",
+  "Your teammate is on replica 2, which knows nothing about your socket…",
+  "…but Redis bridges the replicas and passes the message along.",
+  "Replica 2 emits it to its room.",
+  "Your teammate sees it instantly. Without Redis, each replica was an island.",
+]
+
+[text.en.flows.ranking]
+title = "You open the leaderboard"
+steps = [
+  "You open the global leaderboard.",
+  "Cloudflare…",
+  "…and the home Traefik.",
+  "The Ingress sends the page to the frontend.",
+  "A Next.js server component asks the backend for the Top: the HTML arrives already filled in.",
+  "The backend checks the cache first.",
+  "If the cache is empty (someone just earned XP)…",
+  "…it queries PostgreSQL with a descending index on XP: it only reads the top.",
+  "Stores the result in Redis for whoever comes next: 2 ms instead of 150.",
+  "Next.js renders the table on the server.",
+  "You see the leaderboard on load, and then it moves live over WebSocket.",
+]
+
+[text.en.flows.deploy]
+title = "Deploying with GitOps"
+steps = [
+  "I push to the main branch.",
+  "CI: lint, unit and end-to-end tests, and multi-stage image builds.",
+  "Publishes the images tagged with the commit.",
+  "The version is bumped in the repository manifests.",
+  "Argo CD sees Git and the cluster no longer match and starts syncing.",
+  "The Secrets are already in the cluster: they never go through Git.",
+  "First of all, the migration Job…",
+  "…applies the schema changes to PostgreSQL.",
+  "Backend replicas roll over one by one; the liveness probe decides when each is ready.",
+  "Then the frontend.",
+  "The Ingress serves the new version. Not a single kubectl by hand.",
+]
+
+[text.en.flows.alert]
+title = "An error in the small hours"
+steps = [
+  "The backend throws an error with a multi-line trace.",
+  "Promtail reads it from the node and merges the trace into one event.",
+  "Loki stores it with its labels: namespace and service.",
+  "A Grafana rule sees errors in the backend logs and fires the alert.",
+  "Prometheus adds context: the pod's CPU and memory at that moment.",
+  "The dashboard shows it all together: what failed, when and under what load.",
+  "Fixed before the player notices (or nearly).",
+]
+
+[text.en.xp]
+difficulties = ["Easy", "Medium", "Hard", "Epic"]
+
+[text.en.incidents.doublexp]
+title = "Double XP"
+meta = "15 Jan 2026 · Critical: data integrity at stake"
+symptom = "On flaky connections, some users were paid the XP for the same mission twice."
+options = [
+  "The XP calculation added up the right answers wrongly.",
+  "The browser resent the request and the backend processed both at once.",
+  "Redis returned a stale leaderboard.",
+]
+cause = "A client retry sent the same POST twice and both transactions ran in parallel. We assumed the transaction would lock the row, but with PostgreSQL's default isolation (READ COMMITTED) it does not."
+fix = "A unique constraint on (user, mission). The second attempt fails in the database itself and the backend answers exactly as it did the first time: the operation becomes idempotent."
+lesson = "Guarantees belong in the database, not in hoping the client never retries."
+
+[text.en.incidents.redirect]
+title = "The endless loop"
+meta = "20 Jan 2026 · Blocking: nobody could sign in"
+symptom = "After clicking «Sign in», the browser bounced between the app and Keycloak until it gave up with ERR_TOO_MANY_REDIRECTS."
+options = [
+  "The Let's Encrypt certificate had expired.",
+  "Session cookies were being blocked.",
+  "Keycloak thought the connection was not secure.",
+]
+cause = "Traefik terminated HTTPS and talked to Keycloak over internal HTTP. Keycloak saw HTTP, redirected to HTTPS… and Traefik sent it straight back."
+fix = "Make the proxy tell the truth: the X-Forwarded-Proto: https header in the Traefik middleware. Keycloak then knew the client was already on HTTPS."
+lesson = "Behind a proxy, applications only know what the proxy tells them."
+
+[text.en.incidents.oom]
+title = "The build that ran out of memory"
+meta = "2 Feb 2026 · Medium: delayed every deployment by about 20 minutes"
+symptom = "The pipeline failed at npm run build with «JavaScript heap out of memory»."
+options = [
+  "Next.js used too much memory generating the static pages.",
+  "There was a memory leak in the backend.",
+  "The Docker base image was corrupt.",
+]
+cause = "The Next.js build, plus other jobs on the runner, ate the CI machine's 7 GB."
+fix = "More memory for Node (NODE_OPTIONS=--max-old-space-size=4096) and no source maps in production: 40 % less memory."
+lesson = "CI is production too: measure it and give it resources like everything else."
+
+[text.en.incidents.hydration]
+title = "The time that did not match"
+meta = "Medium: the console filled up with warnings"
+symptom = "React kept warning: «Text content did not match. Server: 10:00 AM, Client: 11:00 AM»."
+options = [
+  "The server clock was wrong.",
+  "A React dependency was out of date.",
+  "The server rendered the time in UTC and the browser in Spanish time.",
+]
+cause = "Times were rendered with toLocaleTimeString() during rendering. The server HTML (UTC) and the client's did not match, which broke hydration."
+fix = "Relative times («5 minutes ago») where possible and, elsewhere, render the time on the client only with a useMounted hook."
+lesson = "If the result depends on where it runs, it cannot be rendered in both places."
+
+[text.en.incidents.lock]
+title = "Five minutes down"
+meta = "High: the app stopped responding during a deployment"
+symptom = "During a deployment the app hung for about five minutes."
+options = [
+  "Traefik lost the route to the backend.",
+  "Adding a column with a default value rewrote and locked the users table.",
+  "The PostgreSQL pod restarted.",
+]
+cause = "A migration ran ALTER TABLE users ADD COLUMN bio TEXT DEFAULT '…'. On the version we used that can rewrite the whole table, and a table under load stays locked meanwhile."
+fix = "Split it into three steps: add the column without a default, backfill in the background and set the default at the end."
+lesson = "A migration is production code too: review it with the load in mind, not just the schema."
+
+[[text.en.timeline]]
+title = "Foundations"
+period = "Iteration 1"
+items = [
+  "Monorepo and docker-compose with PostgreSQL 16 and Redis 7 before writing any business logic.",
+  "NestJS API with input validation and a log line for every request.",
+  "Keycloak, «the first wall»: realm, clients, roles and JWT validation.",
+  "Missions with questions in JSONB and the first XP tests (including the cheater who answers in 0 seconds).",
+]
+
+[[text.en.timeline]]
+title = "Game experience"
+period = "Iteration 2"
+items = [
+  "Custom-themed interface, a dashboard with level and avatar, and a mission map.",
+  "Game loop: state machine, drag and drop, confetti, sounds and a screen shake on wrong answers.",
+  "Alliances with invite codes and automatic succession if the leader leaves.",
+  "Testing with classmates: «it's slow moving to the next question» → prefetch the next one.",
+]
+
+[[text.en.timeline]]
+title = "Real time and scale"
+period = "Iteration 3"
+items = [
+  "WebSocket gateway with the JWT checked at the handshake.",
+  "Persistent chat and per-alliance rooms.",
+  "Redis as a bridge between replicas and as the leaderboard cache.",
+  "Messages-per-second limit and avatars on MinIO.",
+]
+
+[[text.en.timeline]]
+title = "Production"
+period = "Iteration 4"
+items = [
+  "Multi-stage Dockerfiles: from 1.2 GB to 180 MB.",
+  "K3s on a VM in my Proxmox, Traefik, Let's Encrypt and GitOps with Argo CD.",
+  "Load tests with k6 → missing indexes → database CPU down to 15 %.",
+  "Volumes tested by killing pods, security headers, Prometheus, Loki, Grafana and version 1.0.0.",
+]
+
+[[text.en.decisions]]
+title = "Next.js vs plain React or Remix"
+choice = "Next.js 14 (App Router)"
+why = "Server-side rendering to load in under 500 ms and read the public leaderboards without exposing more endpoints."
+
+[[text.en.decisions]]
+title = "NestJS vs Django or Go"
+choice = "NestJS"
+why = "TypeScript on both sides with the same types, a modular structure that keeps the code tidy, and good WebSocket support."
+
+[[text.en.decisions]]
+title = "PostgreSQL vs MongoDB"
+choice = "PostgreSQL with JSONB"
+why = "Referential integrity where it matters and JSONB for the questions: new exercise types without migrating the schema. The best of both worlds."
+
+[[text.en.decisions]]
+title = "Microservices?"
+choice = "A modular monolith, and called that"
+why = "One module per domain with clear boundaries, without paying the latency and distributed transactions of separate services the project did not need."
+
+[[text.en.decisions]]
+title = "Integer IDs or UUIDs"
+choice = "UUID"
+why = "Nobody can guess how many users there are or walk through them one by one, and merging data later does not clash."
+
+[text.en.tech_notes]
+nestjs = "The whole API: one module per domain, JWT and role guards, transactions when awarding XP and the WebSocket gateway."
+typescript = "Backend and frontend in TypeScript, sharing the same types in the monorepo."
+nextjs = "I contributed to the frontend: server components for the leaderboards and the NextAuth session in an HTTP-only cookie."
+postgresql = "UUID schema, questions in JSONB, indexes for the leaderboard and the unique constraint that ended double XP."
+keycloak = "OIDC login with PKCE, its own realm, admin and student roles, and JWT validation with its public keys."
+kubernetes = "Single-node K3s cluster: Deployments, PostgreSQL as a StatefulSet, volumes, migration Jobs and Traefik routes."
+argocd = "GitOps: Argo CD kept the cluster exactly as described in Git. Nothing was applied by hand."
+gitlab-ci = "Lint, tests (Jest and Playwright with JUnit reports), multi-stage builds and images published with the commit tag."
+prometheus = "Prometheus with cAdvisor, Loki and Promtail for logs, and seven alert rules in Grafana."
+docker = "Multi-stage images from 1.2 GB down to 180 MB; locally everything started with docker-compose."
+redis = "Socket.io bridge between replicas and leaderboard cache: from 150 ms to 2 ms."
+traefik = "K3s Ingress with Let's Encrypt, behind my home Traefik. The Keycloak loop was fixed with X-Forwarded-Proto."
+linux = "I set the node up from scratch: system, firewall and K3s."
+proxmox = "The cluster VM lived on my Proxmox server, next to the rest of the homelab."
+git = "Monorepo with feature branches and hooks (husky and lint-staged) that refused commits with errors."
+
+[text.en.close]
+lessons = [
+  "The hardest part was not the code but getting Keycloak, NestJS and Next.js to understand each other: tokens, roles and redirects between containers.",
+  "JSONB for questions was the right call: we kept adding types until we reached 22 without migrating the schema.",
+  "Measure before optimising: k6 pointed at exactly the index that was missing.",
+  "In a team of two, talking early matters as much as any design pattern.",
+]
+next = [
+  "A multi-node, highly available cluster.",
+  "Integration with Moodle or Canvas through LTI.",
+  "AI-generated questions from course notes.",
+  "Learning analytics for teachers.",
+]

@@ -920,3 +920,229 @@ body {
 @keyframes climb { from { top: 80px; } to { top: calc(100vh - 140px); } }
 @media (max-width: 760px) { .rail-climber { display: none; } }
 .gnomes-off .rail-climber, .quick-mode .rail-climber { display: none !important; }
+
+/* ------------------------------------------------------------ unidades del rack (1U) */
+/* En la página principal: la pieza del laboratorio y la misión con unidad. */
+.lab-node.is-unit .node-box { stroke-dasharray: 7 4; }
+.lab-node.is-unit .node-led { fill: var(--muted); animation: none; }
+.node-unit-tag { fill: var(--accent-2); font: 700 11px var(--mono); pointer-events: none; }
+.lab-node.is-unit:hover .node-unit-tag { fill: var(--accent); }
+.console-unit { margin: 0 0 12px; }
+.quest-unit { display: grid; gap: 8px; margin-top: 14px; }
+/* La misión con unidad propia ocupa más sitio: es la que más hay que ver. */
+@media (min-width: 760px) { .quest.has-unit { grid-column: 1 / -1; } }
+@media (min-width: 1100px) { .quest.has-unit { grid-column: span 2; } }
+.quest.has-unit article { border-top: 3px solid var(--accent-2); }
+.unit-note { margin: 0; padding: 8px 10px; border-left: 3px solid var(--accent-2); background: var(--accent-2-soft); border-radius: 0 8px 8px 0; }
+.btn-unit { justify-self: start; gap: 8px; border-color: var(--accent-2); background: var(--accent-2-soft); }
+.btn-unit:hover { border-color: var(--accent); }
+.btn-primary.btn-unit { background: var(--accent); border-color: var(--accent); }
+/* Un 1U en miniatura: chapa con dos LEDs. */
+.unit-icon { position: relative; display: inline-block; width: 22px; height: 9px; border-radius: 2px; border: 1.5px solid currentColor; flex: none; }
+.unit-icon::before, .unit-icon::after { content: ""; position: absolute; top: 2px; width: 3px; height: 3px; border-radius: 50%; background: var(--ok); }
+.unit-icon::before { left: 2px; }
+.unit-icon::after { left: 7px; background: var(--accent-2); animation: led-act 1.7s infinite steps(2, jump-none); }
+
+/* Migas de pan en la barra superior. */
+.crumbs { display: none; margin-left: 16px; min-width: 0; }
+.crumbs ol { display: flex; align-items: center; list-style: none; margin: 0; padding: 0; font: 600 .85rem/1 var(--mono); color: var(--muted); }
+.crumbs li + li::before { content: "/"; margin: 0 8px; opacity: .5; }
+.crumbs a { color: var(--muted); text-decoration: none; }
+.crumbs a:hover { color: var(--text); }
+.crumbs [aria-current] { color: var(--accent-2); }
+@media (min-width: 760px) { .crumbs { display: block; } }
+@media (max-width: 520px) { .hide-sm { display: none; } }
+
+.unit { width: 100%; max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 40px var(--gutter) 0; perspective: 1400px; }
+
+/* Frontal: una chapa de 1U atornillada al rack. */
+.unit-face {
+  position: relative; z-index: 2; display: flex; align-items: center; gap: 18px;
+  height: 64px; padding: 0 22px; margin: 0 4px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 3px, rgba(255, 255, 255, .025) 3px 4px),
+    linear-gradient(180deg, var(--chassis-top), var(--chassis-bot));
+  border: 1px solid var(--chassis-edge); border-radius: 5px;
+  box-shadow: inset 0 1px 0 var(--chassis-hi), 0 2px 0 var(--chassis-edge), 0 12px 26px rgba(0, 0, 0, .4);
+  transition: transform .9s cubic-bezier(.3, .1, .2, 1), box-shadow .9s;
+}
+.uf-ear { position: absolute; top: -1px; bottom: -1px; left: -24px; width: 22px; display: grid; align-content: space-around; justify-items: center; background: linear-gradient(90deg, var(--chassis-bot), var(--chassis-top)); border: 1px solid var(--chassis-edge); border-radius: 4px 0 0 4px; }
+.uf-ear-r { left: auto; right: -24px; transform: scaleX(-1); }
+.uf-ear i { width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, var(--chassis-hi), var(--chassis-edge) 70%); box-shadow: inset 0 0 0 1px var(--chassis-edge); }
+.uf-leds { display: flex; gap: 8px; }
+.uf-leds i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.uf-leds .led-act { background: var(--accent-2); box-shadow: 0 0 8px var(--accent-2); animation: led-act 1.1s infinite steps(2, jump-none); }
+.uf-leds .led-net { background: var(--warn); box-shadow: 0 0 8px var(--warn); animation: led-act 2.3s infinite steps(2, jump-none); }
+.uf-label { display: grid; line-height: 1.15; }
+.uf-label strong { font: 800 1rem/1.1 var(--mono); letter-spacing: .06em; }
+.uf-label span { font: 600 .72rem/1.2 var(--mono); color: var(--muted); }
+.uf-vent { flex: 1; height: 26px; min-width: 20px; background: repeating-linear-gradient(90deg, var(--rack-hole) 0 5px, transparent 5px 10px); border-radius: 3px; opacity: .8; }
+.uf-state { font: 700 .72rem/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--warn); padding: 5px 8px; border: 1px solid currentColor; border-radius: 6px; white-space: nowrap; }
+.uf-handle { width: 54px; height: 30px; border: 4px solid var(--chassis-edge); border-left: 0; border-radius: 0 10px 10px 0; box-shadow: inset 0 1px 0 var(--chassis-hi); }
+.uf-gnome { position: absolute; right: 18px; bottom: 58px; width: 34px; height: 44px; transform-origin: bottom center; opacity: 0; }
+.uf-gnome svg { width: 100%; height: 100%; }
+.uf-pull { position: absolute; left: 50%; bottom: -30px; transform: translateX(-50%); margin: 0; font: 600 .78rem/1 var(--mono); color: var(--muted); opacity: 0; transition: opacity .3s; white-space: nowrap; }
+/* Al llegar, un enanito tira de la unidad y la bandeja sale del rack. Solo
+   CSS: sin esperar al JS, así no hay parpadeo; con movimiento reducido las
+   animaciones terminan al instante. */
+.unit-face { animation: face-pull 1.3s cubic-bezier(.3, .1, .2, 1) both; }
+.unit-face .uf-gnome { opacity: 1; animation: gnome-pull .45s ease-in-out 2 alternate, gnome-wave 2.4s ease-in-out 1.2s 1; }
+.unit-face .uf-pull { animation: pull-label 1.3s ease both; }
+@keyframes face-pull {
+  0% { transform: none; }
+  55% { transform: translateZ(40px) translateY(-4px); box-shadow: inset 0 1px 0 var(--chassis-hi), 0 2px 0 var(--chassis-edge), 0 26px 40px rgba(0, 0, 0, .5); }
+  100% { transform: none; }
+}
+@keyframes pull-label { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes gnome-pull { from { transform: rotate(-4deg) translateX(0); } to { transform: rotate(-14deg) translateX(6px); } }
+@keyframes gnome-wave { 0%, 100% { transform: none; } 20%, 60% { transform: rotate(8deg); } 40%, 80% { transform: rotate(-6deg); } }
+@media (max-width: 640px) {
+  .unit-face { gap: 10px; padding: 0 12px; margin: 0; }
+  .uf-ear, .uf-vent, .uf-handle, .uf-label span { display: none; }
+  .uf-label strong { white-space: nowrap; }
+  .uf-state { margin-left: auto; font-size: .62rem; padding: 4px 6px; }
+  .uf-gnome { right: 8px; }
+}
+
+/* La bandeja: el interior de la máquina que sale del rack. */
+.unit-inside { position: relative; z-index: 1; margin: -6px 18px 0; transform-origin: top center; animation: tray-open 1.1s cubic-bezier(.2, .8, .2, 1) .8s both; }
+@keyframes tray-open {
+  from { clip-path: inset(0 0 100% 0); opacity: .3; transform: rotateX(-8deg); }
+  to { clip-path: inset(0 0 0 0); opacity: 1; transform: none; }
+}
+.unit-tray {
+  display: grid; gap: 22px; padding: 30px 26px 30px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--chassis-edge) 70%, transparent) 0 6px, transparent 6px calc(100% - 6px), color-mix(in srgb, var(--chassis-edge) 70%, transparent) calc(100% - 6px)),
+    radial-gradient(color-mix(in srgb, var(--accent) 9%, transparent) 1px, transparent 1.5px) 0 0 / 22px 22px,
+    color-mix(in srgb, var(--bg) 88%, var(--accent) 3%);
+  border: 1px solid var(--chassis-edge); border-top: 0; border-radius: 0 0 14px 14px;
+  box-shadow: inset 0 14px 22px -12px rgba(0, 0, 0, .6), 0 18px 40px rgba(0, 0, 0, .35);
+}
+@media (max-width: 640px) { .unit-inside { margin: -6px 4px 0; } .unit-tray { padding: 22px 12px; } }
+
+/* Cada bloque es una bahía de la placa: serigrafía y tornillos. */
+.bay { position: relative; padding: 26px 22px 22px; background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--border); border-radius: var(--radius); scroll-margin-top: 80px; }
+.bay::before, .bay::after { content: ""; position: absolute; top: 9px; width: 8px; height: 8px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, var(--chassis-hi), var(--chassis-edge) 70%); }
+.bay::before { left: 9px; }
+.bay::after { right: 9px; }
+.bay > h2, .unit-build h2, .unit-close h2 { margin-top: 0; }
+.bay-silk { position: absolute; top: 7px; left: 26px; margin: 0; font: 700 .66rem/1 var(--mono); letter-spacing: .14em; color: color-mix(in srgb, var(--accent) 70%, var(--muted)); opacity: .8; }
+@media (max-width: 640px) { .bay { padding: 26px 14px 16px; } }
+
+.unit-hero h1 { font-size: clamp(2.6rem, 7vw, 4.4rem); margin: 0; letter-spacing: -.03em; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.unit-grade { display: inline-flex; gap: 8px; align-items: center; margin: 6px 0 14px; padding: 6px 12px; font: 700 .85rem/1 var(--mono); color: var(--xp); border: 1px solid currentColor; border-radius: 999px; background: color-mix(in srgb, var(--xp) 10%, transparent); }
+.unit-facts { display: grid; gap: 12px; margin: 18px 0; }
+.unit-facts div { padding: 12px 14px; border-left: 3px solid var(--accent-2); background: var(--surface-2); border-radius: 0 10px 10px 0; }
+.unit-facts dt { font: 700 .78rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--accent-2); margin-bottom: 4px; }
+.unit-facts dd { margin: 0; }
+@media (min-width: 900px) { .unit-facts { grid-template-columns: repeat(3, 1fr); } }
+.unit-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.unit-stats li { padding: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.unit-stats strong { display: block; font: 800 1.35rem/1.15 var(--font); color: var(--accent); letter-spacing: -.01em; }
+.unit-stats span { font-size: .82rem; color: var(--muted); }
+@media (min-width: 760px) { .unit-stats { grid-template-columns: repeat(3, 1fr); } }
+
+
+/* Mapa: piezas encendidas por habilidad y marco de la VM. */
+.unit-lab { margin-top: 12px; }
+.unit-vm.is-lit { stroke-dasharray: none; stroke-width: 3; fill: color-mix(in srgb, var(--accent) 9%, transparent); }
+.lab-node.is-lit .node-box { fill: color-mix(in srgb, var(--kind) 26%, var(--surface)); stroke-width: 3; }
+.lab-node.is-lit .node-halo { opacity: .8; animation: halo 1.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.unit-packet-glow { filter: url(#uglow); }
+.console-chips { margin-bottom: 12px; }
+.console-chips:empty { display: none; }
+
+/* Habilidades. */
+.unit-skills { display: grid; gap: 14px; margin-top: 12px; }
+.unit-skill-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.unit-skill { min-height: 38px; padding: 0 14px; font: 600 .9rem/1 var(--font); color: var(--text); background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 999px; cursor: pointer; transition: border-color .2s, background .2s, transform .2s; }
+.unit-skill:hover { border-color: var(--accent); transform: translateY(-1px); }
+.unit-skill[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.unit-skill-panel { padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--accent); background: var(--accent-soft); }
+.unit-skill-panel p { margin: 0 0 8px; }
+.usp-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 !important; }
+.skill-notes { display: grid; gap: 10px; margin: 12px 0 0; }
+.skill-notes div { padding: 10px 12px; background: var(--surface-2); border-radius: var(--radius-sm); }
+.skill-notes dt { font-weight: 700; }
+.skill-notes dd { margin: 0; color: var(--muted); }
+@media (min-width: 760px) { .skill-notes { grid-template-columns: repeat(2, 1fr); } }
+.js .skill-notes { display: none; }
+
+/* Cálculo de XP. */
+.xp-calc { display: grid; gap: 18px; margin-top: 12px; }
+@media (min-width: 900px) { .xp-calc { grid-template-columns: 1.3fr 1fr; align-items: start; } }
+.xp-controls { display: grid; gap: 16px; }
+.xp-field { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.xp-field > span, .xp-field legend { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; padding: 0; }
+.xp-field output { font: 700 .9rem/1.4 var(--mono); color: var(--accent); }
+.xp-field input[type="range"] { width: 100%; accent-color: var(--accent); }
+.xp-diff-opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.xp-diff-opt { position: relative; }
+.xp-diff-opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.xp-diff-opt span { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; font: 600 .85rem/1 var(--font); border: 1px solid var(--border-strong); border-radius: 999px; background: var(--surface-2); }
+.xp-diff-opt input:checked + span { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.xp-diff-opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.xp-result { padding: 18px; border-radius: var(--radius); background: linear-gradient(170deg, var(--surface-2), var(--surface)); border: 1px solid var(--border-strong); }
+.xp-label { margin: 0; font: 700 .75rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.xp-big { margin: 4px 0 6px; font: 800 3.2rem/1 var(--font); color: var(--xp); letter-spacing: -.03em; }
+.xp-big small { font-size: 1.1rem; color: var(--muted); }
+.xp-big.is-bump { animation: xp-bump .3s ease; }
+@keyframes xp-bump { 40% { transform: scale(1.06); } }
+.xp-formula, .xp-math { margin: 0 0 6px; font-size: .85rem; color: var(--muted); }
+.xp-math code { color: var(--text); }
+.xp-level { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border-strong); }
+.xp-lvl { margin: 4px 0 8px; font: 800 1.8rem/1 var(--font); color: var(--accent-2); }
+.xp-lvl::before { content: "Lv "; font-size: .9rem; color: var(--muted); }
+
+/* Bitácora. */
+.inc-score { margin-left: 8px; font: 700 .8rem/1 var(--mono); color: var(--xp); vertical-align: middle; }
+.incidents { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 14px; }
+@media (min-width: 900px) { .incidents { grid-template-columns: repeat(2, 1fr); } }
+.inc article { height: 100%; display: flex; flex-direction: column; padding: 16px 18px; background: var(--surface-2); border: 1px solid var(--border); border-left: 3px solid var(--danger); border-radius: var(--radius-sm); transition: border-color .3s; }
+.inc.is-solved article { border-left-color: var(--ok); }
+.inc header { display: grid; gap: 2px; }
+.inc-n { margin: 0; font: 700 .75rem/1 var(--mono); color: var(--danger); }
+.inc.is-solved .inc-n { color: var(--ok); }
+.inc h3 { margin: 0; }
+.inc-meta { margin: 0; font: 600 .75rem/1.4 var(--mono); color: var(--muted); }
+.inc-symptom { margin: 10px 0; padding: 8px 10px; font: .9rem/1.5 var(--mono); background: color-mix(in srgb, var(--danger) 8%, var(--surface)); border-radius: 8px; }
+.inc-options { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; }
+.inc-opt { width: 100%; text-align: left; padding: 9px 12px; font: .9rem/1.35 var(--font); color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: 9px; cursor: pointer; transition: border-color .2s, background .2s; }
+.inc-opt:hover:not(:disabled) { border-color: var(--accent); }
+.inc-opt:disabled { cursor: default; }
+.inc-opt.is-wrong { color: var(--muted); text-decoration: line-through; border-color: color-mix(in srgb, var(--danger) 60%, var(--border)); }
+.inc-opt.is-right { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, var(--surface)); }
+.inc-opt.is-right::before { content: "✓ "; color: var(--ok); font-weight: 800; }
+.inc-feedback { min-height: 1.4em; margin: 6px 0 0; color: var(--muted); }
+.inc.is-shake article { animation: shake .4s ease; }
+@keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+.inc-answer { margin-top: auto; padding-top: 10px; }
+.inc-answer summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.inc-answer dl { margin: 10px 0 0; display: grid; gap: 8px; }
+.inc-answer dt { font: 700 .72rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.inc-answer dd { margin: 0; }
+.inc-lesson dd { color: var(--accent); font-weight: 600; }
+
+/* Construcción y cierre. */
+.unit-build { display: grid; gap: 28px; }
+@media (min-width: 900px) { .unit-build { grid-template-columns: 1.1fr 1fr; gap: 40px; } }
+.decisions { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.decisions .card { padding: 14px 16px; border-left: 3px solid var(--accent-2); }
+.decisions .card p { margin: 0; }
+.decisions h3 { margin: 2px 0 6px; font-size: 1.05rem; }
+.unit-close { display: grid; gap: 14px; margin-bottom: 12px; }
+@media (min-width: 900px) { .unit-close { grid-template-columns: repeat(3, 1fr); } }
+.unit-close h2 { font-size: 1.2rem; }
+.unit-cta { border-color: var(--accent); }
+.unit-cta .cta { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .unit-inside, .unit-face { animation: none; }
+  .unit-face .uf-pull { display: none; }
+}
+@media print {
+  .unit-face, .xp-calc, .unit-skills, .inc-guess { display: none !important; }
+  .unit-tray { background: none; box-shadow: none; }
+  .skill-notes { display: grid !important; }
+}

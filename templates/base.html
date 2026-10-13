@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}{{ c.t.meta.title }}{% endblock %}</title>
-<meta name="description" content="{{ c.t.meta.description }}">
+<meta name="description" content="{% block description %}{{ c.t.meta.description }}{% endblock %}">
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#0a0e17">
 <link rel="icon" href="/static/favicon.svg?v={{ c.asset_v }}" type="image/svg+xml">
@@ -19,7 +19,7 @@
   {% block nav %}{% endblock %}
   <div class="topbar-actions">
     {% block actions %}{% endblock %}
-    <a class="btn btn-ghost" href="/{{ c.other }}/" hreflang="{{ c.other }}" lang="{{ c.other }}" data-lang-switch>{{ c.ui("lang_switch") }}</a>
+    <a class="btn btn-ghost" href="/{{ c.other }}/{{ c.path }}" hreflang="{{ c.other }}" lang="{{ c.other }}" data-lang-switch>{{ c.ui("lang_switch") }}</a>
   </div>
 </header>
 <main id="main">
