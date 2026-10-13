@@ -198,7 +198,7 @@ async fn blog_search_index_has_every_article(db: PgPool) {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(h[header::CONTENT_TYPE], "application/json");
     let items: Vec<serde_json::Value> = serde_json::from_str(&body).unwrap();
-    assert_eq!(items.len(), crate::article::EMBEDDED.len());
+    assert_eq!(items.len(), crate::article::embedded().unwrap().len());
     let nat = items.iter().find(|i| i["slug"] == "nat-hsts").unwrap();
     let text = nat["text"].as_str().unwrap();
     assert!(

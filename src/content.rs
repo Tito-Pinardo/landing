@@ -654,10 +654,7 @@ impl Content {
             .map(|src| Unit::parse(src))
             .collect::<Result<_>>()?;
         content.validate_units()?;
-        content.articles = article::EMBEDDED
-            .iter()
-            .map(|src| Article::parse(src))
-            .collect::<Result<_>>()?;
+        content.articles = article::embedded()?;
         content.validate_articles()?;
         Ok(content)
     }

@@ -12,25 +12,32 @@ use serde::Deserialize;
 
 use crate::content::{Lang, Site};
 
-macro_rules! articles {
-    ($($id:literal),* $(,)?) => { &[$(include_str!(concat!("../content/articles/", $id, ".toml"))),*] };
-}
+/// Los ficheros de `content/articles/`: basta con añadir uno para publicar
+/// un artículo (así publica el resumen semanal, sin tocar el código).
+#[derive(rust_embed::Embed)]
+#[folder = "content/articles/"]
+struct Files;
 
-/// Los artículos compilados en el binario, del más reciente al más antiguo.
-pub const EMBEDDED: &[&str] = articles![
-    "cache-escritura-discos",
-    "zabbix-load-lxc",
-    "cambios-2026-09",
-    "firewall-proxmox-ct",
-    "think-adaptativo",
-    "qwen3-8gb-vram",
-    "terraform-forcenew",
-    "okd-discos-lentos",
-    "chrome-huerfanos",
-    "lvm-thin-corte-de-luz",
-    "copias-cron-path",
-    "nat-hsts",
-];
+/// Todos los artículos compilados en el binario, del más reciente al más
+/// antiguo (a igual fecha, por slug). El slug tiene que coincidir con el
+/// nombre del fichero.
+pub fn embedded() -> Result<Vec<Article>> {
+    let mut out = Vec::new();
+    for name in Files::iter().filter(|n| n.ends_with(".toml")) {
+        let file = Files::get(&name).expect("fichero listado");
+        let src = std::str::from_utf8(&file.data)
+            .with_context(|| format!("content/articles/{name}: no es UTF-8"))?;
+        let a = Article::parse(src).with_context(|| format!("content/articles/{name}"))?;
+        ensure!(
+            name.strip_suffix(".toml") == Some(a.slug.as_str()),
+            "content/articles/{name}: el slug {} no coincide con el nombre del fichero",
+            a.slug
+        );
+        out.push(a);
+    }
+    out.sort_by(|a, b| b.date.cmp(&a.date).then_with(|| a.slug.cmp(&b.slug)));
+    Ok(out)
+}
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -205,7 +212,12 @@ mod tests {
     #[test]
     fn embedded_articles_are_valid_and_sorted() {
         let c = Content::embedded().unwrap();
-        assert_eq!(c.articles.len(), super::EMBEDDED.len());
+        assert_eq!(
+            c.articles.len(),
+            super::Files::iter()
+                .filter(|n| n.ends_with(".toml"))
+                .count()
+        );
         assert!(
             c.articles.windows(2).all(|w| w[0].date >= w[1].date),
             "del más reciente al más antiguo"
@@ -220,7 +232,11 @@ mod tests {
     #[test]
     fn unknown_kind_is_rejected() {
         let c = Content::embedded().unwrap();
-        let src = super::EMBEDDED[0].replacen("kind = \"", "kind = \"otro", 1);
+        let file = super::Files::get("nat-hsts.toml").unwrap();
+        let src =
+            std::str::from_utf8(&file.data)
+                .unwrap()
+                .replacen("kind = \"", "kind = \"otro", 1);
         let a = super::Article::parse(&src).unwrap();
         let units = c.units.iter().map(|u| u.id.as_str()).collect();
         assert!(a.validate(&c.site, &units).is_err());

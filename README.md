@@ -20,7 +20,7 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 |---|---|
 | `content/site.toml` | Datos que no dependen del idioma: tecnologías, proyectos, piezas y grupos del servidor y recorridos |
 | `content/es.toml`, `content/en.toml` | Textos, con las mismas claves (el servidor no arranca si falta alguna) |
-| `content/articles/*.toml` | Artículos: fecha, unidad, tecnologías, `kind` y textos ES/EN por secciones (con `impact`/`detected`/`downtime` en los postmortems y `links` a fuentes de fuera); el orden está en `src/article.rs` |
+| `content/articles/*.toml` | Artículos: fecha, unidad, tecnologías, `kind` y textos ES/EN por secciones (con `impact`/`detected`/`downtime` en los postmortems y `links` a fuentes de fuera); se descubren solos (basta con añadir el fichero, con el slug como nombre) y se ordenan por fecha |
 | `content/units/*.toml` | Unidades del rack (una por pieza del servidor): mapa, recorridos, averías y textos ES/EN; se validan contra `site.toml` y el orden del rack está en `src/unit.rs` |
 | `templates/` | Plantillas HTML (y el avatar de Hermes en SVG) |
 | `static/` | CSS, JS (`app.js` para la portada, `unit.js` para las unidades, `sound.js` para el sonido, `prefs.js` para el panel de vista: tema, animaciones, enanitos y la noche en casa), imágenes y CV (se compilan dentro del binario) |
