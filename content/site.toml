@@ -296,7 +296,7 @@ tech = ["openshift", "kubernetes", "terraform", "ansible", "proxmox", "dns"]
 [[projects]]
 id = "centre-web"
 status = "done"
-tech = ["php", "codeigniter", "react", "typescript", "git"]
+tech = ["php", "codeigniter", "react", "typescript", "python", "git"]
 
 [[projects]]
 id = "openwrt"

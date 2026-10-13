@@ -197,16 +197,19 @@ outcome = "A working OpenShift cluster and an installation log with every failur
 lesson = "etcd doesn't forgive slow disks: storage latency shows up in the control plane long before it shows in the apps."
 
 [projects.centre-web]
-title = "The centre's web applications"
-tagline = "The centre's site and internal applications, migrated and maintained with CodeIgniter 4 and React."
-context = "Internship at Centro Universitario Cardenal Cisneros."
-problem = "The centre's website and internal applications were on an old version, and their databases had grown without order."
+title = "The university's web services"
+tagline = "Migrating all of the centre's internal and external services, with a new database built from scratch, automations and public applications."
+context = "Internship at Centro Universitario Cardenal Cisneros. Internal work is described in general terms: I signed a confidentiality agreement."
+problem = "The centre's internal and external services and their utilities were stuck on an old version, and the data was spread across databases that had grown without order."
 bullets = [
-  "Migrated the centre's website and application ecosystem to a newer version.",
-  "Developed and maintained internal software and utilities for staff, with CodeIgniter 4 (PHP) and React.",
-  "Redesigned relational databases: more compact, with automated workflows and faster access to information.",
+  "Started migrating all of the centre's internal and external services, with their utilities, adding new automations plus performance and visual improvements.",
+  "Reorganised the databases, building a new one from scratch.",
+  "A public portal for the companies that host students on placements: each company has an account and manages its students' invoices (assigned students and whether each invoice is paid). In degrees like Psychology or Teaching there are few placements and the centre pays companies per student.",
+  "Public library pages to request books and photocopies.",
+  "Internal applications such as user management and guided document creation, and Python automations for daily tasks.",
+  "Built with CodeIgniter 4 (PHP) and React.",
 ]
-outcome = "The centre's applications up to date and with better organised data."
+outcome = "The centre's services up to date, faster and with the data in an orderly database, plus new applications for companies, students and staff."
 
 [projects.openwrt]
 title = "Recycled Cisco routers with OpenWRT"
@@ -256,10 +259,10 @@ place = "Alcalá de Henares, Spain"
 period = "Sep 2025 – Jun 2026"
 bullets = [
   "Developed and maintained internal software and utilities for university staff.",
-  "Redesigned relational databases to improve organisation, data access and automated workflows.",
-  "Migrated the centre's website and application ecosystem to a newer version.",
+  "Reorganised the relational databases, building a new one from scratch to improve organisation, data access and automated workflows.",
+  "Started migrating all of the centre's internal and external services, with new automations plus performance and visual improvements.",
   "Built Python scripts to classify and assign student documents through Paperless-ngx.",
-  "Web development with CodeIgniter 4 (PHP) and React.",
+  "Built public applications with CodeIgniter 4 and React: a portal for placement companies to manage their students' invoices, and the library pages to request books and photocopies.",
 ]
 
 [[journey]]

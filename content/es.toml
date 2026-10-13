@@ -201,16 +201,19 @@ outcome = "Un clúster OpenShift funcionando y un historial de instalación con 
 lesson = "etcd no perdona los discos lentos: la latencia de almacenamiento se nota antes en el plano de control que en las aplicaciones."
 
 [projects.centre-web]
-title = "Aplicaciones web del centro"
-tagline = "El sitio y las aplicaciones internas del centro, migrados y mantenidos con CodeIgniter 4 y React."
-context = "Prácticas en el Centro Universitario Cardenal Cisneros."
-problem = "El sitio web y las aplicaciones internas del centro estaban en una versión antigua, y sus bases de datos habían crecido sin orden."
+title = "Servicios web de la universidad"
+tagline = "Migración de todos los servicios internos y externos del centro, con una base de datos nueva desde cero, automatizaciones y aplicaciones públicas."
+context = "Prácticas en el Centro Universitario Cardenal Cisneros. Lo interno lo cuento en general: firmé un acuerdo de confidencialidad."
+problem = "Los servicios internos y externos del centro y sus utilidades se habían quedado en una versión antigua, y los datos estaban repartidos en bases de datos que habían crecido sin orden."
 bullets = [
-  "Migración del sitio web y del ecosistema de aplicaciones del centro a una versión más reciente.",
-  "Desarrollo y mantenimiento de software interno y utilidades para el personal, con CodeIgniter 4 (PHP) y React.",
-  "Rediseño de bases de datos relacionales: más compactas, con flujos automatizados y acceso más rápido a la información.",
+  "Empecé la migración de todos los servicios internos y externos del centro, con sus utilidades, añadiendo automatizaciones nuevas y mejoras de rendimiento y visuales.",
+  "Reorganicé las bases de datos, creando una nueva desde cero.",
+  "Portal público para las empresas que acogen a estudiantes en prácticas: cada empresa tiene su cuenta y gestiona las facturas de sus estudiantes (alumnos asignados y si cada factura está pagada). En titulaciones como Psicología o Magisterio hay pocas plazas y el centro paga a las empresas por alumno.",
+  "Páginas públicas de la biblioteca para pedir libros y solicitar fotocopias.",
+  "Aplicaciones internas como la gestión de usuarios y la creación guiada de documentos, y automatizaciones en Python para tareas diarias.",
+  "Desarrollo con CodeIgniter 4 (PHP) y React.",
 ]
-outcome = "Aplicaciones del centro al día y con datos mejor organizados."
+outcome = "Servicios del centro al día, más rápidos y con los datos en una base de datos ordenada, más aplicaciones nuevas para empresas, alumnos y personal."
 
 [projects.openwrt]
 title = "Routers Cisco reciclados con OpenWRT"
@@ -260,10 +263,10 @@ place = "Alcalá de Henares"
 period = "Sept. 2025 – Jun. 2026"
 bullets = [
   "Desarrollé y mantuve software interno y utilidades para el personal universitario.",
-  "Rediseñé bases de datos relacionales para mejorar la organización, el acceso a datos y los flujos automatizados.",
-  "Migré el sitio web y el ecosistema de aplicaciones del centro a una versión más reciente.",
+  "Reorganicé las bases de datos relacionales, creando una nueva desde cero para mejorar la organización, el acceso a los datos y los flujos automatizados.",
+  "Empecé la migración de todos los servicios internos y externos del centro, con automatizaciones nuevas y mejoras de rendimiento y visuales.",
   "Desarrollé scripts en Python para clasificar y asignar documentos de alumnos con Paperless-ngx.",
-  "Desarrollo web con CodeIgniter 4 (PHP) y React.",
+  "Desarrollé con CodeIgniter 4 y React aplicaciones públicas: un portal para que las empresas de prácticas gestionen las facturas de sus estudiantes y las páginas de la biblioteca para pedir libros y fotocopias.",
 ]
 
 [[journey]]
