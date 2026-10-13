@@ -200,6 +200,29 @@ bullets = [
 outcome = "Un clúster OpenShift funcionando y un historial de instalación con cada fallo y su solución."
 lesson = "etcd no perdona los discos lentos: la latencia de almacenamiento se nota antes en el plano de control que en las aplicaciones."
 
+[projects.centre-web]
+title = "Aplicaciones web del centro"
+tagline = "El sitio y las aplicaciones internas del centro, migrados y mantenidos con CodeIgniter 4 y React."
+context = "Prácticas en el Centro Universitario Cardenal Cisneros."
+problem = "El sitio web y las aplicaciones internas del centro estaban en una versión antigua, y sus bases de datos habían crecido sin orden."
+bullets = [
+  "Migración del sitio web y del ecosistema de aplicaciones del centro a una versión más reciente.",
+  "Desarrollo y mantenimiento de software interno y utilidades para el personal, con CodeIgniter 4 (PHP) y React.",
+  "Rediseño de bases de datos relacionales: más compactas, con flujos automatizados y acceso más rápido a la información.",
+]
+outcome = "Aplicaciones del centro al día y con datos mejor organizados."
+
+[projects.openwrt]
+title = "Routers Cisco reciclados con OpenWRT"
+tagline = "Routers Cisco donados al centro, con firmware nuevo cargado por el puerto serie y configurados para toda la clase."
+context = "CFGS ASIR, GSD International School Buitrago."
+problem = "Al centro le donaron unos routers Cisco que no se podían aprovechar tal y como venían."
+bullets = [
+  "Cambié el firmware de los routers por OpenWRT a través del puerto serie.",
+  "Los configuré para que los usara toda la clase.",
+]
+outcome = "Routers donados convertidos en equipos útiles para las prácticas de la clase."
+
 [projects.paperless]
 title = "Clasificación automática de documentos"
 tagline = "Scripts en Python que clasifican y asignan documentos de alumnos solos."
@@ -240,6 +263,7 @@ bullets = [
   "Rediseñé bases de datos relacionales para mejorar la organización, el acceso a datos y los flujos automatizados.",
   "Migré el sitio web y el ecosistema de aplicaciones del centro a una versión más reciente.",
   "Desarrollé scripts en Python para clasificar y asignar documentos de alumnos con Paperless-ngx.",
+  "Desarrollo web con CodeIgniter 4 (PHP) y React.",
 ]
 
 [[journey]]
@@ -251,6 +275,7 @@ period = "Sept. 2023 – Jun. 2026"
 bullets = [
   "Administración de Sistemas Informáticos en Red y Desarrollo de Aplicaciones Web, en un programa combinado.",
   "Proyecto final: XPIFY, calificado con 10/10.",
+  "Recuperé unos routers Cisco donados al centro: les cambié el firmware por OpenWRT por el puerto serie y los configuré para toda la clase.",
 ]
 
 [[journey]]

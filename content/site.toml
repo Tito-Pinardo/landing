@@ -135,6 +135,12 @@ branch = "network"
 level = 2
 
 [[tech]]
+id = "openwrt"
+name = "OpenWRT"
+branch = "network"
+level = 2
+
+[[tech]]
 id = "vlan"
 name = "VLANs"
 branch = "network"
@@ -228,7 +234,19 @@ level = 1
 id = "php"
 name = "PHP"
 branch = "dev"
-level = 1
+level = 2
+
+[[tech]]
+id = "codeigniter"
+name = "CodeIgniter 4"
+branch = "dev"
+level = 2
+
+[[tech]]
+id = "react"
+name = "React"
+branch = "dev"
+level = 2
 
 [[tech]]
 id = "rust"
@@ -274,6 +292,16 @@ tech = ["wazuh", "zabbix", "hardening", "mikrotik", "vlan", "wireguard", "ansibl
 id = "okd"
 status = "done"
 tech = ["openshift", "kubernetes", "terraform", "ansible", "proxmox", "dns"]
+
+[[projects]]
+id = "centre-web"
+status = "done"
+tech = ["php", "codeigniter", "react", "typescript", "git"]
+
+[[projects]]
+id = "openwrt"
+status = "done"
+tech = ["openwrt", "linux"]
 
 [[projects]]
 id = "paperless"

@@ -196,6 +196,29 @@ bullets = [
 outcome = "A working OpenShift cluster and an installation log with every failure and its fix."
 lesson = "etcd doesn't forgive slow disks: storage latency shows up in the control plane long before it shows in the apps."
 
+[projects.centre-web]
+title = "The centre's web applications"
+tagline = "The centre's site and internal applications, migrated and maintained with CodeIgniter 4 and React."
+context = "Internship at Centro Universitario Cardenal Cisneros."
+problem = "The centre's website and internal applications were on an old version, and their databases had grown without order."
+bullets = [
+  "Migrated the centre's website and application ecosystem to a newer version.",
+  "Developed and maintained internal software and utilities for staff, with CodeIgniter 4 (PHP) and React.",
+  "Redesigned relational databases: more compact, with automated workflows and faster access to information.",
+]
+outcome = "The centre's applications up to date and with better organised data."
+
+[projects.openwrt]
+title = "Recycled Cisco routers with OpenWRT"
+tagline = "Cisco routers donated to the school, reflashed over the serial port and set up for the whole class."
+context = "Higher VET in Network Systems Administration (ASIR), GSD International School Buitrago."
+problem = "The school was donated some Cisco routers that couldn't be used as they came."
+bullets = [
+  "Replaced the routers' firmware with OpenWRT over the serial port.",
+  "Set them up so the whole class could use them.",
+]
+outcome = "Donated routers turned into useful kit for the class's practical work."
+
 [projects.paperless]
 title = "Automatic document classification"
 tagline = "Python scripts that classify and assign student documents on their own."
@@ -236,6 +259,7 @@ bullets = [
   "Redesigned relational databases to improve organisation, data access and automated workflows.",
   "Migrated the centre's website and application ecosystem to a newer version.",
   "Built Python scripts to classify and assign student documents through Paperless-ngx.",
+  "Web development with CodeIgniter 4 (PHP) and React.",
 ]
 
 [[journey]]
@@ -247,6 +271,7 @@ period = "Sep 2023 – Jun 2026"
 bullets = [
   "Network Systems Administration and Web Application Development, as a combined programme.",
   "Final project: XPIFY, graded 10/10.",
+  "Brought donated Cisco routers back into use: reflashed them with OpenWRT over the serial port and set them up for the whole class.",
 ]
 
 [[journey]]
