@@ -227,7 +227,11 @@ path = ["acme", "cloudflare", "letsencrypt", "acme", "tls", "monitor"]
 
 [[flows]]
 id = "newroute"
-path = ["git", "ansible", "router_web", "systemd", "entrypoint", "monitor"]
+path = ["git", "ansible", "router_web", "cloudflare", "systemd", "entrypoint", "monitor"]
+
+[[flows]]
+id = "retire"
+path = ["git", "ansible", "router_web", "cloudflare", "entrypoint", "monitor"]
 
 [[flows]]
 id = "www"
@@ -330,7 +334,7 @@ text = "La lista de servicios publicados vive aquí, versionada: qué dominio va
 [text.es.pods.ansible]
 short = "Ansible"
 title = "Ansible"
-text = "Lee la lista y escribe una ruta por dominio. La misma lista genera el panel de inicio del homelab."
+text = "Lee la lista y escribe una ruta por dominio, crea su registro DNS en Cloudflare y borra las rutas y los registros que ya no están. La misma lista genera el panel de inicio del homelab."
 
 [text.es.pods.entrypoint]
 short = "Puerto 443"
@@ -444,10 +448,22 @@ title = "Publico un servicio nuevo"
 steps = [
   "Añado una línea a la lista de servicios del repositorio: dominio y servicio.",
   "Ansible genera el fichero de la ruta y la entrada del panel de inicio, revisando el cambio antes de aplicarlo.",
+  "Y crea solo el registro DNS del dominio en Cloudflare, con proxy: no hay que entrar al panel para nada.",
   "Traefik detecta el fichero nuevo y carga la ruta sin cortar nada.",
   "El servicio sigue igual de aislado: Traefik corre con su usuario y sus permisos.",
   "La ruta ya responde.",
   "Y la monitorización empieza a comprobarla.",
+]
+
+[text.es.flows.retire]
+title = "Retiro un servicio"
+steps = [
+  "Borro su línea de la lista de servicios del repositorio. Es lo único que hago.",
+  "Ansible compara la lista con lo que hay publicado.",
+  "Borra el fichero de la ruta que ya no está en la lista: si no, Traefik lo seguiría sirviendo.",
+  "Y borra su registro DNS en Cloudflare. Solo toca los registros que creó él: los demás de la zona no se miran.",
+  "La puerta ya no tiene ninguna entrada para ese nombre.",
+  "Y la monitorización deja de comprobarlo.",
 ]
 
 [text.es.flows.www]
@@ -654,7 +670,7 @@ text = "The list of published services lives here, versioned: which domain goes 
 [text.en.pods.ansible]
 short = "Ansible"
 title = "Ansible"
-text = "Reads the list and writes one route per domain. The same list generates the homelab's start page."
+text = "Reads the list and writes one route per domain, creates its DNS record in Cloudflare and deletes routes and records that are no longer there. The same list generates the homelab's start page."
 
 [text.en.pods.entrypoint]
 short = "Port 443"
@@ -768,10 +784,22 @@ title = "I publish a new service"
 steps = [
   "I add a line to the service list in the repo: domain and service.",
   "Ansible generates the route file and the start-page entry, showing the change before applying it.",
+  "And it creates the domain's DNS record in Cloudflare by itself, proxied: no need to open the dashboard at all.",
   "Traefik spots the new file and loads the route without cutting anything.",
   "The service stays just as isolated: Traefik runs with its own user and permissions.",
   "The route is live.",
   "And monitoring starts checking it.",
+]
+
+[text.en.flows.retire]
+title = "I retire a service"
+steps = [
+  "I delete its line from the service list in the repo. That's all I do.",
+  "Ansible compares the list with what's published.",
+  "It deletes the route file that's no longer on the list: otherwise Traefik would keep serving it.",
+  "And it deletes its DNS record in Cloudflare. It only touches the records it created: the rest of the zone is left alone.",
+  "The door no longer has any entrance for that name.",
+  "And monitoring stops checking it.",
 ]
 
 [text.en.flows.www]
