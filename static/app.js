@@ -7,7 +7,8 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
   const T = JSON.parse($("#i18n").textContent);
-  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // El sistema o el interruptor «Animaciones» del panel de vista (prefs.js).
+  const reduceMotion = () => window.tpPrefs?.motionOff() ?? matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // ------------------------------------------------------------ almacenamiento
   // Solo comodidades del visitante; si el navegador lo bloquea, no pasa nada.
@@ -24,14 +25,14 @@
   };
 
   // ------------------------------------------------------------ utilidades
-  const scrollTo = (el, block = "start") => el?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block });
+  const scrollTo = (el, block = "start") => el?.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block });
   const fill = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : `{${k}}`));
 
   // Escribe el texto letra a letra (o de golpe con movimiento reducido).
   function typeInto(el, text, done) {
     clearInterval(el._typing);
     el.classList.remove("is-typing");
-    if (reduceMotion || text.length > 400) {
+    if (reduceMotion() || text.length > 400) {
       el.textContent = text;
       done?.();
       return;
@@ -251,7 +252,7 @@
   quickBtn?.addEventListener("click", () => {
     const on = !doc.classList.contains("quick-mode");
     setQuick(on);
-    if (on) $("#quick").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    if (on) $("#quick").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
   });
 
   // ------------------------------------------------------------ zonas descubiertas
@@ -284,7 +285,7 @@
         }
         if (id === "now" || id === "lab") loadLive();
         hermesZone(id);
-        if (id === "lab" && !labState.autoplayed && !reduceMotion) {
+        if (id === "lab" && !labState.autoplayed && !reduceMotion()) {
           labState.autoplayed = true;
           setTimeout(() => { if (!labState.flow) labStartFlow("visit"); }, 700);
         }
@@ -367,7 +368,7 @@
   // disco al pasar por encima.
   {
     const list = $(".rack-units");
-    if (list && !reduceMotion && "IntersectionObserver" in window) {
+    if (list && !reduceMotion() && "IntersectionObserver" in window) {
       rackUnits.forEach((r, i) => r.style.setProperty("--i", String(i)));
       list.classList.add("will-slide");
       const io = new IntersectionObserver((entries) => {
@@ -437,7 +438,7 @@
     const n = nodeById[id];
     if (!mapWrap || !n || mapWrap.scrollWidth <= mapWrap.clientWidth) return;
     const x = (n.x / 1200) * mapWrap.scrollWidth - mapWrap.clientWidth / 2;
-    mapWrap.scrollTo({ left: Math.max(0, x), behavior: reduceMotion ? "auto" : "smooth" });
+    mapWrap.scrollTo({ left: Math.max(0, x), behavior: reduceMotion() ? "auto" : "smooth" });
   }
 
   const packetGnome = $("[data-packet-gnome]");
@@ -481,7 +482,7 @@
     $$(`.trail-${which}`, layer).forEach((p) => p.classList.add("is-old"));
     layer.append(path);
     const len = Math.hypot(b.x - a.x, b.y - a.y);
-    if (!animate || reduceMotion || len === 0) {
+    if (!animate || reduceMotion() || len === 0) {
       move(b.x, b.y);
       return done?.();
     }
@@ -1037,7 +1038,7 @@
 
   function goTo(id) {
     closeTerminal();
-    $(`#${id}`)?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    $(`#${id}`)?.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
   }
 
   // Servidor de mentira para el reto: la bandera está en un log de Hermes,
@@ -1158,7 +1159,7 @@
       }
       print(`→ ${node?.title || unit.slot}…`, "t-ok");
       window.tpSound?.play("beep");
-      setTimeout(() => { location.href = url; }, reduceMotion ? 0 : 600);
+      setTimeout(() => { location.href = url; }, reduceMotion() ? 0 : 600);
     },
     sound(arg) {
       const on = arg !== "off";
@@ -1223,6 +1224,9 @@
   let gnomeRaf = 0, gnomeLast = 0;
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
+  // De noche en casa los enanitos duermen: no salen a pasear solos, los
+  // que tienen tarea fija se echan una siesta y los que patrullan descansan.
+  const asleep = Boolean(window.tpPrefs?.night);
   const COLORS = [["#ef4444", "#2563eb"], ["#16a34a", "#7c3aed"], ["#f59e0b", "#0891b2"], ["#db2777", "#15803d"], ["#0ea5e9", "#b45309"]];
   const GNOME = `<g class="gn-legs"><rect class="gn-leg gn-leg-l" x="13" y="39" width="5" height="11" rx="2.5"/><rect class="gn-leg gn-leg-r" x="22" y="39" width="5" height="11" rx="2.5"/></g><path class="gn-body" d="M9 43 Q20 20 31 43 Z"/><circle class="gn-face" cx="20" cy="24" r="7"/><path class="gn-beard" d="M12.5 25 Q20 42 27.5 25 Q20 31 12.5 25 Z"/><path class="gn-hat" d="M11.5 23 Q19 -3 29 22.5 Q20 19 11.5 23 Z"/><circle class="gn-eye" cx="17.4" cy="23.4" r="1.1"/><circle class="gn-eye" cx="22.6" cy="23.4" r="1.1"/><circle class="gn-nose" cx="20" cy="26.2" r="1.9"/>`;
   const STARS = `<g class="gn-stars"><text x="6" y="6">✦</text><text x="26" y="2">✧</text><text x="16" y="-4">✦</text></g>`;
@@ -1265,7 +1269,8 @@
   }
 
   function gnomeSpawn(kind, opts = {}) {
-    if (!gnomesOn || !world || gnomes.length >= 3 || doc.classList.contains("quick-mode") || reduceMotion) return;
+    if (!gnomesOn || !world || gnomes.length >= 3 || doc.classList.contains("quick-mode") || reduceMotion()) return;
+    if (asleep && !opts.awake) return;
     const item = opts.item || pickOne(Object.keys(ITEMS));
     const el = gnomeEl(kind, item);
     const w = kind === "pair" ? 240 : 66;
@@ -1308,7 +1313,7 @@
     void g.el.offsetWidth;
     g.el.classList.add("is-jump");
     window.tpSound?.gnome();
-    gnomeSay(g, pickOne(G.click));
+    gnomeSay(g, pickOne(asleep ? G.night : G.click));
     const total = store.get("gnomeClicks", 0) + 1;
     store.set("gnomeClicks", total);
     if (total === 1) setTimeout(() => hermesSay(G.hermes_reveal), 1200);
@@ -1395,21 +1400,22 @@
     if (document.hidden) { cancelAnimationFrame(gnomeRaf); gnomeRaf = 0; gnomeLast = 0; } else gnomeRun();
   });
 
-  const gnomeBtn = $("[data-gnome-toggle]");
+  // Enanitos sí/no: en el panel de vista de la barra.
+  const gnomeRadios = $$("[data-gnome-pref]");
   function setGnomes(on) {
     gnomesOn = on;
     store.set("gnomesOn", on);
     doc.classList.toggle("gnomes-off", !on);
-    gnomeBtn?.setAttribute("aria-pressed", String(on));
+    for (const r of gnomeRadios) r.checked = (r.value === "on") === on;
     if (!on) gnomeClear();
-    $$(".rail-climber").forEach((c) => { c.hidden = !on; });
+    $$(".rail-climber").forEach((c) => { c.hidden = !on || asleep; });
   }
   setGnomes(gnomesOn);
-  gnomeBtn?.addEventListener("click", () => {
-    setGnomes(!gnomesOn);
-    if (gnomesOn) gnomeSpawn("fall", { x: rnd(80, innerWidth - 120) });
+  for (const r of gnomeRadios) r.addEventListener("change", () => {
+    setGnomes(r.value === "on");
+    if (gnomesOn) gnomeSpawn("fall", { x: rnd(80, innerWidth - 120), awake: true });
   });
-  if (!reduceMotion) {
+  if (!reduceMotion()) {
     setTimeout(() => gnomeSpawn("walk", { item: "env", dir: 1 }), 2500);
     gnomeSchedule();
   }
@@ -1461,6 +1467,13 @@
       armR = limb(27.5, 31, ARM, still("-160"));
       legs = limb(15.5, 39, LEG, rot("-25;25;-25", ".45s")) + limb(24.5, 39, LEG, rot("25;-25;25", ".45s"));
       extra = `<g class="w-box"><rect x="8" y="-6" width="24" height="14" rx="1.5"/><path d="M8 1 h24 M20 -6 v14" stroke-width="1"/></g>`;
+    } else if (pose === "sleep") {
+      // Sentado, cabeceando, con los ojos cerrados y la zeta subiendo.
+      legs = limb(15.5, 39, LEG, still("-80")) + limb(24.5, 39, LEG, still("-80"));
+      armL = limb(12.5, 31, ARM, still("40"));
+      armR = limb(27.5, 31, ARM, still("-40"));
+      extra = `<g class="w-zzz">${[0, 1, 2].map((i) => `<text x="${30 + i * 6}" y="${8 - i * 7}">z<animate attributeName="opacity" values="0;1;0" dur="2.4s" begin="${i * 0.8}s" repeatCount="indefinite"/></text>`).join("")}</g>`;
+      return `<g class="worker pose-sleep">${legs}${armL}${HEAD.replace(/<circle class="gn-eye" cx="([\d.]+)" cy="([\d.]+)" r="1.1"\/>/g, '<rect class="gn-eye" x="$1" y="$2" width="2.6" height=".8" transform="translate(-1.3 0)"/>')}${armR}${extra}</g>`;
     } else if (pose === "climb") {
       armL = limb(12.5, 31, ARM, rot("170;130;170", "1s"));
       armR = limb(27.5, 31, ARM, rot("-130;-170;-130", "1s"));
@@ -1479,13 +1492,13 @@
     el.style.setProperty("--g-hat", hat);
     el.style.setProperty("--g-tunic", tunic);
     for (const [k, v] of Object.entries(place)) el.style[k] = v;
-    el.innerHTML = workerSvg(pose);
+    el.innerHTML = workerSvg(asleep ? "sleep" : pose);
     const g = { el };
     el.addEventListener("pointerdown", (ev) => { ev.preventDefault(); gnomeClick(g); });
     target.append(el);
   }
 
-  if (!reduceMotion && world) {
+  if (!reduceMotion() && world) {
     // Un enanito con su tarea encima de cada servidor del rack.
     const ZONE_POSES = { about: "sweep", skills: "carry", quests: "hammer", journey: "sit", lab: "wrench", now: "type", contact: "lift" };
     for (const [id, pose] of Object.entries(ZONE_POSES)) {
@@ -1498,6 +1511,7 @@
     // Uno sube y baja por el raíl izquierdo.
     const climber = document.createElement("div");
     climber.className = "rail-climber gnome-world-item";
+    climber.hidden = asleep;
     climber.innerHTML = workerSvg("climb");
     climber.addEventListener("pointerdown", (ev) => { ev.preventDefault(); gnomeClick({ el: climber }); });
     document.body.append(climber);
@@ -1516,8 +1530,8 @@
       g.style.setProperty("--g-hat", hat);
       g.style.setProperty("--g-tunic", tunic);
       g.setAttribute("transform", `translate(${n.x + 34} ${n.y - 76}) scale(1.05)`);
-      g.innerHTML = worker(pose);
-      g.addEventListener("click", (ev) => { ev.stopPropagation(); typeInto(consoleEl.text, pickOne(G.click)); });
+      g.innerHTML = worker(asleep ? "sleep" : pose);
+      g.addEventListener("click", (ev) => { ev.stopPropagation(); typeInto(consoleEl.text, pickOne(asleep ? G.night : G.click)); });
       workersLayer.append(g);
     }
     // …y patrullas que van de pieza en pieza cargando cajas.
@@ -1527,7 +1541,7 @@
       ["plex", "arr", "gpu", "tv", "plex"],
       ["internet", "cloudflare", "router", "casa", "router"],
     ];
-    const patrols = ROUTES.map((route) => {
+    const patrols = (asleep ? [] : ROUTES).map((route) => {
       const g = document.createElementNS(SVGNS, "g");
       g.setAttribute("class", "lab-worker");
       const [hat, tunic] = pickOne(COLORS);
@@ -1565,7 +1579,7 @@
   }
 
   // Los servidores entran en el rack al aparecer.
-  if ("IntersectionObserver" in window && !reduceMotion) {
+  if ("IntersectionObserver" in window && !reduceMotion()) {
     // Se vigila un marcador sin animación justo encima de cada zona, no la
     // zona: inclinada en 3D, una zona muy alta (misiones, laboratorio) ocupa
     // en pantalla mucho menos de lo que mide y entraba tarde. Y sin umbral en
@@ -1591,7 +1605,7 @@
   }
 
   // ------------------------------------------------------------ apariciones y contadores
-  if ("IntersectionObserver" in window && !reduceMotion) {
+  if ("IntersectionObserver" in window && !reduceMotion()) {
     const reveal = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (!e.isIntersecting) continue;
@@ -1667,7 +1681,7 @@
   }, 1400);
 
   // ------------------------------------------------------------ árbol que crece y antes/después
-  if ("IntersectionObserver" in window && !reduceMotion) {
+  if ("IntersectionObserver" in window && !reduceMotion()) {
     const grow = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (!e.isIntersecting) continue;

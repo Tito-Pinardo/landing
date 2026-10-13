@@ -8,7 +8,8 @@
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
   const D = JSON.parse($("#unit-data").textContent);
   const U = D.ui;
-  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // El sistema o el interruptor «Animaciones» del panel de vista (prefs.js).
+  const reduceMotion = () => window.tpPrefs?.motionOff() ?? matchMedia("(prefers-reduced-motion: reduce)").matches;
   const SVGNS = "http://www.w3.org/2000/svg";
   const snd = (name) => window.tpSound?.play(name);
 
@@ -28,7 +29,7 @@
   function typeInto(el, text, done) {
     clearInterval(el._typing);
     el.classList.remove("is-typing");
-    if (reduceMotion || text.length > 400) {
+    if (reduceMotion() || text.length > 400) {
       el.textContent = text;
       done?.();
       return;
@@ -90,7 +91,7 @@
   });
 
   // Las bahías se encienden al llegar a ellas.
-  if (!reduceMotion && "IntersectionObserver" in window) {
+  if (!reduceMotion() && "IntersectionObserver" in window) {
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) if (e.isIntersecting) {
         e.target.classList.add("is-on");
@@ -119,7 +120,7 @@
         el.classList.add("is-leaving");
         setTimeout(() => el.remove(), 320);
       }, 4200);
-    }, reduceMotion ? 300 : 1500);
+    }, reduceMotion() ? 300 : 1500);
   }
 
   // ------------------------------------------------------------ mapa y recorridos
@@ -146,7 +147,7 @@
     const p = podById[id];
     if (!mapWrap || !p || mapWrap.scrollWidth <= mapWrap.clientWidth) return;
     const x = (p.x / D.map_w) * mapWrap.scrollWidth - mapWrap.clientWidth / 2;
-    mapWrap.scrollTo({ left: Math.max(0, x), behavior: reduceMotion ? "auto" : "smooth" });
+    mapWrap.scrollTo({ left: Math.max(0, x), behavior: reduceMotion() ? "auto" : "smooth" });
   }
 
   function movePacket(x, y) {
@@ -173,7 +174,7 @@
     $$(".flow-trail", layer).forEach((p) => p.classList.add("is-old"));
     layer.append(path);
     const len = Math.hypot(b.x - a.x, b.y - a.y);
-    if (!animate || reduceMotion || len === 0) {
+    if (!animate || reduceMotion() || len === 0) {
       movePacket(b.x, b.y);
       return done?.();
     }
@@ -354,7 +355,7 @@
     con.trail.replaceChildren();
     chips([]);
     typeInto(con.text, note);
-    if (scroll) $("#map").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+    if (scroll) $("#map").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
   }
 
   $$("[data-skill]").forEach((b) => b.addEventListener("click", () => {
@@ -369,7 +370,7 @@
   };
   addEventListener("hashchange", fromHash);
   // Tras abrirse la unidad, para que el desplazamiento caiga en su sitio.
-  setTimeout(fromHash, reduceMotion ? 0 : 1300);
+  setTimeout(fromHash, reduceMotion() ? 0 : 1300);
 
   // ------------------------------------------------------------ cálculo de XP
   const X = D.xp;

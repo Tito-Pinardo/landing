@@ -28,8 +28,14 @@
 
 {% block actions %}
 <button class="btn btn-ghost js-only" type="button" data-quick-toggle aria-pressed="false">{{ c.ui("nav_quick") }}</button>
-<button class="btn btn-ghost btn-icon js-only gnome-toggle" type="button" data-gnome-toggle aria-pressed="true" aria-label="{{ c.t.gnomes.toggle_title }}" title="{{ c.t.gnomes.toggle_title }}"><svg viewBox="0 0 40 52" aria-hidden="true">{% include "gnome.svg" %}</svg></button>
 <button class="btn btn-ghost btn-icon js-only" type="button" data-terminal-open aria-label="{{ c.t.terminal.open }}" title="{{ c.t.terminal.open }}"><span aria-hidden="true">&gt;_</span></button>
+{% endblock %}
+
+{% block prefs %}
+<fieldset><legend>{{ c.t.gnomes.toggle }}</legend><div class="prefs-seg">
+  <label><input type="radio" name="tp-gnomes" value="on" data-gnome-pref><span>{{ c.ui("motion_on") }}</span></label>
+  <label><input type="radio" name="tp-gnomes" value="off" data-gnome-pref><span>{{ c.ui("motion_off") }}</span></label>
+</div></fieldset>
 {% endblock %}
 
 {% block main %}

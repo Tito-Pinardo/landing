@@ -70,6 +70,37 @@
     color-scheme: light;
   }
 }
+/* Tema claro elegido a mano en el panel de vista (prefs.js). */
+:root[data-theme="light"] {
+  --bg: #f5f7fb;
+  --bg-glow-1: rgba(13, 148, 136, .08);
+  --bg-glow-2: rgba(79, 70, 229, .07);
+  --dot: rgba(15, 23, 42, .06);
+  --surface: #ffffff;
+  --surface-2: #f0f4fa;
+  --border: #d9e1ec;
+  --border-strong: #b8c5d8;
+  --text: #0f172a;
+  --muted: #4f5d73;
+  --accent: #0f766e;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(15, 118, 110, .10);
+  --accent-2: #4f46e5;
+  --accent-2-soft: rgba(79, 70, 229, .10);
+  --xp: #4d7c0f;
+  --warn: #b45309;
+  --danger: #b91c1c;
+  --ok: #15803d;
+  --shadow: 0 10px 30px rgba(15, 23, 42, .08);
+  --k-edge: #64748b;
+  --k-network: #0284c7;
+  --k-compute: #0f766e;
+  --k-control: #7c3aed;
+  --k-observability: #b45309;
+  --k-ai: #be185d;
+  --k-app: #4d7c0f;
+  color-scheme: light;
+}
 
 /* ------------------------------------------------------------ base */
 *, *::before, *::after { box-sizing: border-box; }
@@ -155,6 +186,7 @@ html:not(.js) .js-only { display: none !important; }
 @media (min-width: 640px) { .brand-name { display: inline; } }
 @media (min-width: 1240px) { .zone-nav { display: block; } .brand-name { display: none; } }
 @media (max-width: 420px) { .topbar [data-quick-toggle] { padding: 0 10px; font-size: .85rem; } }
+@media (min-width: 1240px) and (max-width: 1439px) { .zone-nav a { padding: 6px 7px; gap: 4px; font-size: .82rem; } .zone-nav + .topbar-actions { margin-left: 4px; } }
 
 /* ------------------------------------------------------------ secciones */
 main { display: block; }
@@ -618,6 +650,8 @@ details summary:hover { color: var(--text); }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+/* Lo mismo con el interruptor «Animaciones: no» de la barra (prefs.js). */
+html[data-motion="off"] { scroll-behavior: auto; } html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="off"] *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 
 /* ------------------------------------------------------------ impresión */
 @media print {
@@ -681,7 +715,7 @@ details summary:hover { color: var(--text); }
 
 /* ------------------------------------------------------------ modos del laboratorio */
 .lab-modes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
-.mode-detective { border-color: var(--warn); color: var(--warn); }
+.mode-detective { border-color: var(--warn); color: color-mix(in srgb, var(--warn) 82%, var(--text)); }
 .mode-detective:hover { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
 .mode-detective[aria-pressed="true"] { background: var(--warn); color: #1c1300; }
 .packet-b { fill: var(--accent-2); }
@@ -734,8 +768,6 @@ details summary:hover { color: var(--text); }
 .gn-eye { fill: #1e293b; }
 .gn-nose { fill: #e8927c; }
 .gn-leg { fill: #78350f; transform-box: fill-box; transform-origin: top center; }
-.gnome-toggle svg { width: 22px; height: 28px; }
-.gnome-toggle[aria-pressed="false"] svg { filter: grayscale(1); opacity: .45; }
 
 .gnome-world { position: fixed; left: 0; right: 0; bottom: 0; height: 0; z-index: 45; pointer-events: none; }
 .gnome { position: fixed; left: 0; bottom: 4px; width: 66px; height: 86px; pointer-events: auto; cursor: pointer; will-change: transform; user-select: none; -webkit-user-select: none; }
@@ -775,6 +807,8 @@ details summary:hover { color: var(--text); }
 @keyframes stars { to { transform: rotate(360deg); } }
 .quick-mode .gnome-world, .gnomes-off .gnome-world { display: none; }
 @media (prefers-reduced-motion: reduce) { .gnome-world, .packet-gnome { display: none !important; } }
+/* Lo mismo con el interruptor «Animaciones: no» de la barra (prefs.js). */
+html[data-motion="off"] .gnome-world, html[data-motion="off"] .packet-gnome { display: none !important; }
 @media print { .gnome-world { display: none !important; } }
 
 /* El enanito mensajero del laboratorio */
@@ -829,6 +863,23 @@ details summary:hover { color: var(--text); }
     --border: #c9d0da;
     --border-strong: #a9b3c0;
   }
+}
+/* Tema claro elegido a mano en el panel de vista (prefs.js). */
+:root[data-theme="light"] {
+  --rack-bg: #b9c0ca;
+  --rack-bg-2: #aab2bd;
+  --rack-hole: rgba(40, 48, 60, .35);
+  --rail: #8d96a3;
+  --rail-hi: #d5dbe3;
+  --chassis-top: #f3f5f8;
+  --chassis-bot: #dde2e9;
+  --chassis-edge: #8a939f;
+  --chassis-hi: rgba(255, 255, 255, .9);
+  --screw: #6b7481;
+  --surface: #f8fafc;
+  --surface-2: #eef1f5;
+  --border: #c9d0da;
+  --border-strong: #a9b3c0;
 }
 
 body {
@@ -918,6 +969,8 @@ body {
 .station .gnome-say { bottom: 98px; }
 .gnomes-off .station, .quick-mode .station, .gnomes-off .lab-worker, .quick-mode .lab-worker { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .station, .lab-worker, .rail-climber { display: none !important; } }
+/* Lo mismo con el interruptor «Animaciones: no» de la barra (prefs.js). */
+html[data-motion="off"] .station, html[data-motion="off"] .lab-worker, html[data-motion="off"] .rail-climber { display: none !important; }
 .pose-sweep { animation: sway 2.4s ease-in-out infinite alternate; }
 .pose-lift { animation: strain .18s linear infinite alternate; }
 @keyframes sway { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
@@ -1045,7 +1098,7 @@ body {
 .unit-grade { display: inline-flex; gap: 8px; align-items: center; margin: 6px 0 14px; padding: 6px 12px; font: 700 .85rem/1 var(--mono); color: var(--xp); border: 1px solid currentColor; border-radius: 999px; background: color-mix(in srgb, var(--xp) 10%, transparent); }
 .unit-facts { display: grid; gap: 12px; margin: 18px 0; }
 .unit-facts div { padding: 12px 14px; border-left: 3px solid var(--accent-2); background: var(--surface-2); border-radius: 0 10px 10px 0; }
-.unit-facts dt { font: 700 .78rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--accent-2); margin-bottom: 4px; }
+.unit-facts dt { font: 700 .78rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: color-mix(in srgb, var(--accent-2) 82%, var(--text)); margin-bottom: 4px; }
 .unit-facts dd { margin: 0; }
 @media (min-width: 900px) { .unit-facts { grid-template-columns: repeat(3, 1fr); } }
 .unit-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -1152,6 +1205,8 @@ body {
   .unit-inside, .unit-face { animation: none; }
   .unit-face .uf-pull { display: none; }
 }
+/* Lo mismo con el interruptor «Animaciones: no» de la barra (prefs.js). */
+html[data-motion="off"] .unit-inside, html[data-motion="off"] .unit-face { animation: none; } html[data-motion="off"] .unit-face .uf-pull { display: none; }
 @media print {
   .unit-face, .xp-calc, .unit-skills, .inc-guess { display: none !important; }
   .unit-tray { background: none; box-shadow: none; }
@@ -1284,6 +1339,8 @@ html.js .bay.will-power.is-on { animation: bay-on .6s cubic-bezier(.2, .8, .2, 1
   html.js .bay.will-power { opacity: 1; transform: none; }
   html.js .rack-units.will-slide .rack-unit { opacity: 1; transform: none; }
 }
+/* Lo mismo con el interruptor «Animaciones: no» de la barra (prefs.js). */
+html[data-motion="off"] .uf-fans i, html[data-motion="off"] .bay-silk::before, html[data-motion="off"] .unit-lab .lab-node .node-led, html[data-motion="off"] .ru-leds i, html[data-motion="off"] .btn-sound.is-on .snd-icon i { animation: none !important; } html.js[data-motion="off"] .bay.will-power { opacity: 1; transform: none; } html.js[data-motion="off"] .rack-units.will-slide .rack-unit { opacity: 1; transform: none; }
 @media print {
   html.js .bay.will-power { opacity: 1 !important; transform: none !important; animation: none !important; }
   .btn-sound, .unit-neighbours { display: none !important; }
@@ -1323,6 +1380,8 @@ html.js .bay.will-power.is-on { animation: bay-on .6s cubic-bezier(.2, .8, .2, 1
 .vram-verdict.is-bad { color: var(--danger); }
 @media (max-width: 860px) { .vram { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .vram.is-split .vram-card { animation: none; } .vram-bar span, .vram-spill span { transition: none; } }
+/* Lo mismo con el interruptor «Animaciones: no» de la barra (prefs.js). */
+html[data-motion="off"] .vram.is-split .vram-card { animation: none; } html[data-motion="off"] .vram-bar span, html[data-motion="off"] .vram-spill span { transition: none; }
 @media print { .vram { display: none !important; } }
 
 /* Barra superior en móvil: con el botón de sonido no cabía en 390 px. */
@@ -1357,6 +1416,8 @@ main { overflow-x: clip; }
 .unit-face .uf-gnome.is-poked { animation: gnome-poke .45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes gnome-poke { 30% { transform: translateY(-12px) rotate(-10deg); } 60% { transform: translateY(-4px) rotate(6deg); } }
 @media (prefers-reduced-motion: reduce) { .unit-face .uf-gnome.is-poked { animation: none; } }
+/* Lo mismo con el interruptor «Animaciones: no» de la barra (prefs.js). */
+html[data-motion="off"] .unit-face .uf-gnome.is-poked { animation: none; }
 
 /* Botones de Hermes reservados mientras escribe (sin saltos de diseño). */
 .hermes-choices.is-pending { visibility: hidden; }
@@ -1401,3 +1462,49 @@ main { overflow-x: clip; }
 }
 .unit-code a:hover { border-color: var(--accent); }
 
+/* ------------------------------------------------------------ panel de vista */
+.prefs { position: relative; }
+.btn-prefs { min-width: 42px; padding: 0 10px; }
+.prefs-icon { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--muted); background: linear-gradient(90deg, var(--muted) 50%, transparent 50%); }
+.btn-prefs[aria-expanded="true"] .prefs-icon { border-color: var(--accent); background: linear-gradient(90deg, var(--accent) 50%, transparent 50%); }
+.prefs-panel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 80; width: 250px; padding: 14px;
+  display: grid; gap: 12px; background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow);
+}
+.prefs-panel[hidden] { display: none; }
+.prefs-panel fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.prefs-panel legend { font-weight: 700; font-size: .82rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); padding: 0; margin-bottom: 6px; }
+.prefs-seg { display: flex; border: 1px solid var(--border-strong); border-radius: 9px; overflow: hidden; }
+.prefs-seg label { flex: 1; position: relative; cursor: pointer; }
+.prefs-seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.prefs-seg span { display: block; text-align: center; padding: 7px 4px; font-size: .85rem; font-weight: 600; }
+.prefs-seg label + label span { border-left: 1px solid var(--border-strong); }
+.prefs-seg input:checked + span { background: var(--accent-soft); color: var(--accent); }
+.prefs-seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+.prefs-night { margin: 0; }
+@media (max-width: 520px) { .prefs-panel { position: fixed; left: var(--gutter); right: var(--gutter); top: 60px; width: auto; } }
+
+/* ------------------------------------------------------------ la noche en casa */
+/* De 23:00 a 7:00 en Madrid: el rack baja las luces, los LED brillan más y
+   los enanitos duermen (prefs.js pone data-night; app.js cambia la pose). */
+html[data-night] body { background-color: color-mix(in srgb, var(--bg) 82%, #000); }
+html[data-night] .ru-leds i, html[data-night] .chassis-leds i { box-shadow: 0 0 11px 2px currentColor; color: var(--ok); }
+html[data-night] .lab-node .node-led { filter: drop-shadow(0 0 4px var(--ok)); }
+html[data-night] .lab-link { filter: drop-shadow(0 0 3px var(--accent-soft)); }
+.w-zzz text { font: 700 11px var(--font); fill: var(--accent-2); }
+.w-zzz text:nth-child(2) { font-size: 9px; }
+.w-zzz text:nth-child(3) { font-size: 7px; }
+.gnome-world .gnome.is-asleep .gn-eye { transform-box: fill-box; transform-origin: center; transform: scaleY(.2); }
+
+/* Teléfonos estrechos (360 px o menos): la barra entera tiene que caber. */
+@media (max-width: 380px) {
+  .topbar-actions .btn { padding: 0 5px; }
+  .btn-prefs, .btn-sound { min-width: 30px; }
+  .topbar [data-quick-toggle] { padding: 0 6px; font-size: .8rem; }
+  .brand-mark { width: 30px; height: 30px; }
+}
+@media (max-width: 340px) {
+  .topbar [data-quick-toggle] { font-size: .74rem; letter-spacing: -.01em; }
+  .topbar-actions .btn { padding: 0 3px; font-size: .8rem; }
+}

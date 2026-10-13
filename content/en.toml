@@ -42,6 +42,16 @@ unit_where = "See where I used {skill}"
 unit_badge = "Has its own unit in the rack"
 sound_on = "Server sound: on (click to mute)"
 sound_off = "Server sound: muted (click to turn on)"
+view = "View"
+view_title = "View settings: theme and animations"
+theme = "Theme"
+theme_auto = "Automatic"
+theme_light = "Light"
+theme_dark = "Dark"
+motion = "Animations"
+motion_on = "On"
+motion_off = "Off"
+night_note = "It's night at my place right now: the gnomes are asleep and the rack dims its lights."
 
 [hero]
 kicker = "Hi, I'm"
@@ -876,6 +886,7 @@ click = [
 fall = ["Aaaah!", "Easy on the scrolling!", "Oops!", "I'm falling!"]
 trip = ["Ouch! Who left this cable here?", "Oops… packet lost. Retransmitting…", "This cable wasn't on the diagram."]
 near = ["Careful, you'll step on me!", "Hey, the mouse!", "I'm carrying stuff here!"]
+night = ["Zzz… huh? Come back tomorrow, the server runs on its own.", "Zzz… Zabbix alerts wake me if needed.", "Mmm… five more minutes… backups run at four.", "Zzz… Tito's asleep too. Hermes isn't."]
 
 [incident_ui]
 button = "Detective mode"

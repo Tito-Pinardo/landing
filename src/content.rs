@@ -307,6 +307,8 @@ pub struct Gnomes {
     pub fall: Vec<String>,
     pub trip: Vec<String>,
     pub near: Vec<String>,
+    /// De noche en casa los enanitos duermen: lo que dicen si les despiertas.
+    pub night: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -470,6 +472,16 @@ const UI_KEYS: &[&str] = &[
     "unit_badge",
     "sound_on",
     "sound_off",
+    "view",
+    "view_title",
+    "theme",
+    "theme_auto",
+    "theme_light",
+    "theme_dark",
+    "motion",
+    "motion_on",
+    "motion_off",
+    "night_note",
 ];
 const RACK_KEYS: &[&str] = &[
     "title",

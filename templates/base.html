@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#0a0e17">
 <link rel="icon" href="/static/favicon.svg?v={{ c.asset_v }}" type="image/svg+xml">
 <link rel="stylesheet" href="/static/app.css?v={{ c.asset_v }}">
+<script src="/static/prefs.js?v={{ c.asset_v }}"></script>
 <script src="/static/sound.js?v={{ c.asset_v }}" defer></script>
 {% block head %}{% endblock %}
 </head>
@@ -20,6 +21,22 @@
   {% block nav %}{% endblock %}
   <div class="topbar-actions">
     {% block actions %}{% endblock %}
+    <div class="prefs js-only">
+      <button type="button" class="btn btn-ghost btn-prefs" data-prefs-toggle aria-expanded="false" aria-controls="prefs-panel" title="{{ c.ui("view_title") }}" aria-label="{{ c.ui("view_title") }}"><span class="prefs-icon" aria-hidden="true"></span></button>
+      <div class="prefs-panel" id="prefs-panel" role="group" aria-label="{{ c.ui("view_title") }}" data-prefs-panel hidden>
+        <fieldset><legend>{{ c.ui("theme") }}</legend><div class="prefs-seg">
+          <label><input type="radio" name="tp-theme" value="auto"><span>{{ c.ui("theme_auto") }}</span></label>
+          <label><input type="radio" name="tp-theme" value="light"><span>{{ c.ui("theme_light") }}</span></label>
+          <label><input type="radio" name="tp-theme" value="dark"><span>{{ c.ui("theme_dark") }}</span></label>
+        </div></fieldset>
+        <fieldset><legend>{{ c.ui("motion") }}</legend><div class="prefs-seg">
+          <label><input type="radio" name="tp-motion" value="on"><span>{{ c.ui("motion_on") }}</span></label>
+          <label><input type="radio" name="tp-motion" value="off"><span>{{ c.ui("motion_off") }}</span></label>
+        </div></fieldset>
+        {% block prefs %}{% endblock %}
+        <p class="prefs-night small muted" data-night-note hidden>🌙 {{ c.ui("night_note") }}</p>
+      </div>
+    </div>
     <button type="button" class="btn btn-ghost btn-sound js-only" data-sound-toggle aria-pressed="false" data-label-on="{{ c.ui("sound_on") }}" data-label-off="{{ c.ui("sound_off") }}" aria-label="{{ c.ui("sound_on") }}"><span class="snd-icon" aria-hidden="true"><i></i><i></i><i></i></span></button>
     <a class="btn btn-ghost" href="/{{ c.other }}/{{ c.path }}" hreflang="{{ c.other }}" lang="{{ c.other }}" data-lang-switch>{{ c.ui("lang_switch") }}</a>
   </div>

@@ -42,6 +42,16 @@ unit_where = "Ver dónde usé {skill}"
 unit_badge = "Tiene unidad propia en el rack"
 sound_on = "Sonido del servidor: activado (pulsa para silenciar)"
 sound_off = "Sonido del servidor: silenciado (pulsa para activar)"
+view = "Vista"
+view_title = "Ajustes de vista: tema y animaciones"
+theme = "Tema"
+theme_auto = "Automático"
+theme_light = "Claro"
+theme_dark = "Oscuro"
+motion = "Animaciones"
+motion_on = "Sí"
+motion_off = "No"
+night_note = "Ahora es de noche en mi casa: los enanitos duermen y el rack baja las luces."
 
 [hero]
 kicker = "Hola, soy"
@@ -888,6 +898,7 @@ click = [
 fall = ["¡Aaaah!", "¡Más despacio con el scroll!", "¡Uy!", "¡Que me caigo!"]
 trip = ["¡Ay! ¿Quién ha dejado este cable aquí?", "Ups… paquete perdido. Retransmitiendo…", "Este cable no estaba en el diagrama."]
 near = ["¡Cuidado, que me pisas!", "¡Eh, el ratón!", "¡Que voy cargado!"]
+night = ["Zzz… ¿eh? Vuelve mañana, que el servidor sigue solo.", "Zzz… los avisos de Zabbix me despiertan si hace falta.", "Mmm… cinco minutos más… las copias van a las cuatro.", "Zzz… Tito también duerme. Hermes no."]
 
 [incident_ui]
 button = "Modo detective"
