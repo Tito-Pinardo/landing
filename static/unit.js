@@ -69,16 +69,41 @@
     fetch("/api/status", { headers: { accept: "application/json" } })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        const nodes = data?.homelab?.nodes;
-        if (!nodes) return;
+        const h = data?.homelab;
+        const nodes = { ...(h?.nodes || {}) };
+        const since = { ...(h?.down_since || {}) };
+        // ?averia simula que esta pieza está caída (solo en este navegador).
+        if (new URLSearchParams(location.search).has("averia")) {
+          const at = new Date(Date.now() - 25 * 60 * 1000).toISOString();
+          for (const id of D.live_nodes) { nodes[id] = "down"; since[id] ||= at; }
+        }
         const st = D.live_nodes.map((id) => nodes[id]).filter(Boolean);
         if (!st.length) return;
         const live = st.includes("down") ? "down" : st.every((x) => x === "off") ? "off" : "up";
         doc.querySelector("[data-unit]")?.classList.add("live-" + live);
         const el = $("[data-uf-state]");
         if (el) el.textContent = U["live_" + live];
+        if (live !== "down") return;
+        // Modo incidente: la caída de verdad, con su hora, encima de todo.
+        const first = D.live_nodes.map((id) => since[id]).filter(Boolean).sort()[0];
+        const when = first ? sinceLabel(first) : "";
+        if (el) el.textContent = U.live_down + when;
+        const banner = $("[data-incident-banner]");
+        if (banner) {
+          $("[data-incident-text]", banner).textContent = U.incident_unit.replace("{since}", when);
+          banner.hidden = false;
+        }
       })
       .catch(() => {});
+  }
+  function sinceLabel(iso) {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const lang = doc.lang || "es";
+    const f = (o, when = d) => new Intl.DateTimeFormat(lang, { timeZone: "Europe/Madrid", ...o }).format(when);
+    const day = { year: "numeric", month: "2-digit", day: "2-digit" };
+    const hm = f({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+    return f(day) === f(day, new Date()) ? U.since_time.replace("{t}", hm) : U.since_day.replace("{d}", `${f({ day: "numeric", month: "long" })}, ${hm}`);
   }
 
   // El enanito que tira de la unidad también responde si lo pulsas.

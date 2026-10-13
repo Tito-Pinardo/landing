@@ -492,6 +492,11 @@ const RACK_KEYS: &[&str] = &[
     "live_up",
     "live_off",
     "live_down",
+    "incident_banner",
+    "incident_hermes",
+    "incident_more",
+    "since_time",
+    "since_day",
 ];
 const BLOG_KEYS: &[&str] = &[
     "nav",

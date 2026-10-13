@@ -39,6 +39,7 @@
 {% endblock %}
 
 {% block main %}
+<div class="incident-banner" data-incident-banner role="status" hidden><span class="ib-led" aria-hidden="true"></span><p data-incident-text></p></div>
 <div class="quick-banner" data-quick-banner hidden><span>{{ c.ui("quick_on") }}</span> <button type="button" class="btn btn-sm btn-primary" data-quick-exit>{{ c.ui("quick_off") }}</button></div>
 <!-- ============================== HÉROE ============================== -->
 <section class="hero" aria-labelledby="hero-title">

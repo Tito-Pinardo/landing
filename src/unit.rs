@@ -315,6 +315,9 @@ pub const COMMON_KEYS: &[&str] = &[
     "live_down",
     "code_title",
     "code_note",
+    "incident_unit",
+    "since_time",
+    "since_day",
 ];
 
 /// Claves que solo hacen falta si la unidad tiene calculadora de XP.

@@ -1029,6 +1029,9 @@ hacker = "¡Bandera encontrada! Tenías madera de sysadmin."
 # unidad puede sobrescribir cualquiera en su `[text.es.ui]`.
 # ---------------------------------------------------------------------------
 [unit_ui]
+incident_unit = "Esta pieza está caída ahora mismo{since}. Lo de abajo es cómo funciona cuando va bien."
+since_time = " desde las {t}"
+since_day = " desde el {d}"
 code_title = "Su código, en abierto"
 code_note = "Versión pública del repositorio: sin IPs ni secretos."
 live_up = "En marcha"
@@ -1080,6 +1083,11 @@ status_retired = "Retirada"
 status_lab = "Laboratorio"
 
 [rack]
+incident_banner = "Avería de verdad, ahora mismo: {list}. No es un simulacro: así se ve en el rack."
+incident_hermes = "Mira el rack: {list}. No es un simulacro, es una avería de verdad, ahora mismo. Así se ve desde fuera cuando algo cae; el resto sigue funcionando."
+incident_more = "y {n} más"
+since_time = "desde las {t}"
+since_day = "desde el {d}"
 live_up = "En marcha"
 live_off = "Apagada"
 live_down = "Caída"

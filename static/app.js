@@ -305,6 +305,9 @@
   } else {
     loadLive();
   }
+  // Una avería de verdad tiene que verse nada más entrar, no al llegar al
+  // laboratorio: el estado se pide al poco de cargar.
+  setTimeout(loadLive, 1500);
 
   // ------------------------------------------------------------ filtro por habilidad
   const quests = $$(".quest");
@@ -856,14 +859,60 @@
     if (st.every((x) => x === "off")) return "off";
     return "up";
   }
-  function paintRackLive(nodes) {
+  // «desde las 14:10» (hoy) o «desde el 13 de octubre, 14:10», en hora de casa.
+  function sinceLabel(iso, tpl) {
+    const d = new Date(iso);
+    if (!iso || Number.isNaN(d.getTime())) return "";
+    const f = (o, when = d) => new Intl.DateTimeFormat(T.lang, { timeZone: "Europe/Madrid", ...o }).format(when);
+    const day = { year: "numeric", month: "2-digit", day: "2-digit" };
+    const hm = f({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+    return f(day) === f(day, new Date()) ? tpl.time.replace("{t}", hm) : tpl.day.replace("{d}", `${f({ day: "numeric", month: "long" })}, ${hm}`);
+  }
+  // La caída más antigua de las piezas de una unidad.
+  const firstDown = (ids, since) => ids.map((id) => since?.[id]).filter(Boolean).sort()[0] || null;
+
+  function paintRackLive(nodes, since) {
+    const down = [];
     for (const r of rackUnits) {
-      const st = unitLive((r.dataset.nodes || "").split(" ").filter(Boolean), nodes);
+      const ids = (r.dataset.nodes || "").split(" ").filter(Boolean);
+      const st = unitLive(ids, nodes);
       r.classList.remove("live-up", "live-off", "live-down");
       if (!st) continue;
       r.classList.add("live-" + st);
-      $("[data-ru-state]", r).textContent = T.rack["live_" + st];
+      let label = T.rack["live_" + st];
+      if (st === "down") {
+        const when = sinceLabel(firstDown(ids, since), { time: T.rack.since_time, day: T.rack.since_day });
+        if (when) label += " · " + when;
+        down.push(`${$(".ru-name strong", r).textContent}${when ? ` (${when})` : ""}`);
+      }
+      $("[data-ru-state]", r).textContent = label;
     }
+    showIncident(down);
+  }
+
+  // Modo incidente: si algo cae de verdad, aviso arriba y Hermes lo cuenta
+  // (una vez por sesión y por avería).
+  function showIncident(down) {
+    const banner = $("[data-incident-banner]");
+    if (!banner) return;
+    banner.hidden = !down.length;
+    if (!down.length) return;
+    const list = down.slice(0, 3).join(", ") + (down.length > 3 ? " " + fill(T.rack.incident_more, { n: down.length - 3 }) : "");
+    $("[data-incident-text]", banner).textContent = fill(T.rack.incident_banner, { list });
+    const key = "incident:" + down.join("|");
+    if (!store.get(key, false)) {
+      store.set(key, true);
+      setTimeout(() => hermesSay(fill(T.rack.incident_hermes, { list }), [], true), 1800);
+    }
+  }
+  // ?averia=plex,matrix simula una caída para verlo (solo en este navegador).
+  function simulated(h) {
+    const ids = new URLSearchParams(location.search).get("averia");
+    if (!ids || !h) return h;
+    const at = new Date(Date.now() - 25 * 60 * 1000).toISOString();
+    const nodes = { ...h.nodes }, since = { ...(h.down_since || {}) };
+    for (const id of ids.split(",")) { nodes[id] = "down"; since[id] ||= at; }
+    return { ...h, nodes, down_since: since };
   }
   let live = null;
   let liveLoading = null;
@@ -917,7 +966,7 @@
       li.textContent = T.now.github_empty;
       list.replaceChildren(li);
     }
-    const h = data.homelab;
+    const h = simulated(data.homelab);
     if (h?.nodes) {
       labNodes.forEach((n) => {
         const st = h.nodes[n.dataset.node];
@@ -925,7 +974,7 @@
         if (st) n.classList.add("st-" + st);
       });
     }
-    if (h?.nodes) paintRackLive(h.nodes);
+    if (h?.nodes) paintRackLive(h.nodes, h.down_since);
     const bars = $("[data-uptime-bars]");
     if (h?.daily?.length && bars) {
       const w = 300 / h.daily.length;

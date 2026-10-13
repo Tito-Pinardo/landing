@@ -1570,3 +1570,18 @@ html:active-view-transition-type(unit-prev)::view-transition-new(root) { animati
 @keyframes vt-tray-down-out { to { transform: perspective(1400px) translateY(18%) rotateX(-16deg); opacity: 0; } }
 @keyframes vt-tray-down-in { from { transform: perspective(1400px) translateY(-18%) rotateX(16deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+
+/* ------------------------------------------------------------ modo incidente */
+.incident-banner {
+  position: sticky; top: 64px; z-index: 40; display: flex; align-items: center; gap: 12px;
+  max-width: var(--max); margin: 10px auto; padding: 10px 16px; border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface)); border: 1px solid var(--danger);
+  color: var(--text); font-weight: 600; box-shadow: var(--shadow);
+}
+.incident-banner[hidden] { display: none; }
+.incident-banner p { margin: 0; }
+.ib-led { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 10px var(--danger); animation: led-act .6s infinite steps(2, jump-none); }
+.unit .incident-banner { margin: 0 0 12px; }
+@media (max-width: 760px) { .incident-banner { top: 60px; margin: 8px var(--gutter); } }
+html[data-motion="off"] .ib-led { animation: none; }
+@media (prefers-reduced-motion: reduce) { .ib-led { animation: none; } }

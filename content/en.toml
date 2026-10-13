@@ -1017,6 +1017,9 @@ hacker = "Flag found! You've got the makings of a sysadmin."
 # in its own `[text.en.ui]`.
 # ---------------------------------------------------------------------------
 [unit_ui]
+incident_unit = "This piece is down right now{since}. What follows is how it works when it's fine."
+since_time = " since {t}"
+since_day = " since {d}"
 code_title = "Its code, in the open"
 code_note = "Public version of the repo: no IPs or secrets."
 live_up = "Running"
@@ -1068,6 +1071,11 @@ status_retired = "Retired"
 status_lab = "Lab"
 
 [rack]
+incident_banner = "A real failure, right now: {list}. Not a drill: this is how it looks on the rack."
+incident_hermes = "Look at the rack: {list}. Not a drill, a real failure, right now. This is what it looks like from outside when something goes down; the rest keeps running."
+incident_more = "and {n} more"
+since_time = "since {t}"
+since_day = "since {d}"
 live_up = "Running"
 live_off = "Switched off"
 live_down = "Down"

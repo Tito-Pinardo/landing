@@ -47,6 +47,10 @@ pub struct Homelab {
     /// Estado por pieza del mapa del laboratorio: "up", "down" u "off".
     #[serde(default)]
     pub nodes: BTreeMap<String, String>,
+    /// Desde cuándo está caída cada pieza que lo está (RFC 3339): el modo
+    /// incidente de la web enseña «caída desde las 14:10».
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub down_since: BTreeMap<String, String>,
 }
 
 #[derive(Default)]
