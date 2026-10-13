@@ -675,6 +675,20 @@ impl Content {
         self.articles.iter().filter(move |a| a.unit == unit)
     }
 
+    /// Valida un artículo suelto (un borrador) contra el contenido ya
+    /// compilado: unidades, tecnologías y que el slug no exista ya.
+    pub fn check_article(&self, src: &str) -> Result<Article> {
+        let a = Article::parse(src)?;
+        ensure!(
+            self.articles.iter().all(|x| x.slug != a.slug),
+            "artículo repetido {}",
+            a.slug
+        );
+        let units: HashSet<&str> = self.units.iter().map(|u| u.id.as_str()).collect();
+        a.validate(&self.site, &units)?;
+        Ok(a)
+    }
+
     fn validate_articles(&self) -> Result<()> {
         let units: HashSet<&str> = self.units.iter().map(|u| u.id.as_str()).collect();
         let mut slugs = HashSet::new();

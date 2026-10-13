@@ -1,0 +1,278 @@
+# Fuentes del resumen semanal de los lunes (tools/digest/digest.py).
+#
+# Cada fuente dice a qué unidad del rack y a qué tecnologías de site.toml
+# afecta. Son todas públicas: lo que revelan de mi servidor ya lo cuenta la
+# web.
+#
+#   kind = "release"   versiones nuevas (feed Atom de GitHub o RSS)
+#   kind = "news"      noticias y artículos de fuera (el modelo decide si
+#                      merecen entrar)
+#
+# Los avisos de seguridad no van aquí: salen de [[security]] más abajo.
+
+[[feeds]]
+name = "Traefik"
+url = "https://github.com/traefik/traefik/releases.atom"
+kind = "release"
+unit = "traefik"
+tech = ["traefik"]
+
+[[feeds]]
+name = "Authelia"
+url = "https://github.com/authelia/authelia/releases.atom"
+kind = "release"
+unit = "authelia"
+tech = ["hardening"]
+
+[[feeds]]
+name = "Technitium DNS"
+url = "https://github.com/TechnitiumSoftware/DnsServer/releases.atom"
+kind = "release"
+unit = "dns"
+tech = ["dns"]
+
+[[feeds]]
+name = "MikroTik RouterOS"
+url = "https://cdn.mikrotik.com/routeros/latest-stable.rss"
+kind = "release"
+unit = "router"
+tech = ["mikrotik"]
+
+[[feeds]]
+name = "Synapse (Matrix)"
+url = "https://github.com/element-hq/synapse/releases.atom"
+kind = "release"
+unit = "matrix"
+tech = ["python"]
+
+[[feeds]]
+name = "Element Web"
+url = "https://github.com/element-hq/element-web/releases.atom"
+kind = "release"
+unit = "matrix"
+tech = ["typescript"]
+
+[[feeds]]
+name = "Paperless-ngx"
+url = "https://github.com/paperless-ngx/paperless-ngx/releases.atom"
+kind = "release"
+unit = "paperless"
+tech = ["docker", "python"]
+
+[[feeds]]
+name = "Obsidian"
+url = "https://github.com/obsidianmd/obsidian-releases/releases.atom"
+kind = "release"
+unit = "obsidian"
+tech = ["git"]
+
+[[feeds]]
+name = "n8n"
+url = "https://github.com/n8n-io/n8n/releases.atom"
+kind = "release"
+unit = "n8n"
+tech = ["docker", "typescript"]
+
+[[feeds]]
+name = "Homepage"
+url = "https://github.com/gethomepage/homepage/releases.atom"
+kind = "release"
+unit = "homepage"
+tech = ["docker"]
+
+[[feeds]]
+name = "Sonarr"
+url = "https://github.com/Sonarr/Sonarr/releases.atom"
+kind = "release"
+unit = "arr"
+tech = ["docker"]
+
+[[feeds]]
+name = "Radarr"
+url = "https://github.com/Radarr/Radarr/releases.atom"
+kind = "release"
+unit = "arr"
+tech = ["docker"]
+
+[[feeds]]
+name = "Dispatcharr"
+url = "https://github.com/Dispatcharr/Dispatcharr/releases.atom"
+kind = "release"
+unit = "tv"
+tech = ["docker"]
+
+[[feeds]]
+name = "Ollama"
+url = "https://github.com/ollama/ollama/releases.atom"
+kind = "release"
+unit = "hermes"
+tech = ["llm"]
+
+[[feeds]]
+name = "Qdrant"
+url = "https://github.com/qdrant/qdrant/releases.atom"
+kind = "release"
+unit = "hermes"
+tech = ["llm", "rust"]
+
+[[feeds]]
+name = "Wazuh"
+url = "https://github.com/wazuh/wazuh/releases.atom"
+kind = "release"
+unit = "wazuh"
+tech = ["wazuh"]
+
+[[feeds]]
+name = "Blog de Zabbix"
+url = "https://blog.zabbix.com/feed/"
+kind = "news"
+unit = "zabbix"
+tech = ["zabbix"]
+
+[[feeds]]
+name = "OKD"
+url = "https://github.com/okd-project/okd/releases.atom"
+kind = "release"
+unit = "okd"
+tech = ["openshift", "kubernetes"]
+
+[[feeds]]
+name = "OpenZFS"
+url = "https://github.com/openzfs/zfs/releases.atom"
+kind = "release"
+unit = "zfs"
+tech = ["zfs"]
+
+[[feeds]]
+name = "Terraform"
+url = "https://github.com/hashicorp/terraform/releases.atom"
+kind = "release"
+unit = "iac"
+tech = ["terraform"]
+
+[[feeds]]
+name = "Proveedor bpg/proxmox de Terraform"
+url = "https://github.com/bpg/terraform-provider-proxmox/releases.atom"
+kind = "release"
+unit = "iac"
+tech = ["terraform", "proxmox"]
+
+[[feeds]]
+name = "Ansible"
+url = "https://github.com/ansible/ansible/releases.atom"
+kind = "release"
+unit = "iac"
+tech = ["ansible"]
+
+[[feeds]]
+name = "Anuncios de Proxmox"
+url = "https://forum.proxmox.com/forums/announcements.7/index.rss"
+kind = "release"
+unit = "proxmox"
+tech = ["proxmox", "lxc"]
+
+[[feeds]]
+name = "Blog de Rust"
+url = "https://blog.rust-lang.org/feed.xml"
+kind = "news"
+unit = "landing"
+tech = ["rust"]
+
+# Noticias de fuera: herramientas nuevas para un homelab. El modelo decide
+# si alguna merece entrar y con qué idea.
+[[feeds]]
+name = "selfh.st"
+url = "https://selfh.st/rss/"
+kind = "news"
+unit = "homepage"
+tech = ["docker", "linux"]
+
+# Vulnerabilidades. Se buscan en NVD (por frase exacta), en la base de
+# avisos de GitHub (por paquete) y en el catálogo de CISA de las que ya se
+# están explotando (por fabricante o producto).
+[[security]]
+name = "Proxmox VE"
+unit = "proxmox"
+tech = ["proxmox"]
+nvd = ["Proxmox Virtual Environment"]
+kev = ["proxmox"]
+
+[[security]]
+name = "MikroTik RouterOS"
+unit = "router"
+tech = ["mikrotik"]
+nvd = ["MikroTik RouterOS"]
+kev = ["mikrotik"]
+
+[[security]]
+name = "Traefik"
+unit = "traefik"
+tech = ["traefik"]
+nvd = ["Traefik"]
+ghsa = ["github.com/traefik/traefik/v3"]
+
+[[security]]
+name = "Authelia"
+unit = "authelia"
+tech = ["hardening"]
+nvd = ["Authelia"]
+ghsa = ["github.com/authelia/authelia/v4"]
+
+[[security]]
+name = "OpenSSH"
+unit = "proxmox"
+tech = ["hardening", "linux"]
+nvd = ["OpenSSH"]
+kev = ["openssh"]
+
+[[security]]
+name = "Synapse"
+unit = "matrix"
+tech = ["python"]
+ghsa = ["matrix-synapse"]
+
+[[security]]
+name = "Paperless-ngx"
+unit = "paperless"
+tech = ["python"]
+ghsa = ["paperless-ngx"]
+
+[[security]]
+name = "n8n"
+unit = "n8n"
+tech = ["typescript"]
+nvd = ["n8n"]
+ghsa = ["n8n"]
+
+[[security]]
+name = "Plex Media Server"
+unit = "plex"
+tech = ["docker"]
+nvd = ["Plex Media Server"]
+kev = ["plex"]
+
+[[security]]
+name = "Zabbix"
+unit = "zabbix"
+tech = ["zabbix"]
+nvd = ["Zabbix"]
+kev = ["zabbix"]
+
+[[security]]
+name = "Wazuh"
+unit = "wazuh"
+tech = ["wazuh"]
+nvd = ["Wazuh"]
+
+[[security]]
+name = "Ollama"
+unit = "hermes"
+tech = ["llm"]
+nvd = ["Ollama"]
+ghsa = ["github.com/ollama/ollama"]
+
+[[security]]
+name = "OpenZFS"
+unit = "zfs"
+tech = ["zfs"]
+nvd = ["OpenZFS"]

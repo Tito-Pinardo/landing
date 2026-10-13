@@ -36,6 +36,8 @@ jobs:
       - run: cargo build --release
       - name: Contenido válido
         run: ./target/release/landing check
+      - name: Pruebas del resumen semanal (Python, sin red)
+        run: python3 -m unittest tools/digest/test_digest.py
       - uses: actions/upload-artifact@v4
         if: github.ref == 'refs/heads/main'
         with:

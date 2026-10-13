@@ -36,6 +36,15 @@ async fn main() -> anyhow::Result<()> {
         println!("contenido válido");
         return Ok(());
     }
+    // `landing check-article <fichero>` valida un borrador de artículo (el
+    // resumen semanal) sin tener que recompilar la web.
+    if std::env::args().nth(1).as_deref() == Some("check-article") {
+        let path = std::env::args().nth(2).context("falta el fichero")?;
+        let src = std::fs::read_to_string(&path).with_context(|| path.clone())?;
+        let a = content::Content::embedded()?.check_article(&src)?;
+        println!("artículo válido: {}", a.slug);
+        return Ok(());
+    }
 
     let cfg = config::Config::from_env()?;
     tracing::info!(bind = %cfg.bind, matrix = cfg.matrix.is_some(), turnstile = cfg.turnstile.is_some(), "arrancando");
