@@ -1,0 +1,72 @@
+slug = "firewall-proxmox-ct"
+date = "2026-09-22"
+unit = "proxmox"
+tech = ["proxmox", "hardening"]
+
+[text.es]
+title = "El cortafuegos de un contenedor de Proxmox que no hace nada: falta [OPTIONS] enable: 1"
+description = "Reglas de cortafuegos de un CT de Proxmox que se guardan pero no se aplican: sin la sección [OPTIONS] con enable: 1, firewall=1 en la interfaz no basta."
+summary = "Había restringido el SSH de los contenedores a mis equipos y la VPN, y bloqueado el puerto de una base de datos. Desde otro contenedor se llegaba a los dos igual. En 11 contenedores, las reglas estaban escritas y no hacían nada."
+lesson = "Una regla de seguridad se prueba atacándola. Si no, puede estar escrita y no hacer nada durante días."
+
+[[text.es.sections]]
+heading = "Síntoma"
+paragraphs = [
+  "Una prueba sencilla desde otro contenedor, intentando abrir los puertos que debían estar cerrados:",
+]
+code = """timeout 4 bash -c "</dev/tcp/<contenedor>/22" && echo ABIERTO || echo BLOQUEADO
+# → ABIERTO, aunque su .fw solo permitía mi PC y la VPN"""
+
+[[text.es.sections]]
+heading = "Causa"
+paragraphs = [
+  "Comparando un contenedor que sí filtraba con uno que no, la diferencia estaba en la cabecera del fichero de reglas en /etc/pve/firewall/<id>.fw.",
+  "Un fichero de contenedor con solo [RULES] no se aplica, aunque la interfaz tenga firewall=1 y el cortafuegos del clúster esté activo. Hace falta además la sección de opciones con el cortafuegos activado para ese contenedor.",
+]
+code = """[OPTIONS]
+enable: 1
+
+[RULES]
+IN ACCEPT -source <mi-pc> -p tcp -dport 22
+IN ACCEPT -source <vpn> -p tcp -dport 22"""
+
+[[text.es.sections]]
+heading = "Arreglo y comprobación"
+paragraphs = [
+  "Añadir la sección de opciones en los 11 contenedores afectados y repetir la prueba desde fuera: los puertos que debían estar cerrados, cerrados; lo que tenía que pasar, pasando.",
+  "Ahora la creación de contenedores desde código incluye siempre esa sección, y cada cambio de cortafuegos se prueba intentando atravesarlo.",
+]
+
+[text.en]
+title = "A Proxmox container firewall that does nothing: [OPTIONS] enable: 1 is missing"
+description = "Firewall rules on a Proxmox CT that are stored but never applied: without the [OPTIONS] section with enable: 1, firewall=1 on the interface isn't enough."
+summary = "I had restricted the containers' SSH to my machines and the VPN, and blocked a database port. From another container both could still be reached. On 11 containers the rules were written down and did nothing."
+lesson = "A security rule is tested by attacking it. Otherwise it can sit there written down, doing nothing, for days."
+
+[[text.en.sections]]
+heading = "Symptom"
+paragraphs = [
+  "A simple test from another container, trying to open the ports that should have been closed:",
+]
+code = """timeout 4 bash -c "</dev/tcp/<container>/22" && echo OPEN || echo BLOCKED
+# → OPEN, although its .fw only allowed my PC and the VPN"""
+
+[[text.en.sections]]
+heading = "Cause"
+paragraphs = [
+  "Comparing a container that did filter with one that didn't, the difference was in the header of the rules file in /etc/pve/firewall/<id>.fw.",
+  "A container file with only [RULES] isn't applied, even if the interface has firewall=1 and the cluster firewall is on. It also needs the options section with the firewall enabled for that container.",
+]
+code = """[OPTIONS]
+enable: 1
+
+[RULES]
+IN ACCEPT -source <my-pc> -p tcp -dport 22
+IN ACCEPT -source <vpn> -p tcp -dport 22"""
+
+[[text.en.sections]]
+heading = "Fix and check"
+paragraphs = [
+  "Add the options section on the 11 affected containers and repeat the test from outside: ports that should be closed, closed; what should get through, getting through.",
+  "Containers created from code now always include that section, and every firewall change is tested by trying to get through it.",
+]

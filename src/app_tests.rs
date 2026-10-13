@@ -192,6 +192,52 @@ async fn rack_units_have_their_own_page(db: PgPool) {
 }
 
 #[sqlx::test]
+async fn articles_have_their_own_pages(db: PgPool) {
+    let (app, _) = router(db, config(false));
+
+    let (status, _, body) = send(&app, get("/es/blog/")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(body.contains("href=\"/es/blog/nat-hsts/\""));
+    assert!(body.contains("\"@type\":\"Blog\""));
+
+    let (status, _, body) = send(&app, get("/en/blog/nat-hsts/")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(body.contains("<html lang=\"en\""));
+    assert!(
+        body.contains("href=\"/es/blog/nat-hsts/\""),
+        "cambio de idioma"
+    );
+    assert!(body.contains("\"TechArticle\""));
+
+    for (uri, to) in [
+        ("/es/blog", "/es/blog/"),
+        ("/es/blog/nat-hsts", "/es/blog/nat-hsts/"),
+    ] {
+        let (status, h, _) = send(&app, get(uri)).await;
+        assert_eq!(status, StatusCode::PERMANENT_REDIRECT, "{uri}");
+        assert_eq!(h[header::LOCATION], to);
+    }
+    for uri in ["/es/blog/no-existe/", "/fr/blog/"] {
+        let (status, _, _) = send(&app, get(uri)).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
+    }
+
+    // Se llega desde la portada y desde la unidad donde pasó.
+    let (_, _, body) = send(&app, get("/es/")).await;
+    assert!(body.contains("href=\"/es/blog/\""));
+    let (_, _, body) = send(&app, get("/es/router/")).await;
+    assert!(body.contains("href=\"/es/blog/nat-hsts/\""));
+
+    let (_, _, body) = send(&app, get("/sitemap.xml")).await;
+    assert!(
+        body.contains(
+            "<loc>https://example.org/en/blog/nat-hsts/</loc><lastmod>2026-06-19</lastmod>"
+        )
+    );
+    assert!(body.contains("<loc>https://example.org/es/blog/</loc>"));
+}
+
+#[sqlx::test]
 async fn versioned_assets_are_immutable(db: PgPool) {
     let (app, _) = router(db, config(false));
     let (status, h, _) = send(&app, get("/static/app.css?v=abc")).await;

@@ -1030,3 +1030,22 @@ intro = "Every part of the server has its own unit: step into any of them to see
 enter = "Enter"
 lit = "{n} rack units use {skill}: they are lit."
 units = "units"
+
+# Artículos: los postmortems contados enteros (content/articles/).
+[blog]
+nav = "Articles"
+title = "What broke, told in full"
+meta_title = "Articles · homelab postmortems · Tito Pinardo Gutiérrez"
+meta_description = "Real failures from my homelab told in full: symptom, step-by-step diagnosis, cause, fix and lesson. Proxmox, ZFS, Terraform, OKD, Ollama, MikroTik and more."
+intro = "Every failure in my homelab ends up as a postmortem: what was seen, how it was diagnosed step by step, what the real cause was, how it was fixed and what I learned. Here are the most useful ones, with no addresses or internal names."
+read = "Read"
+all = "See all articles"
+back = "Articles"
+published = "Published on"
+unit = "Where it happened"
+unit_cta = "Step into the rack unit to see this part from the inside, with its flows and the rest of its failures."
+lesson = "The lesson"
+home_title = "What broke, told in full"
+home_intro = "The homelab's most useful postmortems, as articles: symptom, diagnosis, cause and fix."
+in_unit = "Told in full in an article:"
+crumb = "Articles"

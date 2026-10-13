@@ -1,0 +1,80 @@
+slug = "terraform-forcenew"
+date = "2026-09-16"
+unit = "iac"
+tech = ["terraform", "proxmox"]
+
+[text.es]
+title = "Terraform y Proxmox: un cambio de claves SSH que iba a destruir cuatro contenedores"
+description = "En el proveedor bpg/proxmox, cambiar user_account.keys obliga a recrear el contenedor (ForceNew). Cómo lo frenó el plan y qué hacer en su lugar."
+summary = "Quería añadir la clave SSH del portátil a todos los contenedores desde una lista común. El plan dijo «4 to add, 4 to destroy». Entre ellos, la mensajería con toda su base de datos y la puerta pública de las webs."
+lesson = "El plan es el freno de mano. Un «destroy» en algo con datos se lee dos veces, por inocente que parezca el cambio."
+
+[[text.es.sections]]
+heading = "El cambio"
+paragraphs = [
+  "Cada fichero de contenedor repetía su lista de claves de administración. Lo lógico era centralizarla en un local de Terraform y que todos la usaran. Un cambio de una línea.",
+]
+code = """locals {
+  admin_ssh_keys = [var.key_pc, var.key_portatil]
+}
+# y en cada contenedor:
+user_account { keys = local.admin_ssh_keys }"""
+
+[[text.es.sections]]
+heading = "Lo que dijo el plan"
+paragraphs = [
+  "terraform plan respondió con 4 recursos para crear y 4 para destruir. En el proveedor bpg/proxmox, las claves de la cuenta del contenedor solo se aplican al crearlo: cualquier cambio en ese campo obliga a recrear el contenedor entero.",
+  "Recrear la mensajería habría borrado sus mensajes y la identidad cifrada de sus bots. Recrear el proxy habría tumbado todas las webs.",
+]
+
+[[text.es.sections]]
+heading = "Qué se hizo"
+list = [
+  "No aplicar ese plan.",
+  "Añadir la clave nueva a mano en los contenedores que ya existían (en su authorized_keys, a través del hipervisor).",
+  "Dejar la lista común en el código para los contenedores que se creen desde ahora, y comprobar que el plan sobre los existentes quedaba sin cambios.",
+]
+
+[[text.es.sections]]
+heading = "Primo hermano: renombrar un recurso"
+paragraphs = [
+  "Lo mismo pasa al renombrar un recurso en el código: para Terraform es otro recurso y quiere destruir el viejo. Antes hay que moverlo en el estado (terraform state mv o un bloque moved) y comprobar que el plan sale vacío.",
+]
+
+[text.en]
+title = "Terraform and Proxmox: an SSH key change that was going to destroy four containers"
+description = "In the bpg/proxmox provider, changing user_account.keys forces the container to be recreated (ForceNew). How the plan caught it and what to do instead."
+summary = "I wanted to add my laptop's SSH key to every container from a common list. The plan said «4 to add, 4 to destroy». Among them, messaging with its whole database and the public door to the websites."
+lesson = "The plan is the handbrake. A «destroy» on something with data gets read twice, however innocent the change looks."
+
+[[text.en.sections]]
+heading = "The change"
+paragraphs = [
+  "Every container file repeated its list of admin keys. The obvious move was to centralise it in a Terraform local and have them all use it. A one-line change.",
+]
+code = """locals {
+  admin_ssh_keys = [var.key_pc, var.key_laptop]
+}
+# and in each container:
+user_account { keys = local.admin_ssh_keys }"""
+
+[[text.en.sections]]
+heading = "What the plan said"
+paragraphs = [
+  "terraform plan came back with 4 resources to create and 4 to destroy. In the bpg/proxmox provider, the container account's keys are only applied on creation: any change to that field forces the whole container to be recreated.",
+  "Recreating messaging would have wiped its messages and its bots' encrypted identity. Recreating the proxy would have taken every website down.",
+]
+
+[[text.en.sections]]
+heading = "What was done"
+list = [
+  "Don't apply that plan.",
+  "Add the new key by hand on the existing containers (in their authorized_keys, through the hypervisor).",
+  "Keep the common list in the code for containers created from now on, and check the plan over the existing ones showed no changes.",
+]
+
+[[text.en.sections]]
+heading = "A close cousin: renaming a resource"
+paragraphs = [
+  "The same happens when renaming a resource in the code: to Terraform it's a different resource and it wants to destroy the old one. Move it in the state first (terraform state mv or a moved block) and check the plan comes out empty.",
+]

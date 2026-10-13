@@ -1,0 +1,86 @@
+slug = "cache-escritura-discos"
+date = "2026-10-06"
+unit = "zfs"
+tech = ["zfs", "linux"]
+
+[text.es]
+title = "Discos SAS con la caché de escritura apagada de fábrica: ×13 en escrituras con ZFS"
+description = "Cómo comprobar y activar la caché de escritura (WCE) de discos SAS y SATA tras una bandeja con sdparm, por qué es segura con ZFS y cuánto se gana medido con fio."
+summary = "Un pool ZFS de cinco discos hacía 95 escrituras con fsync por segundo, y un espejo de cuatro, 108. Varios discos venían con la caché de escritura desactivada. Activándola, sin comprar nada: 1.237 y 946."
+lesson = "La configuración de fábrica no es la mejor para cada uso. Medir, cambiar una sola cosa y volver a medir. Y apuntar que un disco de repuesto vendrá otra vez con la caché apagada."
+
+[[text.es.sections]]
+heading = "Comprobar"
+paragraphs = [
+  "sdparm enseña el bit WCE (write cache enable) de cada disco. En varios de los míos estaba a 0: cada escritura esperaba a llegar al plato antes de confirmarse.",
+]
+code = """sdparm --get=WCE /dev/sdX
+# Detrás de la bandeja SAS, los discos SATA no aceptan la orden normal
+# («MODE SENSE command: Illegal request»): hay que usar la de 6 bytes.
+sdparm --six --get=WCE /dev/sdX"""
+
+[[text.es.sections]]
+heading = "¿Es seguro con cortes de luz?"
+paragraphs = [
+  "Con ZFS, sí. ZFS manda vaciar la caché del disco al cerrar cada grupo de transacciones y en cada escritura síncrona, así que un corte no deja el pool inconsistente. Lo que no toqué a propósito, porque hay cortes y no hay SAI: sync=standard y el intervalo de transacciones por defecto.",
+]
+
+[[text.es.sections]]
+heading = "Activar y que dure"
+code = """sdparm --set=WCE=1 --save /dev/sdX          # SAS
+sdparm --six --set=WCE=1 --save /dev/sdX    # SATA tras la bandeja"""
+
+[[text.es.sections]]
+heading = "Que sobreviva al apagado"
+paragraphs = [
+  "En los discos SATA detrás de un adaptador, el guardado no siempre sobrevive a un apagado completo, así que un servicio de systemd la vuelve a activar en cada arranque, identificando los discos por su WWN. Y una regla de udev pone el planificador «none» en los discos de ZFS: ZFS ya ordena y agrupa la E/S.",
+]
+
+[[text.es.sections]]
+heading = "Medido con fio"
+list = [
+  "Pool RAIDZ1 de cinco discos: escritura aleatoria de 16K con fsync, de 95 a 1.237 IOPS (×13). La secuencial ya estaba limitada por el ancho de banda.",
+  "Espejo de cuatro discos SAS: de 108 a 946 IOPS (×8,8) y la secuencial de 38 a 123 MB/s.",
+  "Siempre en un dataset temporal sin compresión, borrado al terminar.",
+]
+
+[text.en]
+title = "SAS disks shipped with write cache off: ×13 on writes with ZFS"
+description = "How to check and enable the write cache (WCE) on SAS disks and SATA disks behind a shelf with sdparm, why it's safe with ZFS and how much it gains, measured with fio."
+summary = "A five-disk ZFS pool managed 95 fsync writes per second, and a four-disk mirror, 108. Several disks came with write cache disabled. Turning it on, without buying anything: 1,237 and 946."
+lesson = "Factory settings aren't the best for every use. Measure, change one thing, measure again. And note that a replacement disk will come with the cache off again."
+
+[[text.en.sections]]
+heading = "Check"
+paragraphs = [
+  "sdparm shows each disk's WCE (write cache enable) bit. On several of mine it was 0: every write waited to reach the platter before being confirmed.",
+]
+code = """sdparm --get=WCE /dev/sdX
+# Behind the SAS shelf, SATA disks don't accept the normal command
+# («MODE SENSE command: Illegal request»): use the 6-byte one.
+sdparm --six --get=WCE /dev/sdX"""
+
+[[text.en.sections]]
+heading = "Is it safe with power cuts?"
+paragraphs = [
+  "With ZFS, yes. ZFS flushes the disk cache when closing each transaction group and on every synchronous write, so a cut doesn't leave the pool inconsistent. What I deliberately didn't touch, since there are power cuts and no UPS: sync=standard and the default transaction interval.",
+]
+
+[[text.en.sections]]
+heading = "Enable it and make it stick"
+code = """sdparm --set=WCE=1 --save /dev/sdX          # SAS
+sdparm --six --set=WCE=1 --save /dev/sdX    # SATA behind the shelf"""
+
+[[text.en.sections]]
+heading = "Make it survive a power-off"
+paragraphs = [
+  "On SATA disks behind an adapter the saved setting doesn't always survive a full power-off, so a systemd service enables it again on every boot, identifying disks by WWN. And a udev rule sets the «none» scheduler on the ZFS disks: ZFS already orders and groups I/O.",
+]
+
+[[text.en.sections]]
+heading = "Measured with fio"
+list = [
+  "Five-disk RAIDZ1 pool: 16K random writes with fsync, from 95 to 1,237 IOPS (×13). Sequential was already bandwidth-bound.",
+  "Four-disk SAS mirror: from 108 to 946 IOPS (×8.8) and sequential from 38 to 123 MB/s.",
+  "Always on a temporary uncompressed dataset, deleted afterwards.",
+]

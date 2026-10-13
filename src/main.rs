@@ -3,6 +3,7 @@
 mod app;
 #[cfg(test)]
 mod app_tests;
+mod article;
 mod config;
 mod contact;
 mod content;

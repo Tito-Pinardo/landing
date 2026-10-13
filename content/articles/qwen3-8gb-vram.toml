@@ -1,0 +1,96 @@
+slug = "qwen3-8gb-vram"
+date = "2026-09-22"
+unit = "hermes"
+tech = ["llm", "linux"]
+
+[text.es]
+title = "qwen3:8b en una GPU de 8 GB: de 17 a 73 tokens por segundo sin cambiar de modelo"
+description = "Por qué un modelo de 8B iba lento en Ollama con una GPU de 8 GB: el escritorio se comía la VRAM. Caché KV q8_0, flash attention y el modelo entero en GPU."
+summary = "Mi asistente local tardaba 141 segundos en una pregunta y fallaba casos que por la mañana pasaba. No era el modelo ni el prompt: solo cabía en la GPU el 66 % del modelo, y el resto corría en la CPU."
+lesson = "Antes de culpar al modelo, mira dónde corre. Desde entonces cada medición anota la versión de Ollama y qué porcentaje del modelo estaba en la GPU."
+
+[[text.es.sections]]
+heading = "El punto de partida"
+paragraphs = [
+  "Hermes, mi asistente, usa qwen3:8b cuantizado a 4 bits con Ollama en la GPU de mi PC, una RTX de 8 GB. Por la tarde, una pregunta sencilla tardó 141 segundos y un caso de la batería de pruebas que por la mañana pasaba 5 de 5 falló 8 de 8.",
+  "La primera métrica que añadí fue una línea de log por llamada al modelo: tokens de entrada y salida, tiempo de carga, velocidad y reparto entre GPU y CPU. Con eso el problema saltó a la vista:",
+]
+code = "prompt=5282tok salida=371tok carga=2.8s total=44.9s velocidad=10.6tok/s reparto=6.12GiB 66%GPU"
+
+[[text.es.sections]]
+heading = "Quién se comía la VRAM"
+paragraphs = [
+  "Con un juego y el navegador abiertos, solo cabía en la GPU el 66 % del modelo. La carga eran 2,8 s: lo de menos. El coste estaba en generar a 10 tokens por segundo con un tercio del modelo en la CPU.",
+  "nvidia-smi (la tabla de procesos, no --query-compute-apps, que se deja fuera los procesos gráficos) dijo quién ocupaba la memoria: Firefox 805 MiB, Steam 228, el escritorio unos 300, VS Code 145, Element 88. El cuello no era el modelo: era el escritorio.",
+]
+
+[[text.es.sections]]
+heading = "Los ajustes"
+paragraphs = [
+  "Cuatro variables de Ollama en su servicio de systemd y cerrar lo que sobraba. El reparto entre GPU y CPU se decide al cargar el modelo, así que hay que forzar una recarga después de liberar memoria.",
+]
+code = """OLLAMA_FLASH_ATTENTION=1      # necesaria para cuantizar la caché KV
+OLLAMA_KV_CACHE_TYPE=q8_0     # la caché del contexto ocupa la mitad
+OLLAMA_NUM_PARALLEL=1         # cada petición paralela añade su caché
+OLLAMA_MAX_LOADED_MODELS=1    # que no se quede otro modelo en VRAM"""
+
+[[text.es.sections]]
+heading = "Resultado"
+list = [
+  "Escritorio normal, caché f16: 78 % en GPU, unos 20 tokens/s.",
+  "Flash attention y caché q8_0: 84 %, 33 tokens/s.",
+  "Además, navegador y Steam cerrados: 100 % en GPU y 73 tokens/s, 4,2 veces más rápido que al principio.",
+  "La batería de 40 casos × 3 semillas subió de 106 a 114 de 120, con la mediana de 12,2 s a 4,7 s.",
+]
+
+[[text.es.sections]]
+heading = "Por qué también acertó más"
+paragraphs = [
+  "La caché cuantizada no empeoró la calidad: la mejoró. No porque haga al modelo más listo, sino porque al no repartirse con la CPU los cálculos dejan de variar y los casos que estaban en el límite dejan de volcarse.",
+]
+
+[text.en]
+title = "qwen3:8b on an 8 GB GPU: from 17 to 73 tokens per second without changing model"
+description = "Why an 8B model was slow on Ollama with an 8 GB GPU: the desktop was eating the VRAM. q8_0 KV cache, flash attention and the whole model on the GPU."
+summary = "My local assistant took 141 seconds for one question and failed cases that passed in the morning. It wasn't the model or the prompt: only 66 % of the model fitted on the GPU, and the rest ran on the CPU."
+lesson = "Before blaming the model, check where it runs. Since then every run records the Ollama version and how much of the model was on the GPU."
+
+[[text.en.sections]]
+heading = "Where it started"
+paragraphs = [
+  "Hermes, my assistant, runs qwen3:8b quantised to 4 bits with Ollama on my PC's GPU, an 8 GB RTX. In the afternoon a simple question took 141 seconds and a test case that passed 5 out of 5 in the morning failed 8 out of 8.",
+  "The first metric I added was one log line per model call: input and output tokens, load time, speed and the GPU/CPU split. With that the problem jumped out:",
+]
+code = "prompt=5282tok output=371tok load=2.8s total=44.9s speed=10.6tok/s split=6.12GiB 66%GPU"
+
+[[text.en.sections]]
+heading = "Who was eating the VRAM"
+paragraphs = [
+  "With a game and the browser open, only 66 % of the model fitted on the GPU. Loading took 2.8 s: the least of it. The cost was generating at 10 tokens per second with a third of the model on the CPU.",
+  "nvidia-smi (the process table, not --query-compute-apps, which leaves out graphics processes) showed who held the memory: Firefox 805 MiB, Steam 228, the desktop about 300, VS Code 145, Element 88. The bottleneck wasn't the model: it was the desktop.",
+]
+
+[[text.en.sections]]
+heading = "The changes"
+paragraphs = [
+  "Four Ollama variables in its systemd service and closing what wasn't needed. The GPU/CPU split is decided when the model loads, so you have to force a reload after freeing memory.",
+]
+code = """OLLAMA_FLASH_ATTENTION=1      # needed to quantise the KV cache
+OLLAMA_KV_CACHE_TYPE=q8_0     # the context cache takes half the space
+OLLAMA_NUM_PARALLEL=1         # each parallel request adds its own cache
+OLLAMA_MAX_LOADED_MODELS=1    # don't keep another model in VRAM"""
+
+[[text.en.sections]]
+heading = "Result"
+list = [
+  "Normal desktop, f16 cache: 78 % on GPU, about 20 tokens/s.",
+  "Flash attention and q8_0 cache: 84 %, 33 tokens/s.",
+  "Plus browser and Steam closed: 100 % on GPU and 73 tokens/s, 4.2 times faster than at the start.",
+  "The suite of 40 cases × 3 seeds went from 106 to 114 out of 120, with the median from 12.2 s to 4.7 s.",
+]
+
+[[text.en.sections]]
+heading = "Why it got more right too"
+paragraphs = [
+  "The quantised cache didn't hurt quality: it improved it. Not because it makes the model smarter, but because without the CPU split the maths stop varying and borderline cases stop flipping.",
+]

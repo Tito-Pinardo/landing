@@ -1042,3 +1042,22 @@ intro = "Cada pieza del servidor tiene su propia unidad: entra en cualquiera par
 enter = "Entrar"
 lit = "{n} unidades del rack usan {skill}: están encendidas."
 units = "unidades"
+
+# Artículos: los postmortems contados enteros (content/articles/).
+[blog]
+nav = "Artículos"
+title = "Lo que se rompió, contado entero"
+meta_title = "Artículos · postmortems del homelab · Tito Pinardo Gutiérrez"
+meta_description = "Averías reales de mi homelab contadas enteras: síntoma, diagnóstico paso a paso, causa, arreglo y lección. Proxmox, ZFS, Terraform, OKD, Ollama, MikroTik y más."
+intro = "Cada avería de mi homelab termina en un postmortem: qué se vio, cómo se diagnosticó paso a paso, cuál era la causa de verdad, cómo se arregló y qué aprendí. Aquí están los más útiles, sin direcciones ni nombres internos."
+read = "Leer"
+all = "Ver todos los artículos"
+back = "Artículos"
+published = "Publicado el"
+unit = "Dónde pasó"
+unit_cta = "Entra en la unidad del rack para ver esta pieza por dentro, con sus recorridos y el resto de sus averías."
+lesson = "La lección"
+home_title = "Lo que se rompió, contado entero"
+home_intro = "Los postmortems más útiles del homelab, como artículos: síntoma, diagnóstico, causa y arreglo."
+in_unit = "Contado entero en un artículo:"
+crumb = "Artículos"

@@ -4,6 +4,8 @@ Mi web personal: quién soy, qué sé hacer y en qué trabajo, en español e ing
 
 Cada pieza del servidor tiene su propia **unidad del rack**: una página a la que se entra como si sacaras un servidor de 1U (`/es/<pieza>/`, 23 en total, del router a los discos). Cada una enseña su mapa por dentro con recorridos animados, qué uso de cada habilidad, sus averías reales como adivinanza, cómo se construyó y por qué. La de **XPIFY** (mi proyecto final) trae además el cálculo de XP real para jugar con él, y la de **Hermes** un simulador de VRAM con las medidas reales y el turno de chat fase a fase. Se llega desde su pieza del laboratorio, desde la lista «El rack, unidad a unidad» de la portada (que se enciende al filtrar por habilidad), desde su misión, pasando de una unidad a la de arriba o la de abajo, o con `ssh <pieza>` en la terminal. Todo suena a sala de servidores (Web Audio sintetizado, sin ficheros), con un botón para silenciarlo y `sound on|off` en la terminal.
 
+Los postmortems más útiles del homelab están además como **artículos** (`/es/blog/`): síntoma, diagnóstico paso a paso, causa, arreglo y lección, cada uno con su fecha, datos estructurados (TechArticle) y enlace a la unidad donde pasó. La portada enseña los tres últimos y cada unidad enlaza los suyos.
+
 ## Cómo está hecha
 
 - **Rust + Axum.** Las páginas se renderizan una vez al arrancar (plantillas `askama` compiladas) y se sirven desde memoria con ETag. Detrás de Cloudflare casi ninguna visita llega al servidor.
@@ -18,6 +20,7 @@ Cada pieza del servidor tiene su propia **unidad del rack**: una página a la qu
 |---|---|
 | `content/site.toml` | Datos que no dependen del idioma: tecnologías, proyectos, piezas y grupos del servidor y recorridos |
 | `content/es.toml`, `content/en.toml` | Textos, con las mismas claves (el servidor no arranca si falta alguna) |
+| `content/articles/*.toml` | Artículos (postmortems): fecha, unidad, tecnologías y textos ES/EN por secciones; el orden está en `src/article.rs` |
 | `content/units/*.toml` | Unidades del rack (una por pieza del servidor): mapa, recorridos, averías y textos ES/EN; se validan contra `site.toml` y el orden del rack está en `src/unit.rs` |
 | `templates/` | Plantillas HTML (y el avatar de Hermes en SVG) |
 | `static/` | CSS, JS (`app.js` para la portada, `unit.js` para las unidades, `sound.js` para el sonido), imágenes y CV (se compilan dentro del binario) |

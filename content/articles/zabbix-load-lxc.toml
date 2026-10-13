@@ -1,0 +1,72 @@
+slug = "zabbix-load-lxc"
+date = "2026-10-05"
+unit = "zabbix"
+tech = ["zabbix", "lxc", "wazuh"]
+
+[text.es]
+title = "Falsas alertas de carga en contenedores LXC: el load average es el del host"
+description = "Por qué Zabbix avisaba de «load average per CPU above 3» en ocho contenedores LXC a la vez sin carga real, y cómo pasé de 9.500 avisos a la semana a un centenar."
+summary = "Los avisos de monitorización y seguridad eran «súper pesados». Antes de tocar nada medí una semana entera. El 82 % de los avisos de Zabbix salían de un solo trigger que en un contenedor no mide lo que parece, y Wazuh mandaba miles de sesiones rutinarias."
+lesson = "Un aviso que no se cree es peor que ninguno: enseña a ignorarlos todos. Se decide con el recuento delante y comprobando qué mide de verdad cada métrica en ese entorno."
+
+[[text.es.sections]]
+heading = "Medir antes de tocar"
+list = [
+  "Zabbix: 178 avisos en 7 días, y cada uno llegaba dos veces (correo y Discord, los dos desde la gravedad más baja).",
+  "El 82 % era «Load average per CPU above 3 for 15m», abriéndose y cerrándose en varios contenedores a la vez.",
+  "Wazuh: 9.517 alertas en 7 días hacia Discord, casi todas de nivel 3: aperturas y cierres de sesión de mis propias automatizaciones, SSH correctos y comprobaciones rutinarias.",
+]
+
+[[text.es.sections]]
+heading = "Por qué saltaba la carga"
+paragraphs = [
+  "Dentro de un contenedor LXC, /proc/loadavg enseña la carga del servidor entero, salvo que lxcfs se haya montado para virtualizarla. Leyendo a la vez el host y tres contenedores, salían los mismos números.",
+  "El trigger dividía esa carga entre las 2 CPU de cada contenedor. Durante la comprobación mensual del RAID, el host llegaba a una carga de 50, así que cada contenedor «estaba» a 25 por CPU y saltaban ocho a la vez.",
+]
+code = """# en el host y dentro de un contenedor, al mismo tiempo
+cat /proc/loadavg
+4.08 8.77 35.28 ...
+4.08 8.77 35.28 ..."""
+
+[[text.es.sections]]
+heading = "Los cambios"
+list = [
+  "Trigger de carga desactivado en los contenedores; solo queda en el hipervisor, donde mide algo real. La CPU de cada contenedor se sigue vigilando por uso.",
+  "Correo solo para gravedad alta; Discord desde media; la sala del móvil, solo lo alto.",
+  "Wazuh a Discord desde nivel 7 (unos 106 a la semana) y correo desde nivel 10 (unos 15). Lo que deja de llegar sigue en el panel.",
+  "Un host fantasma de un contenedor ya retirado, desactivado (no borrado).",
+]
+
+[text.en]
+title = "False load alerts in LXC containers: the load average is the host's"
+description = "Why Zabbix warned «load average per CPU above 3» on eight LXC containers at once with no real load, and how alerts went from 9,500 a week to about a hundred."
+summary = "Monitoring and security alerts were «unbearable». Before touching anything I measured a whole week. 82 % of Zabbix alerts came from a single trigger that doesn't measure what it seems inside a container, and Wazuh was sending thousands of routine sessions."
+lesson = "An alert nobody believes is worse than none: it teaches you to ignore them all. Decide with the count in front of you, checking what each metric really measures in that environment."
+
+[[text.en.sections]]
+heading = "Measure before touching"
+list = [
+  "Zabbix: 178 alerts in 7 days, each arriving twice (email and Discord, both from the lowest severity).",
+  "82 % were «Load average per CPU above 3 for 15m», opening and closing on several containers at once.",
+  "Wazuh: 9,517 alerts in 7 days to Discord, nearly all level 3: session opens and closes from my own automations, successful SSH and routine checks.",
+]
+
+[[text.en.sections]]
+heading = "Why the load fired"
+paragraphs = [
+  "Inside an LXC container, /proc/loadavg shows the whole server's load, unless lxcfs has been mounted to virtualise it. Reading the host and three containers at the same time gave the same numbers.",
+  "The trigger divided that load by each container's 2 CPUs. During the monthly RAID check the host reached a load of 50, so every container «was» at 25 per CPU and eight fired at once.",
+]
+code = """# on the host and inside a container, at the same time
+cat /proc/loadavg
+4.08 8.77 35.28 ...
+4.08 8.77 35.28 ..."""
+
+[[text.en.sections]]
+heading = "The changes"
+list = [
+  "Load trigger disabled on the containers; it stays only on the hypervisor, where it measures something real. Each container's CPU is still watched by usage.",
+  "Email only for high severity; Discord from average up; the phone room, only high.",
+  "Wazuh to Discord from level 7 (about 106 a week) and email from level 10 (about 15). What stops arriving is still on the dashboard.",
+  "A ghost host from a retired container, disabled (not deleted).",
+]

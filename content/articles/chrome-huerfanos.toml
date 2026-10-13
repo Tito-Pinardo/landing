@@ -1,0 +1,80 @@
+slug = "chrome-huerfanos"
+date = "2026-09-05"
+unit = "n8n"
+tech = ["typescript", "docker", "linux"]
+
+[text.es]
+title = "2.104 Chrome sin cabeza huérfanos: una fuga de memoria con Puppeteer"
+description = "Un contenedor con 31 GB de 32 en uso y n8n gastando 264 MB: el culpable era una API con Puppeteer que soltaba el navegador sin cerrarlo en cada error."
+summary = "El contenedor de las automatizaciones estaba a punto de quedarse sin memoria. n8n solo usaba 264 MB. Lo demás eran 2.104 procesos de Chrome sin cabeza acumulados durante 22 días."
+lesson = "Soltar una referencia no libera lo que hay detrás. Lo que se abre, se cierra también en el camino del error."
+
+[[text.es.sections]]
+heading = "Síntoma"
+paragraphs = [
+  "La monitorización avisó de que el contenedor de n8n tenía 31 GB usados de 32 y 154 MB libres. El proceso de n8n usaba 264 MB.",
+]
+code = """ps aux --sort=-%mem | head
+# → 2.104 procesos …/chrome-linux64/chrome, el más antiguo de hacía 22 días"""
+
+[[text.es.sections]]
+heading = "Causa"
+paragraphs = [
+  "Una pequeña API con Puppeteer abre un navegador sin cabeza para los flujos de n8n y lo reutiliza. En los catch de sus rutas, ante cualquier error (un timeout, un selector que no aparece), el código hacía browser = null sin llamar a browser.close().",
+  "Eso descarta la referencia de JavaScript, pero el proceso de Chrome del sistema sigue vivo para siempre. Cada fallo de la web de origen dejaba un navegador más.",
+]
+code = """// antes
+} catch (e) { browser = null; throw e; }
+
+// después
+async function closeBrowser() {
+  if (browser) await browser.close().catch(() => {});
+  browser = null;
+}
+} catch (e) { await closeBrowser(); throw e; }"""
+
+[[text.es.sections]]
+heading = "Resultado"
+list = [
+  "Matar los huérfanos liberó unos 28 GB al instante.",
+  "Desde el arreglo, aunque la web de origen falle una y otra vez, el recuento de procesos de Chrome se queda en cero.",
+  "El fichero de la API está montado como volumen: se pudo arreglar con un reinicio del contenedor, sin reconstruir la imagen.",
+]
+
+[text.en]
+title = "2,104 orphaned headless Chromes: a memory leak with Puppeteer"
+description = "A container using 31 GB of 32 while n8n used 264 MB: the culprit was a Puppeteer API that dropped the browser without closing it on every error."
+summary = "The automation container was about to run out of memory. n8n was only using 264 MB. The rest was 2,104 headless Chrome processes piled up over 22 days."
+lesson = "Dropping a reference doesn't free what's behind it. Whatever is opened gets closed on the error path too."
+
+[[text.en.sections]]
+heading = "Symptom"
+paragraphs = [
+  "Monitoring warned the n8n container had 31 GB used out of 32 and 154 MB free. The n8n process was using 264 MB.",
+]
+code = """ps aux --sort=-%mem | head
+# → 2,104 …/chrome-linux64/chrome processes, the oldest from 22 days ago"""
+
+[[text.en.sections]]
+heading = "Cause"
+paragraphs = [
+  "A small Puppeteer API opens a headless browser for the n8n flows and reuses it. In its routes' catch blocks, on any error (a timeout, a selector that never shows up), the code did browser = null without calling browser.close().",
+  "That drops the JavaScript reference, but the system's Chrome process lives on forever. Every failure of the source site left one more browser behind.",
+]
+code = """// before
+} catch (e) { browser = null; throw e; }
+
+// after
+async function closeBrowser() {
+  if (browser) await browser.close().catch(() => {});
+  browser = null;
+}
+} catch (e) { await closeBrowser(); throw e; }"""
+
+[[text.en.sections]]
+heading = "Result"
+list = [
+  "Killing the orphans freed about 28 GB at once.",
+  "Since the fix, even when the source site fails again and again, the Chrome process count stays at zero.",
+  "The API file is mounted as a volume: it could be fixed with a container restart, without rebuilding the image.",
+]

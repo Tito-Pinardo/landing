@@ -10,6 +10,7 @@ use bytes::Bytes;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
+use crate::article::{Article, ArticleText};
 use crate::content::{Content, Lang, ProjectStatus, Texts, ZONES};
 use crate::unit::{MAP_H, MAP_W, Unit, UnitText};
 
@@ -150,6 +151,41 @@ pub struct RackView {
     pub nodes: String,
 }
 
+/// Un artículo en una lista (índice, portada o su unidad).
+pub struct ArticleCard {
+    pub url: String,
+    pub date: String,
+    pub date_label: String,
+    pub title: String,
+    pub description: String,
+    pub unit_slot: String,
+    pub tech: Vec<String>,
+}
+
+#[derive(Template)]
+#[template(path = "blog.html")]
+pub struct BlogTpl<'a> {
+    pub c: Ctx<'a>,
+    pub url: String,
+    pub articles: Vec<ArticleCard>,
+    pub jsonld: String,
+}
+
+#[derive(Template)]
+#[template(path = "article.html")]
+pub struct ArticleTpl<'a> {
+    pub c: Ctx<'a>,
+    pub url: String,
+    pub slug: &'a str,
+    pub date: &'a str,
+    pub date_label: String,
+    pub t: &'a ArticleText,
+    pub tech: Vec<String>,
+    pub unit_url: String,
+    pub unit_slot: String,
+    pub jsonld: String,
+}
+
 /// Unidad vecina en el rack, para pasar de una a otra.
 pub struct UnitNav {
     pub url: String,
@@ -179,6 +215,7 @@ pub struct IndexTpl<'a> {
     pub links: Vec<LinkView>,
     pub legend: Vec<(&'static str, String)>,
     pub rack: Vec<RackView>,
+    pub posts: Vec<ArticleCard>,
     pub turnstile_site_key: Option<&'a str>,
     pub i18n_json: String,
     pub jsonld: String,
@@ -458,6 +495,12 @@ pub fn index(
         links,
         legend,
         rack,
+        posts: content
+            .articles
+            .iter()
+            .take(3)
+            .map(|a| article_card(content, a, lang))
+            .collect(),
         turnstile_site_key,
     };
     Ok(Page::new(tpl.render()?))
@@ -506,6 +549,8 @@ pub struct UnitTpl<'a> {
     pub has_xp: bool,
     /// Rótulo de cada bahía, numeradas según las que tenga la unidad.
     pub bays: BTreeMap<&'static str, String>,
+    pub posts: Vec<ArticleCard>,
+    pub jsonld: String,
     pub host_tech: String,
     pub map_w: u32,
     pub map_h: u32,
@@ -718,10 +763,228 @@ pub fn unit(
         next: neighbour(pos + 1),
         has_xp: unit.xp.is_some(),
         bays,
+        posts: content
+            .unit_articles(&unit.id)
+            .map(|a| article_card(content, a, lang))
+            .collect(),
+        jsonld: script_json(&unit_jsonld(content, unit, lang, public_url))?,
         host_tech: unit.host_tech.join(" "),
         map_w: MAP_W,
         map_h: MAP_H,
         data_json: script_json(&data)?,
+        c,
+    };
+    Ok(Page::new(tpl.render()?))
+}
+
+fn article_url(lang: Lang, slug: &str) -> String {
+    format!("/{}/blog/{slug}/", lang.code())
+}
+
+/// «2026-08-07» → «7 de agosto de 2026» / «7 August 2026».
+pub fn date_label(date: &str, lang: Lang) -> String {
+    const ES: [&str; 12] = [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre",
+    ];
+    const EN: [&str; 12] = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ];
+    let mut parts = date.split('-');
+    let (Some(y), Some(m), Some(d)) = (parts.next(), parts.next(), parts.next()) else {
+        return date.to_owned();
+    };
+    let (Ok(m), Ok(d)) = (m.parse::<usize>(), d.parse::<u32>()) else {
+        return date.to_owned();
+    };
+    let Some(i) = m.checked_sub(1).filter(|i| *i < 12) else {
+        return date.to_owned();
+    };
+    match lang {
+        Lang::Es => format!("{d} de {} de {y}", ES[i]),
+        Lang::En => format!("{d} {} {y}", EN[i]),
+    }
+}
+
+fn tech_names(site: &crate::content::Site, ids: &[String]) -> Vec<String> {
+    ids.iter()
+        .filter_map(|id| site.tech.iter().find(|t| &t.id == id))
+        .map(|t| t.name.clone())
+        .collect()
+}
+
+fn unit_slot(content: &Content, unit: &str, lang: Lang) -> String {
+    content
+        .unit(unit)
+        .map(|u| u.texts(lang).ui["slot"].clone())
+        .unwrap_or_default()
+}
+
+fn article_card(content: &Content, a: &Article, lang: Lang) -> ArticleCard {
+    let t = a.texts(lang);
+    ArticleCard {
+        url: article_url(lang, &a.slug),
+        date: a.date.clone(),
+        date_label: date_label(&a.date, lang),
+        title: t.title.clone(),
+        description: t.description.clone(),
+        unit_slot: unit_slot(content, &a.unit, lang),
+        tech: tech_names(&content.site, &a.tech),
+    }
+}
+
+fn author(content: &Content, public_url: &str) -> serde_json::Value {
+    let p = &content.site.person;
+    serde_json::json!({"@type": "Person", "name": p.name, "url": public_url, "sameAs": [p.github, p.linkedin]})
+}
+
+fn crumbs(items: &[(&str, String)]) -> serde_json::Value {
+    serde_json::json!({
+        "@type": "BreadcrumbList",
+        "itemListElement": items.iter().enumerate().map(|(i, (name, url))| serde_json::json!({
+            "@type": "ListItem", "position": i + 1, "name": name, "item": url,
+        })).collect::<Vec<_>>(),
+    })
+}
+
+fn unit_jsonld(content: &Content, unit: &Unit, lang: Lang, public_url: &str) -> serde_json::Value {
+    let t = unit.texts(lang);
+    let mt = content.texts(lang);
+    let url = format!("{public_url}{}", unit_url(lang, &unit.id));
+    serde_json::json!({
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "TechArticle",
+                "headline": t.hero.title,
+                "description": t.meta.description,
+                "inLanguage": lang.code(),
+                "url": url,
+                "author": author(content, public_url),
+                "about": tech_names(&content.site, &unit.tech(&content.site).iter().map(|s| s.to_string()).collect::<Vec<_>>()),
+            },
+            crumbs(&[
+                (&mt.unit_ui["crumb_rack"], format!("{public_url}/{}/", lang.code())),
+                (&mt.unit_ui["crumb_lab"], format!("{public_url}/{}/#lab", lang.code())),
+                (&t.ui["slot"], url.clone()),
+            ]),
+        ],
+    })
+}
+
+/// Índice de artículos.
+pub fn blog(
+    content: &Content,
+    lang: Lang,
+    asset_v: &str,
+    public_url: &str,
+) -> anyhow::Result<Page> {
+    let mut c = ctx(content, lang, asset_v, public_url);
+    c.path = "blog/".into();
+    let t = content.texts(lang);
+    let url = format!("{public_url}/{}/blog/", lang.code());
+    let articles: Vec<ArticleCard> = content
+        .articles
+        .iter()
+        .map(|a| article_card(content, a, lang))
+        .collect();
+    let jsonld = serde_json::json!({
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Blog",
+                "name": t.blog["title"],
+                "description": t.blog["meta_description"],
+                "url": url,
+                "inLanguage": lang.code(),
+                "author": author(content, public_url),
+                "blogPost": articles.iter().map(|a| serde_json::json!({
+                    "@type": "BlogPosting", "headline": a.title, "datePublished": a.date,
+                    "url": format!("{public_url}{}", a.url),
+                })).collect::<Vec<_>>(),
+            },
+            crumbs(&[
+                (&t.unit_ui["crumb_rack"], format!("{public_url}/{}/", lang.code())),
+                (&t.blog["crumb"], url.clone()),
+            ]),
+        ],
+    });
+    let tpl = BlogTpl {
+        jsonld: script_json(&jsonld)?,
+        url,
+        articles,
+        c,
+    };
+    Ok(Page::new(tpl.render()?))
+}
+
+/// Página de un artículo.
+pub fn article(
+    content: &Content,
+    a: &Article,
+    lang: Lang,
+    asset_v: &str,
+    public_url: &str,
+) -> anyhow::Result<Page> {
+    let mut c = ctx(content, lang, asset_v, public_url);
+    c.path = format!("blog/{}/", a.slug);
+    let t = a.texts(lang);
+    let mt = content.texts(lang);
+    let url = format!("{public_url}{}", article_url(lang, &a.slug));
+    let tech = tech_names(&content.site, &a.tech);
+    let jsonld = serde_json::json!({
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "TechArticle",
+                "headline": t.title,
+                "description": t.description,
+                "datePublished": a.date,
+                "inLanguage": lang.code(),
+                "url": url,
+                "mainEntityOfPage": url,
+                "image": format!("{public_url}/static/og.png"),
+                "author": author(content, public_url),
+                "keywords": tech,
+            },
+            crumbs(&[
+                (&mt.unit_ui["crumb_rack"], format!("{public_url}/{}/", lang.code())),
+                (&mt.blog["crumb"], format!("{public_url}/{}/blog/", lang.code())),
+                (&t.title, url.clone()),
+            ]),
+        ],
+    });
+    let tpl = ArticleTpl {
+        jsonld: script_json(&jsonld)?,
+        url,
+        slug: &a.slug,
+        date: &a.date,
+        date_label: date_label(&a.date, lang),
+        t,
+        tech,
+        unit_url: unit_url(lang, &a.unit),
+        unit_slot: unit_slot(content, &a.unit, lang),
         c,
     };
     Ok(Page::new(tpl.render()?))
@@ -854,6 +1117,33 @@ mod tests {
                 for p in &u.pods {
                     assert!(html.contains(&format!("data-pod=\"{}\"", p.id)));
                 }
+            }
+        }
+    }
+
+    #[test]
+    fn dates_read_naturally() {
+        assert_eq!(date_label("2026-08-07", Lang::Es), "7 de agosto de 2026");
+        assert_eq!(date_label("2026-10-13", Lang::En), "13 October 2026");
+        assert_eq!(date_label("roto", Lang::Es), "roto");
+    }
+
+    #[test]
+    fn articles_render_in_both_languages() {
+        let content = Content::embedded().unwrap();
+        for lang in Lang::ALL {
+            let html = blog(&content, lang, "test", "https://example.org").unwrap();
+            let html = std::str::from_utf8(&html.body).unwrap();
+            for a in &content.articles {
+                assert!(html.contains(&format!("/{}/blog/{}/", lang.code(), a.slug)));
+                let page = article(&content, a, lang, "test", "https://example.org").unwrap();
+                let page = std::str::from_utf8(&page.body).unwrap();
+                assert!(page.contains("\"TechArticle\""));
+                assert!(page.contains(&format!(
+                    "href=\"/{}/blog/{}/\"",
+                    lang.other().code(),
+                    a.slug
+                )));
             }
         }
     }

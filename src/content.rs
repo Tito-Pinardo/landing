@@ -9,6 +9,7 @@ use std::collections::{BTreeMap, HashSet};
 use anyhow::{Context, Result, bail, ensure};
 use serde::{Deserialize, Serialize};
 
+use crate::article::{self, Article};
 use crate::unit::{self, Unit};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
@@ -209,6 +210,8 @@ pub struct Texts {
     pub unit_ui: BTreeMap<String, String>,
     /// Lista del rack en la portada.
     pub rack: BTreeMap<String, String>,
+    /// Artículos (índice, página de cada uno y bloque de la portada).
+    pub blog: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -418,6 +421,7 @@ pub struct Content {
     pub es: Texts,
     pub en: Texts,
     pub units: Vec<Unit>,
+    pub articles: Vec<Article>,
 }
 
 /// Zonas (secciones) en el orden en que aparecen en la página.
@@ -473,6 +477,24 @@ const RACK_KEYS: &[&str] = &[
     "live_up",
     "live_off",
     "live_down",
+];
+const BLOG_KEYS: &[&str] = &[
+    "nav",
+    "title",
+    "meta_title",
+    "meta_description",
+    "intro",
+    "read",
+    "all",
+    "back",
+    "published",
+    "unit",
+    "unit_cta",
+    "lesson",
+    "home_title",
+    "home_intro",
+    "in_unit",
+    "crumb",
 ];
 const LAB_KEYS: &[&str] = &[
     "intro",
@@ -591,6 +613,11 @@ impl Content {
             .map(|src| Unit::parse(src))
             .collect::<Result<_>>()?;
         content.validate_units()?;
+        content.articles = article::EMBEDDED
+            .iter()
+            .map(|src| Article::parse(src))
+            .collect::<Result<_>>()?;
+        content.validate_articles()?;
         Ok(content)
     }
 
@@ -605,12 +632,31 @@ impl Content {
             .find(|u| u.project.as_deref() == Some(project))
     }
 
+    /// Artículos de una unidad, del más reciente al más antiguo.
+    pub fn unit_articles<'a>(&'a self, unit: &'a str) -> impl Iterator<Item = &'a Article> {
+        self.articles.iter().filter(move |a| a.unit == unit)
+    }
+
+    fn validate_articles(&self) -> Result<()> {
+        let units: HashSet<&str> = self.units.iter().map(|u| u.id.as_str()).collect();
+        let mut slugs = HashSet::new();
+        for a in &self.articles {
+            ensure!(
+                slugs.insert(a.slug.as_str()),
+                "artículo repetido {}",
+                a.slug
+            );
+            a.validate(&self.site, &units)?;
+        }
+        Ok(())
+    }
+
     fn validate_units(&self) -> Result<()> {
         let mut ids = HashSet::new();
         for u in &self.units {
             ensure!(ids.insert(u.id.as_str()), "unidad repetida {}", u.id);
             ensure!(
-                !["contact", "static", "api"].contains(&u.id.as_str()),
+                !["contact", "static", "api", "blog"].contains(&u.id.as_str()),
                 "unidad {}: el id choca con una ruta",
                 u.id
             );
@@ -645,6 +691,7 @@ impl Content {
             es: toml::from_str(es).context("content/es.toml")?,
             en: toml::from_str(en).context("content/en.toml")?,
             units: Vec::new(),
+            articles: Vec::new(),
         };
         content.validate()?;
         Ok(content)
@@ -771,6 +818,7 @@ impl Content {
             required(code, "lab", LAB_KEYS, &t.lab)?;
             required(code, "unit_ui", unit::COMMON_KEYS, &t.unit_ui)?;
             required(code, "rack", RACK_KEYS, &t.rack)?;
+            required(code, "blog", BLOG_KEYS, &t.blog)?;
             required(code, "hermes", HERMES_KEYS, &t.hermes.text)?;
             required(code, "incident_ui", INCIDENT_UI_KEYS, &t.incident_ui)?;
             required(code, "compare", COMPARE_KEYS, &t.compare)?;

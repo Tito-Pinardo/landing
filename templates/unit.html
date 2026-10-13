@@ -15,6 +15,7 @@
 <meta property="og:image:alt" content="{{ c.t.meta.og_image_alt }}">
 <meta property="og:locale" content="{% if c.lang == "es" %}es_ES{% else %}en_GB{% endif %}">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{{ jsonld|safe }}</script>
 {% endblock %}
 
 {% block nav %}
@@ -295,6 +296,12 @@
     </li>
   {% endfor %}
   </ol>
+  {% if !posts.is_empty() %}
+  <div class="unit-posts">
+    <p class="small"><strong>{{ c.t.blog["in_unit"] }}</strong></p>
+    <ul>{% for p in posts %}<li><a href="{{ p.url }}">{{ p.title }}</a> <span class="muted small">· {{ p.date_label }}</span></li>{% endfor %}</ul>
+  </div>
+  {% endif %}
 </section>
 {% endif %}
 

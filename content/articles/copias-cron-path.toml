@@ -1,0 +1,80 @@
+slug = "copias-cron-path"
+date = "2026-08-02"
+unit = "amp"
+tech = ["linux", "proxmox"]
+
+[text.es]
+title = "17 días de copias de seguridad vacías: el PATH de cron no tiene /usr/sbin"
+description = "Un script de copias que funcionaba a mano y fallaba en silencio desde cron: el PATH mínimo no incluye /usr/sbin, donde vive pct. Cómo detectarlo y validar cada copia."
+summary = "Tras un corte de luz, el fichero de cuentas del panel de los servidores de juego volvió a quedarse vacío. Fui a restaurar la copia que se hacía cada 30 minutos… y las de 17 días eran todas de 0 bytes."
+lesson = "Una copia que no se ha probado no es una copia. Se prueba como la ejecutará el sistema, no como la ejecuto yo, y se comprueba lo que contiene, no que exista el fichero."
+
+[[text.es.sections]]
+heading = "Contexto"
+paragraphs = [
+  "El panel de los servidores de juego guarda sus cuentas en un fichero JSON que no escribe de forma atómica: un apagado a mitad lo deja en «{}». Tras el primer corte, monté un cron en el hipervisor que copiaba ese fichero fuera del contenedor cada 30 minutos, guardando las últimas 100 versiones.",
+]
+
+[[text.es.sections]]
+heading = "Qué fallaba"
+paragraphs = [
+  "El script usaba pct, la herramienta de Proxmox para entrar en los contenedores, que vive en /usr/sbin. Lanzado a mano funcionaba. Desde cron, el PATH mínimo de Debian es solo /usr/bin:/bin: pct no existía para él.",
+  "Fallaba en cada pasada desde el primer día y, además, el script daba por buena cualquier salida, así que guardaba ficheros vacíos sin avisar. Otra pista que estaba ahí: el fichero original seguía con permisos 644, cuando el script debía dejarlo en 600 en cada pasada.",
+]
+
+[[text.es.sections]]
+heading = "Arreglo"
+list = [
+  "Rutas absolutas a los comandos (o un PATH explícito al principio del script).",
+  "Probarlo con el entorno real de cron, no con mi shell.",
+  "Validar cada copia antes de guardarla: si está vacía, es «{}» o no es JSON válido, se descarta y se deja un aviso.",
+]
+code = """# probar con el mismo entorno que cron
+env -i SHELL=/bin/sh PATH=/usr/bin:/bin HOME=/root /bin/sh -c /root/backup.sh
+
+# lo que se acepta como copia
+valid_json() { python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if d else 1)' "$1"; }"""
+
+[[text.es.sections]]
+heading = "Restaurar"
+paragraphs = [
+  "Con el panel parado (para que no reescriba el fichero a mitad), se restauró la última copia válida, con sus permisos. Al arrancar, el panel volvió con todas sus cuentas.",
+]
+
+[text.en]
+title = "17 days of empty backups: cron's PATH has no /usr/sbin"
+description = "A backup script that worked by hand and failed silently under cron: the minimal PATH lacks /usr/sbin, where pct lives. How it was found and how to validate every copy."
+summary = "After a power cut, the game servers panel's accounts file was empty again. I went to restore the copy made every 30 minutes… and 17 days of them were all 0 bytes."
+lesson = "A backup that's never been tested isn't a backup. Test it the way the system will run it, not the way I run it, and check what it contains, not that the file exists."
+
+[[text.en.sections]]
+heading = "Context"
+paragraphs = [
+  "The game servers panel keeps its accounts in a JSON file it doesn't write atomically: a shutdown halfway leaves it as «{}». After the first cut I set up a cron job on the hypervisor copying that file outside the container every 30 minutes, keeping the last 100 versions.",
+]
+
+[[text.en.sections]]
+heading = "What was failing"
+paragraphs = [
+  "The script used pct, Proxmox's tool for entering containers, which lives in /usr/sbin. Run by hand it worked. From cron, Debian's minimal PATH is just /usr/bin:/bin: pct didn't exist for it.",
+  "It failed on every run from day one and, on top of that, the script accepted any output as good, so it stored empty files without warning. Another clue was right there: the original file still had 644 permissions, when the script was supposed to set 600 on every run.",
+]
+
+[[text.en.sections]]
+heading = "Fix"
+list = [
+  "Absolute paths to commands (or an explicit PATH at the top of the script).",
+  "Test it with cron's real environment, not my shell.",
+  "Validate every copy before keeping it: if it's empty, «{}» or not valid JSON, it's discarded and a warning is left.",
+]
+code = """# test with the same environment as cron
+env -i SHELL=/bin/sh PATH=/usr/bin:/bin HOME=/root /bin/sh -c /root/backup.sh
+
+# what counts as a backup
+valid_json() { python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if d else 1)' "$1"; }"""
+
+[[text.en.sections]]
+heading = "Restore"
+paragraphs = [
+  "With the panel stopped (so it wouldn't rewrite the file halfway), the last valid copy was restored with its permissions. On start-up the panel came back with every account.",
+]

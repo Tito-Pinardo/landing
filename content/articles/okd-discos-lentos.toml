@@ -1,0 +1,92 @@
+slug = "okd-discos-lentos"
+date = "2026-09-14"
+unit = "okd"
+tech = ["openshift", "kubernetes", "proxmox"]
+
+[text.es]
+title = "Instalar OKD con el Agent-Based Installer sobre discos mecánicos: los cuatro muros"
+description = "Una ISO que no arrancaba, un overlay en RAM lleno, etcd con escrituras de 6,6 s y un timeout de systemd de 5 minutos: cómo acabó sano un clúster OKD de 3 nodos."
+summary = "Montar un clúster OKD compacto de tres nodos en Proxmox, con discos mecánicos, llevó una sesión entera. Cada bloqueo parecía un fallo grave y casi todos eran lo mismo: algo pensado para SSD que se quedaba corto."
+lesson = "En almacenamiento lento, los tiempos de espera por defecto son el primer sospechoso. Y saber distinguir «roto» de «lento» leyendo los registros ahorra horas."
+
+[[text.es.sections]]
+heading = "1 · La ISO que no arrancaba"
+paragraphs = [
+  "Las VMs se colgaban siempre en el mismo punto al cargar el arranque desde la ISO del instalador más reciente. Probé SeaBIOS y OVMF, cuatro buses de CD distintos, arranque directo de kernel, tipos de CPU, VMs creadas por Terraform y a mano… e incluso QEMU puro, sin Proxmox y sin KVM. Falló igual en las diez configuraciones, mientras una ISO pequeña de control arrancaba sin problemas.",
+  "Conclusión: la ISO de esa versión tenía un fallo en su arranque. Con la versión estable anterior y la misma configuración, arrancó a la primera (con CPU del host: con el modelo genérico de QEMU daba un kernel panic).",
+]
+
+[[text.es.sections]]
+heading = "2 · «No space left on device» con el disco vacío"
+paragraphs = [
+  "Tras escribir el sistema en los tres discos, la instalación se quedó en silencio y la dirección virtual de la API nunca se levantó. El servicio que la gestiona estaba en bucle de reinicios con un «No space left on device».",
+  "El nodo que coordina sigue arrancado desde la ISO hasta el final y guarda todo en un sistema de ficheros temporal en RAM, del tamaño de la mitad de la memoria. Con 16 GB eran unos 8, y las imágenes descargadas pasaban de 17.",
+  "Arreglo: subir las VMs a 32 GB de RAM desde Terraform. Los requisitos mínimos son para el funcionamiento normal, no para el pico de la instalación; y en discos lentos el pico dura más.",
+]
+
+[[text.es.sections]]
+heading = "3 · etcd, más de 37 minutos sin quórum"
+paragraphs = [
+  "Un miembro de etcd seguía sin estar sano y el resto del plano de control esperaba. Los registros del contenedor de etcd lo decían claro: escrituras que tardaban hasta 6,6 segundos, frente a los 200 ms que espera.",
+  "No estaba colgado: estaba lento, con todos los operadores arrancando a la vez sobre discos mecánicos. Con el diagnóstico claro, le di una ventana más antes de tratarlo como un límite de hardware. Se estabilizó solo y no volvió a reiniciarse.",
+]
+
+[[text.es.sections]]
+heading = "4 · Un nodo que no se unía"
+paragraphs = [
+  "Dos nodos listos y el tercero sin unirse: su red no arrancaba y el kubelet fallaba en bucle. rpm-ostree status dijo que seguía en la imagen antigua: el cambio a la nueva se había descartado por un timeout.",
+  "Copiar la configuración tardó unos 5 minutos en el disco lento, y el tiempo máximo de parada de ese servicio era exactamente 5 minutos: systemd lo mató a milisegundos de terminar.",
+]
+code = """# /etc/systemd/system/ostree-finalize-staged.service.d/timeout.conf
+[Service]
+TimeoutStopSec=20min"""
+
+[[text.es.sections]]
+heading = "Resultado"
+paragraphs = [
+  "Con el timeout ampliado y el cambio de imagen rehecho a mano con el mismo identificador exacto, el nodo se unió: 3 de 3 nodos listos, 33 de 33 operadores sanos y la consola accesible. Después, una aplicación de prueba desplegada con Ansible y publicada con una route.",
+]
+
+[text.en]
+title = "Installing OKD with the Agent-Based Installer on spinning disks: the four walls"
+description = "An ISO that wouldn't boot, a full RAM overlay, etcd with 6.6 s writes and a 5-minute systemd timeout: how a 3-node OKD cluster ended up healthy."
+summary = "Setting up a compact three-node OKD cluster on Proxmox, with spinning disks, took a whole session. Every blocker looked serious and nearly all were the same thing: something designed for SSD falling short."
+lesson = "On slow storage, default timeouts are the first suspect. And telling «broken» from «slow» by reading the logs saves hours."
+
+[[text.en.sections]]
+heading = "1 · The ISO that wouldn't boot"
+paragraphs = [
+  "The VMs always hung at the same point while loading the boot from the latest installer ISO. I tried SeaBIOS and OVMF, four different CD buses, direct kernel boot, CPU types, VMs from Terraform and by hand… and even plain QEMU, no Proxmox and no KVM. It failed the same way in all ten configurations, while a small control ISO booted fine.",
+  "Conclusion: that version's ISO had a boot bug. With the previous stable version and the same configuration it booted first time (with host CPU: QEMU's generic model gave a kernel panic).",
+]
+
+[[text.en.sections]]
+heading = "2 · «No space left on device» with an empty disk"
+paragraphs = [
+  "After writing the system to the three disks, the install went silent and the API virtual address never came up. The service managing it was in a restart loop with «No space left on device».",
+  "The coordinating node stays booted from the ISO until the end and keeps everything on a temporary RAM file system half the size of memory. With 16 GB that was about 8, and the downloaded images exceeded 17.",
+  "Fix: raise the VMs to 32 GB of RAM from Terraform. Minimum requirements are for normal operation, not the install's peak; and on slow disks the peak lasts longer.",
+]
+
+[[text.en.sections]]
+heading = "3 · etcd, over 37 minutes without quorum"
+paragraphs = [
+  "One etcd member stayed unhealthy and the rest of the control plane waited. The etcd container's logs said it plainly: writes taking up to 6.6 seconds, against the 200 ms it expects.",
+  "It wasn't hung: it was slow, with every operator starting at once on spinning disks. With a clear diagnosis, I gave it one more window before treating it as a hardware limit. It stabilised on its own and didn't restart again.",
+]
+
+[[text.en.sections]]
+heading = "4 · A node that wouldn't join"
+paragraphs = [
+  "Two nodes ready and the third not joining: its network wouldn't start and kubelet failed in a loop. rpm-ostree status said it was still on the old image: the switch to the new one had been discarded by a timeout.",
+  "Copying the configuration took about 5 minutes on the slow disk, and that service's maximum stop time was exactly 5 minutes: systemd killed it milliseconds before it finished.",
+]
+code = """# /etc/systemd/system/ostree-finalize-staged.service.d/timeout.conf
+[Service]
+TimeoutStopSec=20min"""
+
+[[text.en.sections]]
+heading = "Result"
+paragraphs = [
+  "With the longer timeout and the image switch redone by hand with the exact same identifier, the node joined: 3 of 3 nodes ready, 33 of 33 healthy operators and the console reachable. Then a test application deployed with Ansible and published with a route.",
+]

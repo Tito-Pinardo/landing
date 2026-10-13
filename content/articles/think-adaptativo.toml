@@ -1,0 +1,82 @@
+slug = "think-adaptativo"
+date = "2026-09-22"
+unit = "hermes"
+tech = ["llm", "python"]
+
+[text.es]
+title = "Razonar solo donde aporta: un modelo local de 8B, de 4,7 a 0,7 segundos al redactar"
+description = "Cuándo encender y apagar el razonamiento (think) de qwen3 en un asistente con herramientas: elegir herramienta lo necesita, redactar con los datos delante no."
+summary = "En un turno real, la llamada que solo redactaba la respuesta generó 954 tokens de razonamiento: 96 de los 141 segundos. Apagar el razonamiento justo ahí bajó esa llamada de 4,7 a 0,7 s, pero hubo que volver a encenderlo en dos casos concretos."
+lesson = "Optimizar a ciegas rompe cosas que no se ven en la media. Se mide caso por caso y con varias semillas, y se miran también las respuestas, no solo el tiempo."
+
+[[text.es.sections]]
+heading = "El problema"
+paragraphs = [
+  "qwen3 puede responder «pensando» (genera un razonamiento interno antes de contestar) o directo. Pensar multiplicaba por seis el tiempo de una llamada.",
+  "En un turno con herramientas hay al menos dos llamadas al modelo: una que decide qué herramienta usar y con qué argumentos, y otra que redacta la respuesta con el resultado delante. La segunda estaba gastando cientos de tokens en pensar algo que ya tenía resuelto.",
+]
+
+[[text.es.sections]]
+heading = "La regla"
+list = [
+  "Ninguna herramienta ejecutada todavía: pensar. Elegir herramienta y calcular argumentos lo necesita: sin razonamiento, el modelo calculaba mal fechas relativas e inventaba duraciones.",
+  "Resultado con datos y sin avisos: directo. Solo queda redactar.",
+  "Resultado vacío o con error: pensar otra vez. Hay que decidir otro paso.",
+  "Se ha inyectado un aviso junto al resultado: pensar. El aviso pide decidir algo.",
+  "Si la llamada directa pide otra herramienta, se repite pensando.",
+]
+
+[[text.es.sections]]
+heading = "Lo que se rompió al principio"
+paragraphs = [
+  "La primera versión apagaba el razonamiento después de la primera herramienta, sin más. Ganó velocidad y perdió dos cosas que la batería tardó en enseñar:",
+]
+list = [
+  "Tras una búsqueda vacía, nunca intentaba otra fuente: respondía «no he encontrado nada» con el dato a una llamada.",
+  "Ignoraba los avisos que el código añade al resultado: seguía dando una dirección sin puerto aunque el aviso dijera que faltaba.",
+]
+
+[[text.es.sections]]
+heading = "Resultado"
+paragraphs = [
+  "En los 9 casos de interpretación con 5 semillas: 45/45 en los dos modos, con 31 tokens de salida en vez de 258. Turnos completos entre un 25 % y un 40 % más rápidos, y la batería entera de 10,1 a 8,0 minutos.",
+]
+
+[text.en]
+title = "Reason only where it helps: a local 8B model, from 4.7 to 0.7 seconds when writing"
+description = "When to switch qwen3's reasoning (think) on and off in a tool-using assistant: choosing a tool needs it, writing with the data in front of it doesn't."
+summary = "In a real turn, the call that only wrote the answer generated 954 reasoning tokens: 96 of the 141 seconds. Switching reasoning off right there cut that call from 4.7 to 0.7 s, but it had to be switched back on in two specific cases."
+lesson = "Optimising blindly breaks things that don't show in the average. Measure case by case with several seeds, and look at the answers too, not just the time."
+
+[[text.en.sections]]
+heading = "The problem"
+paragraphs = [
+  "qwen3 can answer «thinking» (it generates internal reasoning before replying) or directly. Thinking made a call six times slower.",
+  "A turn with tools has at least two model calls: one deciding which tool to use and with what arguments, and another writing the answer with the result in front of it. The second was spending hundreds of tokens thinking about something already settled.",
+]
+
+[[text.en.sections]]
+heading = "The rule"
+list = [
+  "No tool run yet: think. Choosing a tool and working out arguments needs it: without reasoning, the model got relative dates wrong and made up durations.",
+  "Result with data and no warnings: direct. All that's left is writing.",
+  "Empty or failed result: think again. Another step has to be decided.",
+  "A warning was injected next to the result: think. The warning asks for a decision.",
+  "If the direct call asks for another tool, it's repeated with thinking on.",
+]
+
+[[text.en.sections]]
+heading = "What broke at first"
+paragraphs = [
+  "The first version simply switched reasoning off after the first tool. It gained speed and lost two things the suite took a while to show:",
+]
+list = [
+  "After an empty search, it never tried another source: it said «I found nothing» with the answer one call away.",
+  "It ignored the warnings the code adds to the result: it kept giving an address without a port even when the warning said one was missing.",
+]
+
+[[text.en.sections]]
+heading = "Result"
+paragraphs = [
+  "On the 9 interpretation cases with 5 seeds: 45/45 in both modes, with 31 output tokens instead of 258. Full turns 25 % to 40 % faster, and the whole suite from 10.1 to 8.0 minutes.",
+]

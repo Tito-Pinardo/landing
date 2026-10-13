@@ -1,0 +1,98 @@
+slug = "lvm-thin-corte-de-luz"
+date = "2026-08-07"
+unit = "proxmox"
+tech = ["proxmox", "linux"]
+
+[text.es]
+title = "Proxmox no arranca ningún contenedor tras un corte de luz: el LVM-thin a medio activar"
+description = "«Activation of logical volume pve/data is prohibited while pve/data_tmeta is active»: qué pasa con LVM-thin tras un apagado brusco y cómo activarlo sin esperar dos veces."
+summary = "Tras un corte de luz, el servidor arrancó solo pero ningún contenedor ni VM llegó a iniciarse. El almacenamiento de los contenedores se había quedado a medio activar después de su comprobación, y el arranque automático de Proxmox no lo reintenta."
+lesson = "Escribir el paso exacto que lo arregla: la próxima vez, desactivar las piezas sueltas a la primera ahorra otra comprobación de más de una hora. Y un SAI con apagado coordinado evitaría el problema de raíz."
+
+[[text.es.sections]]
+heading = "Síntoma"
+paragraphs = [
+  "Se fue la luz y volvió. El servidor arrancó solo, como debe, pero todos los contenedores y máquinas virtuales se quedaron parados. Ni siquiera se podía abrir la documentación: también vivía en uno de esos contenedores.",
+  "En el registro, cada diez segundos, el mismo mensaje:",
+]
+code = "activating LV 'pve/data' failed: Activation of logical volume pve/data is prohibited while logical volume pve/data_tmeta is active."
+
+[[text.es.sections]]
+heading = "Qué estaba pasando"
+paragraphs = [
+  "Los discos de los contenedores viven en un thin pool de LVM. Un apagado brusco lo deja marcado como «necesita comprobación», y en el siguiente arranque se lanza thin_check sobre sus metadatos.",
+  "Esa comprobación, sobre 8 GB de metadatos en un espejo de discos mecánicos, tardó entre 65 y 90 minutos: lectura aleatoria a 50-120 KB/s. Y al terminar dejó los dos volúmenes internos del pool (el de datos y el de metadatos) activos por separado, lo que impide activar el pool entero.",
+  "Para rematar: Proxmox intenta el arranque automático de los contenedores una sola vez, al arrancar el host. Como en ese momento el almacenamiento no estaba, fallaron y no se reintentan.",
+]
+
+[[text.es.sections]]
+heading = "Cómo detectarlo"
+list = [
+  "journalctl -b 0 | grep -i 'activating LV' → el mensaje repitiéndose.",
+  "lvs -a -o+lv_active → data_tdata y data_tmeta activos, pero data (el pool) no.",
+  "ps aux | grep thin_check → si hay una comprobación en marcha, hay que dejarla terminar (y vigilar en /proc/<pid>/io que sigue leyendo).",
+  "pct list y qm list → todo en «stopped».",
+]
+
+[[text.es.sections]]
+heading = "Arreglo"
+paragraphs = [
+  "Reintentar la activación del pool no sirve: sigue fallando aunque la comprobación haya terminado. Hay que desactivar primero las dos piezas sueltas para que LVM las vuelva a montar dentro del pool:",
+]
+code = """lvchange -an pve/data_tmeta
+lvchange -an pve/data_tdata
+lvchange -ay pve/data
+lvs -a -o+lv_active   # data debe salir activo"""
+
+[[text.es.sections]]
+heading = "Y después, arrancar a mano"
+paragraphs = [
+  "Aunque cada contenedor tenga el arranque automático activado, hay que arrancarlos uno a uno (pct start / qm start): el servicio que los arranca solo lo intenta una vez por arranque del host.",
+]
+
+[text.en]
+title = "Proxmox starts no containers after a power cut: LVM-thin left half-activated"
+description = "«Activation of logical volume pve/data is prohibited while pve/data_tmeta is active»: why LVM-thin breaks after a power cut and how to bring it up."
+summary = "After a power cut the server booted on its own, but no container or VM started. The containers' storage had been left half-activated after its check, and Proxmox's automatic start doesn't retry."
+lesson = "Write down the exact step that fixes it: next time, deactivating the loose parts first saves another check of over an hour. And a UPS with coordinated shutdown would avoid the problem at the root."
+
+[[text.en.sections]]
+heading = "Symptom"
+paragraphs = [
+  "The power went and came back. The server booted on its own, as it should, but every container and virtual machine stayed stopped. Not even the documentation could be opened: it lived in one of those containers too.",
+  "In the log, every ten seconds, the same message:",
+]
+code = "activating LV 'pve/data' failed: Activation of logical volume pve/data is prohibited while logical volume pve/data_tmeta is active."
+
+[[text.en.sections]]
+heading = "What was going on"
+paragraphs = [
+  "The containers' disks live on an LVM thin pool. An abrupt shutdown leaves it flagged as «needs check», and on the next boot thin_check runs over its metadata.",
+  "That check, over 8 GB of metadata on a mirror of spinning disks, took 65 to 90 minutes: random reads at 50-120 KB/s. And when it finished it left the pool's two internal volumes (data and metadata) active separately, which prevents activating the whole pool.",
+  "To top it off: Proxmox attempts the containers' automatic start just once, when the host boots. Since the storage wasn't there at that moment, they failed and aren't retried.",
+]
+
+[[text.en.sections]]
+heading = "How to spot it"
+list = [
+  "journalctl -b 0 | grep -i 'activating LV' → the message repeating.",
+  "lvs -a -o+lv_active → data_tdata and data_tmeta active, but data (the pool) isn't.",
+  "ps aux | grep thin_check → if a check is running, let it finish (and watch /proc/<pid>/io to see it's still reading).",
+  "pct list and qm list → everything «stopped».",
+]
+
+[[text.en.sections]]
+heading = "Fix"
+paragraphs = [
+  "Retrying the pool activation doesn't work: it keeps failing even after the check has finished. First deactivate the two loose parts so LVM mounts them back inside the pool:",
+]
+code = """lvchange -an pve/data_tmeta
+lvchange -an pve/data_tdata
+lvchange -ay pve/data
+lvs -a -o+lv_active   # data must show as active"""
+
+[[text.en.sections]]
+heading = "Then, start them by hand"
+paragraphs = [
+  "Even with automatic start enabled on every container, they have to be started one by one (pct start / qm start): the service that starts them only tries once per host boot.",
+]

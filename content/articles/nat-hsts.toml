@@ -1,0 +1,74 @@
+slug = "nat-hsts"
+date = "2026-06-19"
+unit = "router"
+tech = ["mikrotik", "traefik"]
+
+[text.es]
+title = "Certificado autofirmado en toda la casa: una regla de NAT de MikroTik sin interfaz de entrada"
+description = "Por qué una regla dstnat del puerto 443 sin in-interface-list=WAN interceptaba el HTTPS de dentro de casa y rompía las webs con HSTS, y cómo se arregla."
+summary = "Desde casa, webs como Spotify daban error de certificado autofirmado y Firefox ni dejaba añadir una excepción. Desde fuera iban bien. La culpa era una regla de NAT del router demasiado amplia."
+lesson = "Toda regla de redirección lleva su interfaz de entrada. Una regla demasiado amplia funciona… hasta que rompe algo lejos de donde vive."
+
+[[text.es.sections]]
+heading = "Síntoma"
+paragraphs = [
+  "Cualquier web con HSTS fallaba desde la red de casa con MOZILLA_PKIX_ERROR_SELF_SIGNED_CERT. Con HSTS el navegador no ofrece «continuar de todos modos», así que simplemente no se podía entrar.",
+  "Desde los datos del móvil, las mismas webs iban perfectamente.",
+]
+
+[[text.es.sections]]
+heading = "Causa"
+paragraphs = [
+  "En el MikroTik hay una regla dstnat que reenvía el puerto 443 al proxy inverso (Traefik) para publicar las webs de casa. Estaba definida con dst-address-type=local y nada más.",
+  "Sin la condición de que el tráfico entre por la WAN, la regla atrapaba también conexiones de dentro de casa que pasaban por la IP del router. Traefik respondía con su certificado interno, y el navegador lo veía como autofirmado.",
+]
+
+[[text.es.sections]]
+heading = "Cómo detectarlo"
+list = [
+  "/ip firewall nat print → buscar una regla dstnat al 443 sin in-interface-list.",
+  "curl -v https://<una web con HSTS> desde dentro → el certificado no es el de esa web, sino el del proxy.",
+]
+
+[[text.es.sections]]
+heading = "Arreglo"
+paragraphs = [
+  "Acotar la regla al tráfico que entra por la WAN y vaciar las conexiones abiertas, para que se rehagan con la regla nueva:",
+]
+code = """/ip firewall nat set [find comment="HTTPS"] in-interface-list=WAN
+/ip firewall connection remove [find]"""
+
+[text.en]
+title = "A self-signed certificate across the house: a MikroTik NAT rule with no inbound interface"
+description = "Why a dstnat rule for port 443 without in-interface-list=WAN intercepted HTTPS from inside the house and broke HSTS sites, and how to fix it."
+summary = "From home, sites like Spotify showed a self-signed certificate error and Firefox wouldn't even allow an exception. From outside they were fine. The culprit was an overly broad NAT rule on the router."
+lesson = "Every forwarding rule carries its inbound interface. A rule that's too broad works… until it breaks something far from where it lives."
+
+[[text.en.sections]]
+heading = "Symptom"
+paragraphs = [
+  "Any HSTS site failed from the home network with MOZILLA_PKIX_ERROR_SELF_SIGNED_CERT. With HSTS the browser doesn't offer «continue anyway», so you simply couldn't get in.",
+  "On mobile data, the same sites worked perfectly.",
+]
+
+[[text.en.sections]]
+heading = "Cause"
+paragraphs = [
+  "On the MikroTik there's a dstnat rule forwarding port 443 to the reverse proxy (Traefik) to publish the home websites. It was defined with dst-address-type=local and nothing else.",
+  "Without the condition that traffic comes in on the WAN, the rule also caught connections from inside the house that went through the router's IP. Traefik answered with its internal certificate, and the browser saw it as self-signed.",
+]
+
+[[text.en.sections]]
+heading = "How to spot it"
+list = [
+  "/ip firewall nat print → look for a dstnat rule on 443 with no in-interface-list.",
+  "curl -v https://<an HSTS site> from inside → the certificate isn't that site's, but the proxy's.",
+]
+
+[[text.en.sections]]
+heading = "Fix"
+paragraphs = [
+  "Scope the rule to traffic coming in on the WAN and flush open connections so they're rebuilt with the new rule:",
+]
+code = """/ip firewall nat set [find comment="HTTPS"] in-interface-list=WAN
+/ip firewall connection remove [find]"""

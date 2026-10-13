@@ -388,6 +388,26 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
     {% endfor %}
     </ol>
   </div>
+
+  <div class="home-posts">
+    <div class="rack-head">
+      <h3>{{ c.t.blog["home_title"] }}</h3>
+      <p class="muted">{{ c.t.blog["home_intro"] }}</p>
+    </div>
+    <ol class="post-list post-list-short">
+    {% for a in posts %}
+      <li class="post-card">
+        <a href="{{ a.url }}">
+          <p class="post-meta"><time datetime="{{ a.date }}">{{ a.date_label }}</time> · <span>{{ a.unit_slot }}</span></p>
+          <h4>{{ a.title }}</h4>
+          <p>{{ a.description }}</p>
+          <span class="post-read">{{ c.t.blog["read"] }} →</span>
+        </a>
+      </li>
+    {% endfor %}
+    </ol>
+    <p><a class="btn" href="/{{ c.lang }}/blog/">{{ c.t.blog["all"] }} →</a></p>
+  </div>
 </section>
 
 <!-- ============================= AHORA MISMO ============================= -->

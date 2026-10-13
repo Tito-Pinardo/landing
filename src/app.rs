@@ -43,6 +43,9 @@ struct Inner {
     pages: [Page; 2],
     /// Unidades del rack: (id, página en cada idioma).
     units: Vec<(String, [Page; 2])>,
+    blog: [Page; 2],
+    /// Artículos: (slug, fecha, página en cada idioma).
+    articles: Vec<(String, String, [Page; 2])>,
     not_found: [Page; 2],
     db: PgPool,
     http: reqwest::Client,
@@ -73,6 +76,22 @@ impl AppState {
                 Ok((u.id.clone(), [page(Lang::Es)?, page(Lang::En)?]))
             })
             .collect::<anyhow::Result<_>>()?;
+        let blog = [
+            render::blog(&content, Lang::Es, &asset_v, &cfg.public_url)?,
+            render::blog(&content, Lang::En, &asset_v, &cfg.public_url)?,
+        ];
+        let articles = content
+            .articles
+            .iter()
+            .map(|a| {
+                let page = |lang| render::article(&content, a, lang, &asset_v, &cfg.public_url);
+                Ok((
+                    a.slug.clone(),
+                    a.date.clone(),
+                    [page(Lang::Es)?, page(Lang::En)?],
+                ))
+            })
+            .collect::<anyhow::Result<_>>()?;
         let not_found = Lang::ALL.map(|lang| {
             use askama::Template;
             let c = render::ctx(&content, lang, &asset_v, &cfg.public_url);
@@ -84,6 +103,8 @@ impl AppState {
             asset_v,
             pages,
             units,
+            blog,
+            articles,
             not_found,
             db,
             http,
@@ -94,6 +115,14 @@ impl AppState {
 
     fn page(&self, lang: Lang) -> &Page {
         &self.0.pages[lang as usize]
+    }
+
+    fn article(&self, slug: &str, lang: Lang) -> Option<&Page> {
+        self.0
+            .articles
+            .iter()
+            .find(|(s, _, _)| s == slug)
+            .map(|(_, _, p)| &p[lang as usize])
     }
 
     fn unit(&self, id: &str, lang: Lang) -> Option<&Page> {
@@ -112,6 +141,10 @@ pub fn router(state: AppState) -> Router {
         .route("/{lang}", get(lang_no_slash))
         .route("/{lang}/", get(page))
         .route("/{lang}/contact", post(contact_form))
+        .route("/{lang}/blog", get(blog_no_slash))
+        .route("/{lang}/blog/", get(blog_page))
+        .route("/{lang}/blog/{slug}", get(article_no_slash))
+        .route("/{lang}/blog/{slug}/", get(article_page))
         .route("/{lang}/{unit}", get(unit_no_slash))
         .route("/{lang}/{unit}/", get(unit_page))
         .route("/api/contact", post(contact_json))
@@ -207,6 +240,54 @@ async fn unit_page(
 ) -> Response {
     match Lang::from_code(&lang).and_then(|l| st.unit(&unit, l)) {
         Some(page) => serve_page(page, &headers, "public, max-age=300, s-maxage=600"),
+        None => not_found(State(st), headers).await,
+    }
+}
+
+async fn blog_no_slash(
+    State(st): State<AppState>,
+    Path(lang): Path<String>,
+    headers: HeaderMap,
+) -> Response {
+    match Lang::from_code(&lang) {
+        Some(l) => Redirect::permanent(&format!("/{}/blog/", l.code())).into_response(),
+        None => not_found(State(st), headers).await,
+    }
+}
+
+async fn blog_page(
+    State(st): State<AppState>,
+    Path(lang): Path<String>,
+    headers: HeaderMap,
+) -> Response {
+    match Lang::from_code(&lang) {
+        Some(l) => serve_page(
+            &st.0.blog[l as usize],
+            &headers,
+            "public, max-age=300, s-maxage=600",
+        ),
+        None => not_found(State(st), headers).await,
+    }
+}
+
+async fn article_page(
+    State(st): State<AppState>,
+    Path((lang, slug)): Path<(String, String)>,
+    headers: HeaderMap,
+) -> Response {
+    match Lang::from_code(&lang).and_then(|l| st.article(&slug, l)) {
+        Some(page) => serve_page(page, &headers, "public, max-age=300, s-maxage=600"),
+        None => not_found(State(st), headers).await,
+    }
+}
+
+async fn article_no_slash(
+    State(st): State<AppState>,
+    Path((lang, slug)): Path<(String, String)>,
+    headers: HeaderMap,
+) -> Response {
+    match Lang::from_code(&lang).filter(|l| st.article(&slug, *l).is_some()) {
+        Some(l) => Redirect::permanent(&format!("/{}/blog/{slug}/", l.code())).into_response(),
         None => not_found(State(st), headers).await,
     }
 }
@@ -318,12 +399,23 @@ async fn sitemap(State(st): State<AppState>) -> impl IntoResponse {
     let mut xml = String::from(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n",
     );
-    let paths =
-        std::iter::once(String::new()).chain(st.0.units.iter().map(|(id, _)| format!("{id}/")));
-    for path in paths {
+    // (ruta dentro del idioma, fecha de última modificación si se sabe)
+    let newest = st.0.articles.first().map(|(_, d, _)| d.as_str());
+    let paths = std::iter::once((String::new(), None))
+        .chain(st.0.units.iter().map(|(id, _)| (format!("{id}/"), None)))
+        .chain(std::iter::once(("blog/".to_owned(), newest)))
+        .chain(
+            st.0.articles
+                .iter()
+                .map(|(slug, date, _)| (format!("blog/{slug}/"), Some(date.as_str()))),
+        );
+    for (path, lastmod) in paths {
+        let lastmod = lastmod
+            .map(|d| format!("<lastmod>{d}</lastmod>"))
+            .unwrap_or_default();
         for lang in Lang::ALL {
             xml.push_str(&format!(
-                "<url><loc>{u}/{l}/{path}</loc><xhtml:link rel=\"alternate\" hreflang=\"es\" href=\"{u}/es/{path}\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"{u}/en/{path}\"/></url>\n",
+                "<url><loc>{u}/{l}/{path}</loc>{lastmod}<xhtml:link rel=\"alternate\" hreflang=\"es\" href=\"{u}/es/{path}\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"{u}/en/{path}\"/></url>\n",
                 l = lang.code()
             ));
         }

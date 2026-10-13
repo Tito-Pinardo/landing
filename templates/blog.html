@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ c.t.blog["meta_title"] }}{% endblock %}
+{% block description %}{{ c.t.blog["meta_description"] }}{% endblock %}
+
+{% block head %}
+<link rel="canonical" href="{{ url }}">
+<link rel="alternate" hreflang="es" href="{{ c.public_url }}/es/blog/">
+<link rel="alternate" hreflang="en" href="{{ c.public_url }}/en/blog/">
+<link rel="alternate" hreflang="x-default" href="{{ c.public_url }}/es/blog/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ c.t.blog["meta_title"] }}">
+<meta property="og:description" content="{{ c.t.blog["meta_description"] }}">
+<meta property="og:url" content="{{ url }}">
+<meta property="og:image" content="{{ c.public_url }}/static/og.png">
+<meta property="og:locale" content="{% if c.lang == "es" %}es_ES{% else %}en_GB{% endif %}">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{{ jsonld|safe }}</script>
+{% endblock %}
+
+{% block nav %}
+<nav class="crumbs" aria-label="breadcrumb">
+  <ol>
+    <li><a href="/{{ c.lang }}/">{{ c.t.unit_ui["crumb_rack"] }}</a></li>
+    <li aria-current="page">{{ c.t.blog["crumb"] }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block main %}
+<section class="section blog">
+  <p class="kicker">{{ c.t.blog["nav"] }}</p>
+  <h1>{{ c.t.blog["title"] }}</h1>
+  <p class="lead">{{ c.t.blog["intro"] }}</p>
+  <ol class="post-list">
+  {% for a in articles %}
+    <li class="post-card">
+      <a href="{{ a.url }}">
+        <p class="post-meta"><time datetime="{{ a.date }}">{{ a.date_label }}</time> · <span>{{ a.unit_slot }}</span></p>
+        <h2>{{ a.title }}</h2>
+        <p>{{ a.description }}</p>
+        <ul class="chips">{% for t in a.tech %}<li>{{ t }}</li>{% endfor %}</ul>
+        <span class="post-read">{{ c.t.blog["read"] }} →</span>
+      </a>
+    </li>
+  {% endfor %}
+  </ol>
+</section>
+{% endblock %}
