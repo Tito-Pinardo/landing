@@ -88,23 +88,29 @@
     hermes.pending = null;
     hermesShow(true);
     hermes.root.classList.add("is-talking");
-    hermes.choices.replaceChildren();
+    // El bocadillo sale ya con su tamaño final (texto medido y botones
+    // reservados pero invisibles): así no empuja nada mientras escribe.
+    hermes.choices.replaceChildren(...choices.map((c, i) => {
+      const el = document.createElement(c.href ? "a" : "button");
+      el.className = "btn btn-sm" + (i === 0 ? " btn-primary" : "");
+      el.textContent = c.label;
+      if (c.href) {
+        el.href = c.href;
+        if (c.download) el.setAttribute("download", "");
+        el.addEventListener("click", () => c.run?.());
+      } else {
+        el.type = "button";
+        el.addEventListener("click", c.run);
+      }
+      return el;
+    }));
+    hermes.choices.classList.add("is-pending");
+    hermes.text.style.minHeight = "";
+    hermes.text.textContent = msg;
+    hermes.text.style.minHeight = `${hermes.text.offsetHeight}px`;
     typeInto(hermes.text, msg, () => {
       hermes.root.classList.remove("is-talking");
-      hermes.choices.replaceChildren(...choices.map((c, i) => {
-        const el = document.createElement(c.href ? "a" : "button");
-        el.className = "btn btn-sm" + (i === 0 ? " btn-primary" : "");
-        el.textContent = c.label;
-        if (c.href) {
-          el.href = c.href;
-          if (c.download) el.setAttribute("download", "");
-          el.addEventListener("click", () => c.run?.());
-        } else {
-          el.type = "button";
-          el.addEventListener("click", c.run);
-        }
-        return el;
-      }));
+      hermes.choices.classList.remove("is-pending");
     });
     hermesIdleReset();
   }

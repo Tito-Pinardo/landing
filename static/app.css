@@ -1346,3 +1346,9 @@ main { overflow-x: clip; }
 .unit-face .uf-gnome.is-poked { animation: gnome-poke .45s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes gnome-poke { 30% { transform: translateY(-12px) rotate(-10deg); } 60% { transform: translateY(-4px) rotate(6deg); } }
 @media (prefers-reduced-motion: reduce) { .unit-face .uf-gnome.is-poked { animation: none; } }
+
+/* Botones de Hermes reservados mientras escribe (sin saltos de diseño). */
+.hermes-choices.is-pending { visibility: hidden; }
+/* El bocadillo flota sobre el avatar: el contenedor de Hermes no cambia de
+   tamaño al aparecer o crecer, y no cuenta como salto de diseño. */
+.hermes-bubble { position: absolute; left: 0; bottom: calc(100% + 10px); }
