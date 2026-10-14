@@ -798,6 +798,14 @@ def publish(cfg: Config, st: dict) -> str:
     slug = f"resumen-{monday.isoformat()}"
     fresh_repo(cfg)
     path = cfg.repo / "content/articles" / f"{slug}.toml"
+    # Un intento anterior ya lo empujó (y se quedó esperando al despliegue):
+    # no hay nada que commitear, solo volver a esperar a verlo en la web.
+    if not (path.exists() and path.read_text() == st["toml"]):
+        push_article(cfg, st, monday, path)
+    return wait_published(slug)
+
+
+def push_article(cfg: Config, st: dict, monday: dt.date, path: Path) -> None:
     path.write_text(st["toml"])
     env = build_env(cfg)
     run(["cargo", "build", "--release", "-q"], cfg.repo, env)
@@ -808,15 +816,18 @@ def publish(cfg: Config, st: dict) -> str:
     msg = (f"feat(blog): resumen semanal del lunes {date_label(monday, 'es')}\n\n"
            f"{len(st['items'])} novedades de la semana para el homelab: "
            + ", ".join(i["source"] for i in st["items"]) + ".\n"
-           "Escrito por tools/digest con el modelo local y aprobado en Matrix.")
+           "Escrito por tools/digest y aprobado en Matrix.")
     run(["git", "commit", "-q", "-m", msg], cfg.repo)
     try:
         run(["git", "push", "-q", "origin", "HEAD:main"], cfg.repo)
     except RuntimeError:
         run(["git", "pull", "-q", "--rebase", "origin", "main"], cfg.repo)
         run(["git", "push", "-q", "origin", "HEAD:main"], cfg.repo)
-    # El push dispara el CI y, si sale verde, el despliegue continuo (que
-    # también actualiza la copia pública). Aquí solo se espera a verlo.
+
+
+def wait_published(slug: str) -> str:
+    """El push dispara el CI y, si sale verde, el despliegue continuo (que
+    también actualiza la copia pública). Aquí solo se espera a verlo."""
     url = f"{PUBLIC_URL}/es/blog/{slug}/"
     deadline = time.monotonic() + PUBLISH_WAIT
     while time.monotonic() < deadline:

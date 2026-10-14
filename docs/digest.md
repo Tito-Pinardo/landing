@@ -15,7 +15,7 @@ Un temporizador lanza `digest.py tick` cada 15 minutos:
 |---|---|
 | Domingo 20:00 → lunes 8:00 | Si aún no hay borrador, recoge, escribe y lo manda a Matrix |
 | Siempre | Lee mis respuestas al borrador |
-| Lunes ≥ 8:00, aprobado | Publica: commit, `landing check`, gitleaks y push al origen; el CI/CD lo despliega y el script espera a ver el artículo en la web (hasta 40 min) |
+| Lunes ≥ 8:00, aprobado | Publica: commit, `landing check`, gitleaks y push al origen; el CI/CD lo despliega y el script espera a ver el artículo en la web (hasta 40 min). Si falla, lo reintenta en los ticks siguientes (si ya estaba empujado, solo espera) y al tercer intento avisa |
 | Martes ≥ 20:00 sin respuesta | Caduca y no se publica |
 
 Órdenes en Matrix (solo las del dueño, `DIGEST_OWNER`): **publicar**,

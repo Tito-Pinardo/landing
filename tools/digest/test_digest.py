@@ -144,6 +144,38 @@ class Schedule(unittest.TestCase):
         self.assertEqual(digest.expires_at(dt.date(2026, 10, 19)).date(), dt.date(2026, 10, 20))
 
 
+class Publish(unittest.TestCase):
+    def test_retry_after_push_only_waits(self):
+        """Si un intento anterior ya empujó el artículo, no se vuelve a
+        commitear (fallaría: nada que commitear); solo se espera a verlo."""
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d:
+            cfg = digest.Config({"HOME": d, "DIGEST_REPO": d, "DIGEST_REMOTE": "x"})
+            (Path(d) / "content/articles").mkdir(parents=True)
+            st = {"monday": "2026-10-19", "toml": "slug = 'resumen-2026-10-19'\n", "items": []}
+            (Path(d) / "content/articles/resumen-2026-10-19.toml").write_text(st["toml"])
+            with mock.patch.object(digest, "fresh_repo"), \
+                 mock.patch.object(digest, "push_article") as push, \
+                 mock.patch.object(digest, "wait_published", return_value="url") as wait:
+                self.assertEqual(digest.publish(cfg, st), "url")
+            push.assert_not_called()
+            wait.assert_called_once_with("resumen-2026-10-19")
+
+    def test_new_article_is_pushed(self):
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d:
+            cfg = digest.Config({"HOME": d, "DIGEST_REPO": d, "DIGEST_REMOTE": "x"})
+            (Path(d) / "content/articles").mkdir(parents=True)
+            st = {"monday": "2026-10-19", "toml": "slug = 'resumen-2026-10-19'\n", "items": []}
+            with mock.patch.object(digest, "fresh_repo"), \
+                 mock.patch.object(digest, "push_article") as push, \
+                 mock.patch.object(digest, "wait_published", return_value="url"):
+                digest.publish(cfg, st)
+            push.assert_called_once()
+
+
 class Article(unittest.TestCase):
     def test_article_is_valid_toml(self):
         items = [fake_item(), fake_item(unit="dns", kind="security", src="Technitium DNS")]
