@@ -1703,6 +1703,10 @@
   }
 
   // ------------------------------------------------------------ enanitos trabajando
+  // Opacidad siempre con CSS (app.css), nunca con <animate attributeName=
+  // "opacity">: Firefox aplica esas animaciones SMIL como estilo en línea y
+  // la CSP (style-src 'self') las bloquea miles de veces por segundo.
+  // Las de giro (animateTransform) no tienen ese problema.
   // La "fábrica": enanitos con su tarea fija en cada servidor del rack, en
   // las piezas del laboratorio y patrullando entre nodos. Brazos y piernas
   // con animateTransform (SVG nativo: el giro lleva su propio centro).
@@ -1726,14 +1730,14 @@
     let extra = "";
     if (pose === "hammer") {
       armR = limb(27.5, 31, ARM + TOOLS.hammer, rot("-150;-20;-150", ".7s"));
-      extra = `<g class="w-spark"><circle cx="36" cy="54" r="2.5"><animate attributeName="opacity" values="0;0;1;0" dur=".7s" repeatCount="indefinite"/></circle></g>`;
+      extra = `<g class="w-spark"><circle cx="36" cy="54" r="2.5"/></g>`;
     } else if (pose === "wrench") {
       armR = limb(27.5, 31, ARM + TOOLS.wrench, rot("-80;-20;-80", "1.1s"));
     } else if (pose === "type") {
       legs = limb(15.5, 39, LEG, still("-80")) + limb(24.5, 39, LEG, still("-80"));
       armL = limb(12.5, 31, ARM, rot("-50;-62;-50", ".22s"));
       armR = limb(27.5, 31, ARM, rot("-62;-50;-62", ".22s"));
-      extra = `<g class="w-laptop"><rect x="18" y="34" width="22" height="3" rx="1"/><rect x="30" y="20" width="3" height="15" rx="1"/><rect class="w-screen" x="31" y="21" width="1.2" height="12"><animate attributeName="opacity" values="1;.4;1" dur="1.3s" repeatCount="indefinite"/></rect></g>`;
+      extra = `<g class="w-laptop"><rect x="18" y="34" width="22" height="3" rx="1"/><rect x="30" y="20" width="3" height="15" rx="1"/><rect class="w-screen" x="31" y="21" width="1.2" height="12"/></g>`;
     } else if (pose === "sweep") {
       armL = limb(12.5, 31, ARM, still("-20"));
       armR = limb(27.5, 31, ARM + TOOLS.broom, rot("-35;5;-35", "1.2s"));
@@ -1754,7 +1758,7 @@
       legs = limb(15.5, 39, LEG, still("-80")) + limb(24.5, 39, LEG, still("-80"));
       armL = limb(12.5, 31, ARM, still("40"));
       armR = limb(27.5, 31, ARM, still("-40"));
-      extra = `<g class="w-zzz">${[0, 1, 2].map((i) => `<text x="${30 + i * 6}" y="${8 - i * 7}">z<animate attributeName="opacity" values="0;1;0" dur="2.4s" begin="${i * 0.8}s" repeatCount="indefinite"/></text>`).join("")}</g>`;
+      extra = `<g class="w-zzz">${[0, 1, 2].map((i) => `<text x="${30 + i * 6}" y="${8 - i * 7}">z</text>`).join("")}</g>`;
       return `<g class="worker pose-sleep">${legs}${armL}${HEAD.replace(/<circle class="gn-eye" cx="([\d.]+)" cy="([\d.]+)" r="1.1"\/>/g, '<rect class="gn-eye" x="$1" y="$2" width="2.6" height=".8" transform="translate(-1.3 0)"/>')}${armR}${extra}</g>`;
     } else if (pose === "climb") {
       armL = limb(12.5, 31, ARM, rot("170;130;170", "1s"));
@@ -1862,7 +1866,17 @@
 
   // «Volver al rack» llega con #ru-<unidad>: la fila, centrada y ya, antes
   // de decidir qué zonas están por encima (si no, el salto llega tarde).
-  if (returning) $(location.hash)?.scrollIntoView({ block: "center", behavior: "instant" });
+  if (returning) {
+    const row = $(location.hash);
+    row?.scrollIntoView({ block: "center", behavior: "instant" });
+    // Sin transición entre páginas (Firefox): la fila «encaja» al llegar.
+    if (doc.dataset.fx === "rack-out" && row) {
+      // Sale de donde estaba el frontal (arriba) y baja hasta su hueco.
+      row.style.setProperty("--dock-dy", `${104 - row.getBoundingClientRect().top}px`);
+      row.classList.add("fx-dock");
+      row.addEventListener("animationend", () => row.classList.remove("fx-dock"), { once: true });
+    }
+  }
 
   // Los servidores entran en el rack al aparecer.
   // Se vigila un marcador sin animación justo encima de cada zona, no la

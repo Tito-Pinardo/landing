@@ -113,6 +113,71 @@
       }
     }
   });
+  // ---------------------------------------------------------- respaldo sin transiciones entre páginas
+  // Firefox (y otros) solo tienen View Transitions dentro de una página. Ahí
+  // se hace a mano: antes de irse, la fila sube a donde estará el frontal o
+  // la bandeja se recoge; la página nueva sabe cómo se llegó (sessionStorage)
+  // y termina el gesto.
+  const crossDoc = "CSSViewTransitionRule" in window;
+  if (!crossDoc) {
+    try {
+      const fx = sessionStorage.getItem("tp:fx");
+      if (fx) {
+        sessionStorage.removeItem("tp:fx");
+        if (!motionOff()) {
+          doc.dataset.fx = fx;
+          if (fx === "rack-in") doc.dataset.arrived = "rack";
+        }
+      }
+    } catch { /* sin almacenamiento */ }
+    const go = (href, fx, ms) => {
+      try { sessionStorage.setItem("tp:fx", fx); } catch { /* sin almacenamiento */ }
+      setTimeout(() => { location.href = href; }, ms);
+    };
+    addEventListener("click", (ev) => {
+      if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || motionOff()) return;
+      const a = ev.target.closest?.("a[href]");
+      if (!a || a.target === "_blank" || a.hasAttribute("download")) return;
+      const to = new URL(a.href, location.href);
+      const kind = kindOf(new URL(location.href), to);
+      if (kind === "rack-in") {
+        ev.preventDefault();
+        const src = a.closest(".rack-unit, .quest, .lab-console") || a;
+        const r = src.getBoundingClientRect();
+        // Una copia de la fila (sin su atributo style: la CSP no lo deja
+        // copiar) sube a donde estará el frontal y se ensancha.
+        const ghost = (src.closest(".rack-unit") || a).cloneNode(true);
+        ghost.removeAttribute("style");
+        ghost.removeAttribute("id");
+        ghost.querySelectorAll("[style], [id]").forEach((e) => { e.removeAttribute("style"); e.removeAttribute("id"); });
+        ghost.classList.add("fx-ghost");
+        ghost.setAttribute("aria-hidden", "true");
+        Object.assign(ghost.style, { top: r.top + "px", left: r.left + "px", width: r.width + "px", height: r.height + "px" });
+        document.body.append(ghost);
+        doc.classList.add("fx-leaving");
+        const W = Math.min(innerWidth - 2 * 34, 1240);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          ghost.style.transform = `translate(${(innerWidth - W) / 2 - r.left}px, ${104 - r.top}px)`;
+          ghost.style.width = W + "px";
+          ghost.style.height = "62px";
+        }));
+        window.tpSound?.play("slide");
+        go(a.href, "rack-in", 420);
+      } else if (kind === "rack-out") {
+        ev.preventDefault();
+        doc.classList.add("fx-closing");
+        window.tpSound?.play("slide");
+        go(a.href, "rack-out", 380);
+      }
+    });
+    // Volver con el botón de atrás (bfcache): la página vieja, como estaba.
+    addEventListener("pageshow", (e) => {
+      if (!e.persisted) return;
+      doc.classList.remove("fx-leaving", "fx-closing");
+      document.querySelectorAll(".fx-ghost").forEach((g) => g.remove());
+    });
+  }
+
   // Entre unidades, la página nueva no sabe si se fue hacia arriba o abajo.
   addEventListener("pageswap", (ev) => {
     const to = ev.activation?.entry?.url ? new URL(ev.activation.entry.url) : null;
