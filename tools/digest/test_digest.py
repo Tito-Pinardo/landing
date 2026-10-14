@@ -74,6 +74,18 @@ class Feeds(unittest.TestCase):
         self.assertEqual([i["unit"] for i in picked], ["traefik", "traefik", "dns"])
 
 
+class Grouping(unittest.TestCase):
+    def test_same_product_is_one_item(self):
+        a = fake_item(kind="security", src="Wazuh"); a["cve"] = "CVE-1"
+        b = fake_item(kind="security", src="Wazuh", score=4); b["cve"] = "CVE-2"
+        c = fake_item(kind="security", src="Traefik"); c["cve"] = "CVE-3"
+        out = digest.group_security([a, b, c])
+        self.assertEqual(len(out), 2)
+        w = next(i for i in out if i["source"] == "Wazuh")
+        self.assertIn("2 vulnerabilidades en Wazuh", w["title"])
+        self.assertEqual(w["score"], 4)
+
+
 class Commands(unittest.TestCase):
     def test_commands(self):
         p = digest.parse_command
@@ -89,7 +101,9 @@ class Commands(unittest.TestCase):
     def test_status_claims_are_caught(self):
         for bad in ["Mi servidor está actualizado", "ya lo tengo parcheado", "My server is patched", "this doesn't affect me"]:
             self.assertTrue(digest.STATUS_CLAIM.search(bad), bad)
-        for ok in ["Afecta a la puerta de entrada de un homelab", "Conviene leer las notas"]:
+        for bad in ["Voy a planificar la actualización de los componentes afectados", "Revisar la versión de mi gestor Wazuh", "I need to update my Wazuh"]:
+            self.assertTrue(digest.STATUS_CLAIM.search(bad), bad)
+        for ok in ["Afecta a la puerta de entrada de un homelab", "Conviene leer las notas", "La versión 4.14.8 lo corrige"]:
             self.assertFalse(digest.STATUS_CLAIM.search(ok), ok)
 
 
@@ -108,6 +122,7 @@ class Models(unittest.TestCase):
             cfg = digest.Config({"HOME": d, "DIGEST_GEMINI_KEY_FILE": str(Path(d) / "k")})
             self.assertEqual(cfg.gemini_key, "clave-de-prueba")
             self.assertEqual(digest.Config({"HOME": d}).gemini_key, "")
+            self.assertEqual(digest.Config({"HOME": d, "GEMINI_MODEL": "a, b"}).gemini_models, ["a", "b"])
 
 
 class Schedule(unittest.TestCase):

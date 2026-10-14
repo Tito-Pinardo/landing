@@ -64,7 +64,7 @@ landing check-article borrador.toml                  # valida un borrador con la
 
 Por entorno (el despliegue lo deja en un fichero `0600`): `MATRIX_HOMESERVER`,
 `MATRIX_ACCESS_TOKEN`, `MATRIX_ROOM_ID`, `DIGEST_OWNER`, `OLLAMA_URL`,
-`OLLAMA_MODEL`, `GEMINI_MODEL`. La clave de Gemini se lee de
+`OLLAMA_MODEL` y `GEMINI_MODEL` (lista separada por comas: si un modelo está saturado, se pasa al siguiente). La clave de Gemini se lee de
 `~/.config/landing-digest/gemini.key` y no pasa por ningún entorno.
 
 El script trabaja sobre un clon propio del repositorio

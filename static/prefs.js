@@ -100,8 +100,18 @@
     else if (from && isUnit(from) && isUnit(here)) kind = sessionStorage.getItem("tp:vt") || "unit-next";
     if (!kind) { vt.skipTransition(); return; }
     vt.types.add(kind);
-    // Al volver al rack, su frontal recibe la unidad si ya está en el DOM.
-    if (kind === "rack-out") name(rackFace(from.pathname));
+    // La unidad no repite su animación de entrada: ya la hace la transición.
+    if (kind === "rack-in") doc.dataset.arrived = "rack";
+    // Al volver al rack: su fila, centrada antes de la primera captura (si
+    // no, la página nueva sale arriba del todo y luego salta), recibe la
+    // unidad.
+    if (kind === "rack-out") {
+      const li = rackFace(from.pathname);
+      if (li) {
+        li.scrollIntoView({ block: "center", behavior: "instant" });
+        name(li);
+      }
+    }
   });
   // Entre unidades, la página nueva no sabe si se fue hacia arriba o abajo.
   addEventListener("pageswap", (ev) => {

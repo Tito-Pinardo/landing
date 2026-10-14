@@ -381,7 +381,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
     </div>
     <ol class="rack-units">
     {% for r in rack %}
-      <li class="rack-unit status-{{ r.status }}" data-rack-unit="{{ r.id }}" data-tech="{{ r.tech_ids }}" data-nodes="{{ r.nodes }}">
+      <li class="rack-unit status-{{ r.status }}" id="ru-{{ r.id }}" data-rack-unit="{{ r.id }}" data-tech="{{ r.tech_ids }}" data-nodes="{{ r.nodes }}">
         <a href="{{ r.url }}" data-href="{{ r.url }}">
           <span class="ru-n" aria-hidden="true">U{{ "{:02}"|format(r.n) }}</span>
           <span class="ru-ear" aria-hidden="true"></span>

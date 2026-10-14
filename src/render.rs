@@ -770,7 +770,9 @@ pub fn unit(
 
     let tpl = UnitTpl {
         url: format!("{public_url}{}", unit_url(lang, &unit.id)),
-        back_url: format!("/{}/#lab", lang.code()),
+        // «Volver al rack» deja en la fila de esta unidad (y la transición la
+        // devuelve a su hueco); las migas siguen yendo al laboratorio.
+        back_url: format!("/{}/#ru-{}", lang.code(), unit.id),
         id: &unit.id,
         t,
         pods,

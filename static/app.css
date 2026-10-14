@@ -956,6 +956,7 @@ body {
 /* Entrada en 3D: el servidor se desliza dentro del rack al aparecer. */
 .js .zone.rack-in { opacity: .2; transform: perspective(1400px) rotateX(14deg) translateY(50px) scale(.96); transform-origin: 50% 100%; }
 .js .zone.rack-in.is-racked { opacity: 1; transform: none; transition: transform .9s cubic-bezier(.2, .8, .25, 1), opacity .6s ease; }
+.js .zone.rack-in.rack-instant { transition: none; }
 
 /* Tarjetas y paneles: bahías del chasis. */
 .card, .branch, .quest article, .stats li, .quick-card, .lab-console, .ba-pane, .world-tile, .lab-map {
@@ -1545,31 +1546,39 @@ html[data-night] .lab-link { filter: drop-shadow(0 0 3px var(--accent-soft)); }
 @media (max-width: 600px) { .bf-row, .post-sheet dl { grid-template-columns: 1fr; } }
 
 /* ------------------------------------------------------------ entrar y salir del rack (prefs.js) */
+/* Entrar: la fila del rack que pulsas sube y se convierte en el frontal de
+   la unidad; justo cuando llega, la bandeja se abre desde él (tray-open, sin
+   la espera de cuando se entra directamente). El rack solo se atenúa.
+   Salir: la bandeja se recoge hacia el frontal y el frontal baja a su fila. */
 @view-transition { navigation: auto; }
 html:active-view-transition-type(rack-in) .unit-face,
 html:active-view-transition-type(rack-out) .unit-face { view-transition-name: unit-face; }
-::view-transition-group(unit-face) { animation-duration: .6s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: .6s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); transform-origin: 50% 30%; }
-/* Entrar: el rack se hunde y la unidad sale hacia ti como un cajón. */
-html:active-view-transition-type(rack-in)::view-transition-old(root) { animation-name: vt-rack-sink; }
-html:active-view-transition-type(rack-in)::view-transition-new(root) { animation-name: vt-drawer-out; }
-/* Salir: la unidad vuelve a su hueco y el rack se acerca. */
-html:active-view-transition-type(rack-out)::view-transition-old(root) { animation-name: vt-drawer-in; }
-html:active-view-transition-type(rack-out)::view-transition-new(root) { animation-name: vt-rack-rise; }
+::view-transition-group(unit-face) { animation-duration: .55s; animation-timing-function: cubic-bezier(.3, .7, .2, 1); z-index: 2; }
+::view-transition-old(unit-face), ::view-transition-new(unit-face) { animation-duration: .55s; height: 100%; object-fit: fill; }
+html:active-view-transition-type(rack-in)::view-transition-old(root) { animation: vt-dim .45s ease both; }
+html:active-view-transition-type(rack-in)::view-transition-new(root) { animation: vt-fade .25s ease .2s both; }
+html:active-view-transition-type(rack-out)::view-transition-old(root) { animation: vt-tray-close .4s cubic-bezier(.5, 0, .8, .4) both; }
+html:active-view-transition-type(rack-out)::view-transition-new(root) { animation: vt-fade .3s ease .3s both; }
+/* Al llegar desde el rack, el frontal ya ha hecho su viaje: sin su tirón y
+   con la bandeja abriéndose en cuanto aterriza. */
+html[data-arrived="rack"] .unit-face, html[data-arrived="rack"] .unit-face .uf-pull { animation: none; }
+html[data-arrived="rack"] .unit-face .uf-pull { display: none; }
+html[data-arrived="rack"] .unit-inside { animation-delay: .5s; animation-duration: .8s; }
 /* Entre unidades vecinas: las bandejas se deslizan arriba o abajo. */
-html:active-view-transition-type(unit-next)::view-transition-old(root) { animation-name: vt-tray-up-out; }
-html:active-view-transition-type(unit-next)::view-transition-new(root) { animation-name: vt-tray-up-in; }
-html:active-view-transition-type(unit-prev)::view-transition-old(root) { animation-name: vt-tray-down-out; }
-html:active-view-transition-type(unit-prev)::view-transition-new(root) { animation-name: vt-tray-down-in; }
-@keyframes vt-rack-sink { to { transform: perspective(1400px) translateZ(-260px) rotateX(10deg); opacity: 0; filter: brightness(.6); } }
-@keyframes vt-drawer-out { from { transform: perspective(1400px) translateZ(-420px) rotateX(-14deg); opacity: 0; } }
-@keyframes vt-drawer-in { to { transform: perspective(1400px) translateZ(-420px) rotateX(-14deg); opacity: 0; } }
-@keyframes vt-rack-rise { from { transform: perspective(1400px) translateZ(-260px) rotateX(10deg); opacity: 0; filter: brightness(.6); } }
+html:active-view-transition-type(unit-next)::view-transition-old(root) { animation: vt-tray-up-out .5s cubic-bezier(.2, .8, .2, 1) both; }
+html:active-view-transition-type(unit-next)::view-transition-new(root) { animation: vt-tray-up-in .5s cubic-bezier(.2, .8, .2, 1) both; }
+html:active-view-transition-type(unit-prev)::view-transition-old(root) { animation: vt-tray-down-out .5s cubic-bezier(.2, .8, .2, 1) both; }
+html:active-view-transition-type(unit-prev)::view-transition-new(root) { animation: vt-tray-down-in .5s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes vt-dim { to { opacity: 0; filter: brightness(.7); transform: scale(.985); } }
+@keyframes vt-fade { from { opacity: 0; } }
+@keyframes vt-tray-close { to { clip-path: inset(0 0 100% 0); opacity: .4; } }
 @keyframes vt-tray-up-out { to { transform: perspective(1400px) translateY(-18%) rotateX(16deg); opacity: 0; } }
 @keyframes vt-tray-up-in { from { transform: perspective(1400px) translateY(18%) rotateX(-16deg); opacity: 0; } }
 @keyframes vt-tray-down-out { to { transform: perspective(1400px) translateY(18%) rotateX(-16deg); opacity: 0; } }
 @keyframes vt-tray-down-in { from { transform: perspective(1400px) translateY(-18%) rotateX(16deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+/* Al volver con «Volver al rack», la fila de la unidad queda a media pantalla. */
+.rack-unit { scroll-margin-top: 38vh; }
 
 /* ------------------------------------------------------------ modo incidente */
 .incident-banner {

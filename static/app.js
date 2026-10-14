@@ -426,6 +426,8 @@
   // El rack de la portada: al filtrar se encienden las unidades que usan la
   // habilidad y su enlace entra con esas piezas ya iluminadas.
   const rackUnits = $$("[data-rack-unit]");
+  // ¿Vuelve de una unidad? (con «Volver al rack», que trae #ru-<unidad>).
+  const returning = /^#ru-[a-z0-9-]+$/.test(location.hash);
   const rackLit = $("[data-rack-lit]");
   function paintRack(tech, name) {
     let n = 0;
@@ -446,7 +448,8 @@
   // disco al pasar por encima.
   {
     const list = $(".rack-units");
-    if (list && !reduceMotion() && "IntersectionObserver" in window) {
+    // Al volver de una unidad, el rack ya está montado: nada de cascada.
+    if (list && !reduceMotion() && !returning && "IntersectionObserver" in window) {
       rackUnits.forEach((r, i) => r.style.setProperty("--i", String(i)));
       list.classList.add("will-slide");
       const io = new IntersectionObserver((entries) => {
@@ -1857,30 +1860,52 @@
     document.addEventListener("visibilitychange", () => { if (!document.hidden && labVisible && !patrolRaf) patrolRaf = requestAnimationFrame(patrolTick); });
   }
 
+  // «Volver al rack» llega con #ru-<unidad>: la fila, centrada y ya, antes
+  // de decidir qué zonas están por encima (si no, el salto llega tarde).
+  if (returning) $(location.hash)?.scrollIntoView({ block: "center", behavior: "instant" });
+
   // Los servidores entran en el rack al aparecer.
-  if ("IntersectionObserver" in window && !reduceMotion()) {
-    // Se vigila un marcador sin animación justo encima de cada zona, no la
-    // zona: inclinada en 3D, una zona muy alta (misiones, laboratorio) ocupa
-    // en pantalla mucho menos de lo que mide y entraba tarde. Y sin umbral en
-    // porcentaje: entra en cuanto su borde pasa del 85 % de la pantalla.
-    const racked = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        e.target.nextElementSibling?.classList.add("is-racked");
-        racked.unobserve(e.target);
-        e.target.remove();
-      }
-    }, { threshold: 0, rootMargin: "0px 0px -15% 0px" });
+  // Se vigila un marcador sin animación justo encima de cada zona, no la
+  // zona: inclinada en 3D, una zona muy alta (misiones, laboratorio) ocupa
+  // en pantalla mucho menos de lo que mide y entraba tarde. Entra en cuanto
+  // su borde pasa del 85 % de la pantalla. Se comprueba al hacer scroll y no
+  // con IntersectionObserver: al volver de una unidad el navegador salta a
+  // la fila del rack después de montar esto, y las zonas que quedan por
+  // encima nunca «cruzan» la pantalla; esas se dan por vistas, sin animar.
+  if (!reduceMotion()) {
+    const marks = [];
     $$(".zone").forEach((z) => {
-      const r = z.getBoundingClientRect();
-      if (r.top <= innerHeight) return;
+      if (z.getBoundingClientRect().top <= innerHeight) return;
       z.classList.add("rack-in");
       const mark = document.createElement("div");
       mark.className = "rack-mark";
       mark.setAttribute("aria-hidden", "true");
       z.before(mark);
-      racked.observe(mark);
+      marks.push(mark);
     });
+    let queued = false;
+    const check = () => {
+      queued = false;
+      for (let i = marks.length - 1; i >= 0; i--) {
+        const m = marks[i];
+        const top = m.getBoundingClientRect().top;
+        if (top > innerHeight * 0.85) continue;
+        const zone = m.nextElementSibling;
+        // Ya por encima de la pantalla: está «vista», sin animación.
+        if (top < 0) zone?.classList.add("rack-instant");
+        zone?.classList.add("is-racked");
+        m.remove();
+        marks.splice(i, 1);
+      }
+      if (!marks.length) { removeEventListener("scroll", onScroll); removeEventListener("resize", onScroll); }
+    };
+    const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(check); } };
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll, { passive: true });
+    addEventListener("hashchange", onScroll);
+    addEventListener("pageshow", onScroll);
+    addEventListener("load", onScroll);
+    onScroll();
   }
 
   // ------------------------------------------------------------ apariciones y contadores
@@ -1943,7 +1968,8 @@
   }
 
   setTimeout(() => {
-    if (doc.classList.contains("quick-mode")) return;
+    // Al volver de una unidad no se saluda otra vez: ya estabas aquí.
+    if (doc.classList.contains("quick-mode") || returning) return;
     const tour = store.get("hermesTour", -1);
     if (!store.get("hermesGreeted", false)) {
       store.set("hermesGreeted", true);

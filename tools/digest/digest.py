@@ -82,7 +82,9 @@ class Config:
         # Gemini primero si hay clave (no depende de que el PC esté encendido);
         # el modelo local queda de respaldo. La clave vive en un fichero 0600,
         # nunca en el repositorio.
-        self.gemini_model = e.get("GEMINI_MODEL", "gemini-2.5-flash")
+        # Varios modelos por orden: si uno está saturado (503/429), el siguiente.
+        self.gemini_models = [m.strip() for m in e.get(
+            "GEMINI_MODEL", "gemini-3.5-flash,gemini-3.6-flash,gemini-3.1-flash-lite").split(",") if m.strip()]
         key = e.get("GEMINI_API_KEY", "")
         key_file = Path(e.get("DIGEST_GEMINI_KEY_FILE", home / ".config/landing-digest/gemini.key"))
         if not key and key_file.exists():
@@ -306,7 +308,28 @@ def collect_security(sources: dict, since: dt.datetime, until: dt.datetime) -> l
                             f"{v.get('shortDescription', '')} Acción indicada: {v.get('requiredAction', '')}")
                     add(item("security", s, f"{v['cveID']} en {s['name']}, ya explotada",
                              f"https://nvd.nist.gov/vuln/detail/{v['cveID']}", added, text, 5, v["cveID"], "KEV"))
-    return list(found.values())
+    return group_security(list(found.values()))
+
+
+def group_security(items: list[dict]) -> list[dict]:
+    """Varias vulnerabilidades del mismo producto en la semana van en una sola
+    novedad: el resumen no es una lista de CVE."""
+    by: dict[str, list[dict]] = {}
+    for it in items:
+        by.setdefault(it["source"], []).append(it)
+    out = []
+    for name, group in by.items():
+        group.sort(key=lambda i: i["score"], reverse=True)
+        if len(group) == 1:
+            out.append(group[0])
+            continue
+        top = dict(group[0])
+        ids = [g["cve"] or g["link"].rsplit("/", 1)[-1] for g in group]
+        top["title"] = f"{len(group)} vulnerabilidades en {name} ({', '.join(ids[:4])}{'…' if len(ids) > 4 else ''})"
+        top["text"] = " ".join(f"[{i}] {g['text'][:700]}" for i, g in zip(ids, group))[:2500]
+        top["cves"] = ids
+        out.append(top)
+    return out
 
 
 def pick(items: list[dict], n: int = MAX_CANDIDATES) -> list[dict]:
@@ -330,13 +353,16 @@ def pick(items: list[dict], n: int = MAX_CANDIDATES) -> list[dict]:
 
 SYSTEM = """Escribes el resumen semanal del blog de Tito, administrador de sistemas, sobre novedades que afectan a su homelab. Respondes solo con el JSON pedido, en español de España y en inglés británico.
 
+Su homelab: un servidor Proxmox VE (Debian) con contenedores LXC y Docker, todo Linux; un router MikroTik; un PC de escritorio con GPU para el modelo local. No hay Windows ni macOS en el servidor.
+
 Reglas:
 - Usa solo lo que dice la novedad. No inventes versiones, cifras, fechas ni funciones.
 - "what": qué ha salido o qué se ha descubierto, en una o dos frases claras.
 - "means": por qué importa para esa pieza en un homelab como el suyo. NUNCA digas si su servidor está actualizado, parcheado, expuesto o es vulnerable: no lo sabes. Habla de la pieza, no del estado de su servidor.
-- "idea": una acción concreta que merezca la pena (probar una función nueva, revisar una opción, leer las notas antes de actualizar). Cadena vacía si no hay ninguna.
+- "idea": una acción concreta que merezca la pena (probar una función nueva, revisar una opción, leer las notas antes de actualizar). Cadena vacía si no hay ninguna. En vulnerabilidades, la idea es general: qué versión lo corrige o qué opción lo mitiga. Nunca digas que Tito tiene algo pendiente, que va a actualizar o que tiene que revisar su versión.
+- Sé concreto con la pieza: nada de frases de relleno como "dado que gestiono mis servicios con contenedores".
 - "title": titular corto (máximo 90 caracteres), sin clickbait y sin emojis.
-- "keep": false si la novedad no aporta nada (un parche menor sin cambios notables, una noticia que no tiene que ver con un homelab).
+- "keep": false si la novedad no aporta nada (un parche menor sin cambios notables, una noticia que no tiene que ver con un homelab) o si es de una plataforma que no usa (por ejemplo, una vulnerabilidad solo de Windows).
 - Tono directo y en primera persona cuando hable Tito ("en mi caso", "lo pruebo"), sin exagerar."""
 
 ITEM_SCHEMA = {
@@ -366,7 +392,9 @@ INTRO_SCHEMA = {
 STATUS_CLAIM = re.compile(
     r"(ya (lo )?(tengo|he|est[aá]) (actualizad|parchead)|mi servidor (est[aá]|es) (vulnerable|expuest|parchead|actualizad)"
     r"|no (me )?afecta|estoy a salvo|already (patched|updated|upgraded)|my server is (vulnerable|exposed|patched|safe)"
-    r"|i'?m (safe|not affected)|doesn'?t affect me)", re.I)
+    r"|i'?m (safe|not affected)|doesn'?t affect me"
+    r"|(planificar|programar|tengo que|toca|pendiente[s]? de) (la )?actualiza|componentes afectados|actualizar mi |revisar (la versi[oó]n de )?mi "
+    r"|(plan|schedule|need) (to )?(the )?(update|upgrade)|affected components|update my |check my (current )?version)", re.I)
 
 
 class ModelDown(Exception):
@@ -405,13 +433,18 @@ def gemini(cfg: Config, messages: list[dict], schema: dict) -> dict:
         "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json",
                              "responseSchema": gemini_schema(schema)},
     }).encode()
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{cfg.gemini_model}:generateContent"
-    try:
-        raw = http(url, data=body, headers={"Content-Type": "application/json", "x-goog-api-key": cfg.gemini_key},
-                   timeout=120, tries=3)
-    except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
-        # Sin el cuerpo: podría repetir la petición, y la clave va en cabecera.
-        raise ModelDown(f"Gemini: {getattr(e, 'code', '')} {getattr(e, 'reason', e)}") from e
+    errors = []
+    for model in cfg.gemini_models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+        try:
+            raw = http(url, data=body, headers={"Content-Type": "application/json", "x-goog-api-key": cfg.gemini_key},
+                       timeout=120, tries=3)
+            break
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            # Sin el cuerpo de la respuesta: la clave va en cabecera y no se repite.
+            errors.append(f"{model}: {getattr(e, 'code', '')} {getattr(e, 'reason', e)}")
+    else:
+        raise ModelDown("Gemini: " + "; ".join(errors))
     r = json.loads(raw)
     text = "".join(p.get("text", "") for p in r["candidates"][0]["content"]["parts"])
     return json.loads(text)
@@ -489,8 +522,15 @@ def write_intro(cfg: Config, items: list[dict]) -> dict:
     msgs = [{"role": "system", "content": SYSTEM},
             {"role": "user", "content": "Novedades de esta semana:\n" + "\n".join(lines) +
              "\n\nEscribe 'summary' (entradilla de dos frases que diga lo más importante de la semana) y "
-             "'lesson' (una frase: lo que se lleva Tito de esta semana o lo que va a probar). En los dos idiomas."}]
+             "'lesson' (una frase con una enseñanza general de la semana; nunca sobre actualizaciones o revisiones pendientes de su servidor). En los dos idiomas."}]
     out = llm(cfg, msgs, INTRO_SCHEMA)
+    if STATUS_CLAIM.search(" ".join(out[l][k] for l in ("es", "en") for k in ("summary", "lesson"))):
+        msgs.append({"role": "assistant", "content": json.dumps(out, ensure_ascii=False)})
+        msgs.append({"role": "user", "content": "No hables de actualizaciones o revisiones pendientes de su servidor: reescribe la entradilla y la lección en general."})
+        out = llm(cfg, msgs, INTRO_SCHEMA)
+        if STATUS_CLAIM.search(" ".join(out[l][k] for l in ("es", "en") for k in ("summary", "lesson"))):
+            for lang, txt in (("es", "Lo importante de la semana, pieza a pieza: lo que cambia y dónde mirar."), ("en", "The week's news, piece by piece: what changes and where to look.")):
+                out[lang]["lesson"] = txt
     for lang in ("es", "en"):
         out[lang]["summary"] = clean(out[lang]["summary"], 360)
         out[lang]["lesson"] = clean(out[lang]["lesson"], 260)
