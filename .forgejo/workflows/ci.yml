@@ -1,0 +1,63 @@
+# CI/CD de la web en Forgejo, el origen del repositorio.
+#
+# - comprobar (runner del CI, sin secretos): lo mismo que el CI de GitHub más
+#   gitleaks sobre todo el historial.
+# - desplegar (solo main, con «comprobar» en verde): el runner de despliegue
+#   pasa el control de fugas de lo que aún no es público, compila, despliega
+#   con Ansible y empuja ese commit a GitHub, que queda como copia pública.
+#   El script vive en ese runner, con la infraestructura, no aquí.
+#
+# El resultado de cada ejecución llega a Element por el webhook del repo.
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  # Las consultas se comprueban contra los datos de .sqlx (cargo sqlx prepare).
+  SQLX_OFFLINE: "true"
+  CARGO_TERM_COLOR: never
+
+jobs:
+  comprobar:
+    runs-on: landing
+    steps:
+      # Sin actions/checkout: el runner no tiene Node para acciones y basta un
+      # fetch. Historial completo para gitleaks.
+      - name: Copia del repo
+        run: |
+          git init -q .
+          git -c http.extraHeader="Authorization: token ${{ github.token }}" \
+            fetch -q --no-tags "${{ github.server_url }}/${{ github.repository }}.git" "+${{ github.ref }}:refs/ci/actual"
+          git checkout -q -f "${{ github.sha }}"
+          git clean -qffdx
+      - name: Formato
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Pruebas (contra PostgreSQL)
+        run: cargo test --locked
+      - name: Compilar en release
+        run: cargo build --locked --release
+      - name: Contenido válido
+        run: '"$CARGO_TARGET_DIR/release/landing" check'
+      - name: El JS minificado sigue siendo JS válido
+        run: |
+          min="$(mktemp -d)"
+          "$CARGO_TARGET_DIR/release/landing" dump-assets "$min"
+          for f in "$min"/*.js; do node --check "$f"; done
+          rm -rf "$min"
+      - name: Pruebas del resumen semanal (Python, sin red)
+        run: python3 -m unittest tools/digest/test_digest.py
+      # Todo el historial: lo que se borró en un commit posterior sigue en el repo.
+      - name: gitleaks
+        run: gitleaks git --redact --no-banner --exit-code 1 .
+
+  desplegar:
+    needs: comprobar
+    if: github.ref == 'refs/heads/main'
+    runs-on: landing-despliegue
+    steps:
+      - name: Control de fugas, despliegue y copia pública
+        run: landing-desplegar "${{ github.sha }}"

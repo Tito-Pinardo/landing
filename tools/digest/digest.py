@@ -51,6 +51,8 @@ MADRID = ZoneInfo("Europe/Madrid")
 UA = "tito-landing-digest/1.0 (+https://titopinardogutierrez.com)"
 HERE = Path(__file__).resolve().parent
 PUBLIC_URL = "https://titopinardogutierrez.com"
+# Cuánto se espera a que el CI y el despliegue continuo publiquen el artículo.
+PUBLISH_WAIT = 40 * 60
 
 MAX_ITEMS = 6          # novedades por resumen
 MAX_CANDIDATES = 10    # las que se le pasan al modelo
@@ -92,8 +94,9 @@ class Config:
         self.gemini_key = key
         self.state = Path(e.get("DIGEST_STATE", home / ".local/state/landing-digest"))
         self.repo = Path(e.get("DIGEST_REPO", home / ".local/share/landing-digest/repo"))
-        self.remote = e.get("DIGEST_REMOTE", "git@github.com:Tito-Pinardo/landing.git")
-        self.ansible = Path(e.get("DIGEST_ANSIBLE", home / "infra-tf/ansible"))
+        # El origen del repositorio (el de casa, con su CI/CD): publicar es
+        # empujar ahí y esperar a que el despliegue continuo lo ponga en la web.
+        self.remote = e.get("DIGEST_REMOTE", "")
         self.cargo_path = e.get("DIGEST_CARGO_PATH", str(home / ".cargo/bin"))
         self.gitleaks = e.get("DIGEST_GITLEAKS", str(home / ".local/bin/gitleaks"))
         self.sources = Path(e.get("DIGEST_SOURCES", HERE / "sources.toml"))
@@ -769,6 +772,8 @@ def build_env(cfg: Config) -> dict:
 def fresh_repo(cfg: Config):
     """El clon propio del resumen, igual que origin/main. Así nunca pisa la
     copia de trabajo de nadie."""
+    if not cfg.remote:
+        raise RuntimeError("falta DIGEST_REMOTE (el origen del repositorio)")
     if not (cfg.repo / ".git").exists():
         cfg.repo.parent.mkdir(parents=True, exist_ok=True)
         run(["git", "clone", "-q", cfg.remote, str(cfg.repo)], cfg.repo.parent)
@@ -810,17 +815,17 @@ def publish(cfg: Config, st: dict) -> str:
     except RuntimeError:
         run(["git", "pull", "-q", "--rebase", "origin", "main"], cfg.repo)
         run(["git", "push", "-q", "origin", "HEAD:main"], cfg.repo)
-        run(["cargo", "build", "--release", "-q"], cfg.repo, env)
-    run(["ansible-playbook", "playbooks/landing.yml", "-e",
-         f"landing_binary_src={cfg.repo / 'target/release/landing'}"], cfg.ansible, env, timeout=1200)
+    # El push dispara el CI y, si sale verde, el despliegue continuo (que
+    # también actualiza la copia pública). Aquí solo se espera a verlo.
     url = f"{PUBLIC_URL}/es/blog/{slug}/"
-    for _ in range(10):
+    deadline = time.monotonic() + PUBLISH_WAIT
+    while time.monotonic() < deadline:
         try:
             http(url, tries=1)
             return url
         except Exception:
-            time.sleep(6)
-    raise RuntimeError(f"publicado pero {url} no responde")
+            time.sleep(30)
+    raise RuntimeError(f"empujado, pero {url} no responde tras {PUBLISH_WAIT // 60} min: mirar el CI")
 
 
 # --------------------------------------------------------------------------

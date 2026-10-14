@@ -13,6 +13,7 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 - **Aviso a Matrix con bandeja de salida.** El mensaje se guarda primero y el aviso se reintenta (`FOR UPDATE SKIP LOCKED`) hasta que Matrix devuelve un `event_id`.
 - **Sin dependencias en el navegador.** CSS y JS propios (unos 28 KB en total con brotli). Todo funciona sin JavaScript; el mapa, la terminal y los logros son una mejora encima.
 - **Seguridad.** CSP estricta sin nada en línea, cabeceras HSTS/COOP/etc., Turnstile opcional, campo trampa y límites por IP y globales.
+- **CI/CD en mi propio Forgejo.** El origen del repositorio está en casa. Cada push pasa el CI ([`.forgejo/workflows/ci.yml`](.forgejo/workflows/ci.yml)): formato, clippy, pruebas contra PostgreSQL, compilación, contenido válido, JS minificado válido y gitleaks sobre todo el historial. Lo hace en un runner sin secretos. Con `main` en verde, otro runner pasa un control de fugas a lo que aún no es público, despliega con Ansible y empuja ese commit aquí: este repositorio de GitHub es la copia pública y solo recibe lo que ya está desplegado. Cada resultado llega a Element. El CI de GitHub ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) repite las comprobaciones sobre la copia.
 
 ## Estructura
 
@@ -26,6 +27,7 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 | `static/` | CSS (`app.css` común; `home.css`, `unit.css` y `blog.css`, solo en sus páginas; se minifica al arrancar), JS (`app.js` para la portada, `unit.js` para las unidades, `sound.js` para el sonido, `prefs.js` para el panel de vista: tema, animaciones, enanitos y la noche en casa), imágenes y CV (se compilan dentro del binario) |
 | `migrations/` | Esquema de PostgreSQL |
 | `src/` | Servidor |
+| `.forgejo/workflows/` | CI/CD en Forgejo (comprobar y desplegar); `.github/workflows/`, el CI de la copia pública |
 | `docs/PLAN.md` | Plan, decisiones y fases |
 
 ## Desarrollo

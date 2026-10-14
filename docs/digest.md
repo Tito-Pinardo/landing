@@ -15,7 +15,7 @@ Un temporizador lanza `digest.py tick` cada 15 minutos:
 |---|---|
 | Domingo 20:00 → lunes 8:00 | Si aún no hay borrador, recoge, escribe y lo manda a Matrix |
 | Siempre | Lee mis respuestas al borrador |
-| Lunes ≥ 8:00, aprobado | Publica: commit, `landing check`, gitleaks, push y despliegue |
+| Lunes ≥ 8:00, aprobado | Publica: commit, `landing check`, gitleaks y push al origen; el CI/CD lo despliega y el script espera a ver el artículo en la web (hasta 40 min) |
 | Martes ≥ 20:00 sin respuesta | Caduca y no se publica |
 
 Órdenes en Matrix (solo las del dueño, `DIGEST_OWNER`): **publicar**,
@@ -62,11 +62,14 @@ landing check-article borrador.toml                  # valida un borrador con la
 
 ## Configuración
 
-Por entorno (el despliegue lo deja en un fichero `0600`): `MATRIX_HOMESERVER`,
+Por entorno (el despliegue lo deja en un fichero `0600`): `DIGEST_REMOTE` (el origen
+del repositorio, en Forgejo), `MATRIX_HOMESERVER`,
 `MATRIX_ACCESS_TOKEN`, `MATRIX_ROOM_ID`, `DIGEST_OWNER`, `OLLAMA_URL`,
 `OLLAMA_MODEL` y `GEMINI_MODEL` (lista separada por comas: si un modelo está saturado, se pasa al siguiente). La clave de Gemini se lee de
 `~/.config/landing-digest/gemini.key` y no pasa por ningún entorno.
 
 El script trabaja sobre un clon propio del repositorio
 (`~/.local/share/landing-digest/repo`), que deja igual que `origin/main` antes
-de cada uso. Así nunca pisa una copia de trabajo.
+de cada uso. Así nunca pisa una copia de trabajo. No despliega nada él mismo:
+el artículo sigue el mismo camino que cualquier otro commit (CI, control de
+fugas, despliegue y copia en GitHub).
