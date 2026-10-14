@@ -525,6 +525,58 @@ ops = "Operations"
 security = "Security"
 ai = "AI"
 home = "Home"
+break = "Break the server"
+
+[flows.disk]
+title = "A pool disk dies"
+steps = [
+  "One of the five disks in the big pool stops responding.",
+  "The pool is RAIDZ1: it survives one disk less. It goes DEGRADED and keeps reading and writing with the four left.",
+  "Plex keeps serving films from that pool: nobody at home notices.",
+  "The monitoring snapshot sees the pool DEGRADED and Hermes picks it up.",
+  "It posts the alert in Matrix.",
+  "It reaches my phone: time to buy a disk.",
+  "I swap the disk and ZFS rebuilds it (resilver) with the pool running.",
+]
+verdict = "Downtime: none. Data lost: none, as long as no other disk dies before the rebuild finishes: RAIDZ1 survives one, not two."
+
+[flows.power]
+title = "A power cut"
+steps = [
+  "Power cut at home. With no UPS, the server goes off at once.",
+  "From outside, anyone opening the site…",
+  "…sees a Cloudflare error: it can't reach the origin.",
+  "Power comes back and the server boots on its own.",
+  "The container storage is checked after the hard shutdown: 65 to 90 minutes on spinning disks.",
+  "When it finishes it's left half-activated and autostart doesn't retry: I activate it by hand with the steps already written down.",
+  "I start the containers and the site is back.",
+]
+verdict = "Downtime: over an hour, mostly the storage check. Data lost: none. What would prevent it at the root: a UPS with an orderly shutdown."
+
+[flows.acme]
+title = "Let's Encrypt doesn't answer"
+steps = [
+  "A certificate is due for renewal and Let's Encrypt doesn't answer.",
+  "The DNS-01 check against Cloudflare doesn't complete.",
+  "Traefik retries on its own: it renews a month ahead, so there's plenty of time.",
+  "Hermes checks daily how long the certificates have left.",
+  "If one gets close to expiring, it posts in Matrix.",
+  "And I see it on my phone long before it expires.",
+]
+verdict = "Downtime: none. The current certificate is valid for weeks while it retries, and the alert arrives before it matters."
+
+[flows.db]
+title = "This site's database goes down"
+steps = [
+  "This site's database stops responding.",
+  "The pages don't need it: they're built at startup and served from memory.",
+  "Visitors see the site as usual.",
+  "The contact form can't save: it tells the visitor to try again in a few minutes. Nothing is left half-done.",
+  "The database comes back.",
+  "The form saves again, and what's saved is notified in order: first saved, then sent.",
+  "The alert reaches Matrix.",
+]
+verdict = "Visible downtime: only the form, while it lasts. Messages lost: none: either it's saved whole, or the visitor is asked to retry."
 
 [flows.update]
 title = "Updating containers"

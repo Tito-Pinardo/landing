@@ -790,6 +790,33 @@ id = "scan"
 category = "home"
 path = ["casa", "authelia", "paperless", "zfs"]
 
+# «Rompe el servidor»: averías provocadas a propósito. `broken` es la pieza
+# que se rompe; el veredicto (cuánto se cayó y qué se perdió) está en los
+# textos. Solo comportamientos que constan en las unidades y los artículos.
+[[flows]]
+id = "disk"
+category = "break"
+broken = "zfs"
+path = ["zfs", "zfs", "plex", "hermes", "matrix", "movil", "zfs"]
+
+[[flows]]
+id = "power"
+category = "break"
+broken = "proxmox"
+path = ["proxmox", "internet", "cloudflare", "proxmox", "zfs", "proxmox", "landing"]
+
+[[flows]]
+id = "acme"
+category = "break"
+broken = "traefik"
+path = ["traefik", "cloudflare", "traefik", "hermes", "matrix", "movil"]
+
+[[flows]]
+id = "db"
+category = "break"
+broken = "postgres"
+path = ["postgres", "landing", "internet", "landing", "postgres", "landing", "matrix"]
+
 # ---------------------------------------------------------------------------
 # Modo detective: averías reales. `clues` son las piezas con pista (el texto
 # está en es/en.toml); `answer` es el índice de la opción correcta.

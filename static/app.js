@@ -650,7 +650,13 @@
     consoleEl.controls.hidden = false;
     setPlaying(true);
     clearTrails("a");
-    labNodes.forEach((n) => n.classList.remove("is-visited"));
+    labNodes.forEach((n) => n.classList.remove("is-visited", "is-broken"));
+    // «Rompe el servidor»: la pieza rota se ve en rojo todo el recorrido.
+    if (flow.broken) {
+      labNodes.find((n) => n.dataset.node === flow.broken)?.classList.add("is-broken");
+      window.tpSound?.play("err");
+    }
+    lab.classList.toggle("is-breaking", Boolean(flow.broken));
     labStep(0, false);
   }
 
@@ -721,7 +727,11 @@
     consoleEl.play.textContent = T.lab.replay;
     labState.step = flow.path.length;
     paintTrail(flow, flow.path.length);
-    typeInto(consoleEl.text, H.flow_done);
+    typeInto(consoleEl.text, flow.verdict ? "⚖ " + flow.verdict : H.flow_done);
+    if (flow.verdict) {
+      labNodes.find((n) => n.dataset.node === flow.broken)?.classList.replace("is-broken", "is-repaired");
+      window.tpSound?.play("ok");
+    }
     showUnit(nodeById[flow.path[flow.path.length - 1]]);
     flowsDone.add(flow.id);
     store.set("flowsDone", [...flowsDone]);

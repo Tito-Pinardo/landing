@@ -1162,6 +1162,7 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
         }).collect::<Vec<_>>(),
         "flows": site.flows.iter().map(|f| serde_json::json!({
             "id": f.id, "category": f.category, "title": t.flows[&f.id].title, "path": f.path, "steps": t.flows[&f.id].steps,
+            "broken": f.broken, "verdict": t.flows[&f.id].verdict,
         })).collect::<Vec<_>>(),
     })
 }

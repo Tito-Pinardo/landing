@@ -1593,3 +1593,13 @@ html[data-motion="off"] .ib-led { animation: none; }
   outline: 2px solid var(--accent); outline-offset: 6px; border-radius: var(--radius);
   box-shadow: 0 0 40px var(--accent-soft); transition: outline-color .3s;
 }
+
+/* ------------------------------------------------------------ rompe el servidor */
+.lab-node.is-broken .node-box { stroke: var(--danger); stroke-width: 3; stroke-dasharray: 6 3; fill: color-mix(in srgb, var(--danger) 18%, var(--surface)); }
+.lab-node.is-broken { animation: node-shake .5s ease-in-out 2; transform-box: fill-box; transform-origin: center; }
+.lab-node.is-broken .node-led { fill: var(--danger); animation: blink .5s infinite; }
+.lab-node.is-repaired .node-box { stroke: var(--ok); stroke-width: 3; fill: color-mix(in srgb, var(--ok) 14%, var(--surface)); }
+@keyframes node-shake { 25% { transform: translateX(-3px) rotate(-1deg); } 75% { transform: translateX(3px) rotate(1deg); } }
+[data-flow-cat="break"] .flow-btn, [data-flow-cat="break"] [data-flow] { border-color: color-mix(in srgb, var(--danger) 55%, var(--border-strong)); }
+html[data-motion="off"] .lab-node.is-broken, html[data-motion="off"] .lab-node.is-broken .node-led { animation: none; }
+@media (prefers-reduced-motion: reduce) { .lab-node.is-broken, .lab-node.is-broken .node-led { animation: none; } }

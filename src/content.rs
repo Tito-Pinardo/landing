@@ -172,6 +172,10 @@ pub struct Flow {
     /// Pestaña en la que aparece (`[flow_categories]` en es/en.toml).
     pub category: String,
     pub path: Vec<String>,
+    /// «Rompe el servidor»: la pieza que se rompe (se ve en rojo todo el
+    /// recorrido) y, en los textos, el veredicto final.
+    #[serde(default)]
+    pub broken: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -330,6 +334,9 @@ pub struct FlowText {
     pub title: String,
     /// Un texto por pieza del recorrido (mismo número que `path`).
     pub steps: Vec<String>,
+    /// Solo en los de «Rompe el servidor»: cuánto se cayó y qué se perdió.
+    #[serde(default)]
+    pub verdict: Option<String>,
 }
 
 /// Textos del guía. Los mensajes sueltos van en `text` (se validan contra
@@ -1012,6 +1019,18 @@ impl Content {
             cats.insert("all");
             same_keys(code, "flow_categories", cats, keys(&t.flow_categories))?;
             for f in &site.flows {
+                ensure!(
+                    f.broken.is_some() == t.flows[&f.id].verdict.is_some(),
+                    "{code}.toml [flows.{}]: broken y verdict van juntos",
+                    f.id
+                );
+                if let Some(b) = &f.broken {
+                    ensure!(
+                        site.nodes.iter().any(|n| &n.id == b) && f.path.contains(b),
+                        "flujo {}: la pieza rota {b} tiene que existir y estar en el recorrido",
+                        f.id
+                    );
+                }
                 let n = t.flows[&f.id].steps.len();
                 ensure!(
                     n == f.path.len(),

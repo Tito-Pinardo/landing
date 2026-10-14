@@ -529,6 +529,58 @@ ops = "Operación"
 security = "Seguridad"
 ai = "IA"
 home = "Casa"
+break = "Rompe el servidor"
+
+[flows.disk]
+title = "Muere un disco del pool"
+steps = [
+  "Uno de los cinco discos del pool grande deja de responder.",
+  "El pool es RAIDZ1: aguanta un disco menos. Pasa a DEGRADED y sigue leyendo y escribiendo con los cuatro que quedan.",
+  "Plex sigue sirviendo películas desde ese pool: nadie en casa nota nada.",
+  "La instantánea de monitorización ve el pool en DEGRADED y Hermes lo detecta.",
+  "Lo avisa en Matrix.",
+  "Me llega al móvil: toca comprar un disco.",
+  "Cambio el disco y ZFS lo reconstruye (resilver) con el pool en marcha.",
+]
+verdict = "Caída: ninguna. Datos perdidos: ninguno, siempre que no muera otro disco antes de terminar la reconstrucción: RAIDZ1 aguanta uno, no dos."
+
+[flows.power]
+title = "Se va la luz"
+steps = [
+  "Corte de luz en casa. Sin SAI, el servidor se apaga de golpe.",
+  "Desde fuera, quien entra en la web…",
+  "…ve un error de Cloudflare: no llega al origen.",
+  "Vuelve la luz y el servidor arranca solo.",
+  "El almacenamiento de los contenedores se comprueba tras el apagado brusco: de 65 a 90 minutos en discos mecánicos.",
+  "Al terminar se queda a medio activar y el arranque automático no lo reintenta: lo activo a mano con los pasos ya escritos.",
+  "Arranco los contenedores y la web vuelve.",
+]
+verdict = "Caída: más de una hora, casi toda por la comprobación del almacenamiento. Datos perdidos: ninguno. Lo que lo evitaría de raíz: un SAI con apagado ordenado."
+
+[flows.acme]
+title = "Let's Encrypt no responde"
+steps = [
+  "Toca renovar un certificado y Let's Encrypt no responde.",
+  "La comprobación DNS-01 contra Cloudflare no se completa.",
+  "Traefik lo reintenta solo: renueva con un mes de margen, así que hay tiempo de sobra.",
+  "Hermes revisa a diario cuánto les queda a los certificados.",
+  "Si alguno se acerca a caducar, lo avisa en Matrix.",
+  "Y lo veo en el móvil mucho antes de que caduque.",
+]
+verdict = "Caída: ninguna. El certificado actual sigue valiendo semanas mientras se reintenta, y el aviso llega antes de que importe."
+
+[flows.db]
+title = "Se cae la base de datos de esta web"
+steps = [
+  "La base de datos de esta web deja de responder.",
+  "Las páginas no la necesitan: se generan al arrancar y se sirven desde memoria.",
+  "Quien visita la web la ve igual que siempre.",
+  "El formulario de contacto no puede guardar: le dice al visitante que lo intente en unos minutos. Nada se queda a medias.",
+  "La base de datos vuelve.",
+  "El formulario guarda otra vez, y lo guardado se avisa en orden: primero se guarda, luego se manda.",
+  "El aviso llega a Matrix.",
+]
+verdict = "Caída visible: solo el formulario, mientras dura. Mensajes perdidos: ninguno: o se guarda entero, o se le pide al visitante que lo reintente."
 
 [flows.update]
 title = "Actualizo contenedores"
