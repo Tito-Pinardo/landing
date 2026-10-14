@@ -851,17 +851,29 @@ help = [
   ["submit <flag>", "hand in the flag"],
   ["ssh <part>", "step into a part's unit (ssh hermes, ssh zfs…)"],
   ["sound on|off", "turn the server sound on or off"],
+  ["neofetch", "my profile, terminal style"],
+  ["uptime", "how long the homelab has been up"],
+  ["top", "the rack units and their real status"],
+  ["ls /rack", "the 23 units; cat /rack/<unit> to see one"],
+  ["history", "the last things typed here"],
   ["clear", "clear the screen"],
   ["exit", "close the terminal"],
 ]
 whoami = "Tito Pinardo Gutiérrez — systems, IaC and DevOps. Looking for my first role."
 sudo = "Nice try. The only root around here is me."
-challenge = "Challenge: there's a flag hidden in this fake server, in the format flag{...}. Start with: cat /etc/motd. Once you have it: submit flag{...}"
+challenge = "There are four flags hidden in this fake server, formatted flag{...}. Type 'challenge' to see the hints and your progress, and 'submit flag{...}' to hand one in."
 motd = ["Welcome to tito-homelab (Debian 13).", "Remember: Hermes's logs live in /var/log/."]
 log = ["[07:00] Pitia: daily digest sent.", "[07:05] Argos: certificates up to date.", "[07:12] Hermes: encoding test -> ZmxhZ3t0b2RvX2NvbW9fY29kaWdvfQ==", "[07:13] Hermes: (oops, that shouldn't be in a log)"]
 submit_ok = "Correct! You found the flag."
 submit_bad = "That's not the flag. Keep looking."
 no_such_file = "No such file or directory"
+retos = [
+  { id = "log", title = "The indiscreet log", hint = "Hermes leaves traces where it shouldn't. Start with: cat /etc/motd" },
+  { id = "ruta", title = "The ghost route", hint = "Traefik decides where each request goes by its name. Should every route be published? Look in /etc/traefik/." },
+  { id = "snapshot", title = "The forgotten snapshot", hint = "Someone deleted a note from the ZFS pool. In ZFS, deleted isn't always gone: zfs list." },
+  { id = "cron", title = "The 0-byte backup", hint = "The every-30-minutes backups look fine… are they? Start with: crontab -l" },
+]
+ctf = { title = "Flag challenges", solved_by = "solved by {n}", nobody = "nobody has solved it yet", progress = "{n} of {total} solved", already = "You already had that one.", all = "All four flags! You read this server the way a sysadmin would." }
 
 # ---------------------------------------------------------------------------
 
@@ -876,10 +888,11 @@ messenger = { title = "Messenger", text = "You sent a message." }
 navigator = { title = "Navigator", text = "You completed a journey inside the server." }
 companion = { title = "Travel companion", text = "You took the tour with Hermes." }
 detective = { title = "Detective", text = "You solved a detective mode case." }
-hacker = { title = "Ethical hacker", text = "You found the terminal flag." }
+hacker = { title = "Ethical hacker", text = "You found your first terminal flag." }
 
 gnome_friend = { title = "Gnome whisperer", text = "You chatted with five gnomes." }
 insider = { title = "Inside the machine", text = "You opened a unit in the rack." }
+ctf_master = { title = "Flag master", text = "You solved all four terminal challenges." }
 
 [gnomes]
 toggle = "Gnomes"

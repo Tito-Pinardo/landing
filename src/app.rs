@@ -157,6 +157,7 @@ pub fn router(state: AppState) -> Router {
         .route("/{lang}/{unit}/", get(unit_page))
         .route("/api/contact", post(contact_json))
         .route("/api/status", get(status))
+        .route("/api/flags", get(flag_counts).post(flag_submit))
         .route("/healthz", get(healthz))
         .route("/static/{*path}", get(asset))
         .route("/robots.txt", get(robots))
@@ -474,6 +475,75 @@ async fn status(State(st): State<AppState>) -> impl IntoResponse {
         ],
         st.0.live.json(),
     )
+}
+
+/// Cuántos visitantes han resuelto cada reto de bandera.
+async fn flag_counts(State(st): State<AppState>) -> Response {
+    let rows = sqlx::query!(r#"SELECT flag, count(*) AS "n!" FROM flag_solves GROUP BY flag"#)
+        .fetch_all(&st.0.db)
+        .await;
+    match rows {
+        Ok(rows) => {
+            let mut out = serde_json::Map::new();
+            for f in &st.0.content.site.flags {
+                let n = rows.iter().find(|r| r.flag == f.id).map_or(0, |r| r.n);
+                out.insert(f.id.clone(), n.into());
+            }
+            (
+                [(header::CACHE_CONTROL, "public, max-age=60")],
+                Json(serde_json::Value::Object(out)),
+            )
+                .into_response()
+        }
+        Err(e) => {
+            tracing::error!(error = %e, "no se pudieron contar los retos");
+            StatusCode::SERVICE_UNAVAILABLE.into_response()
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct FlagSubmit {
+    flag: String,
+}
+
+/// Entrega de una bandera: el servidor también la comprueba (con su hash)
+/// antes de contarla, así el recuento no se infla mandando ids a mano.
+async fn flag_submit(
+    State(st): State<AppState>,
+    peer: ConnectInfo<SocketAddr>,
+    headers: HeaderMap,
+    Json(body): Json<FlagSubmit>,
+) -> Response {
+    let hash = hex::encode(Sha256::digest(body.flag.trim().as_bytes()));
+    let Some(flag) = st.0.content.site.flags.iter().find(|f| f.sha256 == hash) else {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(serde_json::json!({ "ok": false })),
+        )
+            .into_response();
+    };
+    let cfg = &st.0.cfg;
+    let ip = security::client_ip(&headers, Some(&peer), cfg.trust_proxy_headers);
+    let ip_hash = security::ip_hash(&cfg.ip_hash_salt, ip);
+    let res = sqlx::query!(
+        "INSERT INTO flag_solves (flag, ip_hash) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        flag.id,
+        &ip_hash[..],
+    )
+    .execute(&st.0.db)
+    .await;
+    match res {
+        Ok(r) => (
+            [(header::CACHE_CONTROL, "no-store")],
+            Json(serde_json::json!({ "ok": true, "id": flag.id, "new": r.rows_affected() == 1 })),
+        )
+            .into_response(),
+        Err(e) => {
+            tracing::error!(error = %e, "no se pudo guardar el reto");
+            StatusCode::SERVICE_UNAVAILABLE.into_response()
+        }
+    }
 }
 
 async fn healthz(State(st): State<AppState>) -> Response {

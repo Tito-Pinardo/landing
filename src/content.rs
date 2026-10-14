@@ -54,6 +54,7 @@ impl Lang {
 pub struct Site {
     pub links: Vec<[String; 2]>,
     pub achievements: Vec<String>,
+    pub flags: Vec<Flag>,
     pub person: Person,
     pub branches: Vec<Branch>,
     pub tech: Vec<Tech>,
@@ -343,6 +344,25 @@ pub struct Hermes {
     pub text: BTreeMap<String, String>,
 }
 
+/// Un reto de bandera de la terminal: solo su SHA-256 viaja en el código.
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Flag {
+    pub id: String,
+    /// Unidad del rack donde vive la pista.
+    pub unit: String,
+    pub sha256: String,
+}
+
+/// Pista de un reto, por idioma.
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Reto {
+    pub id: String,
+    pub title: String,
+    pub hint: String,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct TourStep {
@@ -427,6 +447,9 @@ pub struct Terminal {
     pub submit_ok: String,
     pub submit_bad: String,
     pub no_such_file: String,
+    pub retos: Vec<Reto>,
+    /// «Resuelto por {n}», «Ya lo tenías», etc.
+    pub ctf: BTreeMap<String, String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -618,6 +641,7 @@ const INCIDENT_UI_KEYS: &[&str] = &[
     "again",
     "mobile",
 ];
+const CTF_KEYS: &[&str] = &["title", "solved_by", "nobody", "progress", "already", "all"];
 const COMPARE_KEYS: &[&str] = &["button", "hint", "second"];
 const PERSONALITY_KEYS: &[&str] = &[
     "night",
@@ -724,6 +748,19 @@ impl Content {
     }
 
     fn validate_units(&self) -> Result<()> {
+        for f in &self.site.flags {
+            ensure!(
+                f.sha256.len() == 64 && f.sha256.bytes().all(|b| b.is_ascii_hexdigit()),
+                "reto {}: sha256 no válido",
+                f.id
+            );
+            ensure!(
+                self.unit(&f.unit).is_some(),
+                "reto {}: unidad desconocida {}",
+                f.id,
+                f.unit
+            );
+        }
         let mut ids = HashSet::new();
         for u in &self.units {
             ensure!(ids.insert(u.id.as_str()), "unidad repetida {}", u.id);
@@ -902,6 +939,15 @@ impl Content {
             required(code, "rack", RACK_KEYS, &t.rack)?;
             required(code, "blog", BLOG_KEYS, &t.blog)?;
             required(code, "hermes", HERMES_KEYS, &t.hermes.text)?;
+            ensure!(
+                t.terminal
+                    .retos
+                    .iter()
+                    .map(|r| r.id.as_str())
+                    .eq(site.flags.iter().map(|f| f.id.as_str())),
+                "[{code}.terminal] retos tiene que tener los mismos ids que [[flags]], en el mismo orden"
+            );
+            required(code, "terminal.ctf", CTF_KEYS, &t.terminal.ctf)?;
             ensure!(
                 (6..=10).contains(&t.hermes.tour60.len()),
                 "[{code}.hermes] el tour de un minuto lleva entre 6 y 10 paradas"

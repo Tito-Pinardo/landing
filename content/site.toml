@@ -13,7 +13,31 @@ links = [
 ]
 
 # Logros: se desbloquean en el navegador, sin cuentas ni cookies.
-achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger", "navigator", "companion", "detective", "hacker", "gnome_friend", "insider"]
+achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger", "navigator", "companion", "detective", "hacker", "gnome_friend", "insider", "ctf_master"]
+
+
+# Retos de bandera de la terminal: solo el SHA-256 (la web comprueba y cuenta
+# cuántos visitantes resuelven cada uno, sin nombres). Las pistas, en
+# [terminal].retos de cada idioma.
+[[flags]]
+id = "log"
+unit = "hermes"
+sha256 = "9c26e1e18c912fdeec9a01a42b1b655daa73e2b019d47b32275605d0abbcdf4e"
+
+[[flags]]
+id = "ruta"
+unit = "traefik"
+sha256 = "4750ec8e62ceffe5ad4aaaa744dc11d5d85a337268693679c7903a80a3d1e12a"
+
+[[flags]]
+id = "snapshot"
+unit = "zfs"
+sha256 = "858e1c9c4097f0009d8cabeb0e7c31ad7411ac14a5dc50d38afcfae2eabcc66b"
+
+[[flags]]
+id = "cron"
+unit = "backup"
+sha256 = "6a6002663473753af19c96a9905b2cc8bd8cc8b733f29925a61fb3e06b099d30"
 
 # Datos que no dependen del idioma: enlaces, catálogo de tecnologías,
 # piezas del mapa del homelab y qué tecnologías usa cada proyecto.

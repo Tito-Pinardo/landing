@@ -285,7 +285,7 @@
     unlocked.add(id);
     store.set("achievements", [...unlocked]);
     if (doc.classList.contains("quick-mode")) return;
-    if (hermesIsOpen() && hermes.tour < 0 && tour60.i < 0 && !["companion", "navigator"].includes(id)) {
+    if (hermesIsOpen() && hermes.tour < 0 && tour60.i < 0 && !["companion", "navigator", "hacker", "ctf_master"].includes(id)) {
       setTimeout(() => hermesSay(fill(H.achievement, { title: a.title })), 1200);
     }
     const el = document.createElement("div");
@@ -1168,35 +1168,84 @@
   // Servidor de mentira para el reto: la bandera está en un log de Hermes,
   // codificada en base64. Encontrarla en el código fuente también vale.
   const TT = T.terminal;
+  // Un sistema de ficheros de mentira con cuatro retos de bandera. Cada pista
+  // sale de una avería real del homelab (ver los artículos del blog).
   const FS_DIRS = {
-    "/": ["etc/", "home/", "var/"],
-    "/etc": ["hostname", "motd"],
+    "/": ["etc/", "home/", "rack/", "root/", "tank/", "var/"],
+    "/etc": ["hostname", "motd", "traefik/"],
+    "/etc/traefik": ["traefik.yml", "dynamic.yml"],
     "/home": ["tito/"],
     "/home/tito": [".bash_history"],
-    "/var": ["log/"],
+    "/root": ["copia-cuentas.sh"],
+    "/tank": ["media/", "notas/"],
+    "/tank/media": ["películas/", "series/"],
+    "/tank/notas": [],
+    "/tank/notas/.zfs": ["snapshot/"],
+    "/tank/notas/.zfs/snapshot": ["antes-de-borrar/"],
+    "/tank/notas/.zfs/snapshot/antes-de-borrar": ["secreto.txt"],
+    "/var": ["backups/", "log/"],
+    "/var/backups": ["cuentas-0900.json", "cuentas-0930.json", "cuentas-1000.json"],
     "/var/log": ["hermes.log"],
   };
+  // Lo que solo enseña `ls -a` / `ls -la`.
+  const FS_HIDDEN = {
+    "/tank/notas": [".zfs/"],
+    "/var/backups": [".cuentas-buena.json"],
+  };
+  const FS_SIZES = { "/var/backups/cuentas-0900.json": 0, "/var/backups/cuentas-0930.json": 0, "/var/backups/cuentas-1000.json": 0, "/var/backups/.cuentas-buena.json": 61 };
   const FS_FILES = {
     "/etc/hostname": ["tito-homelab"],
     "/etc/motd": TT.motd,
     "/var/log/hermes.log": TT.log,
-    "/home/tito/.bash_history": ["terraform plan", "ansible-playbook playbooks/landing.yml", "git commit -m \"docs: postmortem\"", "cat /var/log/hermes.log"],
+    "/home/tito/.bash_history": ["terraform plan", "ansible-playbook playbooks/landing.yml", "zfs list", "crontab -l", "git commit -m \"docs: postmortem\"", "cat /var/log/hermes.log"],
+    "/etc/traefik/traefik.yml": ["entryPoints:", "  websecure:", "    address: \":443\"", "providers:", "  file:", "    filename: /etc/traefik/dynamic.yml"],
+    "/etc/traefik/dynamic.yml": [
+      "http:", "  routers:", "    web:", "      rule: Host(`titopinardogutierrez.com`)", "      service: landing",
+      "    backstage:              # TODO: quitar antes de publicar", "      rule: Host(`backstage.tito-homelab`)", "      service: backstage",
+    ],
+    "/root/copia-cuentas.sh": ["#!/bin/sh", "# Copia las cuentas del panel de juegos cada 30 minutos.", "pct exec panel-juegos -- cat cuentas.json > /var/backups/cuentas-$(date +%H%M).json", "# (desde cron, pct no está en el PATH: /usr/sbin)"],
+    "/var/backups/cuentas-0900.json": [],
+    "/var/backups/cuentas-0930.json": [],
+    "/var/backups/cuentas-1000.json": [],
+    "/var/backups/.cuentas-buena.json": ["{ \"nota\": \"la última buena, a mano\", \"flag\": \"flag{una_copia_se_prueba}\" }"],
+    "/tank/notas/.zfs/snapshot/antes-de-borrar/secreto.txt": ["Lo que se borra de un dataset con instantáneas sigue en la instantánea.", "flag{lo_borrado_vuelve}"],
   };
   const norm = (p) => "/" + p.split("/").filter(Boolean).join("/");
-  const flagOk = (f) => {
-    const line = TT.log.find((l) => l.includes("->")) || "";
-    try { return f.trim() === atob(line.split("->")[1].trim()); } catch { return false; }
-  };
+  // Las banderas se comprueban por su SHA-256: en la página solo está el hash.
+  const sha256 = async (txt) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const flagsDone = new Set(store.get("flags", []));
+  // Las unidades del rack, con su estado real si ya ha llegado.
+  const rackList = () => rackUnits.map((r) => ({
+    id: r.dataset.rackUnit,
+    slot: $(".ru-name strong", r)?.textContent || r.dataset.rackUnit,
+    title: $(".ru-text", r)?.textContent || "",
+    state: $("[data-ru-state]", r)?.textContent || "",
+    down: r.classList.contains("live-down"),
+    url: $("a", r)?.href,
+  }));
 
   const commands = {
     help() { for (const [c, d] of T.terminal.help) print(pad(c, 18) + d); },
     whoami() { print(T.terminal.whoami, "t-ok"); },
     ls(arg) {
-      const path = (arg || "").replace(/^-a\s*/, "");
+      const m = /^(-[al]+)?\s*(.*)$/.exec((arg || "").trim());
+      const flags = m[1] || "", path = m[2];
+      if (path === "/rack" || path === "/rack/") return print(rackList().map((u) => u.id).join("  "));
       if (path.startsWith("/")) {
-        const dir = FS_DIRS[norm(path)];
+        const p = norm(path);
+        const dir = FS_DIRS[p];
         if (!dir) return print(`ls: ${path}: ${TT.no_such_file}`, "t-err");
-        return print(dir.join("  "));
+        const all = flags.includes("a") ? [...(FS_HIDDEN[p] || []), ...dir] : dir;
+        if (flags.includes("l")) {
+          for (const f of all) {
+            const full = norm(p + "/" + f);
+            const isDir = f.endsWith("/");
+            const size = isDir ? 4096 : (FS_SIZES[full] ?? (FS_FILES[full] || []).join("\n").length);
+            print(`${isDir ? "drwxr-xr-x" : "-rw-------"}  root root ${String(size).padStart(5)}  ${f}`, size === 0 ? "t-err" : null);
+          }
+          return;
+        }
+        return print(all.join("  ") || " ");
       }
       for (const z of T.zones) print(pad(z.id + "/", 12) + z.title + (found.has(z.id) ? "  ✓" : ""), found.has(z.id) ? "t-ok" : null);
     },
@@ -1215,6 +1264,15 @@
     },
     projects() { for (const p of T.projects) print(pad(p.id, 14) + p.title); },
     cat(arg) {
+      const rk = /^\/rack\/([a-z0-9-]+)\/?$/.exec(arg || "");
+      if (rk) {
+        const u = rackList().find((x) => x.id === rk[1]);
+        if (!u) return print(`cat: ${arg}: ${TT.no_such_file}`, "t-err");
+        print(u.slot, "t-cmd");
+        print(u.title);
+        print(u.state, u.down ? "t-err" : "t-ok");
+        return print(`ssh ${u.id}`, "t-dim");
+      }
       if ((arg || "").startsWith("/")) {
         const file = FS_FILES[norm(arg)];
         if (!file) return print(`cat: ${arg}: ${FS_DIRS[norm(arg)] ? "Is a directory" : TT.no_such_file}`, "t-err");
@@ -1254,23 +1312,110 @@
     clear() { out.replaceChildren(); },
     exit() { closeTerminal(); },
     sudo() { print(T.terminal.sudo, "t-err"); },
-    challenge() { print(TT.challenge, "t-ok"); },
-    reto() { print(TT.challenge, "t-ok"); },
+    async challenge() {
+      const C = TT.ctf;
+      print(TT.challenge, "t-ok");
+      let counts = {};
+      try { counts = await (await fetch("/api/flags", { headers: { accept: "application/json" } })).json(); } catch { /* sin recuento */ }
+      print(`${C.title} · ${fill(C.progress, { n: flagsDone.size, total: T.flags.length })}`, "t-cmd");
+      for (const r of TT.retos) {
+        const done = flagsDone.has(r.id);
+        const n = counts[r.id] || 0;
+        print(`${done ? "★" : "☆"} ${pad(r.title, 26)} ${n ? fill(C.solved_by, { n }) : C.nobody}`, done ? "t-ok" : null);
+        if (!done) print("    " + r.hint, "t-dim");
+      }
+    },
+    async reto() { await commands.challenge(); },
     base64(arg) {
       const m = /^-d\s+(\S+)/.exec(arg || "");
       if (!m) return print("uso: base64 -d <texto>", "t-dim");
       try { print(atob(m[1])); } catch { print("base64: entrada no válida", "t-err"); }
     },
-    submit(arg) {
-      if (flagOk(arg || "")) {
-        print(TT.submit_ok, "t-ok");
-        unlock("hacker");
+    async submit(arg) {
+      const flag = (arg || "").trim();
+      const hash = flag ? await sha256(flag) : "";
+      const f = T.flags.find((x) => x.sha256 === hash);
+      if (!f) return print(TT.submit_bad, "t-err");
+      if (flagsDone.has(f.id)) return print(TT.ctf.already, "t-dim");
+      flagsDone.add(f.id);
+      store.set("flags", [...flagsDone]);
+      print(TT.submit_ok + " " + fill(TT.ctf.progress, { n: flagsDone.size, total: T.flags.length }), "t-ok");
+      fetch("/api/flags", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ flag }) }).catch(() => {});
+      unlock("hacker");
+      if (flagsDone.size === T.flags.length) {
+        unlock("ctf_master");
+        closeTerminal();
+        hermesSay(TT.ctf.all);
+      } else if (flagsDone.size === 1) {
         closeTerminal();
         hermesSay(T.personality.hacker);
-      } else {
-        print(TT.submit_bad, "t-err");
       }
     },
+    curl(arg) {
+      const a = arg || "";
+      const host = (/host:\s*([\w.-]+)/i.exec(a) || /https?:\/\/([\w.-]+)/i.exec(a) || [])[1]?.toLowerCase();
+      if (host === "backstage.tito-homelab") {
+        ["HTTP/1.1 200 OK", "Server: traefik", "X-Flag: flag{cada_ruta_se_revisa}", "", "Esta ruta no debería estar publicada: cada ruta se revisa antes de abrirla."].forEach((l, i) => print(l, i === 2 ? "t-ok" : null));
+      } else if (host === "titopinardogutierrez.com" || host === "localhost" || !host) {
+        ["HTTP/1.1 200 OK", "Server: traefik", "Strict-Transport-Security: max-age=63072000", "", "<!doctype html>…"].forEach((l) => print(l));
+      } else {
+        print(`curl: (6) Could not resolve host: ${host}`, "t-err");
+      }
+    },
+    zfs(arg) {
+      const a = (arg || "").trim();
+      if (/^list\s+-t\s+snap(shot)?/.test(a)) {
+        print("NAME                          USED  AVAIL  REFER");
+        return print("tank/notas@antes-de-borrar    1.2M      -   1.2M");
+      }
+      if (/^list/.test(a)) {
+        print("NAME          USED  AVAIL  REFER  MOUNTPOINT");
+        print("tank          3.1T   4.2T   128K  /tank");
+        print("tank/media    3.0T   4.2T   3.0T  /tank/media");
+        print("tank/notas    1.2M   4.2T    96K  /tank/notas");
+        return print("# (tank/notas ocupa 1.2M y solo refiere 96K: ¿qué guarda el resto?)", "t-dim");
+      }
+      if (/^rollback/.test(a)) return print("zfs: aquí no se borra nada: mira dentro de .zfs/snapshot", "t-dim");
+      print("uso: zfs list [-t snapshot]", "t-dim");
+    },
+    zpool(arg) {
+      if (!/^status/.test((arg || "").trim())) return print("uso: zpool status", "t-dim");
+      ["  pool: tank", " state: ONLINE", "config:", "\ttank        ONLINE", "\t  raidz1-0  ONLINE", "errors: No known data errors"].forEach((l) => print(l));
+    },
+    crontab(arg) {
+      if (!/^-l/.test((arg || "").trim())) return print("uso: crontab -l", "t-dim");
+      print("PATH=/usr/bin:/bin", "t-dim");
+      print("*/30 * * * * /root/copia-cuentas.sh");
+    },
+    async neofetch() {
+      const data = live || (await loadLive());
+      const h = data?.homelab;
+      const top = T.branches.flatMap((b) => b.tech).sort((a, b) => b.level - a.level).slice(0, 4).map((t) => t.name).join(", ");
+      const art = [" ┌──────┐ ", " │  TP  │ ", " │ ▪▪▪▪ │ ", " └──────┘ ", "  ▀▀▀▀▀▀  "];
+      const info = [
+        `visitante@tito-homelab`,
+        `OS: Proxmox VE · ${rackUnits.length} × 1U`,
+        `Host: ${T.person?.name || "Tito Pinardo Gutiérrez"}`,
+        `Uptime: ${h ? h.uptime_30d.toFixed(2) + " % (30 d)" : "?"}`,
+        `Servicios: ${h ? `${h.services_up}/${h.services_total}` : "?"}`,
+        `Skills: ${top}`,
+        `Shell: tp-sh 1.0 · lang ${T.lang}`,
+      ];
+      for (let i = 0; i < info.length; i++) print((art[i] || "          ") + "  " + info[i], i === 0 ? "t-ok" : null);
+    },
+    async uptime() {
+      const data = live || (await loadLive());
+      const h = data?.homelab;
+      const now = new Intl.DateTimeFormat(T.lang, { timeZone: "Europe/Madrid", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
+      if (!h) return print(`${now}  ${T.now.live_unavailable}`, "t-dim");
+      print(`${now}  ${T.now.homelab_services}: ${h.services_up}/${h.services_total} · ${T.now.homelab_uptime}: ${h.uptime_30d.toFixed(2)} %`, "t-ok");
+    },
+    async top() {
+      await (live ? null : loadLive());
+      print("UNIDAD              ESTADO", "t-cmd");
+      for (const u of rackList()) print(pad(u.slot, 20) + u.state, u.down ? "t-err" : null);
+    },
+    history() { FS_FILES["/home/tito/.bash_history"].forEach((l, i) => print(`${String(i + 1).padStart(4)}  ${l}`)); },
     hermes() { closeTerminal(); hermesMenu(fill(H.greet_return, { zones: found.size })); },
     ssh(arg) {
       const id = (arg || "").replace(/^.*@/, "");

@@ -315,6 +315,34 @@ async fn contact_is_stored_with_hashed_ip(db: PgPool) {
     );
 }
 
+fn flag_req(flag: &str, ip: &str) -> Request<Body> {
+    Request::post("/api/flags")
+        .header(header::CONTENT_TYPE, "application/json")
+        .header("cf-connecting-ip", ip)
+        .body(Body::from(serde_json::json!({ "flag": flag }).to_string()))
+        .unwrap()
+}
+
+#[sqlx::test]
+async fn flags_count_once_per_visitor(db: PgPool) {
+    let (app, _) = router(db, config(true));
+    let (status, _, body) = send(&app, flag_req("flag{inventada}", "203.0.113.9")).await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{body}");
+    for ip in ["203.0.113.9", "203.0.113.9", "203.0.113.10"] {
+        let (status, _, _) = send(&app, flag_req(" flag{cada_ruta_se_revisa} ", ip)).await;
+        assert_eq!(status, StatusCode::OK);
+    }
+    let (status, _, body) = send(&app, get("/api/flags")).await;
+    assert_eq!(status, StatusCode::OK);
+    let v: serde_json::Value = serde_json::from_str(&body).unwrap();
+    assert_eq!(
+        v["ruta"], 2,
+        "dos visitantes, aunque uno lo mande dos veces"
+    );
+    assert_eq!(v["log"], 0);
+    assert!(!body.contains("flag{"), "el recuento no enseña banderas");
+}
+
 #[sqlx::test]
 async fn contact_topic_is_stored(db: PgPool) {
     let (app, _) = router(db.clone(), config(true));

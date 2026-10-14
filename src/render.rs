@@ -1144,6 +1144,10 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
             "notes": u.texts(lang).tech_notes,
         })).collect::<Vec<_>>(),
         "rack": t.rack,
+        // Retos de bandera: solo el hash (la bandera no está en la página).
+        "flags": site.flags.iter().map(|f| serde_json::json!({
+            "id": f.id, "sha256": f.sha256, "unit": unit_url(lang, &f.unit),
+        })).collect::<Vec<_>>(),
         "incident_ui": t.incident_ui,
         "compare": t.compare,
         "personality": t.personality,

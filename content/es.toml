@@ -861,17 +861,29 @@ help = [
   ["submit <flag>", "entrega la bandera"],
   ["ssh <pieza>", "entra en la unidad de una pieza (ssh hermes, ssh zfs…)"],
   ["sound on|off", "enciende o apaga el sonido del servidor"],
+  ["neofetch", "mi ficha, al estilo terminal"],
+  ["uptime", "cuánto lleva en marcha el homelab"],
+  ["top", "las unidades del rack y su estado real"],
+  ["ls /rack", "las 23 unidades; cat /rack/<unidad> para ver una"],
+  ["history", "lo último que se tecleó aquí"],
   ["clear", "limpia la pantalla"],
   ["exit", "cierra la terminal"],
 ]
 whoami = "Tito Pinardo Gutiérrez — sistemas, IaC y DevOps. Busco mi primer puesto."
 sudo = "Buen intento. Aquí el único root soy yo."
-challenge = "Reto: en este servidor de mentira hay una bandera escondida con el formato flag{...}. Empieza por: cat /etc/motd. Cuando la tengas: submit flag{...}"
+challenge = "Hay cuatro banderas escondidas en este servidor de mentira, con el formato flag{...}. Escribe 'challenge' para ver las pistas y tu progreso, y 'submit flag{...}' para entregar una."
 motd = ["Bienvenido a tito-homelab (Debian 13).", "Recuerda: los logs de Hermes están en /var/log/."]
 log = ["[07:00] Pitia: resumen diario enviado.", "[07:05] Argos: certificados al día.", "[07:12] Hermes: prueba de codificación -> ZmxhZ3t0b2RvX2NvbW9fY29kaWdvfQ==", "[07:13] Hermes: (ups, eso no debería estar en un log)"]
 submit_ok = "¡Correcto! Has encontrado la bandera."
 submit_bad = "Esa no es la bandera. Sigue buscando."
 no_such_file = "No existe el fichero o el directorio"
+retos = [
+  { id = "log", title = "El log indiscreto", hint = "Hermes deja trazas donde no debe. Empieza por: cat /etc/motd" },
+  { id = "ruta", title = "La ruta fantasma", hint = "Traefik decide a dónde va cada petición por su nombre. ¿Todas las rutas deberían estar publicadas? Mira /etc/traefik/." },
+  { id = "snapshot", title = "La instantánea olvidada", hint = "Alguien borró una nota del pool de ZFS. En ZFS, lo borrado no siempre se ha ido: zfs list." },
+  { id = "cron", title = "La copia de 0 bytes", hint = "Las copias de cada 30 minutos parecen ir bien… ¿seguro? Empieza por: crontab -l" },
+]
+ctf = { title = "Retos de bandera", solved_by = "resuelto por {n}", nobody = "nadie lo ha resuelto aún", progress = "{n} de {total} resueltos", already = "Esa ya la tenías.", all = "¡Las cuatro banderas! Has leído este servidor como lo haría un sysadmin." }
 
 # ---------------------------------------------------------------------------
 # Logros
@@ -888,10 +900,11 @@ messenger = { title = "Mensajero", text = "Has enviado un mensaje." }
 navigator = { title = "Navegante", text = "Has completado un recorrido por dentro del servidor." }
 companion = { title = "Compañero de viaje", text = "Has hecho el tour con Hermes." }
 detective = { title = "Detective", text = "Has resuelto un caso del modo detective." }
-hacker = { title = "Hacker ético", text = "Has encontrado la bandera de la terminal." }
+hacker = { title = "Hacker ético", text = "Has encontrado tu primera bandera en la terminal." }
 
 gnome_friend = { title = "Amigo de los enanitos", text = "Has charlado con cinco enanitos." }
 insider = { title = "Dentro de la máquina", text = "Has entrado en una unidad del rack." }
+ctf_master = { title = "Maestro de las banderas", text = "Has resuelto los cuatro retos de la terminal." }
 
 [gnomes]
 toggle = "Enanitos"
