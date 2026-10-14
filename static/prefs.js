@@ -155,9 +155,12 @@
         Object.assign(ghost.style, { top: r.top + "px", left: r.left + "px", width: r.width + "px", height: r.height + "px" });
         document.body.append(ghost);
         doc.classList.add("fx-leaving");
-        const W = Math.min(innerWidth - 2 * 34, 1240);
+        // Donde estará el frontal: en el móvil ocupa casi todo el ancho.
+        const narrow = innerWidth <= 640;
+        const W = narrow ? innerWidth - 32 : Math.min(innerWidth - 2 * 34, 1240);
+        const top = narrow ? 100 : 104;
         requestAnimationFrame(() => requestAnimationFrame(() => {
-          ghost.style.transform = `translate(${(innerWidth - W) / 2 - r.left}px, ${104 - r.top}px)`;
+          ghost.style.transform = `translate(${(innerWidth - W) / 2 - r.left}px, ${top - r.top}px)`;
           ghost.style.width = W + "px";
           ghost.style.height = "62px";
         }));
