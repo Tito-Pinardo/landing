@@ -65,9 +65,11 @@
   if (kind) for (const r of form.querySelectorAll('input[name="kind"]')) r.checked = r.value === kind;
 
   form.addEventListener("submit", (ev) => ev.preventDefault());
-  // En el móvil los filtros empiezan plegados (salvo que vengan en la URL).
+  // Los filtros vienen plegados en el HTML: en el móvil van encima de los
+  // artículos y plegarlos después de pintar los movería todos (CLS). En el
+  // escritorio van en su columna, así que abrirlos aquí no mueve nada.
   const box = document.querySelector("[data-filters-box]");
-  if (box && matchMedia("(max-width: 900px)").matches && ![...params.keys()].length) box.open = false;
+  if (box && (!matchMedia("(max-width: 900px)").matches || [...params.keys()].length)) box.open = true;
   form.addEventListener("change", () => apply());
   q.addEventListener("input", () => { if (!index) loadIndex().then(() => apply()); apply(); });
   form.addEventListener("reset", () => setTimeout(() => apply(), 0));
