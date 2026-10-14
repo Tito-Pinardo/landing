@@ -98,6 +98,11 @@ class Commands(unittest.TestCase):
         self.assertIsNone(p("qué tal"))
         self.assertIsNone(p("publicar mañana no, mejor el martes"))
 
+    def test_first_person_in_security(self):
+        for bad in ["la interfaz que utilizo", "mi router", "la versión instalada", "the one I run"]:
+            self.assertTrue(digest.FIRST_PERSON.search(bad), bad)
+        self.assertFalse(digest.FIRST_PERSON.search("Un atacante podría registrar agentes falsos en el gestor"))
+
     def test_status_claims_are_caught(self):
         for bad in ["Mi servidor está actualizado", "ya lo tengo parcheado", "My server is patched", "this doesn't affect me"]:
             self.assertTrue(digest.STATUS_CLAIM.search(bad), bad)
@@ -152,6 +157,8 @@ class Article(unittest.TestCase):
         self.assertTrue(es["title"].startswith("Resumen del lunes 19 de octubre: "))
         self.assertLessEqual(len(es["description"]), 170)
         self.assertEqual(es["sections"][1]["heading"], "Seguridad · Traefik 3.6 trae «algo» nuevo")
+        self.assertTrue(es["sections"][1]["paragraphs"][1].startswith("Por qué importa: "))
+        self.assertTrue(es["sections"][0]["paragraphs"][1].startswith("En mi servidor: "))
         self.assertEqual(es["sections"][0]["paragraphs"][0], 'Sale con "comillas" y \\ barras.')
         self.assertEqual(es["sections"][0]["links"][0]["url"], "https://github.com/traefik/traefik/releases/tag/v3.6.0")
         self.assertTrue(a["text"]["en"]["sections"][0]["paragraphs"][1].startswith("On my server: "))

@@ -164,6 +164,11 @@ pub struct ArticleCard {
     pub date_label: String,
     pub title: String,
     pub description: String,
+    /// Entradilla (el artículo destacado del índice la enseña entera).
+    pub summary: String,
+    /// Día y mes corto para la columna de fecha del archivo («06», «oct»).
+    pub day: String,
+    pub mon: String,
     pub unit: String,
     pub unit_slot: String,
     pub tech: Vec<String>,
@@ -174,6 +179,12 @@ pub struct ArticleCard {
 }
 
 /// Una opción de filtro del índice del blog: (id, texto, cuántos artículos).
+/// Un mes del archivo del blog, con sus artículos.
+pub struct MonthGroup {
+    pub label: String,
+    pub items: Vec<ArticleCard>,
+}
+
 pub struct FilterOpt {
     pub id: String,
     pub label: String,
@@ -185,7 +196,9 @@ pub struct FilterOpt {
 pub struct BlogTpl<'a> {
     pub c: Ctx<'a>,
     pub url: String,
-    pub articles: Vec<ArticleCard>,
+    /// El más reciente, destacado arriba; el resto, por meses.
+    pub lead: Option<ArticleCard>,
+    pub months: Vec<MonthGroup>,
     pub kinds: Vec<FilterOpt>,
     pub techs: Vec<FilterOpt>,
     pub units: Vec<FilterOpt>,
@@ -815,48 +828,65 @@ fn article_url(lang: Lang, slug: &str) -> String {
 }
 
 /// «2026-08-07» → «7 de agosto de 2026» / «7 August 2026».
-pub fn date_label(date: &str, lang: Lang) -> String {
-    const ES: [&str; 12] = [
-        "enero",
-        "febrero",
-        "marzo",
-        "abril",
-        "mayo",
-        "junio",
-        "julio",
-        "agosto",
-        "septiembre",
-        "octubre",
-        "noviembre",
-        "diciembre",
-    ];
-    const EN: [&str; 12] = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-    ];
+const MONTHS_ES: [&str; 12] = [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
+];
+const MONTHS_EN: [&str; 12] = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+];
+
+/// Año, índice del mes (0-11) y día de una fecha AAAA-MM-DD.
+fn date_parts(date: &str) -> Option<(&str, usize, u32)> {
     let mut parts = date.split('-');
-    let (Some(y), Some(m), Some(d)) = (parts.next(), parts.next(), parts.next()) else {
-        return date.to_owned();
-    };
-    let (Ok(m), Ok(d)) = (m.parse::<usize>(), d.parse::<u32>()) else {
-        return date.to_owned();
-    };
-    let Some(i) = m.checked_sub(1).filter(|i| *i < 12) else {
+    let (y, m, d) = (parts.next()?, parts.next()?, parts.next()?);
+    let i = m
+        .parse::<usize>()
+        .ok()?
+        .checked_sub(1)
+        .filter(|i| *i < 12)?;
+    Some((y, i, d.parse().ok()?))
+}
+
+pub fn date_label(date: &str, lang: Lang) -> String {
+    let Some((y, i, d)) = date_parts(date) else {
         return date.to_owned();
     };
     match lang {
-        Lang::Es => format!("{d} de {} de {y}", ES[i]),
-        Lang::En => format!("{d} {} {y}", EN[i]),
+        Lang::Es => format!("{d} de {} de {y}", MONTHS_ES[i]),
+        Lang::En => format!("{d} {} {y}", MONTHS_EN[i]),
+    }
+}
+
+/// «octubre de 2026» / «October 2026»: el rótulo de cada mes del archivo.
+fn month_label(date: &str, lang: Lang) -> String {
+    let Some((y, i, _)) = date_parts(date) else {
+        return date.to_owned();
+    };
+    match lang {
+        Lang::Es => format!("{} de {y}", MONTHS_ES[i]),
+        Lang::En => format!("{} {y}", MONTHS_EN[i]),
     }
 }
 
@@ -883,6 +913,15 @@ fn article_card(content: &Content, a: &Article, lang: Lang) -> ArticleCard {
         date_label: date_label(&a.date, lang),
         title: t.title.clone(),
         description: t.description.clone(),
+        summary: t.summary.clone(),
+        day: date_parts(&a.date).map_or_else(String::new, |(_, _, d)| format!("{d:02}")),
+        mon: date_parts(&a.date).map_or_else(String::new, |(_, i, _)| {
+            let m = match lang {
+                Lang::Es => MONTHS_ES[i],
+                Lang::En => MONTHS_EN[i],
+            };
+            m.chars().take(3).collect()
+        }),
         unit: a.unit.clone(),
         unit_slot: unit_slot(content, &a.unit, lang),
         tech: tech_names(&content.site, &a.tech),
@@ -1041,10 +1080,24 @@ pub fn blog(
     let units = count_opts(content.articles.iter().map(|a| a.unit.as_str()), |u| {
         unit_slot(content, u, lang)
     });
+    let mut rest = content.articles.iter();
+    let lead = rest.next().map(|a| article_card(content, a, lang));
+    let mut months: Vec<MonthGroup> = Vec::new();
+    for a in rest {
+        let label = month_label(&a.date, lang);
+        match months.last_mut() {
+            Some(m) if m.label == label => m.items.push(article_card(content, a, lang)),
+            _ => months.push(MonthGroup {
+                label,
+                items: vec![article_card(content, a, lang)],
+            }),
+        }
+    }
     let tpl = BlogTpl {
         jsonld: script_json(&jsonld)?,
         url,
-        articles,
+        lead,
+        months,
         kinds,
         techs,
         units,

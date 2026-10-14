@@ -388,6 +388,15 @@ INTRO_SCHEMA = {
     "required": ["es", "en"],
 }
 
+# En una vulnerabilidad, nada en primera persona: lo público habla de la
+# pieza, nunca de lo que tengo instalado o pendiente.
+FIRST_PERSON = re.compile(r"\b(mi|mis|m[ií]o|utilizo|uso|tengo|instalad[ao]|my|mine|i use|i run|installed)\b", re.I)
+
+SECURITY_RULES = """Esta novedad es una VULNERABILIDAD. Reglas extra:
+- "means": qué podría hacer un atacante y qué parte de un homelab como este toca, en tercera persona. Nada de "mi", "utilizo", "tengo" ni "la versión instalada".
+- "idea": solo qué versión lo corrige u qué opción lo mitiga, si lo dice el texto ("Lo corrige la 4.14.8."). Si no lo dice, cadena vacía.
+- No menciones productos que no estén en el texto como si los usara."""
+
 # Lo que el modelo no puede afirmar: el estado real de mi servidor.
 STATUS_CLAIM = re.compile(
     r"(ya (lo )?(tengo|he|est[aá]) (actualizad|parchead)|mi servidor (est[aá]|es) (vulnerable|expuest|parchead|actualizad)"
@@ -492,17 +501,19 @@ def write_item(cfg: Config, it: dict) -> dict | None:
         "gravedad": it["severity"], "texto": it["text"],
         "pieza_de_su_servidor": ctx["es"],
     }
-    msgs = [{"role": "system", "content": SYSTEM},
+    security = it["kind"] == "security"
+    system = SYSTEM + ("\n\n" + SECURITY_RULES if security else "")
+    msgs = [{"role": "system", "content": system},
             {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)}]
     for attempt in range(2):
         out = llm(cfg, msgs, ITEM_SCHEMA)
         if not out.get("keep"):
             return None
         text = " ".join(out[l][k] for l in ("es", "en") for k in ("what", "means", "idea"))
-        if not STATUS_CLAIM.search(text):
+        if not STATUS_CLAIM.search(text) and not (security and FIRST_PERSON.search(text)):
             break
         msgs.append({"role": "assistant", "content": json.dumps(out, ensure_ascii=False)})
-        msgs.append({"role": "user", "content": "Has afirmado algo sobre el estado de su servidor (si está actualizado, expuesto o le afecta). No lo sabes: reescríbelo hablando solo de la pieza."})
+        msgs.append({"role": "user", "content": "Has afirmado algo sobre el estado de su servidor (si está actualizado, expuesto o le afecta) o has hablado en primera persona de una vulnerabilidad. Reescríbelo hablando solo de la pieza, en tercera persona."})
     else:
         log("descartada por afirmar el estado del servidor:", it["title"])
         return None
@@ -588,7 +599,10 @@ def build_article(monday: dt.date, items: list[dict], intro: dict, valid_tech: s
         for i in items:
             t = i[lang]
             heading = f"{sec_label[lang]} · {t['title']}" if i["kind"] == "security" else t["title"]
-            mine = "En mi servidor: " if lang == "es" else "On my server: "
+            if i["kind"] == "security":
+                mine = "Por qué importa: " if lang == "es" else "Why it matters: "
+            else:
+                mine = "En mi servidor: " if lang == "es" else "On my server: "
             idea = "Idea: " if lang == "es" else "Idea: "
             out += [
                 f"[[text.{lang}.sections]]",
@@ -676,13 +690,17 @@ def draft_message(monday: dt.date, items: list[dict], intro: dict) -> tuple[str,
     for n, i in enumerate(items, 1):
         t = i["es"]
         tag = "[Seguridad] " if i["kind"] == "security" else ""
-        plain += [f"{n}. {tag}{t['title']}", f"   {t['what']}", f"   En mi servidor: {t['means']}"]
+        mine = "Por qué importa" if i["kind"] == "security" else "En mi servidor"
+        plain += [f"{n}. {tag}{t['title']}", f"   {t['what']}", f"   {mine}: {t['means']}"]
+        if i["kind"] == "security":
+            plain.append("   🔒 Solo para ti (no se publica): comprueba la versión que tienes antes de aprobar.")
         if t["idea"]:
             plain.append(f"   Idea: {t['idea']}")
         plain += [f"   {i['link']}", ""]
         rich.append(
             f"<li><strong>{html.escape(tag + t['title'])}</strong><br>{html.escape(t['what'])}<br>"
-            f"<em>En mi servidor:</em> {html.escape(t['means'])}"
+            f"<em>{'Por qué importa' if i['kind'] == 'security' else 'En mi servidor'}:</em> {html.escape(t['means'])}"
+            + ("<br>🔒 <em>Solo para ti (no se publica): comprueba la versión que tienes antes de aprobar.</em>" if i["kind"] == "security" else "")
             + (f"<br><em>Idea:</em> {html.escape(t['idea'])}" if t["idea"] else "")
             + f"<br><a href=\"{html.escape(i['link'])}\">{html.escape(i['source'])}</a></li>")
     foot = ("Responde «publicar» para que salga el lunes a las 8:00 (o ya, si es más tarde), "

@@ -7,7 +7,8 @@
   const form = document.querySelector("[data-blog-filters]");
   const list = document.querySelector("[data-post-list]");
   if (!form || !list) return;
-  const cards = [...list.querySelectorAll(".post-card")];
+  const cards = [...list.querySelectorAll("[data-slug]")];
+  const months = [...list.querySelectorAll("[data-month]")];
   const q = form.querySelector("[data-bf-q]");
   const count = form.querySelector("[data-bf-count]");
   const clear = form.querySelector("[data-bf-clear]");
@@ -43,6 +44,8 @@
       c.hidden = !ok;
       if (ok) shown++;
     }
+    // Un mes sin artículos visibles no enseña su rótulo.
+    for (const m of months) m.hidden = !m.querySelector("[data-slug]:not([hidden])");
     count.textContent = count.dataset.template.replace("{n}", shown).replace("{total}", cards.length);
     const active = Boolean(s.q || s.kind || s.tech || s.unit);
     clear.hidden = !active;
@@ -62,6 +65,9 @@
   if (kind) for (const r of form.querySelectorAll('input[name="kind"]')) r.checked = r.value === kind;
 
   form.addEventListener("submit", (ev) => ev.preventDefault());
+  // En el móvil los filtros empiezan plegados (salvo que vengan en la URL).
+  const box = document.querySelector("[data-filters-box]");
+  if (box && matchMedia("(max-width: 900px)").matches && ![...params.keys()].length) box.open = false;
   form.addEventListener("change", () => apply());
   q.addEventListener("input", () => { if (!index) loadIndex().then(() => apply()); apply(); });
   form.addEventListener("reset", () => setTimeout(() => apply(), 0));

@@ -576,6 +576,9 @@ const BLOG_KEYS: &[&str] = &[
     "no_results",
     "clear",
     "sources",
+    "latest",
+    "archive",
+    "filters",
 ];
 const LAB_KEYS: &[&str] = &[
     "intro",
