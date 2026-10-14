@@ -1075,7 +1075,6 @@
         r.setAttribute("height", height.toFixed(1));
         r.setAttribute("rx", "1.5");
         if (v < 95) r.classList.add("is-low"); else if (v < 99) r.classList.add("is-mid");
-        r.style.transitionDelay = `${i * 25}ms`;
         const t = document.createElementNS(SVGNS, "title");
         t.textContent = `${v.toFixed(2)} %`;
         r.append(t);
@@ -1890,7 +1889,6 @@
     const marks = [];
     $$(".zone").forEach((z) => {
       if (z.getBoundingClientRect().top <= innerHeight) return;
-      z.classList.add("rack-in");
       const mark = document.createElement("div");
       mark.className = "rack-mark";
       mark.setAttribute("aria-hidden", "true");
@@ -1903,11 +1901,14 @@
       for (let i = marks.length - 1; i >= 0; i--) {
         const m = marks[i];
         const top = m.getBoundingClientRect().top;
-        if (top > innerHeight * 0.85) continue;
+        // Arranca justo antes de asomar por abajo; si ya quedó por encima
+        // (un salto a un ancla), no hay nada que animar.
+        if (top > innerHeight - 1) continue;
         const zone = m.nextElementSibling;
-        // Ya por encima de la pantalla: está «vista», sin animación.
-        if (top < 0) zone?.classList.add("rack-instant");
-        zone?.classList.add("is-racked");
+        if (top >= 0 && zone) {
+          zone.classList.add("is-racking");
+          zone.addEventListener("animationend", () => zone.classList.remove("is-racking"), { once: true });
+        }
         m.remove();
         marks.splice(i, 1);
       }

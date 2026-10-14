@@ -4,6 +4,7 @@
 {% block description %}{{ c.t.blog["meta_description"] }}{% endblock %}
 
 {% block head %}
+<link rel="stylesheet" href="/static/blog.css?v={{ c.asset_v }}">
 <link rel="canonical" href="{{ url }}">
 <link rel="alternate" hreflang="es" href="{{ c.public_url }}/es/blog/">
 <link rel="alternate" hreflang="en" href="{{ c.public_url }}/en/blog/">

@@ -24,15 +24,21 @@
   applyMotion();
   const motionAtLoad = !motionOff();
 
-  // De noche en casa (Madrid, de 23:00 a 7:00) los enanitos duermen.
-  let hour;
-  try {
-    hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: "Europe/Madrid" }).format(new Date()));
-  } catch { hour = new Date().getHours(); }
+  // De noche en casa (Madrid, de 23:00 a 7:00) los enanitos duermen. La
+  // hora de Madrid se calcula a mano: Intl.DateTimeFormat con zona horaria
+  // cuesta decenas de milisegundos en un móvil, y esto va antes de pintar.
+  // UTC+1, y UTC+2 del último domingo de marzo al último de octubre (1:00 UTC).
+  const madridHour = (d) => {
+    const y = d.getUTCFullYear();
+    const lastSunday = (m) => { const t = new Date(Date.UTC(y, m + 1, 0, 1)); t.setUTCDate(t.getUTCDate() - t.getUTCDay()); return t.getTime(); };
+    const summer = d.getTime() >= lastSunday(2) && d.getTime() < lastSunday(9);
+    return (d.getUTCHours() + (summer ? 2 : 1)) % 24;
+  };
+  const hour = madridHour(new Date());
   const night = hour >= 23 || hour < 7 || new URLSearchParams(location.search).has("noche");
   if (night) doc.dataset.night = "1";
 
-  window.tpPrefs = { motionOff, night };
+  window.tpPrefs = { motionOff, night, madridHour };
 
   // ---------------------------------------------------------- entrar y salir del rack
   // Transiciones entre páginas (View Transitions entre documentos): al entrar

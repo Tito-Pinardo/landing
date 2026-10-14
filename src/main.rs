@@ -8,6 +8,7 @@ mod config;
 mod contact;
 mod content;
 mod live;
+mod minify;
 mod notify;
 mod render;
 mod security;
@@ -34,6 +35,17 @@ async fn main() -> anyhow::Result<()> {
     if std::env::args().nth(1).as_deref() == Some("check") {
         content::Content::embedded()?;
         println!("contenido válido");
+        return Ok(());
+    }
+    // `landing dump-assets <dir>` escribe el CSS y el JS tal como se sirven
+    // (minificados), para comprobarlos con `node --check` (lo usa CI).
+    if std::env::args().nth(1).as_deref() == Some("dump-assets") {
+        let dir = std::path::PathBuf::from(std::env::args().nth(2).context("falta el directorio")?);
+        std::fs::create_dir_all(&dir)?;
+        for (name, body, _) in app::minified_assets() {
+            std::fs::write(dir.join(&name), &body)?;
+        }
+        println!("escrito en {}", dir.display());
         return Ok(());
     }
     // `landing check-article <fichero>` valida un borrador de artículo (el

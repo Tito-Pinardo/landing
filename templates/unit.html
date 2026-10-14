@@ -4,6 +4,7 @@
 {% block description %}{{ t.meta.description }}{% endblock %}
 
 {% block head %}
+<link rel="stylesheet" href="/static/unit.css?v={{ c.asset_v }}">
 <link rel="expect" href="#unit-face" blocking="render">
 <link rel="canonical" href="{{ url }}">
 <link rel="alternate" hreflang="es" href="{{ c.public_url }}/es/{{ id }}/">

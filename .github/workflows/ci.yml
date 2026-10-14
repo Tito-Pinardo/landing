@@ -36,6 +36,8 @@ jobs:
       - run: cargo build --release
       - name: Contenido válido
         run: ./target/release/landing check
+      - name: El JS minificado sigue siendo JS válido
+        run: ./target/release/landing dump-assets /tmp/min && for f in /tmp/min/*.js; do node --check "$f"; done
       - name: Pruebas del resumen semanal (Python, sin red)
         run: python3 -m unittest tools/digest/test_digest.py
       - uses: actions/upload-artifact@v4

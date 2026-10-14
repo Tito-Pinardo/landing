@@ -10,6 +10,7 @@ use axum::{
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
 };
+use bytes::Bytes;
 use rust_embed::Embed;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -33,6 +34,29 @@ use crate::{
 #[folder = "static/"]
 struct Assets;
 
+/// CSS y JS minificados una vez, al arrancar (ver `minify`): (ruta, cuerpo,
+/// etag). El resto de ficheros se sirve tal cual.
+pub fn minified_assets() -> Vec<(String, Bytes, String)> {
+    Assets::iter()
+        .filter_map(|name| {
+            let min = if name.ends_with(".css") {
+                crate::minify::css
+            } else if name.ends_with(".js") {
+                crate::minify::js
+            } else {
+                return None;
+            };
+            let file = Assets::get(&name)?;
+            let body = min(std::str::from_utf8(&file.data).ok()?);
+            let etag = format!(
+                "\"{}\"",
+                &hex::encode(Sha256::digest(body.as_bytes()))[..16]
+            );
+            Some((name.into_owned(), Bytes::from(body), etag))
+        })
+        .collect()
+}
+
 #[derive(Clone)]
 pub struct AppState(Arc<Inner>);
 
@@ -40,6 +64,8 @@ struct Inner {
     cfg: Config,
     content: Content,
     asset_v: String,
+    /// CSS y JS ya minificados: ruta → (cuerpo, etag).
+    min_assets: std::collections::HashMap<String, (Bytes, String)>,
     pages: [Page; 2],
     /// Unidades del rack: (id, página en cada idioma).
     units: Vec<(String, [Page; 2])>,
@@ -111,6 +137,10 @@ impl AppState {
             units,
             blog,
             blog_index,
+            min_assets: minified_assets()
+                .into_iter()
+                .map(|(name, body, etag)| (name, (body, etag)))
+                .collect(),
             articles,
             not_found,
             db,
@@ -366,10 +396,13 @@ async fn not_found(State(st): State<AppState>, headers: HeaderMap) -> Response {
 /// pueden cachear "para siempre" con `?v=`.
 fn asset_version() -> String {
     let mut h = Sha256::new();
-    for name in [
-        "app.css", "app.js", "unit.js", "sound.js", "prefs.js", "blog.js",
-    ] {
-        if let Some(f) = Assets::get(name) {
+    // Todos los CSS y JS, en orden: uno nuevo nunca se queda fuera.
+    let mut names: Vec<_> = Assets::iter()
+        .filter(|n| n.ends_with(".css") || n.ends_with(".js"))
+        .collect();
+    names.sort();
+    for name in names {
+        if let Some(f) = Assets::get(&name) {
             h.update(f.metadata.sha256_hash());
         }
     }
@@ -385,11 +418,15 @@ async fn asset(
     let Some(file) = Assets::get(&path) else {
         return not_found(State(st), headers).await;
     };
-    let etag = HeaderValue::from_str(&format!(
-        "\"{}\"",
-        &hex::encode(file.metadata.sha256_hash())[..16]
-    ))
-    .expect("etag");
+    // CSS y JS, ya minificados al arrancar; el resto, tal cual.
+    let (body, etag) = match st.0.min_assets.get(&path) {
+        Some((body, etag)) => (body.clone(), etag.clone()),
+        None => (
+            Bytes::from(file.data.into_owned()),
+            format!("\"{}\"", &hex::encode(file.metadata.sha256_hash())[..16]),
+        ),
+    };
+    let etag = HeaderValue::from_str(&etag).expect("etag");
     let versioned = query.is_some_and(|q| q.starts_with("v="));
     let cache = if versioned {
         "public, max-age=31536000, immutable"
@@ -402,11 +439,7 @@ async fn asset(
         StatusCode::NOT_MODIFIED.into_response()
     } else {
         let mime = file.metadata.mimetype();
-        (
-            [(header::CONTENT_TYPE, mime.to_owned())],
-            Body::from(file.data),
-        )
-            .into_response()
+        ([(header::CONTENT_TYPE, mime.to_owned())], Body::from(body)).into_response()
     };
     res.headers_mut().insert(header::ETAG, etag);
     res.headers_mut()
