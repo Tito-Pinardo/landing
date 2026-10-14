@@ -80,7 +80,7 @@ x = 100
 y = 420
 kind = "control"
 group = ""
-tech = ["git"]
+tech = ["git", "forgejo"]
 
 [[pods]]
 id = "ci"
@@ -88,7 +88,7 @@ x = 290
 y = 420
 kind = "control"
 group = ""
-tech = ["gitlab-ci"]
+tech = ["forgejo", "gitlab-ci"]
 
 [[pods]]
 id = "matrix"
@@ -340,14 +340,14 @@ title = "Mi móvil"
 text = "Donde me llegan los mensajes del formulario."
 
 [text.es.pods.github]
-short = "GitHub"
-title = "Repositorio en GitHub"
-text = "El código es público. Antes de cada push, un hook busca secretos, direcciones internas y nombres que no deben salir."
+short = "Forgejo"
+title = "Repositorio en mi Forgejo"
+text = "El origen del código, en casa. El código es público en GitHub, pero esa copia solo recibe lo que ya está desplegado y ha pasado el control de fugas."
 
 [text.es.pods.ci]
-short = "GitHub Actions"
-title = "Integración continua"
-text = "En cada push: formato, clippy sin avisos y todas las pruebas contra un PostgreSQL de verdad."
+short = "CI/CD"
+title = "Integración y despliegue continuos"
+text = "En cada push, en un runner sin secretos: formato, clippy sin avisos, todas las pruebas contra un PostgreSQL de verdad y gitleaks. En verde, otro runner lo despliega."
 
 [text.es.pods.matrix]
 short = "Matrix"
@@ -474,13 +474,13 @@ steps = [
 [text.es.flows.release]
 title = "Publico una versión"
 steps = [
-  "Hago push. Antes, un hook local busca secretos y nombres internos.",
-  "La integración continua pasa formato, clippy y todas las pruebas.",
-  "Con todo en verde, compilo la versión.",
+  "Hago push a mi Forgejo. Antes, un hook local busca secretos y nombres internos.",
+  "El CI pasa formato, clippy, todas las pruebas y gitleaks.",
+  "En verde, el runner de despliegue repite el control de fugas y compila la versión.",
   "Ansible copia el binario nuevo al contenedor.",
   "Antes de reiniciar, ejecuta «landing check»: valida el contenido de los dos idiomas.",
   "Reinicia el servicio y espera a que /healthz diga «ok», que comprueba también la base de datos.",
-  "La versión nueva está sirviendo.",
+  "La versión nueva está sirviendo. Solo entonces el commit sale a GitHub.",
 ]
 
 [text.es.flows.build]
@@ -610,8 +610,9 @@ postgresql = "Mensajes y avisos pendientes, consultas comprobadas en compilació
 traefik = "La única entrada: certificado, cabeceras y una ruta generada desde la lista de servicios."
 terraform = "Crea el contenedor de la web, sus recursos y su cortafuegos."
 ansible = "El rol que instala PostgreSQL, despliega el binario, comprueba el contenido y espera al healthz."
-git = "Repositorio público con historial saneado y un hook que bloquea secretos antes de cada push."
-gitlab-ci = "GitHub Actions: formato, clippy y todas las pruebas contra un PostgreSQL de verdad en cada push."
+git = "Repositorio público con historial saneado, un hook que bloquea secretos antes de cada push y el mismo control antes de cada publicación."
+forgejo = "El origen del repositorio y su CI/CD: comprobar en un runner sin secretos, desplegar solo en verde y publicar la copia en GitHub después."
+gitlab-ci = "GitHub Actions repite formato, clippy y todas las pruebas sobre la copia pública."
 
 [text.es.close]
 lessons = [
@@ -698,14 +699,14 @@ title = "My phone"
 text = "Where the contact form messages reach me."
 
 [text.en.pods.github]
-short = "GitHub"
-title = "GitHub repository"
-text = "The code is public. Before every push, a hook looks for secrets, internal addresses and names that mustn't leave."
+short = "Forgejo"
+title = "Repository on my Forgejo"
+text = "Where the code starts, at home. The code is public on GitHub, but that copy only gets what's already deployed and has passed the leak check."
 
 [text.en.pods.ci]
-short = "GitHub Actions"
-title = "Continuous integration"
-text = "On every push: formatting, clippy with no warnings and every test against a real PostgreSQL."
+short = "CI/CD"
+title = "Continuous integration and deployment"
+text = "On every push, on a runner with no secrets: formatting, clippy with no warnings, every test against a real PostgreSQL and gitleaks. On green, another runner deploys it."
 
 [text.en.pods.matrix]
 short = "Matrix"
@@ -832,13 +833,13 @@ steps = [
 [text.en.flows.release]
 title = "I ship a version"
 steps = [
-  "I push. First, a local hook looks for secrets and internal names.",
-  "Continuous integration runs formatting, clippy and every test.",
-  "With everything green, I build the release.",
+  "I push to my Forgejo. First, a local hook looks for secrets and internal names.",
+  "CI runs formatting, clippy, every test and gitleaks.",
+  "On green, the deploy runner repeats the leak check and builds the release.",
   "Ansible copies the new binary to the container.",
   "Before restarting, it runs «landing check»: it validates the content in both languages.",
   "It restarts the service and waits for /healthz to say «ok», which also checks the database.",
-  "The new version is serving.",
+  "The new version is serving. Only then does the commit go out to GitHub.",
 ]
 
 [text.en.flows.build]
@@ -968,8 +969,9 @@ postgresql = "Messages and pending notices, queries checked at compile time with
 traefik = "The only way in: certificate, headers and a route generated from the service list."
 terraform = "Creates the site's container, its resources and its firewall."
 ansible = "The role that installs PostgreSQL, deploys the binary, checks the content and waits for healthz."
-git = "A public repo with cleaned history and a hook that blocks secrets before every push."
-gitlab-ci = "GitHub Actions: formatting, clippy and every test against a real PostgreSQL on every push."
+git = "A public repo with cleaned history, a hook that blocks secrets before every push and the same check before every release."
+forgejo = "The repository's origin and its CI/CD: checks on a runner with no secrets, deploys only on green and publishes the GitHub copy afterwards."
+gitlab-ci = "GitHub Actions repeats formatting, clippy and every test on the public copy."
 
 [text.en.close]
 lessons = [

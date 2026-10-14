@@ -1,0 +1,137 @@
+slug = "forgejo-ci-cd"
+date = "2026-10-14"
+unit = "forgejo"
+tech = ["forgejo", "git", "terraform", "ansible", "rust"]
+kind = "build"
+
+[text.es]
+impact = "Ninguno en producción: un día de montaje, con cuatro tropiezos y dos commits en rojo por el camino."
+detected = "Cada tropiezo lo destapó el propio CI, que parte de una máquina sin secretos."
+title = "Mi propio CI/CD con Forgejo: un runner sin secretos, despliegue por PR y esta web publicada sola"
+description = "Por qué el código de mi homelab vive en un Forgejo en casa, qué hace cada runner, los cuatro tropiezos del primer día y cómo esta web llega sola de un push a internet."
+summary = "La infraestructura de mi homelab vivía en un repositorio sin interfaz y nadie revisaba nada antes de que entrara. En un día lo pasé a Forgejo: CI en cada push en un runner sin un solo secreto, cambios de infraestructura por PR con el plan a la vista, despliegue con un clic y, al final, esta web desplegándose sola."
+lesson = "Un CI que no tiene secretos ni atajos destapa todo lo que el código daba por hecho. Y lo público siempre va detrás de lo desplegado, nunca delante."
+
+[[text.es.sections]]
+heading = "Por qué"
+paragraphs = [
+  "La infraestructura vivía en un repositorio sin interfaz, copiado a otro de respaldo por un hook. Funcionaba, pero nadie miraba nada antes de que entrara: un fichero de Terraform mal formateado o un secreto en claro se copiaban tal cual a los dos sitios.",
+  "Después de auditar el día 5 todo lo que tenía publicado en busca de fugas, lo que más valía era que gitleaks pasara solo en cada push. Para eso hacía falta un servidor Git con CI. Elegí Forgejo: un binario y SQLite, que caben en un contenedor con un gigabyte de memoria.",
+]
+
+[[text.es.sections]]
+heading = "Dos runners, separados por lo que pueden tocar"
+paragraphs = [
+  "El runner del CI vive en su propio contenedor y no tiene nada que robar: ni la clave de la API de Proxmox, ni el estado de Terraform, ni la contraseña de los vaults. Comprueba el formato y la validez de Terraform sin estado ni credenciales, pasa ansible-lint, comprueba que cada vault esté cifrado y pasa gitleaks sobre todo el historial. Nunca aplica nada.",
+  "Algunas herramientas no arrancan sin ciertos ficheros, así que el runner tiene una contraseña de vault y una clave SSH falsas a propósito. Dejan arrancar y no abren nada.",
+  "El runner de despliegue vive en el nodo de control, que ya podía tocarlo todo, y solo atiende a su repositorio. No da más acceso del que ya había.",
+]
+
+[[text.es.sections]]
+heading = "Los cuatro tropiezos del primer día"
+paragraphs = [
+  "El primer CI salió en rojo, y era lo esperado. terraform validate no usa estado, pero sí evalúa file(), y el código lee una clave pública que en el runner no existía. Se arregló con el fichero falso.",
+  "Los trabajos se quedaban «en espera» sin un error. El runner se había registrado sin etiqueta, así que no casaba con ningún runs-on. Al ponérsela siguió igual: solo vuelve a pedir trabajo cuando cambia la cola del servidor. Bastó con reiniciarlo una vez.",
+  "Forgejo no arrancaba sin un secreto de OAuth2, aunque OAuth2 estuviera apagado. Ahora se genera la primera vez en el propio contenedor, como los demás secretos internos, y no sale de ahí.",
+  "ansible-lint daba en el runner un aviso que en mi terminal no salía: en el nodo de control faltaba una colección y ese rol se saltaba sin decirlo. Desde entonces la referencia es el CI, que parte de una instalación limpia.",
+  "Y al dar de alta las claves SSH de mis equipos, dos commits salieron en rojo por líneas de más de 160 caracteres: las propias claves. Llegaron los dos avisos ❌ a Element y el arreglo salió en verde. Aquel día salieron ocho avisos y llegaron los ocho.",
+]
+
+[[text.es.sections]]
+heading = "Infraestructura por PR, con el plan a la vista"
+paragraphs = [
+  "La rama principal de la infraestructura no admite pushes: todo entra por PR con el CI en verde. En cada PR, el runner de despliegue calcula el plan de Terraform y pasa en modo ensayo los playbooks afectados por los ficheros cambiados. El resumen queda como comentario: antes de fusionar ya sé qué se crea, qué cambia y qué se recrearía.",
+  "Fusionar no aplica nada. Sale el plan de la rama principal, lo leo en el móvil y lo apruebo con un clic. Se aplica ese plan guardado: si el estado cambió entretanto, Terraform se niega en vez de hacer otra cosa.",
+  "Lo que no se lanza solo está en una lista, con su motivo: el propio nodo de control, Forgejo, el host y el mantenimiento. Y no uso --diff a propósito: las plantillas llevan secretos y acabarían en el registro, en el PR y en Element.",
+]
+code = """🧭 Plan del PR #1
+Terraform (homelab): 1 update
+  ~ proxmox_virtual_environment_container.forgejo_runner
+Ansible monitoring.yml (forgejo-runner): 0 tarea(s) cambiarian
+A mano (no se lanza solo): forgejo.yml — reinicia Forgejo y el runner de despliegue"""
+
+[[text.es.sections]]
+heading = "Esta web, de un push a internet"
+paragraphs = [
+  "Esta web era lo siguiente. Su origen pasó a Forgejo y su CI al mismo runner, que ahora también tiene Rust, un PostgreSQL solo por socket para las pruebas y Node para comprobar el JavaScript minificado. Compilar pide unos 1,3 GB de memoria con dos trabajos a la vez: cabe en los 2 GB del runner, y lo compilado se reutiliza entre ejecuciones.",
+  "Aquí no hay clic: con el CI en verde en main, el runner de despliegue pasa un control de fugas a todo lo que aún no es público. Busca con gitleaks, exige que el único autor sea mi identidad pública y rechaza direcciones o nombres internos. Después compila, despliega con Ansible, espera a que la web responda y solo entonces empuja ese commit a GitHub.",
+  "Así, la copia pública nunca va por delante de lo desplegado. Si GitHub tuviera algo que Forgejo no tiene, el despliegue se para en vez de forzar nada.",
+]
+
+[[text.es.sections]]
+heading = "Resultado"
+paragraphs = [
+  "Cada push, de la infraestructura o de esta web, pasa por el CI, y su resultado llega a Element cifrado. Los cambios de infraestructura se ven antes de fusionar y se aplican con el plan exacto. Esta web va sola de un push a internet, y GitHub queda como escaparate.",
+  "Lo siguiente: que los planes que solo actualizan se apliquen solos, y que los que destruyen o recrean sigan esperando mi clic.",
+]
+links = [
+  { title = "Forgejo", url = "https://forgejo.org/", source = "Forgejo" },
+  { title = "Forgejo Actions", url = "https://forgejo.org/docs/latest/user/actions/", source = "Documentación de Forgejo" },
+  { title = "gitleaks", url = "https://github.com/gitleaks/gitleaks", source = "GitHub" },
+]
+
+[text.en]
+impact = "None in production: a day of building, with four stumbles and two red commits along the way."
+detected = "CI itself uncovered every stumble, starting from a machine with no secrets."
+title = "My own CI/CD with Forgejo: a runner with no secrets, deploys by PR and this site publishing itself"
+description = "Why my homelab's code now lives in a Forgejo at home, what each runner does, the four stumbles of day one and how this site goes from a push to the internet on its own."
+summary = "My homelab's infrastructure lived in a repository with no interface and nobody reviewed anything before it went in. In one day I moved it to Forgejo: CI on every push on a runner without a single secret, infrastructure changes by PR with the plan in view, one-click deploys and, at the end, this site deploying itself."
+lesson = "A CI with no secrets and no shortcuts uncovers everything the code took for granted. And what's public always goes behind what's deployed, never ahead."
+
+[[text.en.sections]]
+heading = "Why"
+paragraphs = [
+  "The infrastructure lived in a repository with no interface, copied to a backup one by a hook. It worked, but nobody looked at anything before it went in: a badly formatted Terraform file or a plain-text secret was copied as is to both places.",
+  "After auditing everything I had published for leaks on the 5th, what mattered most was gitleaks running on every push by itself. That needed a Git server with CI. I picked Forgejo: one binary and SQLite, which fit in a container with a gigabyte of memory.",
+]
+
+[[text.en.sections]]
+heading = "Two runners, split by what they can touch"
+paragraphs = [
+  "The CI runner lives in its own container and has nothing to steal: no Proxmox API key, no Terraform state, no vault password. It checks Terraform's formatting and validity with no state or credentials, runs ansible-lint, checks that every vault is encrypted and runs gitleaks over the whole history. It never applies anything.",
+  "Some tools won't start without certain files, so the runner has a deliberately fake vault password and SSH key. They let things start and open nothing.",
+  "The deploy runner lives on the control node, which could already touch everything, and only serves its own repository. It gives no more access than there already was.",
+]
+
+[[text.en.sections]]
+heading = "The four stumbles of day one"
+paragraphs = [
+  "The first CI run went red, as expected. terraform validate uses no state, but it does evaluate file(), and the code reads a public key that didn't exist on the runner. The fake file fixed it.",
+  "Jobs sat «waiting» with no error. The runner had registered with no label, so it matched no runs-on. Adding it changed nothing: it only asks for work again when the server's queue changes. Restarting it once was enough.",
+  "Forgejo wouldn't start without an OAuth2 secret, even with OAuth2 switched off. Now it's generated the first time inside the container, like the other internal secrets, and never leaves.",
+  "On the runner, ansible-lint raised a warning my terminal didn't show: the control node was missing a collection and that role was skipped silently. Since then CI is the reference: it starts from a clean install.",
+  "And when I added my machines' SSH keys, two commits went red for lines over 160 characters: the keys themselves. Both ❌ alerts reached Element and the fix went green. Eight alerts went out that day and all eight arrived.",
+]
+
+[[text.en.sections]]
+heading = "Infrastructure by PR, with the plan in view"
+paragraphs = [
+  "The infrastructure's main branch takes no pushes: everything comes in by PR with green CI. On each PR, the deploy runner works out the Terraform plan and dry-runs the playbooks affected by the changed files. The summary is posted as a comment: before merging I already know what gets created, what changes and what would be recreated.",
+  "Merging applies nothing. The main branch's plan comes out, I read it on my phone and approve it with one click. That saved plan is applied: if the state changed in between, Terraform refuses instead of doing something else.",
+  "What never runs on its own is on a list, with its reason: the control node itself, Forgejo, the host and maintenance. And I deliberately don't use --diff: templates carry secrets and would end up in the log, the PR and Element.",
+]
+code = """🧭 Plan del PR #1
+Terraform (homelab): 1 update
+  ~ proxmox_virtual_environment_container.forgejo_runner
+Ansible monitoring.yml (forgejo-runner): 0 tarea(s) cambiarian
+A mano (no se lanza solo): forgejo.yml — reinicia Forgejo y el runner de despliegue"""
+
+[[text.en.sections]]
+heading = "This site, from a push to the internet"
+paragraphs = [
+  "This site came next. Its origin moved to Forgejo and its CI to the same runner, which now also has Rust, a socket-only PostgreSQL for the tests and Node to check the minified JavaScript. Building takes about 1.3 GB of memory with two jobs at once: it fits in the runner's 2 GB, and the build output is reused between runs.",
+  "There's no click here: with green CI on main, the deploy runner runs a leak check over everything that isn't public yet. It searches with gitleaks, requires my public identity as the only author and rejects addresses or internal names. Then it builds, deploys with Ansible, waits for the site to answer and only then pushes that commit to GitHub.",
+  "That way the public copy is never ahead of what's deployed. If GitHub had something Forgejo doesn't, the deployment stops instead of forcing anything.",
+]
+
+[[text.en.sections]]
+heading = "Result"
+paragraphs = [
+  "Every push, to the infrastructure or to this site, goes through CI, and its result reaches Element encrypted. Infrastructure changes are seen before merging and applied with the exact plan. This site goes from a push to the internet on its own, and GitHub stays as the shop window.",
+  "Next: let update-only plans apply on their own, while those that destroy or recreate keep waiting for my click.",
+]
+links = [
+  { title = "Forgejo", url = "https://forgejo.org/", source = "Forgejo" },
+  { title = "Forgejo Actions", url = "https://forgejo.org/docs/latest/user/actions/", source = "Forgejo docs" },
+  { title = "gitleaks", url = "https://github.com/gitleaks/gitleaks", source = "GitHub" },
+]

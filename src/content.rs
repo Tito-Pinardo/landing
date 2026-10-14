@@ -852,7 +852,7 @@ impl Content {
             }
         }
         for n in &site.nodes {
-            ensure!(n.x <= 1200 && n.y <= 800, "nodo {} fuera del lienzo", n.id);
+            ensure!(n.x <= 1200 && n.y <= 900, "nodo {} fuera del lienzo", n.id);
             ensure!(
                 n.group.is_empty() || site.groups.iter().any(|g| g.id == n.group),
                 "nodo {}: grupo desconocido {}",
@@ -869,7 +869,7 @@ impl Content {
         }
         for g in &site.groups {
             ensure!(
-                g.x + g.w <= 1200 && g.y + g.h <= 800,
+                g.x + g.w <= 1200 && g.y + g.h <= 900,
                 "grupo {} fuera del lienzo",
                 g.id
             );

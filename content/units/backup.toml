@@ -300,9 +300,9 @@ title = "Mi portátil"
 text = "Edito el repositorio desde aquí o desde el nodo de control."
 
 [text.es.pods.central]
-short = "Repo central"
-title = "Repositorio central"
-text = "Donde se trabaja."
+short = "Forgejo"
+title = "Forgejo, el origen"
+text = "Donde se trabaja desde el 14-10: el origen del repositorio, con CI y su propia copia diaria. Tiene su unidad."
 
 [text.es.pods.github]
 short = "GitHub privado"
@@ -403,7 +403,7 @@ text = "La única prueba de que una copia sirve."
 title = "Hago un commit"
 steps = [
   "Cambio algo en la infraestructura.",
-  "Commit en el repositorio central.",
+  "Commit, y push a Forgejo, el origen.",
   "El hook se dispara solo.",
   "Empuja al repositorio de respaldo, en otro disco.",
   "Con un usuario que solo puede hacer Git.",
@@ -599,9 +599,9 @@ title = "My laptop"
 text = "I edit the repository from here or from the control node."
 
 [text.en.pods.central]
-short = "Central repo"
-title = "Central repository"
-text = "Where the work happens."
+short = "Forgejo"
+title = "Forgejo, the origin"
+text = "Where the work happens since 14-10: the repository's origin, with CI and its own daily copy. It has its own unit."
 
 [text.en.pods.github]
 short = "Private GitHub"
@@ -702,7 +702,7 @@ text = "The only proof a backup works."
 title = "I make a commit"
 steps = [
   "I change something in the infrastructure.",
-  "Commit on the central repository.",
+  "Commit, and push to Forgejo, the origin.",
   "The hook fires on its own.",
   "It pushes to the backup repository, on another disk.",
   "With a user that can only do Git.",

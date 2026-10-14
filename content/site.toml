@@ -141,6 +141,12 @@ branch = "containers"
 level = 2
 
 [[tech]]
+id = "forgejo"
+name = "Forgejo · Actions"
+branch = "containers"
+level = 2
+
+[[tech]]
 id = "git"
 name = "Git"
 branch = "containers"
@@ -292,7 +298,7 @@ level = 2
 id = "homelab-iac"
 status = "ongoing"
 featured = true
-tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "linux", "traefik", "dns", "hardening"]
+tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "forgejo", "linux", "traefik", "dns", "hardening"]
 repo = "https://github.com/Tito-Pinardo/homelab-infra"
 
 [[projects]]
@@ -335,11 +341,11 @@ tech = ["python", "docker"]
 [[projects]]
 id = "landing"
 status = "live"
-tech = ["rust", "postgresql", "traefik", "terraform", "ansible", "git", "gitlab-ci"]
+tech = ["rust", "postgresql", "traefik", "terraform", "ansible", "git", "forgejo", "gitlab-ci"]
 repo = "https://github.com/Tito-Pinardo/landing"
 
 # ---------------------------------------------------------------------------
-# Laboratorio: el servidor por dentro. Lienzo de 1200x800.
+# Laboratorio: el servidor por dentro. Lienzo de 1200x900.
 # Sin IPs, puertos ni nombres internos: solo qué hace cada pieza.
 # `group` vacío = fuera del servidor (internet, router, PC...).
 # ---------------------------------------------------------------------------
@@ -390,6 +396,13 @@ h = 90
 id = "lab"
 x = 420
 y = 614
+w = 760
+h = 90
+
+[[groups]]
+id = "delivery"
+x = 420
+y = 728
 w = 760
 h = 90
 
@@ -694,6 +707,34 @@ group = "lab"
 tech = ["git"]
 unit = "backup"
 
+# Código y entrega: el origen de los repositorios, su CI y quien despliega.
+[[nodes]]
+id = "forgejo"
+x = 547
+y = 780
+kind = "control"
+group = "delivery"
+tech = ["git", "forgejo"]
+unit = "forgejo"
+
+[[nodes]]
+id = "ci"
+x = 800
+y = 780
+kind = "observability"
+group = "delivery"
+tech = ["forgejo", "terraform", "ansible", "rust"]
+unit = "forgejo"
+
+[[nodes]]
+id = "deployer"
+x = 1053
+y = 780
+kind = "control"
+group = "delivery"
+tech = ["forgejo", "terraform", "ansible"]
+unit = "forgejo"
+
 # ---------------------------------------------------------------------------
 # Recorridos: el camino que hace algo de verdad por dentro del servidor.
 # Cada paso de `path` tiene su texto en es/en.toml (mismo número de pasos);
@@ -718,7 +759,12 @@ path = ["internet", "cloudflare", "router", "traefik", "landing", "postgres", "l
 [[flows]]
 id = "deploy"
 category = "ops"
-path = ["github", "iac", "proxmox", "landing", "iac", "zabbix", "wazuh", "backup"]
+path = ["forgejo", "ci", "deployer", "movil", "deployer", "proxmox", "landing", "zabbix", "wazuh", "backup"]
+
+[[flows]]
+id = "webcd"
+category = "visitors"
+path = ["pc", "forgejo", "ci", "deployer", "landing", "github", "matrix", "movil"]
 
 [[flows]]
 id = "update"
@@ -743,7 +789,7 @@ path = ["iac", "obsidian", "qdrant", "hermes"]
 [[flows]]
 id = "okd"
 category = "ops"
-path = ["github", "iac", "okd", "dns", "casa"]
+path = ["forgejo", "iac", "okd", "dns", "casa"]
 
 [[flows]]
 id = "intrusion"
@@ -816,6 +862,12 @@ id = "db"
 category = "break"
 broken = "postgres"
 path = ["postgres", "landing", "internet", "landing", "postgres", "landing", "matrix"]
+
+[[flows]]
+id = "runner"
+category = "break"
+broken = "ci"
+path = ["pc", "forgejo", "ci", "forgejo", "landing", "ci", "forgejo", "deployer"]
 
 # ---------------------------------------------------------------------------
 # Modo detective: averías reales. `clues` son las piezas con pista (el texto

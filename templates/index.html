@@ -286,14 +286,14 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
     <div class="lab-screen">
       <div class="lab-map-wrap" data-map-wrap>
       <span class="map-hint js-only" data-map-hint aria-hidden="true">{{ c.t.gnomes.mobile_hint }}</span>
-      <svg class="lab-map" viewBox="0 0 1200 760" role="group" aria-label="{{ c.lab("server_title") }}">
+      <svg class="lab-map" viewBox="0 0 1200 860" role="group" aria-label="{{ c.lab("server_title") }}">
         <defs>
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" class="grid-line"/></pattern>
           <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         </defs>
-        <rect width="1200" height="760" fill="url(#grid)"/>
+        <rect width="1200" height="860" fill="url(#grid)"/>
         <text class="lab-outside" x="20" y="56">{{ c.lab("outside") }}</text>
-        <rect class="lab-server" x="400" y="34" width="790" height="690" rx="22"/>
+        <rect class="lab-server" x="400" y="34" width="790" height="804" rx="22"/>
         <text class="lab-server-title" x="424" y="66">{{ c.lab("server_title") }}</text>
         <text class="lab-server-specs" x="1166" y="66" text-anchor="end">{{ c.lab("server_specs") }}</text>
         {% for g in groups %}

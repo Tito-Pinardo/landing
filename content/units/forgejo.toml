@@ -1,0 +1,977 @@
+# Unidad 1U del rack: Forgejo, el CI y quien despliega.
+#
+# Fuente: Obsidian «Forgejo y CI de infra-tf» y «Despliegue de infra-tf por
+# PR» (14-10-2026) y el CI/CD de esta web. Sin direcciones, puertos, nombres
+# de contenedores ni rutas internas.
+
+id = "forgejo"
+status = "live"
+host_tech = ["lxc", "linux"]
+links = [
+  ["laptop", "git"],
+  ["git", "backup"],
+  ["fugas", "github"],
+  ["relay", "element"],
+]
+
+[[groups]]
+id = "server"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "ci"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "deploy"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "around"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "laptop"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "element"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "backup"
+x = 290
+y = 250
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "site"
+x = 290
+y = 420
+kind = "app"
+group = ""
+tech = ["rust"]
+
+[[pods]]
+id = "github"
+x = 100
+y = 540
+kind = "control"
+group = ""
+tech = ["git"]
+
+[[pods]]
+id = "git"
+x = 515
+y = 140
+kind = "control"
+group = "server"
+tech = ["git", "forgejo"]
+
+[[pods]]
+id = "webui"
+x = 700
+y = 140
+kind = "network"
+group = "server"
+tech = ["hardening"]
+
+[[pods]]
+id = "pr"
+x = 885
+y = 140
+kind = "control"
+group = "server"
+tech = ["forgejo"]
+
+[[pods]]
+id = "hooks"
+x = 1070
+y = 140
+kind = "observability"
+group = "server"
+tech = ["forgejo"]
+
+[[pods]]
+id = "runner"
+x = 515
+y = 266
+kind = "compute"
+group = "ci"
+tech = ["forgejo", "lxc"]
+
+[[pods]]
+id = "iaclint"
+x = 700
+y = 266
+kind = "observability"
+group = "ci"
+tech = ["terraform", "ansible"]
+
+[[pods]]
+id = "rust"
+x = 885
+y = 266
+kind = "observability"
+group = "ci"
+tech = ["rust", "postgresql"]
+
+[[pods]]
+id = "gitleaks"
+x = 1070
+y = 266
+kind = "observability"
+group = "ci"
+tech = ["hardening", "git"]
+
+[[pods]]
+id = "plan"
+x = 515
+y = 392
+kind = "control"
+group = "deploy"
+tech = ["terraform", "ansible"]
+
+[[pods]]
+id = "click"
+x = 700
+y = 392
+kind = "control"
+group = "deploy"
+tech = ["forgejo"]
+
+[[pods]]
+id = "saved"
+x = 885
+y = 392
+kind = "control"
+group = "deploy"
+tech = ["terraform"]
+
+[[pods]]
+id = "fugas"
+x = 1070
+y = 392
+kind = "observability"
+group = "deploy"
+tech = ["hardening", "git"]
+
+[[pods]]
+id = "avisos"
+x = 515
+y = 518
+kind = "observability"
+group = "around"
+tech = []
+
+[[pods]]
+id = "relay"
+x = 700
+y = 518
+kind = "network"
+group = "around"
+tech = []
+
+[[pods]]
+id = "mirror"
+x = 885
+y = 518
+kind = "control"
+group = "around"
+tech = ["git"]
+
+[[pods]]
+id = "copia"
+x = 1070
+y = 518
+kind = "compute"
+group = "around"
+tech = ["lxc"]
+
+[[flows]]
+id = "pr"
+path = ["laptop", "git", "pr", "runner", "iaclint", "gitleaks", "plan", "pr", "click", "saved", "avisos", "relay", "element"]
+
+[[flows]]
+id = "web"
+path = ["laptop", "git", "runner", "rust", "gitleaks", "fugas", "site", "github", "avisos", "element"]
+
+[[flows]]
+id = "red"
+path = ["laptop", "git", "runner", "iaclint", "avisos", "element", "laptop", "runner", "element"]
+
+[[flows]]
+id = "mirror"
+path = ["laptop", "mirror", "git", "mirror", "laptop", "backup"]
+
+[[flows]]
+id = "rebuild"
+path = ["git", "copia", "runner", "iaclint", "rust"]
+
+[[incidents]]
+id = "labels"
+answer = 1
+
+[[incidents]]
+id = "validate"
+answer = 2
+
+[[incidents]]
+id = "jwt"
+answer = 0
+
+[[incidents]]
+id = "lint"
+answer = 3
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "Forgejo, el CI y el despliegue por dentro · Tito Pinardo Gutiérrez"
+description = "Mi servidor Git en casa: cambios por PR, CI sin secretos, plan antes de fusionar, despliegue con un clic y esta web publicada sola cuando su CI sale en verde."
+
+[text.es.ui]
+slot = "1U · GIT"
+face_specs = "Forgejo · CI · despliegue"
+state = "En producción"
+map_silk = "GIT"
+map_title = "El origen del código por dentro"
+map_intro = "Por aquí entra cada cambio de la infraestructura y de esta web, y aquí se decide si sale. Elige un recorrido."
+vm_title = "Forgejo y sus runners · contenedores en Proxmox"
+vm_specs = "el servidor Git, un runner sin secretos y uno que despliega"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, puertos ni nombres internos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Código y entrega"
+title = "Mi propio Git, con CI y despliegue"
+tagline = "La infraestructura vivía en un repositorio sin interfaz y nadie revisaba nada antes de que entrara: un fichero mal formateado o un secreto en claro se copiaban tal cual. Ahora todo pasa por Forgejo. Cada push lo comprueba un runner sin secretos, cada cambio de infraestructura entra por PR con su plan a la vista, y esta web se despliega sola cuando su CI sale en verde."
+grade = "De push a la web: sin tocar nada"
+facts = [
+  { label = "Dónde vive el código", value = "En casa. GitHub queda como escaparate: la copia saneada de la infraestructura y esta web, que solo recibe lo que ya está desplegado." },
+  { label = "La regla", value = "Nada entra sin CI en verde, y nada de infraestructura se aplica sin ver antes el plan. El paso final lo apruebo yo con un clic." },
+  { label = "Los avisos", value = "Cada ejecución, bien o mal, llega a Element cifrada. El fallo sale en cuanto falla el primer trabajo." },
+]
+
+[[text.es.stats]]
+value = "0"
+label = "secretos en el runner del CI"
+
+[[text.es.stats]]
+value = "1 clic"
+label = "para aplicar un cambio de infraestructura, con su plan"
+
+[[text.es.stats]]
+value = "8 de 8"
+label = "avisos entregados en Element el primer día"
+
+[[text.es.stats]]
+value = "~1,3 GB"
+label = "de memoria al compilar esta web en el CI"
+
+[text.es.groups]
+server = "Forgejo"
+ci = "Runner del CI: comprueba"
+deploy = "Runner de despliegue: aplica"
+around = "Alrededor"
+
+[text.es.pods.laptop]
+short = "Mis equipos"
+title = "Mis equipos"
+text = "El PC, el portátil y el nodo de control: los únicos con clave para empujar."
+
+[text.es.pods.element]
+short = "Element"
+title = "Element"
+text = "La sala de alertas, en el móvil: un mensaje por ejecución, con el commit y el enlace."
+
+[text.es.pods.backup]
+short = "Respaldo"
+title = "Repositorio de respaldo"
+text = "El de siempre: cada equipo le sigue empujando cada commit. Tiene su propia unidad."
+
+[text.es.pods.site]
+short = "Esta web"
+title = "Esta web"
+text = "Un binario de Rust: lo que despliega el runner cuando todo sale en verde."
+
+[text.es.pods.github]
+short = "GitHub"
+title = "GitHub, la copia pública"
+text = "Solo recibe commits que ya han pasado el CI, el control de fugas y el despliegue."
+
+[text.es.pods.git]
+short = "Git por SSH"
+title = "Git por SSH"
+text = "Un puerto propio para Git, separado del SSH de administración. Solo entran las claves dadas de alta."
+
+[text.es.pods.webui]
+short = "Web con 2FA"
+title = "Interfaz web"
+text = "Solo desde casa o la VPN, detrás de la puerta interna con doble factor y luego el login de Forgejo."
+
+[text.es.pods.pr]
+short = "PR y ramas"
+title = "PR y rama protegida"
+text = "La rama principal de la infraestructura no admite pushes: solo PR con el CI en verde."
+
+[text.es.pods.hooks]
+short = "Webhooks"
+title = "Webhooks"
+text = "Al terminar cada ejecución, Forgejo avisa con una petición firmada."
+
+[text.es.pods.runner]
+short = "Runner CI"
+title = "Runner del CI"
+text = "En su propio contenedor, sin un solo secreto ni acceso al homelab. Si tiene que leer un vault, lee uno falso a propósito."
+
+[text.es.pods.iaclint]
+short = "TF + lint"
+title = "Terraform y ansible-lint"
+text = "Formato y validación de Terraform sin estado ni credenciales; ansible-lint, que solo falla con avisos nuevos."
+
+[text.es.pods.rust]
+short = "Rust + PG"
+title = "Rust y PostgreSQL"
+text = "Para esta web: formato, clippy, pruebas contra un PostgreSQL de verdad, compilación y contenido válido."
+
+[text.es.pods.gitleaks]
+short = "gitleaks"
+title = "gitleaks"
+text = "Sobre todo el historial, no solo el último commit: lo borrado sigue en el repositorio."
+
+[text.es.pods.plan]
+short = "Plan del PR"
+title = "Plan del PR"
+text = "Terraform plan y los playbooks afectados en modo ensayo. Queda como comentario del PR, antes de fusionar."
+
+[text.es.pods.click]
+short = "Un clic"
+title = "Aprobar con un clic"
+text = "Fusionar no aplica nada: sale el plan de la rama principal y lo apruebo yo."
+
+[text.es.pods.saved]
+short = "Plan guardado"
+title = "Plan guardado"
+text = "Se aplica exactamente ese plan. Si el estado cambió después, Terraform se niega en vez de hacer otra cosa."
+
+[text.es.pods.fugas]
+short = "Fugas"
+title = "Control de fugas"
+text = "Antes de que nada salga de casa: gitleaks, solo mi identidad pública como autor y ni direcciones ni nombres internos."
+
+[text.es.pods.avisos]
+short = "Avisos"
+title = "Receptor de avisos"
+text = "Comprueba la firma del webhook y resume la ejecución: repositorio, rama, commit, duración y enlace."
+
+[text.es.pods.relay]
+short = "Relay cifrado"
+title = "Relay de Matrix"
+text = "Publica el aviso cifrado de extremo a extremo en la sala de alertas."
+
+[text.es.pods.mirror]
+short = "Central"
+title = "El repositorio central de antes"
+text = "Ahora de solo lectura: rechaza pushes explicando cómo cambiar el remoto y se pone al día desde Forgejo."
+
+[text.es.pods.copia]
+short = "Copia diaria"
+title = "Copia diaria"
+text = "El contenedor de Forgejo, cada noche a un disco aparte: siete diarias y cuatro semanales."
+
+[text.es.flows.pr]
+title = "Un cambio de infraestructura, por PR"
+steps = [
+  "Desde cualquiera de mis equipos creo una rama: la principal no admite pushes directos.",
+  "La empujo a Forgejo por SSH.",
+  "Abro el PR.",
+  "El runner del CI lo recoge: no tiene ni un secreto ni acceso al homelab.",
+  "Formato y validación de Terraform, y ansible-lint.",
+  "gitleaks sobre todo el historial y comprobación de que cada vault está cifrado.",
+  "Mientras, el runner de despliegue calcula el plan: qué toca Terraform y qué playbooks, en ensayo.",
+  "El plan queda como comentario del PR: veo qué se toca antes de fusionar.",
+  "Fusiono. Sale el plan de la rama principal y lo apruebo con un clic.",
+  "Se aplica ese plan guardado. Si algo cambió entretanto, Terraform se niega.",
+  "El resultado sale por el webhook.",
+  "Cifrado, hacia la sala de alertas.",
+  "Y me llega al móvil.",
+]
+
+[text.es.flows.web]
+title = "Esta web, de un push a internet"
+steps = [
+  "Empujo un cambio de esta web.",
+  "Llega a Forgejo, el origen del repositorio.",
+  "El runner del CI lo recoge.",
+  "Formato, clippy, pruebas contra PostgreSQL, compilación, contenido válido y JS minificado válido.",
+  "Y gitleaks sobre todo el historial.",
+  "En verde, el runner de despliegue revisa lo que aún no es público.",
+  "Compila, despliega con Ansible y espera a que la web responda.",
+  "Solo entonces empuja ese commit a GitHub.",
+  "El webhook avisa del resultado.",
+  "Y lo veo en el móvil.",
+]
+
+[text.es.flows.red]
+title = "Dos commits en rojo"
+steps = [
+  "Doy de alta en la configuración las claves SSH de mis equipos.",
+  "Push.",
+  "El CI lo recoge.",
+  "ansible-lint falla: líneas de más de 160 caracteres. Son las claves.",
+  "El aviso sale en cuanto falla el primer trabajo, sin esperar al resto.",
+  "❌ en Element, con el commit y el enlace a la ejecución.",
+  "Lo corrijo: permiso para esas líneas y solo esas.",
+  "Verde.",
+  "✅ en Element. Ese día salieron ocho avisos y llegaron los ocho.",
+]
+
+[text.es.flows.mirror]
+title = "Cambiar el origen sin perder a nadie"
+steps = [
+  "Un equipo que aún apunta al repositorio central de antes intenta empujar.",
+  "El central ya es de solo lectura: rechaza el push y dice cómo cambiar el remoto.",
+  "El origen es Forgejo.",
+  "Cada cinco minutos, el central se pone al día desde Forgejo para quien aún lo lea.",
+  "El equipo cambia el remoto y empuja.",
+  "Y el respaldo de siempre sigue recibiendo cada commit.",
+]
+
+[text.es.flows.rebuild]
+title = "Qué se copia y qué se recrea"
+steps = [
+  "Los repositorios y su historial viven en Forgejo.",
+  "Cada noche, copia del contenedor a un disco aparte.",
+  "El runner del CI no se copia: no guarda nada.",
+  "Se recrea con su playbook, con las herramientas en versiones fijadas y sus sumas comprobadas.",
+  "Y lo mismo Rust y PostgreSQL para esta web.",
+]
+
+[text.es.incidents.labels]
+title = "Trabajos que no arrancaban nunca"
+meta = "14-10-2026 · Forgejo"
+symptom = "El runner estaba conectado y sin errores, pero los trabajos del CI se quedaban «en espera» para siempre."
+options = [
+  "El runner no llegaba al servidor",
+  "Se registró sin etiqueta, ningún «runs-on» casaba, y tras ponérsela solo busca trabajo cuando cambia la cola",
+  "El workflow tenía un error de sintaxis",
+  "Actions estaba desactivado en el repositorio",
+]
+cause = "El runner se registró sin etiquetas, así que no casaba con ningún trabajo. Al ponérselas siguió igual: solo vuelve a pedir trabajo cuando cambia la versión de tareas del servidor, y los trabajos ya estaban en cola."
+fix = "Registrarlo con su etiqueta desde el playbook y reiniciarlo una vez. Quedó escrito en la documentación."
+lesson = "«En espera» sin errores casi siempre es un problema de emparejamiento, no de conexión. Las etiquetas van desde el primer registro."
+
+[text.es.incidents.validate]
+title = "El primer CI salió en rojo, y era lo esperado"
+meta = "14-10-2026 · Terraform"
+symptom = "terraform validate fallaba en el runner y en mi terminal no. No usa estado ni credenciales."
+options = [
+  "Faltaban las credenciales de Proxmox",
+  "La versión de Terraform era distinta",
+  "validate también evalúa file(): el código lee una clave SSH que el runner no tiene",
+  "El estado no estaba disponible",
+]
+cause = "El proveedor lee la clave pública del usuario con file(), y validate evalúa esa función. En el runner, que no tiene secretos, el fichero no existía."
+fix = "Un fichero falso a propósito en el runner: deja validar y no abre nada. Lo mismo para la contraseña del vault que pide ansible-lint."
+lesson = "Un CI sin secretos destapa todo lo que el código da por hecho de la máquina. Mejor descubrirlo en rojo que tenerlo escondido."
+
+[text.es.incidents.jwt]
+title = "Un secreto para algo apagado"
+meta = "14-10-2026 · Forgejo"
+symptom = "Forgejo no arrancaba: pedía un secreto de OAuth2, y OAuth2 estaba desactivado."
+options = [
+  "Lo pide igualmente al arrancar: hay que generarlo aunque no se use",
+  "La configuración tenía OAuth2 activado sin querer",
+  "Era un fallo de permisos del fichero",
+  "La versión era incompatible",
+]
+cause = "La versión instalada comprueba ese secreto al arrancar aunque la función esté apagada."
+fix = "Generarlo en el propio contenedor la primera vez, junto a los otros secretos internos. No sale de ahí."
+lesson = "Los secretos internos se generan en la máquina que los usa y nunca viajan."
+
+[text.es.incidents.lint]
+title = "Un aviso que en mi terminal no salía"
+meta = "14-10-2026 · ansible-lint"
+symptom = "ansible-lint daba en el runner un aviso nuevo en un rol que en el nodo de control pasaba limpio. Misma versión."
+options = [
+  "El runner tenía otra configuración de lint",
+  "El rol había cambiado entre medias",
+  "Una línea base desactualizada",
+  "En el nodo de control faltaba una colección y ese rol no se analizaba entero",
+]
+cause = "El nodo de control no tenía instalada la colección de Kubernetes que usa ese rol, y ansible-lint lo saltaba sin decirlo. El runner instala todas las del fichero de requisitos."
+fix = "Arreglar el aviso. Desde entonces la referencia es el CI, que parte de una instalación limpia."
+lesson = "«En mi máquina pasa» no vale si mi máquina tiene huecos. Por eso el CI parte de cero."
+
+[[text.es.timeline]]
+title = "Forgejo y el CI"
+period = "14-10-2026 · mañana"
+items = [
+  "Forgejo en su contenedor, con su base de datos SQLite y la interfaz detrás de la puerta interna.",
+  "Runner sin secretos: Terraform, ansible-lint, vaults cifrados y gitleaks.",
+  "Avisos de cada ejecución en Element, cifrados.",
+]
+
+[[text.es.timeline]]
+title = "Forgejo como origen"
+period = "14-10-2026 · tarde"
+items = [
+  "Los equipos empujan a Forgejo; el central de antes, de solo lectura.",
+  "Monitorización y seguridad como el resto de la flota, y copia diaria.",
+  "El plan completo de Terraform, limpio por primera vez.",
+]
+
+[[text.es.timeline]]
+title = "Despliegue por PR"
+period = "14-10-2026 · noche"
+items = [
+  "Rama principal protegida: solo PR con el CI en verde.",
+  "Plan del PR como comentario y plan guardado al fusionar.",
+  "Aplicar con un clic, probado de punta a punta.",
+]
+
+[[text.es.timeline]]
+title = "Esta web, también"
+period = "14-10-2026 · noche"
+items = [
+  "Su origen pasa a Forgejo y su CI al mismo runner: Rust, PostgreSQL y Node.",
+  "Despliegue continuo con control de fugas.",
+  "GitHub, la copia pública que solo recibe lo ya desplegado.",
+]
+
+[[text.es.decisions]]
+title = "Dónde vive el código"
+choice = "En casa; GitHub como escaparate"
+why = "Lo interno no tiene por qué salir. GitHub enseña lo que quiero enseñar: una copia saneada y esta web, siempre detrás de lo que ya funciona."
+
+[[text.es.decisions]]
+title = "Qué servidor Git"
+choice = "Forgejo"
+why = "Un binario y SQLite: arranca con un gigabyte de memoria. Un GitLab completo pide varios para lo mismo, y aquí la memoria tiene otros usos."
+
+[[text.es.decisions]]
+title = "Los runners"
+choice = "Dos, separados por lo que pueden tocar"
+why = "El que comprueba todo no tiene nada que robar: ni secretos ni acceso. El que despliega vive en el nodo de control, que ya podía tocarlo todo, y solo atiende a su repositorio."
+
+[[text.es.decisions]]
+title = "Aplicar infraestructura"
+choice = "Con un clic, y el plan exacto"
+why = "Un plan que recrea un contenedor con datos se lee antes. Cuando haya confianza, los planes que solo actualizan podrían ir solos; los que destruyen, nunca."
+
+[[text.es.decisions]]
+title = "Esta web"
+choice = "Despliegue continuo"
+why = "Si algo sale mal, se vuelve al commit anterior en minutos y no hay datos en juego. El control de fugas va antes de desplegar, no después."
+
+[text.es.tech_notes]
+forgejo = "Servidor Git con PR, ramas protegidas, Actions y webhooks; dos runners en modo host, cada uno con lo justo."
+git = "Origen en casa, respaldo en cada commit, central de antes en solo lectura y GitHub como copia pública."
+terraform = "Formato y validación en el CI sin estado; plan del PR y plan guardado que se aplica tal cual."
+ansible = "ansible-lint con línea base, playbooks afectados en ensayo y despliegue de esta web con su rol."
+rust = "El CI de esta web: formato, clippy, pruebas y compilación con caché entre ejecuciones."
+postgresql = "Un PostgreSQL solo por socket en el runner: cada prueba crea su propia base."
+hardening = "Runner sin secretos, gitleaks en todo el historial y control de fugas antes de publicar."
+lxc = "Forgejo y el runner, cada uno en su contenedor sin privilegios; el runner se recrea desde cero."
+linux = "Contenedores Debian con versiones fijadas y sumas comprobadas de cada binario."
+
+[text.es.close]
+lessons = [
+  "Un CI sin secretos descubre lo que el código daba por hecho.",
+  "Ver el plan antes de fusionar cambia cómo se revisa.",
+  "Lo público va detrás de lo desplegado, nunca delante.",
+]
+next = [
+  "Que los planes que solo actualizan se apliquen solos.",
+  "Copias de verdad para todo el servidor, no solo para Forgejo.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Forgejo, CI and deployment, inside · Tito Pinardo Gutiérrez"
+description = "My own Git server at home: changes by PR, CI with no secrets, the plan before merging, one-click deploys and this site published on its own when its CI goes green."
+
+[text.en.ui]
+slot = "1U · GIT"
+face_specs = "Forgejo · CI · deploy"
+state = "In production"
+map_silk = "GIT"
+map_title = "Where the code starts, inside"
+map_intro = "Every change to the infrastructure and to this site comes in here, and here it's decided whether it goes out. Pick a walkthrough."
+vm_title = "Forgejo and its runners · containers on Proxmox"
+vm_specs = "the Git server, a runner with no secrets and one that deploys"
+outside = "Outside"
+disclaimer = "Rebuilt from my own documentation: no addresses, ports or internal names."
+
+[text.en.hero]
+kicker = "1U unit · Code & delivery"
+title = "My own Git, with CI and deployment"
+tagline = "The infrastructure lived in a repository with no interface and nobody reviewed anything before it went in: a badly formatted file or a plain-text secret was copied as it was. Now everything goes through Forgejo. A runner with no secrets checks every push, every infrastructure change comes in by PR with its plan in view, and this site deploys itself when its CI goes green."
+grade = "From push to the site: hands off"
+facts = [
+  { label = "Where the code lives", value = "At home. GitHub is the shop window: the sanitised copy of the infrastructure and this site, which only gets what's already deployed." },
+  { label = "The rule", value = "Nothing goes in without green CI, and no infrastructure is applied without seeing the plan first. I approve the last step with one click." },
+  { label = "The alerts", value = "Every run, good or bad, reaches Element encrypted. A failure is posted as soon as the first job fails." },
+]
+
+[[text.en.stats]]
+value = "0"
+label = "secrets on the CI runner"
+
+[[text.en.stats]]
+value = "1 click"
+label = "to apply an infrastructure change, with its plan"
+
+[[text.en.stats]]
+value = "8 of 8"
+label = "alerts delivered to Element on day one"
+
+[[text.en.stats]]
+value = "~1.3 GB"
+label = "of memory to build this site in CI"
+
+[text.en.groups]
+server = "Forgejo"
+ci = "CI runner: checks"
+deploy = "Deploy runner: applies"
+around = "Around it"
+
+[text.en.pods.laptop]
+short = "My machines"
+title = "My machines"
+text = "The PC, the laptop and the control node: the only ones with a key to push."
+
+[text.en.pods.element]
+short = "Element"
+title = "Element"
+text = "The alerts room, on my phone: one message per run, with the commit and the link."
+
+[text.en.pods.backup]
+short = "Backup"
+title = "Backup repository"
+text = "The same as always: every machine still pushes each commit to it. It has its own unit."
+
+[text.en.pods.site]
+short = "This site"
+title = "This site"
+text = "A Rust binary: what the runner deploys when everything goes green."
+
+[text.en.pods.github]
+short = "GitHub"
+title = "GitHub, the public copy"
+text = "It only gets commits that have already passed CI, the leak check and the deployment."
+
+[text.en.pods.git]
+short = "Git over SSH"
+title = "Git over SSH"
+text = "Its own port for Git, separate from the admin SSH. Only registered keys get in."
+
+[text.en.pods.webui]
+short = "Web with 2FA"
+title = "Web interface"
+text = "Only from home or the VPN, behind the internal gate with two-factor and then the Forgejo login."
+
+[text.en.pods.pr]
+short = "PRs, branches"
+title = "PRs and a protected branch"
+text = "The infrastructure's main branch takes no pushes: only PRs with green CI."
+
+[text.en.pods.hooks]
+short = "Webhooks"
+title = "Webhooks"
+text = "When each run ends, Forgejo calls out with a signed request."
+
+[text.en.pods.runner]
+short = "CI runner"
+title = "CI runner"
+text = "In its own container, without a single secret or any access to the homelab. If it has to read a vault, it reads a deliberately fake one."
+
+[text.en.pods.iaclint]
+short = "TF + lint"
+title = "Terraform and ansible-lint"
+text = "Terraform formatting and validation with no state or credentials; ansible-lint, which only fails on new warnings."
+
+[text.en.pods.rust]
+short = "Rust + PG"
+title = "Rust and PostgreSQL"
+text = "For this site: formatting, clippy, tests against a real PostgreSQL, the build and valid content."
+
+[text.en.pods.gitleaks]
+short = "gitleaks"
+title = "gitleaks"
+text = "Over the whole history, not just the last commit: what was deleted is still in the repository."
+
+[text.en.pods.plan]
+short = "PR plan"
+title = "The PR's plan"
+text = "Terraform plan and the affected playbooks in dry-run. It's posted as a PR comment, before merging."
+
+[text.en.pods.click]
+short = "One click"
+title = "Approve with one click"
+text = "Merging applies nothing: the main branch's plan comes out and I approve it."
+
+[text.en.pods.saved]
+short = "Saved plan"
+title = "Saved plan"
+text = "Exactly that plan is applied. If the state changed afterwards, Terraform refuses instead of doing something else."
+
+[text.en.pods.fugas]
+short = "Leak check"
+title = "Leak check"
+text = "Before anything leaves home: gitleaks, only my public identity as author and no addresses or internal names."
+
+[text.en.pods.avisos]
+short = "Alerts"
+title = "Alert receiver"
+text = "Checks the webhook's signature and sums up the run: repository, branch, commit, duration and link."
+
+[text.en.pods.relay]
+short = "Encrypted relay"
+title = "Matrix relay"
+text = "Posts the alert end-to-end encrypted to the alerts room."
+
+[text.en.pods.mirror]
+short = "Old central"
+title = "The old central repository"
+text = "Read-only now: it rejects pushes explaining how to change the remote and catches up from Forgejo."
+
+[text.en.pods.copia]
+short = "Daily copy"
+title = "Daily copy"
+text = "The Forgejo container, every night to a separate disk: seven dailies and four weeklies."
+
+[text.en.flows.pr]
+title = "An infrastructure change, by PR"
+steps = [
+  "From any of my machines I create a branch: the main one takes no direct pushes.",
+  "I push it to Forgejo over SSH.",
+  "I open the PR.",
+  "The CI runner picks it up: it has no secrets and no access to the homelab.",
+  "Terraform formatting and validation, and ansible-lint.",
+  "gitleaks over the whole history and a check that every vault is encrypted.",
+  "Meanwhile, the deploy runner works out the plan: what Terraform touches and which playbooks, in dry-run.",
+  "The plan is posted as a PR comment: I see what's touched before merging.",
+  "I merge. The main branch's plan comes out and I approve it with one click.",
+  "That saved plan is applied. If anything changed in between, Terraform refuses.",
+  "The result goes out through the webhook.",
+  "Encrypted, to the alerts room.",
+  "And reaches my phone.",
+]
+
+[text.en.flows.web]
+title = "This site, from a push to the internet"
+steps = [
+  "I push a change to this site.",
+  "It lands on Forgejo, the repository's origin.",
+  "The CI runner picks it up.",
+  "Formatting, clippy, tests against PostgreSQL, the build, valid content and valid minified JS.",
+  "And gitleaks over the whole history.",
+  "On green, the deploy runner reviews what isn't public yet.",
+  "It builds, deploys with Ansible and waits for the site to answer.",
+  "Only then does it push that commit to GitHub.",
+  "The webhook reports the result.",
+  "And I see it on my phone.",
+]
+
+[text.en.flows.red]
+title = "Two commits in the red"
+steps = [
+  "I add my machines' SSH keys to the configuration.",
+  "Push.",
+  "CI picks it up.",
+  "ansible-lint fails: lines over 160 characters. It's the keys.",
+  "The alert goes out as soon as the first job fails, without waiting for the rest.",
+  "❌ in Element, with the commit and the link to the run.",
+  "I fix it: an exception for those lines and only those.",
+  "Green.",
+  "✅ in Element. Eight alerts went out that day and all eight arrived.",
+]
+
+[text.en.flows.mirror]
+title = "Changing the origin without losing anyone"
+steps = [
+  "A machine still pointing at the old central repository tries to push.",
+  "The central is read-only now: it rejects the push and says how to change the remote.",
+  "The origin is Forgejo.",
+  "Every five minutes the central catches up from Forgejo, for anyone still reading it.",
+  "The machine changes its remote and pushes.",
+  "And the usual backup still gets every commit.",
+]
+
+[text.en.flows.rebuild]
+title = "What's copied and what's rebuilt"
+steps = [
+  "The repositories and their history live in Forgejo.",
+  "Every night, a copy of the container to a separate disk.",
+  "The CI runner isn't copied: it keeps nothing.",
+  "It's rebuilt with its playbook, tools at pinned versions with checked checksums.",
+  "And the same goes for Rust and PostgreSQL for this site.",
+]
+
+[text.en.incidents.labels]
+title = "Jobs that never started"
+meta = "14-10-2026 · Forgejo"
+symptom = "The runner was connected with no errors, but CI jobs sat «waiting» forever."
+options = [
+  "The runner couldn't reach the server",
+  "It registered with no label, no «runs-on» matched, and once labelled it only looks for work when the queue changes",
+  "The workflow had a syntax error",
+  "Actions was disabled on the repository",
+]
+cause = "The runner registered with no labels, so it matched no job. Adding them changed nothing: it only asks for work again when the server's task version changes, and the jobs were already queued."
+fix = "Register it with its label from the playbook and restart it once. It's written down in the docs."
+lesson = "«Waiting» with no errors is nearly always a matching problem, not a connection one. Labels go in from the first registration."
+
+[text.en.incidents.validate]
+title = "The first CI run went red, as expected"
+meta = "14-10-2026 · Terraform"
+symptom = "terraform validate failed on the runner but not in my terminal. It uses no state or credentials."
+options = [
+  "The Proxmox credentials were missing",
+  "The Terraform version was different",
+  "validate also evaluates file(): the code reads an SSH key the runner doesn't have",
+  "The state wasn't available",
+]
+cause = "The provider reads the user's public key with file(), and validate evaluates that function. On the runner, which has no secrets, the file didn't exist."
+fix = "A deliberately fake file on the runner: validation passes and it opens nothing. Same for the vault password ansible-lint asks for."
+lesson = "A CI with no secrets uncovers everything the code assumes about the machine. Better to find it in the red than keep it hidden."
+
+[text.en.incidents.jwt]
+title = "A secret for something switched off"
+meta = "14-10-2026 · Forgejo"
+symptom = "Forgejo wouldn't start: it wanted an OAuth2 secret, and OAuth2 was disabled."
+options = [
+  "It asks for it at startup anyway: it has to be generated even if unused",
+  "OAuth2 had been enabled by mistake",
+  "It was a file permissions problem",
+  "The version was incompatible",
+]
+cause = "The installed version checks that secret at startup even with the feature switched off."
+fix = "Generate it inside the container the first time, next to the other internal secrets. It never leaves."
+lesson = "Internal secrets are generated on the machine that uses them and never travel."
+
+[text.en.incidents.lint]
+title = "A warning my terminal didn't show"
+meta = "14-10-2026 · ansible-lint"
+symptom = "On the runner, ansible-lint raised a new warning in a role that passed clean on the control node. Same version."
+options = [
+  "The runner had a different lint configuration",
+  "The role had changed in between",
+  "An out-of-date baseline",
+  "The control node was missing a collection, so that role wasn't fully analysed",
+]
+cause = "The control node didn't have the Kubernetes collection that role uses, and ansible-lint skipped it silently. The runner installs everything in the requirements file."
+fix = "Fix the warning. Since then, CI is the reference: it starts from a clean install."
+lesson = "«Works on my machine» isn't enough if my machine has gaps. That's why CI starts from scratch."
+
+[[text.en.timeline]]
+title = "Forgejo and CI"
+period = "14-10-2026 · morning"
+items = [
+  "Forgejo in its container, with its SQLite database and the interface behind the internal gate.",
+  "A runner with no secrets: Terraform, ansible-lint, encrypted vaults and gitleaks.",
+  "Every run reported to Element, encrypted.",
+]
+
+[[text.en.timeline]]
+title = "Forgejo as the origin"
+period = "14-10-2026 · afternoon"
+items = [
+  "Machines push to Forgejo; the old central becomes read-only.",
+  "Monitoring and security like the rest of the fleet, and a daily copy.",
+  "The full Terraform plan, clean for the first time.",
+]
+
+[[text.en.timeline]]
+title = "Deploying by PR"
+period = "14-10-2026 · night"
+items = [
+  "Protected main branch: only PRs with green CI.",
+  "The PR's plan as a comment and a saved plan on merge.",
+  "One-click apply, tested end to end.",
+]
+
+[[text.en.timeline]]
+title = "This site, too"
+period = "14-10-2026 · night"
+items = [
+  "Its origin moves to Forgejo and its CI to the same runner: Rust, PostgreSQL and Node.",
+  "Continuous deployment with a leak check.",
+  "GitHub, the public copy that only gets what's already deployed.",
+]
+
+[[text.en.decisions]]
+title = "Where the code lives"
+choice = "At home; GitHub as the shop window"
+why = "Internal things have no reason to leave. GitHub shows what I want to show: a sanitised copy and this site, always behind what already works."
+
+[[text.en.decisions]]
+title = "Which Git server"
+choice = "Forgejo"
+why = "One binary and SQLite: it runs in a gigabyte of memory. A full GitLab needs several for the same job, and memory here has other uses."
+
+[[text.en.decisions]]
+title = "The runners"
+choice = "Two, split by what they can touch"
+why = "The one that checks everything has nothing to steal: no secrets, no access. The one that deploys lives on the control node, which could already touch everything, and only serves its own repository."
+
+[[text.en.decisions]]
+title = "Applying infrastructure"
+choice = "One click, and the exact plan"
+why = "A plan that recreates a container with data gets read first. Once there's trust, update-only plans could go on their own; destructive ones, never."
+
+[[text.en.decisions]]
+title = "This site"
+choice = "Continuous deployment"
+why = "If something goes wrong, it's back to the previous commit in minutes and no data is at stake. The leak check runs before deploying, not after."
+
+[text.en.tech_notes]
+forgejo = "Git server with PRs, protected branches, Actions and webhooks; two runners in host mode, each with just what it needs."
+git = "Origin at home, a backup on every commit, the old central read-only and GitHub as the public copy."
+terraform = "Formatting and validation in CI with no state; the PR's plan and a saved plan applied as is."
+ansible = "ansible-lint with a baseline, affected playbooks in dry-run and this site deployed with its role."
+rust = "This site's CI: formatting, clippy, tests and the build, cached between runs."
+postgresql = "A socket-only PostgreSQL on the runner: each test creates its own database."
+hardening = "A runner with no secrets, gitleaks over the whole history and a leak check before publishing."
+lxc = "Forgejo and the runner, each in its own unprivileged container; the runner is rebuilt from scratch."
+linux = "Debian containers with pinned versions and checked checksums for every binary."
+
+[text.en.close]
+lessons = [
+  "A CI with no secrets uncovers what the code took for granted.",
+  "Seeing the plan before merging changes how you review.",
+  "What's public goes behind what's deployed, never ahead.",
+]
+next = [
+  "Let update-only plans apply on their own.",
+  "Real backups for the whole server, not just Forgejo.",
+]

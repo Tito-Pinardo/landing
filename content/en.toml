@@ -352,6 +352,7 @@ ai = "Local AI"
 observability = "Observability & security"
 platform = "Platform"
 lab = "Hypervisor & lab"
+delivery = "Code & delivery"
 
 [nodes.internet]
 short = "Internet"
@@ -379,9 +380,9 @@ title = "GPU PC (Ollama)"
 text = "Hermes's language model runs here, locally: nothing leaves my network. If the PC is off, questions wait in a queue."
 
 [nodes.github]
-short = "Git"
-title = "Git repository"
-text = "All the infrastructure lives as versioned code. Every change starts here."
+short = "GitHub"
+title = "GitHub (public copy)"
+text = "What I show: this site's code and a sanitised copy of the infrastructure. It only gets what has already passed CI and the leak check."
 
 [nodes.traefik]
 short = "Traefik"
@@ -513,6 +514,21 @@ short = "XPIFY · K3s"
 title = "XPIFY (1U unit)"
 text = "My final project lived here: a VM running a whole K3s cluster (frontend, API, Keycloak, PostgreSQL, Redis, Argo CD and observability). It is retired now, but you can open its unit and look inside."
 
+[nodes.forgejo]
+short = "Forgejo"
+title = "Forgejo (1U unit)"
+text = "My own Git server, at home: the origin of the infrastructure and of this site. Changes by PR, CI on every push and results posted to Element."
+
+[nodes.ci]
+short = "CI runner"
+title = "CI runner"
+text = "Checks every push without a single secret: Terraform, ansible-lint, gitleaks and, for this site, Rust with its tests against PostgreSQL. It never applies anything."
+
+[nodes.deployer]
+short = "Deploy"
+title = "Deploy runner"
+text = "Lives on the control node. It works out the plan for each change and, once I approve, applies that exact plan. This site it deploys on its own when its CI goes green."
+
 [nodes.backup]
 short = "Git backup"
 title = "Repository backup"
@@ -577,6 +593,20 @@ steps = [
   "The alert reaches Matrix.",
 ]
 verdict = "Visible downtime: only the form, while it lasts. Messages lost: none: either it's saved whole, or the visitor is asked to retry."
+
+[flows.runner]
+title = "The CI runner goes down"
+steps = [
+  "I push a change to this site.",
+  "Forgejo receives it and queues its CI.",
+  "But the CI runner doesn't answer: the job sits waiting.",
+  "Nothing deploys without green CI: the change waits.",
+  "The site keeps serving the last deployed version. Visitors notice nothing.",
+  "The runner keeps no data and no secrets: it's rebuilt from scratch with its playbook.",
+  "It picks up the pending job and runs it.",
+  "On green, the deployment goes ahead.",
+]
+verdict = "Downtime: none. Lost: nothing; changes wait in the queue. The runner holds no data or secrets: rebuilding it is one command."
 
 [flows.update]
 title = "Updating containers"
@@ -747,14 +777,29 @@ steps = [
 [flows.deploy]
 title = "I deploy a service"
 steps = [
-  "It all starts with a commit: the new service is described as code.",
-  "On the control node, Terraform works out the plan: what gets created, what changes and what's left alone.",
+  "It all starts with a PR on my Forgejo: the new service, described as code.",
+  "CI checks it without any secrets: Terraform formatting, ansible-lint and gitleaks. No green, no merge.",
+  "The deploy runner works out the plan: what gets created, what changes, what would be recreated and what's left alone.",
+  "The summary reaches my phone. I read it and approve with one click.",
+  "That exact plan is applied: if anything changed since, Terraform refuses.",
   "Proxmox creates the container exactly as the code says.",
-  "The service starts in its new container.",
-  "Ansible configures it: hardening, firewall, the app itself and a check that it answers.",
+  "The service starts and Ansible configures it: hardening, firewall, the app itself and a check that it answers.",
   "The Zabbix agent starts sending metrics.",
   "Wazuh starts watching its security.",
   "And the change is saved in the backup repository too.",
+]
+
+[flows.webcd]
+title = "This site publishes itself"
+steps = [
+  "I change something on this site and push it.",
+  "It lands on my Forgejo, the repository's origin.",
+  "CI checks it on a runner with no secrets: formatting, clippy, tests against PostgreSQL, valid content and gitleaks.",
+  "On green, the deploy runner reviews what isn't public yet: no secrets, no addresses, no internal names.",
+  "It builds, deploys with Ansible and waits for the site to answer.",
+  "Only then does it push that commit to GitHub: the public copy is never ahead of what's deployed.",
+  "The result is posted to Element.",
+  "And reaches my phone.",
 ]
 
 [flows.media]

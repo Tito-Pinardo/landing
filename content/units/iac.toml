@@ -57,7 +57,7 @@ x = 100
 y = 420
 kind = "control"
 group = ""
-tech = ["git"]
+tech = ["git", "forgejo"]
 
 [[pods]]
 id = "backup"
@@ -314,9 +314,9 @@ title = "Mi portátil"
 text = "Desde casa o la VPN, abro el panel de terminales."
 
 [text.es.pods.repo]
-short = "Repositorio"
-title = "Repositorio central"
-text = "Toda la infraestructura: Terraform, inventario, roles, playbooks, scripts y documentación."
+short = "Forgejo"
+title = "Repositorio en Forgejo"
+text = "Toda la infraestructura: Terraform, inventario, roles, playbooks, scripts y documentación. Los cambios entran por PR con CI y su plan a la vista. Tiene su propia unidad."
 
 [text.es.pods.backup]
 short = "Respaldo"
@@ -439,7 +439,7 @@ steps = [
   "Añado el servicio a la lista común.",
   "Y su DNS se crea solo si es público.",
   "Commit.",
-  "Al repositorio central.",
+  "A Forgejo, donde pasa el CI.",
   "Y al de respaldo, en segundo plano.",
 ]
 
@@ -592,6 +592,7 @@ proxmox = "Terraform habla con su API con un token de permisos justos; el nodo d
 lxc = "Un contenedor por servicio, casi todos sin privilegios."
 zfs = "Los datos de cada servicio viven en ZFS y se montan; los roles no los tocan."
 git = "Todo versionado, con hook que empuja a dos remotos y una copia pública saneada."
+forgejo = "El origen del repositorio: rama principal protegida, CI sin secretos, plan del PR y despliegue con un clic."
 linux = "Contenedores Debian, Ubuntu y Alpine configurados de forma uniforme."
 traefik = "Sus rutas se generan desde la lista común de servicios."
 dns = "Los registros de Cloudflare se crean y se borran desde la misma lista; el DNS de casa, también configurado desde aquí."
@@ -667,9 +668,9 @@ title = "My laptop"
 text = "From home or the VPN, I open the terminals panel."
 
 [text.en.pods.repo]
-short = "Repository"
-title = "Central repository"
-text = "All the infrastructure: Terraform, inventory, roles, playbooks, scripts and docs."
+short = "Forgejo"
+title = "Repository on Forgejo"
+text = "All the infrastructure: Terraform, inventory, roles, playbooks, scripts and docs. Changes come in by PR with CI and their plan in view. It has its own unit."
 
 [text.en.pods.backup]
 short = "Backup"
@@ -792,7 +793,7 @@ steps = [
   "I add the service to the common list.",
   "And its DNS is created only if it's public.",
   "Commit.",
-  "To the central repository.",
+  "To Forgejo, where CI runs.",
   "And to the backup, in the background.",
 ]
 
@@ -945,6 +946,7 @@ proxmox = "Terraform talks to its API with a least-privilege token; the control 
 lxc = "One container per service, almost all unprivileged."
 zfs = "Each service's data lives on ZFS and is mounted; roles don't touch it."
 git = "Everything versioned, with a hook pushing to two remotes and a cleaned public copy."
+forgejo = "The repository's origin: protected main branch, CI with no secrets, the PR's plan and one-click deploys."
 linux = "Debian, Ubuntu and Alpine containers configured uniformly."
 traefik = "Its routes are generated from the common service list."
 dns = "Cloudflare records are created and deleted from the same list; the home DNS is configured from here too."

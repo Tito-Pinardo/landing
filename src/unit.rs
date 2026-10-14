@@ -36,6 +36,7 @@ pub const EMBEDDED: &[&str] = units![
     "zabbix",
     "wazuh",
     "iac",
+    "forgejo",
     "backup",
     "okd",
     "xpify",

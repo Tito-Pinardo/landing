@@ -356,6 +356,7 @@ ai = "IA local"
 observability = "Observabilidad y seguridad"
 platform = "Plataforma"
 lab = "Hipervisor y laboratorio"
+delivery = "Código y entrega"
 
 [nodes.internet]
 short = "Internet"
@@ -383,9 +384,9 @@ title = "PC con GPU (Ollama)"
 text = "El modelo de lenguaje de Hermes corre aquí, en local: nada sale de mi red. Si el PC está apagado, las preguntas esperan en cola."
 
 [nodes.github]
-short = "Git"
-title = "Repositorio Git"
-text = "Toda la infraestructura vive como código versionado. Cada cambio empieza aquí."
+short = "GitHub"
+title = "GitHub (copia pública)"
+text = "Lo que enseño: el código de esta web y una copia saneada de la infraestructura. Solo recibe lo que ya ha pasado el CI y el control de fugas."
 
 [nodes.traefik]
 short = "Traefik"
@@ -517,6 +518,21 @@ short = "XPIFY · K3s"
 title = "XPIFY (unidad 1U)"
 text = "Aquí vivió mi proyecto final: una VM con un clúster K3s entero (frontend, API, Keycloak, PostgreSQL, Redis, Argo CD y observabilidad). Hoy está retirada, pero puedes entrar en su unidad y verla por dentro."
 
+[nodes.forgejo]
+short = "Forgejo"
+title = "Forgejo (unidad 1U)"
+text = "Mi servidor Git, dentro de casa: el origen de la infraestructura y de esta web. Cambios por PR, CI en cada push y avisos del resultado en Element."
+
+[nodes.ci]
+short = "Runner CI"
+title = "Runner del CI"
+text = "Comprueba cada push sin un solo secreto: Terraform, ansible-lint, gitleaks y, para esta web, Rust con sus pruebas contra PostgreSQL. Nunca aplica nada."
+
+[nodes.deployer]
+short = "Despliegue"
+title = "Runner de despliegue"
+text = "Vive en el nodo de control. Calcula el plan de cada cambio y, con mi aprobación, aplica ese plan exacto. Esta web la despliega sola cuando su CI sale en verde."
+
 [nodes.backup]
 short = "Respaldo Git"
 title = "Respaldo del repositorio"
@@ -581,6 +597,20 @@ steps = [
   "El aviso llega a Matrix.",
 ]
 verdict = "Caída visible: solo el formulario, mientras dura. Mensajes perdidos: ninguno: o se guarda entero, o se le pide al visitante que lo reintente."
+
+[flows.runner]
+title = "Se cae el runner del CI"
+steps = [
+  "Empujo un cambio de esta web.",
+  "Forgejo lo recibe y pone en cola su CI.",
+  "Pero el runner del CI no responde: el trabajo se queda esperando.",
+  "Sin CI en verde no se despliega nada: el cambio espera.",
+  "La web sigue sirviendo la última versión desplegada. Quien entra no nota nada.",
+  "El runner no guarda datos ni secretos: se vuelve a crear entero con su playbook.",
+  "Recoge el trabajo pendiente y lo pasa.",
+  "En verde, el despliegue sigue su curso.",
+]
+verdict = "Caída: ninguna. Perdido: nada; los cambios esperan en cola. El runner no tiene datos ni secretos: recrearlo es un comando."
 
 [flows.update]
 title = "Actualizo contenedores"
@@ -751,14 +781,29 @@ steps = [
 [flows.deploy]
 title = "Despliego un servicio"
 steps = [
-  "Todo empieza con un commit: el servicio nuevo se describe como código.",
-  "En el nodo de control, Terraform calcula el plan: qué se crea, qué cambia y qué no se toca.",
+  "Todo empieza con un PR en mi Forgejo: el servicio nuevo, descrito como código.",
+  "El CI lo comprueba sin secretos: formato de Terraform, ansible-lint y gitleaks. Sin verde no se fusiona.",
+  "El runner de despliegue calcula el plan: qué se crea, qué cambia, qué se recrearía y qué no se toca.",
+  "El resumen me llega al móvil. Lo leo y apruebo con un clic.",
+  "Se aplica ese plan exacto: si algo cambió desde entonces, Terraform se niega.",
   "Proxmox crea el contenedor exactamente como dice el código.",
-  "El servicio arranca en su contenedor nuevo.",
-  "Ansible lo configura: hardening, cortafuegos, aplicación y comprobación de que responde.",
+  "El servicio arranca y Ansible lo configura: hardening, cortafuegos, aplicación y comprobación de que responde.",
   "El agente de Zabbix empieza a enviar métricas.",
   "Wazuh empieza a vigilar su seguridad.",
   "Y el cambio queda guardado también en el repositorio de respaldo.",
+]
+
+[flows.webcd]
+title = "Esta web se publica sola"
+steps = [
+  "Cambio algo de esta web y lo empujo.",
+  "Llega a mi Forgejo, el origen del repositorio.",
+  "El CI lo comprueba en un runner sin secretos: formato, clippy, pruebas contra PostgreSQL, contenido válido y gitleaks.",
+  "En verde, el runner de despliegue revisa lo que aún no es público: ni secretos, ni direcciones, ni nombres internos.",
+  "Compila, despliega con Ansible y espera a que la web responda.",
+  "Solo entonces empuja ese commit a GitHub: la copia pública nunca va por delante de lo desplegado.",
+  "El resultado se avisa en Element.",
+  "Y me llega al móvil.",
 ]
 
 [flows.media]
