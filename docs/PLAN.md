@@ -18,7 +18,7 @@ Landing personal bilingüe (ES/EN) para presentarme y buscar trabajo: interactiv
 ## Arquitectura
 
 ```
-Visitante ─▶ Cloudflare (caché en el borde, Turnstile) ─▶ Traefik (CT 109, TLS, rate limit)
+Visitante ─▶ Cloudflare (caché en el borde, Turnstile) ─▶ Traefik (su propio contenedor, TLS, rate limit)
           ─▶ CT landing: binario Rust/Axum ─▶ PostgreSQL (mismo CT, solo localhost)
                                            └─▶ Matrix (aviso de contacto)
 ```
