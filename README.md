@@ -23,7 +23,7 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 | `content/articles/*.toml` | Artículos: fecha, unidad, tecnologías, `kind` y textos ES/EN por secciones (con `impact`/`detected`/`downtime` en los postmortems y `links` a fuentes de fuera); se descubren solos (basta con añadir el fichero, con el slug como nombre) y se ordenan por fecha |
 | `content/units/*.toml` | Unidades del rack (una por pieza del servidor): mapa, recorridos, averías y textos ES/EN; se validan contra `site.toml` y el orden del rack está en `src/unit.rs` |
 | `templates/` | Plantillas HTML (y el avatar de Hermes en SVG) |
-| `static/` | CSS (`app.css` común; `unit.css` y `blog.css`, solo en sus páginas), JS (`app.js` para la portada, `unit.js` para las unidades, `sound.js` para el sonido, `prefs.js` para el panel de vista: tema, animaciones, enanitos y la noche en casa), imágenes y CV (se compilan dentro del binario) |
+| `static/` | CSS (`app.css` común; `home.css`, `unit.css` y `blog.css`, solo en sus páginas; se minifica al arrancar), JS (`app.js` para la portada, `unit.js` para las unidades, `sound.js` para el sonido, `prefs.js` para el panel de vista: tema, animaciones, enanitos y la noche en casa), imágenes y CV (se compilan dentro del binario) |
 | `migrations/` | Esquema de PostgreSQL |
 | `src/` | Servidor |
 | `docs/PLAN.md` | Plan, decisiones y fases |
