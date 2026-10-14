@@ -1585,3 +1585,11 @@ html:active-view-transition-type(unit-prev)::view-transition-new(root) { animati
 @media (max-width: 760px) { .incident-banner { top: 60px; margin: 8px var(--gutter); } }
 html[data-motion="off"] .ib-led { animation: none; }
 @media (prefers-reduced-motion: reduce) { .ib-led { animation: none; } }
+
+/* ------------------------------------------------------------ tour de un minuto */
+.btn-tour { border-color: var(--accent-2); color: color-mix(in srgb, var(--accent-2) 82%, var(--text)); }
+.btn-tour:hover { background: var(--accent-2-soft); }
+.card.is-spotlight, .quest.is-spotlight, .rack.is-spotlight, .home-posts.is-spotlight {
+  outline: 2px solid var(--accent); outline-offset: 6px; border-radius: var(--radius);
+  box-shadow: 0 0 40px var(--accent-soft); transition: outline-color .3s;
+}

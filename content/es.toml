@@ -732,6 +732,11 @@ steps = [
 ]
 
 [hermes]
+tour60_choice = "Tour de un minuto"
+tour60_button = "Tour de 1 minuto"
+tour60_pause = "Pausa"
+tour60_resume = "Seguir"
+tour60_exit = "Salir"
 name = "Hermes"
 role = "Tu guía (sin IA, lo prometo)"
 open = "Hablar con Hermes"
@@ -754,6 +759,16 @@ idle = [
   "¿Sabías que hay una terminal? Prueba la tecla ` o el botón >_ arriba.",
   "Cada proyecto se despliega: pulsa el + para ver el problema, lo que hizo y lo que aprendió.",
   "Los logros se guardan solo en tu navegador. Nada de cookies.",
+]
+tour60 = [
+  { target = "#hero-title", text = "Te lo resumo en un minuto. Tito Pinardo es técnico superior en ASIR + DAW y busca su primer puesto de administrador de sistemas, DevOps o SRE junior." },
+  { target = "#quick", text = "Lo esencial está aquí: formación, inglés de trabajo (prácticas en Malta, todo en inglés), ubicación y el CV para descargar." },
+  { target = "#skills", text = "Su árbol de habilidades: lo más fuerte es la infraestructura como código y Linux. Pulsar una habilidad enseña dónde la ha usado." },
+  { target = "#quest-xpify", text = "Las misiones son proyectos reales: el proyecto final, con un 10, y los servicios web de la universidad en sus prácticas." },
+  { target = "#rack", text = "Y su servidor de casa, unidad a unidad: cada pieza tiene su página por dentro y el estado que ves es el real." },
+  { target = "#lab", text = "Así viaja tu visita por dentro de ese servidor, pieza a pieza. Todo definido como código con Terraform y Ansible." },
+  { target = ".home-posts", text = "Cuando algo se rompe, lo cuenta entero: síntoma, causa, arreglo y lección. Así trabaja." },
+  { target = "#contact", text = "Si encaja, escríbele: el mensaje le llega al móvil al momento. ¡Gracias por el minuto!" },
 ]
 skill = "{skill} aparece en {n} {missions}. Te las he resaltado."
 mission_one = "misión"

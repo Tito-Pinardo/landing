@@ -728,6 +728,11 @@ steps = [
 ]
 
 [hermes]
+tour60_choice = "One-minute tour"
+tour60_button = "1-minute tour"
+tour60_pause = "Pause"
+tour60_resume = "Resume"
+tour60_exit = "Exit"
 name = "Hermes"
 role = "Your guide (no AI, I promise)"
 open = "Talk to Hermes"
@@ -750,6 +755,16 @@ idle = [
   "Did you know there's a terminal? Try the ` key or the >_ button up top.",
   "Every quest expands: tap the + to see the problem, what he did and what he learned.",
   "Achievements are only stored in your browser. No cookies.",
+]
+tour60 = [
+  { target = "#hero-title", text = "Here's the one-minute version. Tito Pinardo has a higher diploma in sysadmin and web development (ASIR + DAW) and is looking for his first junior sysadmin, DevOps or SRE role." },
+  { target = "#quick", text = "The essentials are here: education, working English (an internship in Malta, entirely in English), location and the CV to download." },
+  { target = "#skills", text = "His skill tree: strongest in infrastructure as code and Linux. Click a skill to see where he has used it." },
+  { target = "#quest-xpify", text = "The quests are real projects: his final-year project, graded 10/10, and the university web services from his internship." },
+  { target = "#rack", text = "And his home server, unit by unit: every piece has its own page inside, and the status you see is real." },
+  { target = "#lab", text = "This is how your visit travels through that server, piece by piece. All defined as code with Terraform and Ansible." },
+  { target = ".home-posts", text = "When something breaks, he writes it all up: symptom, cause, fix and lesson. That's how he works." },
+  { target = "#contact", text = "If it's a fit, get in touch: the message reaches his phone straight away. Thanks for the minute!" },
 ]
 skill = "{skill} shows up in {n} {missions}. I've highlighted them."
 mission_one = "quest"

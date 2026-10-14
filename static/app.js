@@ -118,6 +118,7 @@
 
   function hermesMenu(greeting) {
     hermesSay(greeting, [
+      { label: H.tour60_choice, run: () => tour60Go(0) },
       { label: H.choice_tour, run: () => tourGo(Math.max(0, hermes.tour)) },
       { label: H.choice_hr, run: hermesHr },
       { label: H.choice_lab, run: hermesLab },
@@ -171,9 +172,83 @@
     if (z.id === "lab") setTimeout(() => labStartFlow("visit"), 1200);
   }
 
+  // Tour de un minuto: lo esencial, con Hermes narrando y la página
+  // moviéndose sola. Si el visitante mueve la página, se pausa.
+  const tour60 = { i: -1, timer: 0 };
+  function tour60Spot(el) {
+    $$(".is-spotlight").forEach((x) => x.classList.remove("is-spotlight"));
+    const box = el?.closest(".quest, .card, .rack, .home-posts, .zone") || el;
+    box?.classList.add("is-spotlight");
+    setTimeout(() => box?.classList.remove("is-spotlight"), 2600);
+  }
+  function tour60Exit() {
+    clearTimeout(tour60.timer);
+    tour60.i = -1;
+    doc.classList.remove("is-touring");
+    hermesFree();
+  }
+  function tour60Pause() {
+    clearTimeout(tour60.timer);
+    const i = tour60.i;
+    hermesSay(H.tour60[i].text, [
+      { label: H.tour60_resume, run: () => tour60Go(i + 1) },
+      { label: H.tour60_exit, run: tour60Exit },
+    ], true);
+    tour60.paused = true;
+  }
+  function tour60Go(i) {
+    clearTimeout(tour60.timer);
+    const steps = H.tour60;
+    if (i >= steps.length) { tour60Exit(); return; }
+    if (doc.classList.contains("quick-mode")) $("[data-quick-exit]")?.click();
+    tour60.i = i;
+    tour60.paused = false;
+    doc.classList.add("is-touring");
+    const step = steps[i];
+    const el = $(step.target);
+    tour60.scrolling = Date.now();
+    if (el) {
+      // Centrada si cabe; si es más alta que la pantalla, desde su título.
+      // Con offsetTop y no con getBoundingClientRect: la zona puede estar
+      // aún en su animación de entrada en 3D y la medida saldría torcida.
+      let y = 0;
+      for (let e = el; e; e = e.offsetParent) y += e.offsetTop;
+      const h = el.offsetHeight;
+      const top = h > innerHeight * 0.7 ? y - 90 : y - (innerHeight - h) / 2;
+      window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion() ? "auto" : "smooth" });
+    }
+    tour60Spot(el);
+    const last = i === steps.length - 1;
+    const choices = last
+      ? [
+          { label: T.ui.download_cv, href: T.cv, download: true, run: () => unlock("recruiter") },
+          { label: T.ui.contact, run: () => { tour60Exit(); scrollTo($("#contact")); } },
+        ]
+      : [
+          { label: `${H.tour60_pause} · ${i + 1}/${steps.length}`, run: tour60Pause },
+          { label: H.tour60_exit, run: tour60Exit },
+        ];
+    hermesSay(step.text, choices, true);
+    if (step.target === "#lab") setTimeout(() => labStartFlow("visit"), 900);
+    // La última parada se queda un rato sin que la pisen los comentarios de
+    // zona ni los logros que se desbloquean al llegar.
+    if (last) { tour60.timer = setTimeout(() => { tour60.i = -1; doc.classList.remove("is-touring"); }, 12000); return; }
+    // Unos 7,5 segundos por parada: el minuto entero en ocho paradas.
+    tour60.timer = setTimeout(() => tour60Go(i + 1), Math.max(7500, step.text.length * 55));
+  }
+  // Rueda o dedo del visitante (no el scroll del propio tour): pausa.
+  for (const ev of ["wheel", "touchmove", "keydown"]) {
+    addEventListener(ev, (e) => {
+      if (tour60.i < 0 || tour60.i === H.tour60.length - 1 || tour60.paused || Date.now() - (tour60.scrolling || 0) < 800) return;
+      if (e.type === "keydown" && !["ArrowDown", "ArrowUp", "PageDown", "PageUp", " ", "Home", "End"].includes(e.key)) return;
+      tour60Pause();
+    }, { passive: true });
+  }
+  $$("[data-tour60]").forEach((b) => b.addEventListener("click", () => tour60Go(0)));
+
   // Comentario al entrar por primera vez en una zona (fuera del tour).
   function hermesZone(id) {
-    if (hermes.tour >= 0 || tipsSeen.has(id) || !H.zones[id]) return;
+    if (hermes.tour >= 0 || tour60.i >= 0 || tipsSeen.has(id) || !H.zones[id]) return;
     tipsSeen.add(id);
     store.set("hermesTips", [...tipsSeen]);
     hermesSay(H.zones[id]);
@@ -183,7 +258,7 @@
   function hermesIdleReset() {
     clearTimeout(hermes.idleTimer);
     hermes.idleTimer = setTimeout(() => {
-      if (!hermesIsOpen() || hermes.tour >= 0 || hermes.idleCount >= 3 || labState.playing) return;
+      if (!hermesIsOpen() || hermes.tour >= 0 || tour60.i >= 0 || hermes.idleCount >= 3 || labState.playing) return;
       const tip = H.idle[(store.get("hermesIdle", 0) + hermes.idleCount) % H.idle.length];
       hermes.idleCount += 1;
       store.set("hermesIdle", store.get("hermesIdle", 0) + 1);
@@ -210,7 +285,7 @@
     unlocked.add(id);
     store.set("achievements", [...unlocked]);
     if (doc.classList.contains("quick-mode")) return;
-    if (hermesIsOpen() && hermes.tour < 0 && !["companion", "navigator"].includes(id)) {
+    if (hermesIsOpen() && hermes.tour < 0 && tour60.i < 0 && !["companion", "navigator"].includes(id)) {
       setTimeout(() => hermesSay(fill(H.achievement, { title: a.title })), 1200);
     }
     const el = document.createElement("div");

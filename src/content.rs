@@ -337,8 +337,18 @@ pub struct FlowText {
 pub struct Hermes {
     pub idle: Vec<String>,
     pub zones: BTreeMap<String, String>,
+    /// Tour de un minuto: paradas con su sitio en la página y lo que dice.
+    pub tour60: Vec<TourStep>,
     #[serde(flatten)]
     pub text: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct TourStep {
+    /// Selector CSS de la parada (`#quick`, `.home-posts`…).
+    pub target: String,
+    pub text: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -562,6 +572,11 @@ const LAB_KEYS: &[&str] = &[
     "disclaimer",
 ];
 const HERMES_KEYS: &[&str] = &[
+    "tour60_choice",
+    "tour60_button",
+    "tour60_pause",
+    "tour60_resume",
+    "tour60_exit",
     "name",
     "role",
     "open",
@@ -887,6 +902,10 @@ impl Content {
             required(code, "rack", RACK_KEYS, &t.rack)?;
             required(code, "blog", BLOG_KEYS, &t.blog)?;
             required(code, "hermes", HERMES_KEYS, &t.hermes.text)?;
+            ensure!(
+                (6..=10).contains(&t.hermes.tour60.len()),
+                "[{code}.hermes] el tour de un minuto lleva entre 6 y 10 paradas"
+            );
             required(code, "incident_ui", INCIDENT_UI_KEYS, &t.incident_ui)?;
             required(code, "compare", COMPARE_KEYS, &t.compare)?;
             required(code, "personality", PERSONALITY_KEYS, &t.personality)?;
