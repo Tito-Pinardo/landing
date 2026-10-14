@@ -323,6 +323,18 @@ mod tests {
     }
 
     #[test]
+    fn down_since_is_optional() {
+        let base = r#"{"services_up":1,"services_total":1,"uptime_30d":100.0,"updated_at":"2026-10-14T00:00:00Z","nodes":{"plex":"down"}}"#;
+        let h: Homelab = serde_json::from_str(base).unwrap();
+        assert!(h.down_since.is_empty());
+        let with = base.replacen('}', r#"},"down_since":{"plex":"2026-10-13T23:15:12Z"}"#, 1);
+        let h: Homelab = serde_json::from_str(&with).unwrap();
+        assert_eq!(h.down_since["plex"], "2026-10-13T23:15:12Z");
+        let out = serde_json::to_value(&h).unwrap();
+        assert_eq!(out["down_since"]["plex"], "2026-10-13T23:15:12Z");
+    }
+
+    #[test]
     fn long_lines_are_cut() {
         let s = "a".repeat(150);
         assert_eq!(first_line(&s).chars().count(), 100);
@@ -338,6 +350,7 @@ mod tests {
             updated_at: OffsetDateTime::now_utc() - time::Duration::hours(3),
             daily: vec![],
             nodes: BTreeMap::new(),
+            down_since: BTreeMap::new(),
         });
         live.publish();
         let v: serde_json::Value = serde_json::from_slice(&live.json()).unwrap();
