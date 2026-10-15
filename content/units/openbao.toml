@@ -1,0 +1,891 @@
+# Unidad 1U del rack: OpenBao, las llaves maestras.
+#
+# Fuente: docs/openbao.md de la infraestructura y su puesta en marcha del
+# 15-10-2026. Sin direcciones, puertos, nombres de contenedores, rutas ni
+# ningún valor secreto.
+
+id = "openbao"
+status = "live"
+host_tech = ["lxc", "linux"]
+links = [
+  ["me", "pwmgr"],
+  ["repo", "vaultpass"],
+  ["tf", "proxmoxapi"],
+  ["copia", "copydisk"],
+]
+
+[[groups]]
+id = "bao"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "access"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "clients"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "around"
+x = 420
+y = 458
+w = 760
+h = 104
+
+[[pods]]
+id = "me"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "pwmgr"
+x = 290
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "element"
+x = 100
+y = 250
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "repo"
+x = 100
+y = 420
+kind = "control"
+group = ""
+tech = ["git", "ansible"]
+
+[[pods]]
+id = "proxmoxapi"
+x = 290
+y = 420
+kind = "control"
+group = ""
+tech = ["proxmox"]
+
+[[pods]]
+id = "copydisk"
+x = 100
+y = 540
+kind = "compute"
+group = ""
+tech = []
+
+[[pods]]
+id = "tls"
+x = 515
+y = 140
+kind = "network"
+group = "bao"
+tech = ["openbao", "hardening"]
+
+[[pods]]
+id = "raft"
+x = 700
+y = 140
+kind = "compute"
+group = "bao"
+tech = ["openbao"]
+
+[[pods]]
+id = "seal"
+x = 885
+y = 140
+kind = "control"
+group = "bao"
+tech = ["openbao"]
+
+[[pods]]
+id = "audit"
+x = 1070
+y = 140
+kind = "observability"
+group = "bao"
+tech = ["openbao", "hardening"]
+
+[[pods]]
+id = "approle"
+x = 515
+y = 266
+kind = "control"
+group = "access"
+tech = ["openbao"]
+
+[[pods]]
+id = "ipbind"
+x = 700
+y = 266
+kind = "network"
+group = "access"
+tech = ["hardening"]
+
+[[pods]]
+id = "ttl"
+x = 885
+y = 266
+kind = "control"
+group = "access"
+tech = ["openbao"]
+
+[[pods]]
+id = "policy"
+x = 1070
+y = 266
+kind = "observability"
+group = "access"
+tech = ["openbao", "hardening"]
+
+[[pods]]
+id = "vaultpass"
+x = 515
+y = 392
+kind = "control"
+group = "clients"
+tech = ["ansible"]
+
+[[pods]]
+id = "tf"
+x = 700
+y = 392
+kind = "control"
+group = "clients"
+tech = ["terraform"]
+
+[[pods]]
+id = "deploy"
+x = 885
+y = 392
+kind = "control"
+group = "clients"
+tech = ["terraform", "ansible"]
+
+[[pods]]
+id = "secreto"
+x = 1070
+y = 392
+kind = "control"
+group = "clients"
+tech = ["openbao"]
+
+[[pods]]
+id = "watch"
+x = 515
+y = 518
+kind = "observability"
+group = "around"
+tech = []
+
+[[pods]]
+id = "unsealui"
+x = 700
+y = 518
+kind = "network"
+group = "around"
+tech = ["hardening"]
+
+[[pods]]
+id = "copia"
+x = 885
+y = 518
+kind = "compute"
+group = "around"
+tech = ["lxc"]
+
+[[pods]]
+id = "rekey"
+x = 1070
+y = 518
+kind = "control"
+group = "around"
+tech = ["ansible"]
+
+[[flows]]
+id = "deploy"
+path = ["deploy", "approle", "ipbind", "policy", "ttl", "vaultpass", "repo", "tf", "proxmoxapi", "audit"]
+
+[[flows]]
+id = "restart"
+path = ["seal", "watch", "element", "me", "pwmgr", "unsealui", "seal", "deploy"]
+
+[[flows]]
+id = "rekey"
+path = ["rekey", "repo", "raft", "pwmgr", "deploy"]
+
+[[flows]]
+id = "admin"
+path = ["me", "pwmgr", "seal", "policy", "audit", "seal"]
+
+[[flows]]
+id = "lost"
+path = ["copydisk", "copia", "raft", "seal", "pwmgr"]
+
+[[incidents]]
+id = "audit"
+answer = 2
+
+[[incidents]]
+id = "root"
+answer = 1
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "OpenBao, las llaves maestras, por dentro · Tito Pinardo Gutiérrez"
+description = "Las llaves maestras de mi infraestructura fuera del disco: tokens de 15 minutos solo de lectura, desellado a mano tras cada reinicio y nada de token root guardado."
+
+[text.es.ui]
+slot = "1U · BAO"
+face_specs = "OpenBao · llaves · sello"
+state = "En producción"
+map_silk = "BAO"
+map_title = "Las llaves por dentro"
+map_intro = "De dónde salen las dos llaves que lo abren todo, quién puede pedirlas y qué pasa cuando el servidor se reinicia. Elige un recorrido."
+vm_title = "OpenBao · contenedor en Proxmox"
+vm_specs = "una CPU, medio giga de memoria y nada más que hacer"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, rutas ni nombres internos, y por supuesto sin ningún secreto."
+
+[text.es.hero]
+kicker = "Unidad 1U · Secretos"
+title = "Las llaves maestras, fuera del disco"
+tagline = "Dos ficheros abrían toda mi infraestructura: la contraseña de los secretos cifrados y las credenciales de Terraform. Los dos estaban en el disco del nodo de control. Ahora viven en OpenBao, la versión libre de Vault. Cada despliegue los pide con un rol de solo lectura, recibe un token de 15 minutos y lo usa en memoria. Tras cada reinicio, OpenBao espera sellado hasta que lo abro yo."
+grade = "Llaves maestras en el disco: cero"
+facts = [
+  { label = "Qué guarda", value = "Las dos llaves que lo abren todo. Los secretos de cada servicio siguen cifrados en el repositorio, con esa contraseña: llevarlos uno a uno es la siguiente fase." },
+  { label = "Quién las pide", value = "Solo el nodo de control, con un rol de solo lectura que no vale desde ningún otro sitio. Cada lectura queda auditada." },
+  { label = "Tras un reinicio", value = "Sellado hasta que lo abro con una clave que no está en ningún disco del servidor. Los servicios siguen funcionando; lo que se para son los cambios." },
+]
+
+[[text.es.stats]]
+value = "0"
+label = "llaves maestras en el disco del nodo de control"
+
+[[text.es.stats]]
+value = "15 min"
+label = "lo que dura cada token"
+
+[[text.es.stats]]
+value = "23"
+label = "ficheros de secretos re-cifrados y comprobados uno a uno al cambiar la contraseña"
+
+[[text.es.stats]]
+value = "1"
+label = "clave para desellar, y no está en el servidor"
+
+[text.es.groups]
+bao = "OpenBao"
+access = "Quién puede pedir"
+clients = "Nodo de control: quien pide"
+around = "Alrededor"
+
+[text.es.pods.me]
+short = "Yo"
+title = "Yo"
+text = "El único que puede desellarlo."
+
+[text.es.pods.pwmgr]
+short = "Gestor claves"
+title = "Mi gestor de contraseñas"
+text = "Donde está la clave de desellado, y una copia de emergencia de las dos llaves. Fuera del servidor."
+
+[text.es.pods.element]
+short = "Element"
+title = "Element"
+text = "La sala de alertas: «sellado» y «vuelve a estar desellado»."
+
+[text.es.pods.repo]
+short = "Repositorio"
+title = "Los secretos cifrados del repositorio"
+text = "Siguen en Git, cifrados. Sin la contraseña de OpenBao son ruido."
+
+[text.es.pods.proxmoxapi]
+short = "API Proxmox"
+title = "API de Proxmox"
+text = "Terraform entra con un token que ahora sale de OpenBao."
+
+[text.es.pods.copydisk]
+short = "Disco aparte"
+title = "Disco de copias"
+text = "La copia diaria del contenedor, en otro disco."
+
+[text.es.pods.tls]
+short = "TLS propio"
+title = "TLS propio"
+text = "Certificado propio, fijado en el cliente: nadie puede hacerse pasar por OpenBao."
+
+[text.es.pods.raft]
+short = "Almacén"
+title = "Almacenamiento integrado"
+text = "Los datos van cifrados en disco: sin desellar no se pueden leer, ni siquiera desde la copia."
+
+[text.es.pods.seal]
+short = "Sello"
+title = "El sello"
+text = "Tras cada arranque, OpenBao no entrega nada hasta que alguien pone la clave."
+
+[text.es.pods.audit]
+short = "Auditoría"
+title = "Registro de auditoría"
+text = "Quién pidió qué y cuándo, cada vez. Declarado en la configuración."
+
+[text.es.pods.approle]
+short = "AppRole"
+title = "AppRole del despliegue"
+text = "La identidad con la que el nodo de control pide las llaves."
+
+[text.es.pods.ipbind]
+short = "Solo desde ahí"
+title = "Ligado a un origen"
+text = "Ese rol solo vale desde el nodo de control. Copiado a otra máquina, no sirve."
+
+[text.es.pods.ttl]
+short = "Token 15 min"
+title = "Tokens cortos"
+text = "Cada token caduca en 15 minutos. Si se filtrara uno, valdría poco y desde un solo sitio."
+
+[text.es.pods.policy]
+short = "Solo lectura"
+title = "Política de solo lectura"
+text = "Puede leer las dos llaves y nada más: ni escribir, ni listar otras rutas."
+
+[text.es.pods.vaultpass]
+short = "Pass del vault"
+title = "Contraseña del vault"
+text = "Antes era un fichero; ahora es un pequeño script que Ansible ejecuta y que la pide a OpenBao."
+
+[text.es.pods.tf]
+short = "tf"
+title = "Terraform con llaves prestadas"
+text = "Un envoltorio de Terraform que saca las credenciales de OpenBao y se las pasa en memoria."
+
+[text.es.pods.deploy]
+short = "Despliegue"
+title = "El runner de despliegue"
+text = "Pide las llaves antes de cada plan y de cada aplicación."
+
+[text.es.pods.secreto]
+short = "Un secreto"
+title = "Leer un secreto suelto"
+text = "Una orden para sacar uno a mano cuando hace falta, con el mismo rol."
+
+[text.es.pods.watch]
+short = "Vigilancia"
+title = "Vigilancia del sello"
+text = "Cada 10 minutos mira si OpenBao está sellado o no responde, y avisa al cambiar."
+
+[text.es.pods.unsealui]
+short = "Web con 2FA"
+title = "Desellar desde el navegador"
+text = "Solo desde casa o la VPN, detrás de la puerta interna con doble factor."
+
+[text.es.pods.copia]
+short = "Copia diaria"
+title = "Copia diaria"
+text = "El contenedor entero, cada noche. Los datos ya van cifrados."
+
+[text.es.pods.rekey]
+short = "Rekey"
+title = "Cambiar la contraseña"
+text = "Un script re-cifra todos los secretos con la nueva y comprueba que el contenido no ha cambiado."
+
+[text.es.flows.deploy]
+title = "Un despliegue con las llaves fuera del disco"
+steps = [
+  "Toca desplegar.",
+  "El runner se identifica con su AppRole.",
+  "OpenBao comprueba que la petición viene del nodo de control.",
+  "Y que solo pide lo que su política permite: leer las dos llaves.",
+  "Le da un token de 15 minutos.",
+  "Ansible ejecuta el script de la contraseña, que la pide con ese token.",
+  "Y abre los secretos cifrados del repositorio.",
+  "Terraform recibe sus credenciales en memoria.",
+  "Y habla con la API de Proxmox.",
+  "Cada lectura queda en la auditoría.",
+]
+
+[text.es.flows.restart]
+title = "Tras un reinicio"
+steps = [
+  "El servidor arranca y OpenBao se queda sellado.",
+  "La vigilancia lo ve en menos de 10 minutos.",
+  "Avisa en Element: «OpenBao está sellado».",
+  "Lo veo.",
+  "Saco la clave de mi gestor de contraseñas.",
+  "La pego en la web, detrás de la puerta con doble factor.",
+  "Desellado. Llega «vuelve a estar desellado».",
+  "Y los despliegues siguen donde estaban.",
+]
+
+[text.es.flows.rekey]
+title = "Cambiar la contraseña de los secretos"
+steps = [
+  "En una rama, el script re-cifra los 23 ficheros de secretos con la contraseña nueva y comprueba fichero a fichero que el contenido descifrado es idéntico.",
+  "PR al repositorio, como cualquier cambio.",
+  "La contraseña nueva entra en OpenBao como versión nueva de la llave: desde ese momento, la rama principal vieja ya no se abre, así que se fusiona enseguida.",
+  "Y la copia de emergencia, en el gestor de contraseñas.",
+  "El plan sale con muchos playbooks, porque cambian todos los ficheros, pero no hay nada real que aplicar: se marca como desplegado.",
+]
+
+[text.es.flows.admin]
+title = "Recuperar el acceso de administrador"
+steps = [
+  "No hay token root guardado en ningún sitio, a propósito.",
+  "Cuando hace falta, se genera uno temporal con la clave de desellado.",
+  "OpenBao trae ese camino cerrado: se abre un momento en la configuración y se reinicia, lo que lo sella otra vez.",
+  "Con el token temporal hago el cambio, y nada más.",
+  "Lo revoco: queda constancia en la auditoría.",
+  "Y vuelvo a cerrar el camino. Lo compruebo: tiene que volver a responder que no.",
+]
+
+[text.es.flows.lost]
+title = "Si OpenBao se pierde del todo"
+steps = [
+  "El contenedor se rompe sin arreglo.",
+  "Se restaura de la copia diaria.",
+  "Sus datos siguen cifrados.",
+  "Se desellan con la misma clave de siempre.",
+  "Y si se perdieran la copia y la clave, las dos llaves tienen su copia de emergencia en el gestor de contraseñas: se vuelve a montar desde cero.",
+]
+
+[text.es.incidents.audit]
+title = "La auditoría que no se dejaba activar"
+meta = "15-10-2026 · OpenBao"
+symptom = "El script de configuración inicial activaba la auditoría por la API, como dice media documentación de Vault. OpenBao lo rechazaba."
+options = [
+  "El token no tenía permisos de administrador",
+  "La ruta del registro no existía",
+  "En esta versión la auditoría solo se declara en el fichero de configuración, no por la API",
+  "El almacenamiento estaba sellado",
+]
+cause = "OpenBao 2.x ya no deja activar la auditoría por la API: es una medida de seguridad de esa rama, y se declara en el fichero de configuración."
+fix = "El registro de auditoría va en el fichero de configuración que gestiona Ansible, y sale del script de puesta en marcha."
+lesson = "Un fork no es un clon: lo que vale para Vault hay que comprobarlo en OpenBao. Y lo que va en la configuración queda versionado con el resto."
+
+[text.es.incidents.root]
+title = "Sin token root, ¿cómo se cambia una contraseña?"
+meta = "15-10-2026 · OpenBao"
+symptom = "Tocaba cambiar la contraseña de mi usuario de administrador. El token root se había revocado al terminar la instalación y el procedimiento de siempre para generar otro respondía «no permitido»."
+options = [
+  "Había que reinstalar OpenBao",
+  "En esta versión, generar un root sin autenticar viene cerrado: se abre un momento en la configuración y se vuelve a cerrar",
+  "La clave de desellado no era la buena",
+  "Hacía falta un segundo administrador",
+]
+cause = "OpenBao 2.x trae cerrados por defecto los caminos sin autenticar para generar un token root. Así nadie puede intentarlo desde la red."
+fix = "Abrirlo un momento en la configuración, generar el token con la clave de desellado, hacer el cambio, revocarlo y volver a cerrar. Comprobar que vuelve a negarse. Quedó escrito paso a paso."
+lesson = "Que lo peligroso venga cerrado está bien siempre que el camino para abrirlo esté escrito antes de necesitarlo."
+
+[[text.es.timeline]]
+title = "Las llaves salen del disco"
+period = "15-10-2026"
+items = [
+  "Contenedor propio con el paquete oficial y su suma fijada, TLS propio, cortafuegos que lo cierra todo salvo lo justo y copia diaria.",
+  "Las dos llaves dentro, comprobadas idénticas a las de antes; después, los ficheros en claro borrados y el token root revocado.",
+  "El nodo de control pide con un rol de solo lectura y tokens de 15 minutos.",
+]
+
+[[text.es.timeline]]
+title = "El sello a mano"
+period = "15-10-2026"
+items = [
+  "Vigilancia del sello con aviso en Element.",
+  "Desellar desde el navegador, detrás de la puerta interna con doble factor.",
+  "Monitorización y seguridad, como el resto de la flota.",
+]
+
+[[text.es.timeline]]
+title = "Primer rekey"
+period = "15-10-2026"
+items = [
+  "Contraseña nueva para todos los secretos cifrados, con el contenido comprobado.",
+  "Recuperar el acceso de administrador, escrito paso a paso.",
+]
+
+[[text.es.decisions]]
+title = "Desellar"
+choice = "A mano, siempre"
+why = "Desellar solo, sin servicios de fuera, implica guardar la clave en el propio servidor, y entonces OpenBao no protege de nada que tenga acceso al disco. El precio: tras un corte de luz no hay despliegues hasta que lo abro. Los servicios siguen funcionando."
+
+[[text.es.decisions]]
+title = "Qué entra primero"
+choice = "Las dos llaves maestras"
+why = "Con ellas se abre todo lo demás. Mover cada secreto de cada servicio a la vez sería un cambio enorme; uno cada vez, y comprobado, es la segunda fase."
+
+[[text.es.decisions]]
+title = "Cómo se piden"
+choice = "Solo lectura, desde un sitio y por 15 minutos"
+why = "Si algo se filtrara del nodo de control, un token caducado o copiado a otra máquina no sirve, y la auditoría dice qué se leyó."
+
+[[text.es.decisions]]
+title = "El token root"
+choice = "Ninguno guardado"
+why = "Se genera cuando hace falta, con la clave de desellado, y se revoca al terminar. Un root guardado es la llave de todas las llaves."
+
+[[text.es.decisions]]
+title = "OpenBao o Vault"
+choice = "OpenBao"
+why = "Es la versión libre de Vault, con licencia abierta y mantenida por la Linux Foundation. Para lo que uso, es lo mismo."
+
+[text.es.tech_notes]
+openbao = "Llaves maestras con AppRole de solo lectura ligado a su origen, tokens de 15 minutos, auditoría, TLS propio y desellado a mano."
+hardening = "Cortafuegos que lo cierra todo salvo lo justo, certificado fijado en el cliente, web solo detrás de doble factor y ningún token root guardado."
+lxc = "Un contenedor sin privilegios solo para esto, con copia diaria a otro disco."
+linux = "Debian con el paquete oficial y su suma comprobada."
+ansible = "La contraseña del vault sale de OpenBao con un script; cambiarla es otro script que re-cifra y comprueba."
+terraform = "Un envoltorio que le pasa las credenciales de OpenBao en memoria, también en el despliegue por PR."
+git = "Los secretos siguen versionados, cifrados; la contraseña ya no está en ningún disco."
+proxmox = "El token de su API sale de OpenBao en cada plan."
+
+[text.es.close]
+lessons = [
+  "Una llave en el disco de la máquina que la usa no es una llave guardada.",
+  "Lo que se para con el sello son los cambios, no los servicios: es un buen precio.",
+  "El procedimiento de emergencia se escribe antes de la emergencia.",
+]
+next = [
+  "Llevar los secretos de cada servicio a OpenBao, uno a uno.",
+  "Copias de verdad para todo el servidor.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "OpenBao, the master keys, inside · Tito Pinardo Gutiérrez"
+description = "My infrastructure's master keys off the disk: read-only 15-minute tokens, manual unsealing after every restart and no stored root token."
+
+[text.en.ui]
+slot = "1U · BAO"
+face_specs = "OpenBao · keys · seal"
+state = "In production"
+map_silk = "BAO"
+map_title = "The keys, inside"
+map_intro = "Where the two keys that open everything come from, who can ask for them and what happens when the server restarts. Pick a walkthrough."
+vm_title = "OpenBao · container on Proxmox"
+vm_specs = "one CPU, half a gigabyte of memory and nothing else to do"
+outside = "Outside"
+disclaimer = "Rebuilt from my own documentation: no addresses, paths or internal names, and of course no secrets at all."
+
+[text.en.hero]
+kicker = "1U unit · Secrets"
+title = "The master keys, off the disk"
+tagline = "Two files opened my whole infrastructure: the password for the encrypted secrets and the Terraform credentials. Both sat on the control node's disk. Now they live in OpenBao, the open version of Vault. Every deployment asks for them with a read-only role, gets a 15-minute token and uses it in memory. After every restart, OpenBao waits sealed until I open it."
+grade = "Master keys on disk: zero"
+facts = [
+  { label = "What it holds", value = "The two keys that open everything. Each service's secrets stay encrypted in the repository with that password: moving them one by one is the next phase." },
+  { label = "Who asks for them", value = "Only the control node, with a read-only role that works from nowhere else. Every read is audited." },
+  { label = "After a restart", value = "Sealed until I open it with a key that isn't on any of the server's disks. Services keep running; what stops is change." },
+]
+
+[[text.en.stats]]
+value = "0"
+label = "master keys on the control node's disk"
+
+[[text.en.stats]]
+value = "15 min"
+label = "how long each token lasts"
+
+[[text.en.stats]]
+value = "23"
+label = "secret files re-encrypted and checked one by one when the password changed"
+
+[[text.en.stats]]
+value = "1"
+label = "key to unseal, and it's not on the server"
+
+[text.en.groups]
+bao = "OpenBao"
+access = "Who may ask"
+clients = "Control node: who asks"
+around = "Around it"
+
+[text.en.pods.me]
+short = "Me"
+title = "Me"
+text = "The only one who can unseal it."
+
+[text.en.pods.pwmgr]
+short = "Password mgr"
+title = "My password manager"
+text = "Where the unseal key lives, plus an emergency copy of both keys. Off the server."
+
+[text.en.pods.element]
+short = "Element"
+title = "Element"
+text = "The alerts room: «sealed» and «unsealed again»."
+
+[text.en.pods.repo]
+short = "Repository"
+title = "The repository's encrypted secrets"
+text = "Still in Git, encrypted. Without the password from OpenBao they're noise."
+
+[text.en.pods.proxmoxapi]
+short = "Proxmox API"
+title = "Proxmox API"
+text = "Terraform gets in with a token that now comes from OpenBao."
+
+[text.en.pods.copydisk]
+short = "Separate disk"
+title = "Backup disk"
+text = "The container's daily copy, on another disk."
+
+[text.en.pods.tls]
+short = "Own TLS"
+title = "Own TLS"
+text = "Its own certificate, pinned on the client: nobody can pretend to be OpenBao."
+
+[text.en.pods.raft]
+short = "Storage"
+title = "Integrated storage"
+text = "Data is encrypted on disk: without unsealing it can't be read, not even from the copy."
+
+[text.en.pods.seal]
+short = "Seal"
+title = "The seal"
+text = "After every start, OpenBao hands out nothing until someone enters the key."
+
+[text.en.pods.audit]
+short = "Audit"
+title = "Audit log"
+text = "Who asked for what and when, every time. Declared in the configuration."
+
+[text.en.pods.approle]
+short = "AppRole"
+title = "Deployment AppRole"
+text = "The identity the control node uses to ask for the keys."
+
+[text.en.pods.ipbind]
+short = "Only from there"
+title = "Bound to one origin"
+text = "That role only works from the control node. Copied to another machine, it's useless."
+
+[text.en.pods.ttl]
+short = "15-min token"
+title = "Short tokens"
+text = "Every token expires in 15 minutes. If one leaked, it would be worth little and from one place only."
+
+[text.en.pods.policy]
+short = "Read-only"
+title = "Read-only policy"
+text = "It can read the two keys and nothing else: no writing, no listing other paths."
+
+[text.en.pods.vaultpass]
+short = "Vault password"
+title = "Vault password"
+text = "It used to be a file; now it's a tiny script that Ansible runs and that asks OpenBao for it."
+
+[text.en.pods.tf]
+short = "tf"
+title = "Terraform with borrowed keys"
+text = "A Terraform wrapper that fetches the credentials from OpenBao and passes them in memory."
+
+[text.en.pods.deploy]
+short = "Deploy"
+title = "The deploy runner"
+text = "Asks for the keys before every plan and every apply."
+
+[text.en.pods.secreto]
+short = "One secret"
+title = "Reading one secret"
+text = "A command to fetch one by hand when needed, with the same role."
+
+[text.en.pods.watch]
+short = "Watcher"
+title = "Seal watcher"
+text = "Every 10 minutes it checks whether OpenBao is sealed or not answering, and reports changes."
+
+[text.en.pods.unsealui]
+short = "Web with 2FA"
+title = "Unseal from the browser"
+text = "Only from home or the VPN, behind the internal gate with two-factor."
+
+[text.en.pods.copia]
+short = "Daily copy"
+title = "Daily copy"
+text = "The whole container, every night. The data is already encrypted."
+
+[text.en.pods.rekey]
+short = "Rekey"
+title = "Changing the password"
+text = "A script re-encrypts every secret with the new one and checks the content hasn't changed."
+
+[text.en.flows.deploy]
+title = "A deployment with the keys off the disk"
+steps = [
+  "Time to deploy.",
+  "The runner identifies itself with its AppRole.",
+  "OpenBao checks the request comes from the control node.",
+  "And that it only asks for what its policy allows: reading the two keys.",
+  "It gets a 15-minute token.",
+  "Ansible runs the password script, which asks for it with that token.",
+  "And opens the repository's encrypted secrets.",
+  "Terraform gets its credentials in memory.",
+  "And talks to the Proxmox API.",
+  "Every read lands in the audit log.",
+]
+
+[text.en.flows.restart]
+title = "After a restart"
+steps = [
+  "The server boots and OpenBao stays sealed.",
+  "The watcher sees it within 10 minutes.",
+  "It posts to Element: «OpenBao is sealed».",
+  "I see it.",
+  "I take the key from my password manager.",
+  "I paste it into the web page, behind the two-factor gate.",
+  "Unsealed. «Unsealed again» arrives.",
+  "And deployments carry on where they were.",
+]
+
+[text.en.flows.rekey]
+title = "Changing the secrets' password"
+steps = [
+  "On a branch, the script re-encrypts the 23 secret files with the new password and checks file by file that the decrypted content is identical.",
+  "A PR to the repository, like any change.",
+  "The new password goes into OpenBao as a new version of the key: from then on the old main branch no longer opens, so it's merged straight away.",
+  "And the emergency copy, in the password manager.",
+  "The plan comes out with lots of playbooks, because every file changed, but there's nothing real to apply: it's marked as deployed.",
+]
+
+[text.en.flows.admin]
+title = "Getting admin access back"
+steps = [
+  "No root token is stored anywhere, on purpose.",
+  "When one is needed, a temporary one is generated with the unseal key.",
+  "OpenBao ships with that path closed: it's opened briefly in the configuration and restarted, which seals it again.",
+  "With the temporary token I make the change, and nothing else.",
+  "I revoke it: the audit log keeps the record.",
+  "And I close the path again. I check it: it must refuse once more.",
+]
+
+[text.en.flows.lost]
+title = "If OpenBao is lost entirely"
+steps = [
+  "The container breaks beyond repair.",
+  "It's restored from the daily copy.",
+  "Its data is still encrypted.",
+  "It's unsealed with the same key as always.",
+  "And if both the copy and the key were lost, the two keys have their emergency copy in the password manager: it's rebuilt from scratch.",
+]
+
+[text.en.incidents.audit]
+title = "The audit log that wouldn't switch on"
+meta = "15-10-2026 · OpenBao"
+symptom = "The setup script enabled auditing through the API, as half of Vault's documentation says. OpenBao rejected it."
+options = [
+  "The token didn't have admin rights",
+  "The log path didn't exist",
+  "In this version auditing is only declared in the configuration file, not through the API",
+  "The storage was sealed",
+]
+cause = "OpenBao 2.x no longer lets you enable auditing through the API: it's a security measure in that branch, and it's declared in the configuration file."
+fix = "The audit log goes in the configuration file Ansible manages, and out of the setup script."
+lesson = "A fork isn't a clone: what works for Vault has to be checked on OpenBao. And what goes in the configuration is versioned with everything else."
+
+[text.en.incidents.root]
+title = "No root token: how do you change a password?"
+meta = "15-10-2026 · OpenBao"
+symptom = "I had to change my admin user's password. The root token had been revoked after installing, and the usual way to generate another answered «not allowed»."
+options = [
+  "OpenBao had to be reinstalled",
+  "In this version, generating a root without authenticating ships closed: it's opened briefly in the configuration and closed again",
+  "The unseal key was the wrong one",
+  "A second administrator was needed",
+]
+cause = "OpenBao 2.x ships with the unauthenticated paths for generating a root token closed by default. That way nobody can try it from the network."
+fix = "Open it briefly in the configuration, generate the token with the unseal key, make the change, revoke it and close it again. Check that it refuses once more. It's written down step by step."
+lesson = "Dangerous things shipping closed is good, as long as the way to open them is written down before you need it."
+
+[[text.en.timeline]]
+title = "The keys leave the disk"
+period = "15-10-2026"
+items = [
+  "Its own container with the official package and pinned checksum, its own TLS, a firewall that closes everything but the essentials, and a daily copy.",
+  "Both keys inside, checked identical to the old ones; then the plain-text files deleted and the root token revoked.",
+  "The control node asks with a read-only role and 15-minute tokens.",
+]
+
+[[text.en.timeline]]
+title = "The seal, by hand"
+period = "15-10-2026"
+items = [
+  "A seal watcher with alerts in Element.",
+  "Unsealing from the browser, behind the internal gate with two-factor.",
+  "Monitoring and security, like the rest of the fleet.",
+]
+
+[[text.en.timeline]]
+title = "First rekey"
+period = "15-10-2026"
+items = [
+  "A new password for every encrypted secret, with the content checked.",
+  "Getting admin access back, written down step by step.",
+]
+
+[[text.en.decisions]]
+title = "Unsealing"
+choice = "By hand, always"
+why = "Auto-unseal without outside services means keeping the key on the server itself, and then OpenBao protects against nothing with disk access. The price: after a power cut there are no deployments until I open it. Services keep running."
+
+[[text.en.decisions]]
+title = "What goes in first"
+choice = "The two master keys"
+why = "They open everything else. Moving every service's secrets at once would be a huge change; one at a time, checked, is the second phase."
+
+[[text.en.decisions]]
+title = "How they're requested"
+choice = "Read-only, from one place, for 15 minutes"
+why = "If something leaked from the control node, an expired token or one copied to another machine is useless, and the audit log says what was read."
+
+[[text.en.decisions]]
+title = "The root token"
+choice = "None stored"
+why = "It's generated when needed, with the unseal key, and revoked afterwards. A stored root is the key to all keys."
+
+[[text.en.decisions]]
+title = "OpenBao or Vault"
+choice = "OpenBao"
+why = "It's the open version of Vault, openly licensed and maintained under the Linux Foundation. For what I use it's the same."
+
+[text.en.tech_notes]
+openbao = "Master keys behind a read-only AppRole bound to its origin, 15-minute tokens, auditing, its own TLS and manual unsealing."
+hardening = "A firewall that closes everything but the essentials, a certificate pinned on the client, the web page only behind two-factor and no stored root token."
+lxc = "An unprivileged container just for this, copied daily to another disk."
+linux = "Debian with the official package and its checksum verified."
+ansible = "The vault password comes from OpenBao through a script; changing it is another script that re-encrypts and checks."
+terraform = "A wrapper that passes it the credentials from OpenBao in memory, in PR deploys too."
+git = "Secrets stay versioned, encrypted; the password is no longer on any disk."
+proxmox = "Its API token comes from OpenBao on every plan."
+
+[text.en.close]
+lessons = [
+  "A key on the disk of the machine that uses it isn't a key kept safe.",
+  "What the seal stops is change, not services: a good price.",
+  "The emergency procedure is written before the emergency.",
+]
+next = [
+  "Move each service's secrets into OpenBao, one by one.",
+  "Real backups for the whole server.",
+]

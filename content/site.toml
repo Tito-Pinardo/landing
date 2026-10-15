@@ -147,6 +147,12 @@ branch = "containers"
 level = 2
 
 [[tech]]
+id = "renovate"
+name = "Renovate"
+branch = "containers"
+level = 2
+
+[[tech]]
 id = "git"
 name = "Git"
 branch = "containers"
@@ -215,6 +221,12 @@ level = 1
 [[tech]]
 id = "hardening"
 name = "Linux / SSH hardening"
+branch = "observability"
+level = 2
+
+[[tech]]
+id = "openbao"
+name = "OpenBao · Vault"
 branch = "observability"
 level = 2
 
@@ -298,7 +310,7 @@ level = 2
 id = "homelab-iac"
 status = "ongoing"
 featured = true
-tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "forgejo", "linux", "traefik", "dns", "hardening"]
+tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "forgejo", "renovate", "linux", "traefik", "dns", "hardening", "openbao"]
 repo = "https://github.com/Tito-Pinardo/homelab-infra"
 
 [[projects]]
@@ -707,10 +719,11 @@ group = "lab"
 tech = ["git"]
 unit = "backup"
 
-# Código y entrega: el origen de los repositorios, su CI y quien despliega.
+# Entrega y secretos: el origen de los repositorios, su CI, quien
+# despliega y de dónde saca las llaves.
 [[nodes]]
 id = "forgejo"
-x = 547
+x = 515
 y = 780
 kind = "control"
 group = "delivery"
@@ -719,7 +732,7 @@ unit = "forgejo"
 
 [[nodes]]
 id = "ci"
-x = 800
+x = 700
 y = 780
 kind = "observability"
 group = "delivery"
@@ -728,12 +741,21 @@ unit = "forgejo"
 
 [[nodes]]
 id = "deployer"
-x = 1053
+x = 885
 y = 780
 kind = "control"
 group = "delivery"
-tech = ["forgejo", "terraform", "ansible"]
+tech = ["forgejo", "terraform", "ansible", "renovate"]
 unit = "forgejo"
+
+[[nodes]]
+id = "openbao"
+x = 1070
+y = 780
+kind = "control"
+group = "delivery"
+tech = ["openbao", "hardening"]
+unit = "openbao"
 
 # ---------------------------------------------------------------------------
 # Recorridos: el camino que hace algo de verdad por dentro del servidor.
@@ -760,6 +782,11 @@ path = ["internet", "cloudflare", "router", "traefik", "landing", "postgres", "l
 id = "deploy"
 category = "ops"
 path = ["forgejo", "ci", "deployer", "movil", "deployer", "proxmox", "landing", "zabbix", "wazuh", "backup"]
+
+[[flows]]
+id = "renovate"
+category = "ops"
+path = ["deployer", "forgejo", "ci", "deployer", "movil", "deployer", "traefik"]
 
 [[flows]]
 id = "webcd"
@@ -795,6 +822,11 @@ path = ["forgejo", "iac", "okd", "dns", "casa"]
 id = "intrusion"
 category = "security"
 path = ["internet", "cloudflare", "router", "wazuh", "hermes", "matrix", "movil"]
+
+[[flows]]
+id = "secrets"
+category = "security"
+path = ["deployer", "openbao", "deployer", "proxmox", "openbao"]
 
 [[flows]]
 id = "alert"
@@ -862,6 +894,12 @@ id = "db"
 category = "break"
 broken = "postgres"
 path = ["postgres", "landing", "internet", "landing", "postgres", "landing", "matrix"]
+
+[[flows]]
+id = "sealed"
+category = "break"
+broken = "openbao"
+path = ["proxmox", "openbao", "deployer", "matrix", "movil", "openbao", "deployer"]
 
 [[flows]]
 id = "runner"

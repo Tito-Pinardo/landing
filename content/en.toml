@@ -352,7 +352,7 @@ ai = "Local AI"
 observability = "Observability & security"
 platform = "Platform"
 lab = "Hypervisor & lab"
-delivery = "Code & delivery"
+delivery = "Delivery & secrets"
 
 [nodes.internet]
 short = "Internet"
@@ -527,7 +527,12 @@ text = "Checks every push without a single secret: Terraform, ansible-lint, gitl
 [nodes.deployer]
 short = "Deploy"
 title = "Deploy runner"
-text = "Lives on the control node. It works out the plan for each change and, once I approve, applies that exact plan. This site it deploys on its own when its CI goes green."
+text = "Lives on the control node. It works out the plan for each change and, once I approve, applies that exact plan. This site it deploys on its own when its CI goes green. Every Monday, Renovate opens the PRs for new versions here."
+
+[nodes.openbao]
+short = "OpenBao"
+title = "OpenBao (1U unit)"
+text = "Holds the infrastructure's master keys: the password for the encrypted secrets and the Terraform credentials. It hands them out in 15-minute tokens and, after every restart, waits sealed until I open it."
 
 [nodes.backup]
 short = "Git backup"
@@ -593,6 +598,19 @@ steps = [
   "The alert reaches Matrix.",
 ]
 verdict = "Visible downtime: only the form, while it lasts. Messages lost: none: either it's saved whole, or the visitor is asked to retry."
+
+[flows.sealed]
+title = "OpenBao starts sealed"
+steps = [
+  "The server restarts: a power cut or an update.",
+  "OpenBao starts sealed: without its key it hands out no secrets.",
+  "Deployments stop: no keys, no plan, no playbooks.",
+  "The watcher notices within minutes and posts to Matrix.",
+  "It reaches me: «OpenBao is sealed».",
+  "I unseal it with its key, which isn't on any of the server's disks: only in my password manager.",
+  "«Unsealed again» arrives and deployments carry on.",
+]
+verdict = "Downtime: none. Services don't need OpenBao to run, only to change. Lost: nothing. It's the deliberate price of the key not living on the server."
 
 [flows.runner]
 title = "The CI runner goes down"
@@ -764,6 +782,16 @@ steps = [
   "And I read it on my phone.",
 ]
 
+[flows.secrets]
+title = "A deployment asks for its keys"
+steps = [
+  "Time to deploy: the runner needs the password for the encrypted secrets and the Proxmox token.",
+  "It identifies itself to OpenBao with a read-only role that only works from the control node.",
+  "It gets a token that expires in 15 minutes. The keys no longer live on its disk.",
+  "Terraform and Ansible work with them in memory.",
+  "And every read is recorded in OpenBao's audit log.",
+]
+
 [flows.alert]
 title = "Something breaks"
 steps = [
@@ -787,6 +815,18 @@ steps = [
   "The Zabbix agent starts sending metrics.",
   "Wazuh starts watching its security.",
   "And the change is saved in the backup repository too.",
+]
+
+[flows.renovate]
+title = "A new version comes out"
+steps = [
+  "Every Monday, Renovate checks every pinned version in the infrastructure.",
+  "Traefik has a new one: it opens a PR with the version and its SHA-256, taken from the release's official checksum file.",
+  "CI checks it like any other change.",
+  "The deploy runner works out the plan: which playbook would run and which tasks would change.",
+  "I read it on my phone, merge and approve with one click.",
+  "That plan is applied.",
+  "And Traefik is on the new version, without me touching a number.",
 ]
 
 [flows.webcd]

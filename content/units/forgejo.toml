@@ -195,12 +195,12 @@ group = "around"
 tech = []
 
 [[pods]]
-id = "mirror"
+id = "renovate"
 x = 885
 y = 518
 kind = "control"
 group = "around"
-tech = ["git"]
+tech = ["renovate"]
 
 [[pods]]
 id = "copia"
@@ -223,8 +223,12 @@ id = "red"
 path = ["laptop", "git", "runner", "iaclint", "avisos", "element", "laptop", "runner", "element"]
 
 [[flows]]
-id = "mirror"
-path = ["laptop", "mirror", "git", "mirror", "laptop", "backup"]
+id = "renovate"
+path = ["renovate", "pr", "runner", "iaclint", "plan", "click", "saved", "avisos", "element"]
+
+[[flows]]
+id = "drift"
+path = ["saved", "plan", "avisos", "element"]
 
 [[flows]]
 id = "rebuild"
@@ -245,6 +249,14 @@ answer = 0
 [[incidents]]
 id = "lint"
 answer = 3
+
+[[incidents]]
+id = "zero"
+answer = 2
+
+[[incidents]]
+id = "token"
+answer = 0
 
 # ===========================================================================
 # Español
@@ -394,10 +406,10 @@ short = "Relay cifrado"
 title = "Relay de Matrix"
 text = "Publica el aviso cifrado de extremo a extremo en la sala de alertas."
 
-[text.es.pods.mirror]
-short = "Central"
-title = "El repositorio central de antes"
-text = "Ahora de solo lectura: rechaza pushes explicando cómo cambiar el remoto y se pone al día desde Forgejo."
+[text.es.pods.renovate]
+short = "Renovate"
+title = "Renovate"
+text = "Cada lunes busca versiones nuevas de todo lo que está fijado y abre un PR por cada una, con su suma SHA-256 oficial."
 
 [text.es.pods.copia]
 short = "Copia diaria"
@@ -451,15 +463,27 @@ steps = [
   "✅ en Element. Ese día salieron ocho avisos y llegaron los ocho.",
 ]
 
-[text.es.flows.mirror]
-title = "Cambiar el origen sin perder a nadie"
+[text.es.flows.renovate]
+title = "Las versiones se suben solas, pero no se aplican solas"
 steps = [
-  "Un equipo que aún apunta al repositorio central de antes intenta empujar.",
-  "El central ya es de solo lectura: rechaza el push y dice cómo cambiar el remoto.",
-  "El origen es Forgejo.",
-  "Cada cinco minutos, el central se pone al día desde Forgejo para quien aún lo lea.",
-  "El equipo cambia el remoto y empuja.",
-  "Y el respaldo de siempre sigue recibiendo cada commit.",
+  "Lunes por la mañana: Renovate encuentra una versión nueva de Traefik.",
+  "Abre un PR con el número nuevo y su suma SHA-256, sacada del fichero de sumas oficial. Si la release no la publica, no hay PR.",
+  "El CI lo comprueba como cualquier otro.",
+  "Formato, lint y secretos.",
+  "El plan del PR dice qué playbook se lanzaría y cuántas tareas cambiarían.",
+  "Fusiono y apruebo con un clic.",
+  "Se aplica ese plan.",
+  "El resultado sale por el webhook.",
+  "Y llega a Element. Las de versión mayor esperan a que las apruebe en un issue antes de abrir siquiera el PR.",
+]
+
+[text.es.flows.drift]
+title = "Cada noche: ¿alguien tocó algo a mano?"
+steps = [
+  "De madrugada, el runner de despliegue parte de lo último desplegado.",
+  "Calcula el plan de Terraform. Si sale algo, alguien ha cambiado algo fuera del código: es deriva de verdad.",
+  "Avisa. También si la rama principal tiene cambios sin desplegar.",
+  "Y si todo cuadra, silencio: no llega nada.",
 ]
 
 [text.es.flows.rebuild]
@@ -514,6 +538,34 @@ cause = "La versión instalada comprueba ese secreto al arrancar aunque la funci
 fix = "Generarlo en el propio contenedor la primera vez, junto a los otros secretos internos. No sale de ahí."
 lesson = "Los secretos internos se generan en la máquina que los usa y nunca viajan."
 
+[text.es.incidents.zero]
+title = "Una subida de versión con cero cambios"
+meta = "15-10-2026 · Renovate"
+symptom = "Renovate abrió el PR de una versión nueva de Qdrant. El CI salió en verde, pero el plan decía que el playbook no cambiaría ni una tarea."
+options = [
+  "Renovate había puesto mal el número",
+  "El playbook no estaba entre los afectados",
+  "El rol descargaba a una ruta fija con «si existe, no lo bajes»: quedaba el binario viejo y se reinstalaba ese",
+  "La versión nueva era igual que la anterior",
+]
+cause = "El rol bajaba el binario a una ruta temporal fija y se saltaba la descarga si ya había uno. Con el de la versión anterior allí, la nueva nunca se bajaba. Lo mismo le pasaba a Traefik, y la herramienta de Ansible del nodo de control tampoco se actualizaba si ya había una instalada."
+fix = "Cada versión en su propio directorio, como ya hacían otros roles, y la herramienta de Ansible comparando la versión instalada con la pedida. Después, los planes ya enseñaban los cambios."
+lesson = "Una subida de versión que no cambia nada es una pista, no una buena noticia. Hasta Renovate, esos números se subían a mano y nadie lo había notado."
+
+[text.es.incidents.token]
+title = "Renovate no veía ninguna versión"
+meta = "15-10-2026 · Renovate"
+symptom = "Las primeras pasadas de Renovate no encontraban versiones nuevas de nada que viniera de GitHub, aunque las había."
+options = [
+  "Fuera de GitHub, consultar sus releases exige un token: las mismas versiones están en las etiquetas de las imágenes oficiales",
+  "Las anotaciones de las variables estaban mal escritas",
+  "Forgejo bloqueaba la salida a internet",
+  "Las versiones estaban fijadas en otro fichero",
+]
+cause = "Renovate solo consulta las releases de GitHub sin token cuando corre en GitHub. En casa, esas consultas fallaban."
+fix = "Usar como fuente las imágenes oficiales de Docker y los paquetes de PyPI, que publican las mismas versiones. Sin tokens de más que guardar."
+lesson = "Antes de añadir un token, buscar una fuente que no lo necesite."
+
 [text.es.incidents.lint]
 title = "Un aviso que en mi terminal no salía"
 meta = "14-10-2026 · ansible-lint"
@@ -556,6 +608,16 @@ items = [
 ]
 
 [[text.es.timeline]]
+title = "Versiones y deriva"
+period = "15-10-2026"
+items = [
+  "Renovate: un PR por versión nueva, con su suma oficial; las mayores, solo si las apruebo.",
+  "Los primeros PR destaparon tres roles que no actualizaban de verdad, ya arreglados.",
+  "Deriva de Terraform cada noche y aviso de cambios sin desplegar.",
+  "Las llaves maestras salen del disco y pasan a OpenBao, con su propia unidad.",
+]
+
+[[text.es.timeline]]
 title = "Esta web, también"
 period = "14-10-2026 · noche"
 items = [
@@ -585,6 +647,11 @@ choice = "Con un clic, y el plan exacto"
 why = "Un plan que recrea un contenedor con datos se lee antes. Cuando haya confianza, los planes que solo actualizan podrían ir solos; los que destruyen, nunca."
 
 [[text.es.decisions]]
+title = "Las versiones"
+choice = "PR automáticos, aplicar con un clic"
+why = "Renovate quita el trabajo de buscar y de calcular sumas, pero cada subida pasa por el mismo plan y la misma aprobación que un cambio mío. Las versiones mayores esperan a que las apruebe, y las bases de datos se quedan fuera: subirlas exige migrar datos."
+
+[[text.es.decisions]]
 title = "Esta web"
 choice = "Despliegue continuo"
 why = "Si algo sale mal, se vuelve al commit anterior en minutos y no hay datos en juego. El control de fugas va antes de desplegar, no después."
@@ -599,6 +666,7 @@ postgresql = "Un PostgreSQL solo por socket en el runner: cada prueba crea su pr
 hardening = "Runner sin secretos, gitleaks en todo el historial y control de fugas antes de publicar."
 lxc = "Forgejo y el runner, cada uno en su contenedor sin privilegios; el runner se recrea desde cero."
 linux = "Contenedores Debian con versiones fijadas y sumas comprobadas de cada binario."
+renovate = "PR semanales de versiones nuevas con su suma oficial, agrupadas cuando tienen que ir juntas y las mayores con aprobación previa."
 
 [text.es.close]
 lessons = [
@@ -608,6 +676,7 @@ lessons = [
 ]
 next = [
   "Que los planes que solo actualizan se apliquen solos.",
+  "Renovate también para las dependencias de esta web.",
   "Copias de verdad para todo el servidor, no solo para Forgejo.",
 ]
 
@@ -759,10 +828,10 @@ short = "Encrypted relay"
 title = "Matrix relay"
 text = "Posts the alert end-to-end encrypted to the alerts room."
 
-[text.en.pods.mirror]
-short = "Old central"
-title = "The old central repository"
-text = "Read-only now: it rejects pushes explaining how to change the remote and catches up from Forgejo."
+[text.en.pods.renovate]
+short = "Renovate"
+title = "Renovate"
+text = "Every Monday it looks for new versions of everything pinned and opens one PR for each, with its official SHA-256."
 
 [text.en.pods.copia]
 short = "Daily copy"
@@ -816,15 +885,27 @@ steps = [
   "✅ in Element. Eight alerts went out that day and all eight arrived.",
 ]
 
-[text.en.flows.mirror]
-title = "Changing the origin without losing anyone"
+[text.en.flows.renovate]
+title = "Versions bump themselves, but don't apply themselves"
 steps = [
-  "A machine still pointing at the old central repository tries to push.",
-  "The central is read-only now: it rejects the push and says how to change the remote.",
-  "The origin is Forgejo.",
-  "Every five minutes the central catches up from Forgejo, for anyone still reading it.",
-  "The machine changes its remote and pushes.",
-  "And the usual backup still gets every commit.",
+  "Monday morning: Renovate finds a new Traefik version.",
+  "It opens a PR with the new number and its SHA-256, taken from the official checksum file. If the release doesn't publish one, there's no PR.",
+  "CI checks it like any other.",
+  "Formatting, lint and secrets.",
+  "The PR's plan says which playbook would run and how many tasks would change.",
+  "I merge and approve with one click.",
+  "That plan is applied.",
+  "The result goes out through the webhook.",
+  "And reaches Element. Major versions wait for my approval in an issue before a PR is even opened.",
+]
+
+[text.en.flows.drift]
+title = "Every night: did anyone change something by hand?"
+steps = [
+  "In the early hours, the deploy runner starts from the last deployment.",
+  "It works out the Terraform plan. If anything shows up, someone changed something outside the code: real drift.",
+  "It alerts. Also if the main branch has undeployed changes.",
+  "And if everything matches, silence: nothing arrives.",
 ]
 
 [text.en.flows.rebuild]
@@ -879,6 +960,34 @@ cause = "The installed version checks that secret at startup even with the featu
 fix = "Generate it inside the container the first time, next to the other internal secrets. It never leaves."
 lesson = "Internal secrets are generated on the machine that uses them and never travel."
 
+[text.en.incidents.zero]
+title = "A version bump with zero changes"
+meta = "15-10-2026 · Renovate"
+symptom = "Renovate opened the PR for a new Qdrant version. CI went green, but the plan said the playbook wouldn't change a single task."
+options = [
+  "Renovate had written the wrong number",
+  "The playbook wasn't among the affected ones",
+  "The role downloaded to a fixed path with «skip if it exists»: the old binary stayed and got reinstalled",
+  "The new version was the same as the old one",
+]
+cause = "The role downloaded the binary to a fixed temporary path and skipped the download if one was already there. With the previous version's binary in place, the new one was never fetched. Traefik had the same problem, and the control node's Ansible tool didn't upgrade either if one was already installed."
+fix = "Each version in its own directory, as other roles already did, and the Ansible tool comparing the installed version with the requested one. After that, the plans showed the changes."
+lesson = "A version bump that changes nothing is a clue, not good news. Until Renovate, those numbers were bumped by hand and nobody had noticed."
+
+[text.en.incidents.token]
+title = "Renovate saw no versions at all"
+meta = "15-10-2026 · Renovate"
+symptom = "Renovate's first runs found no new versions of anything coming from GitHub, though there were some."
+options = [
+  "Outside GitHub, querying its releases needs a token: the same versions are in the official images' tags",
+  "The variables' annotations were misspelt",
+  "Forgejo was blocking outbound internet",
+  "The versions were pinned in another file",
+]
+cause = "Renovate only queries GitHub releases without a token when it runs on GitHub. At home, those lookups failed."
+fix = "Use the official Docker images and PyPI packages as sources, which publish the same versions. No extra tokens to keep."
+lesson = "Before adding a token, look for a source that doesn't need one."
+
 [text.en.incidents.lint]
 title = "A warning my terminal didn't show"
 meta = "14-10-2026 · ansible-lint"
@@ -921,6 +1030,16 @@ items = [
 ]
 
 [[text.en.timeline]]
+title = "Versions and drift"
+period = "15-10-2026"
+items = [
+  "Renovate: one PR per new version, with its official checksum; majors only if I approve them.",
+  "The first PRs uncovered three roles that didn't really upgrade, now fixed.",
+  "Terraform drift every night and an alert for undeployed changes.",
+  "The master keys leave the disk and move to OpenBao, with its own unit.",
+]
+
+[[text.en.timeline]]
 title = "This site, too"
 period = "14-10-2026 · night"
 items = [
@@ -950,6 +1069,11 @@ choice = "One click, and the exact plan"
 why = "A plan that recreates a container with data gets read first. Once there's trust, update-only plans could go on their own; destructive ones, never."
 
 [[text.en.decisions]]
+title = "Versions"
+choice = "Automatic PRs, one-click apply"
+why = "Renovate takes away the searching and the checksums, but every bump goes through the same plan and approval as one of my changes. Major versions wait for my approval, and databases stay out: upgrading them means migrating data."
+
+[[text.en.decisions]]
 title = "This site"
 choice = "Continuous deployment"
 why = "If something goes wrong, it's back to the previous commit in minutes and no data is at stake. The leak check runs before deploying, not after."
@@ -964,6 +1088,7 @@ postgresql = "A socket-only PostgreSQL on the runner: each test creates its own 
 hardening = "A runner with no secrets, gitleaks over the whole history and a leak check before publishing."
 lxc = "Forgejo and the runner, each in its own unprivileged container; the runner is rebuilt from scratch."
 linux = "Debian containers with pinned versions and checked checksums for every binary."
+renovate = "Weekly PRs for new versions with their official checksum, grouped when they must go together and majors with prior approval."
 
 [text.en.close]
 lessons = [
@@ -973,5 +1098,6 @@ lessons = [
 ]
 next = [
   "Let update-only plans apply on their own.",
+  "Renovate for this site's dependencies too.",
   "Real backups for the whole server, not just Forgejo.",
 ]

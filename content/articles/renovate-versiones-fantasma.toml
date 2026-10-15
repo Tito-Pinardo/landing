@@ -1,0 +1,107 @@
+slug = "renovate-versiones-fantasma"
+date = "2026-10-15"
+unit = "forgejo"
+tech = ["renovate", "ansible", "forgejo"]
+kind = "near_miss"
+
+[text.es]
+impact = "Ninguna caída. Tres piezas se quedaban en la versión vieja cada vez que «subía» la suya, sin que nada lo dijera."
+detected = "El primer lunes de Renovate: el plan de un PR de versión nueva decía que no cambiaría ni una tarea."
+title = "Renovate en casa: tres actualizaciones que nunca se aplicaban"
+description = "Monté Renovate para que abriera un PR por cada versión nueva. El primer día destapó tres roles de Ansible que subían el número y dejaban instalada la versión vieja."
+summary = "Renovate abre un PR por cada versión fijada que tiene versión nueva, y cada uno pasa por el CI y por el plan como cualquier cambio. En el primer día de PR, uno de ellos traía un plan con cero cambios. Tirando de ese hilo salieron tres roles que llevaban tiempo «actualizándose» sin actualizar nada."
+lesson = "Una subida de versión que no cambia nada es una pista, no una buena noticia. Y que las subidas pasen por un plan que se lee es lo que la hizo visible."
+
+[[text.es.sections]]
+heading = "Qué hace Renovate aquí"
+paragraphs = [
+  "Toda mi infraestructura fija versiones: Forgejo, Terraform, Traefik, Qdrant, el panel de inicio, el cliente de Matrix, los proveedores de Terraform… Volver a lanzar un playbook no debe actualizar nada por sorpresa, así que cada subida es un cambio con su commit. Hasta ahora lo hacía a mano, cuando me acordaba.",
+  "Ahora, cada lunes, Renovate mira esas versiones y abre un PR por cada una que tenga versión nueva. Las descargas fijadas llevan su suma SHA-256, y un pequeño script la saca del fichero de sumas oficial de la release. Si la release no la publica, el PR no sale. Las versiones mayores esperan a que las apruebe en un issue, y las bases de datos quedan fuera.",
+  "Nada se aplica solo: cada PR pasa por el CI, trae su plan como comentario y, al fusionarlo, se aplica con el mismo clic que un cambio mío.",
+]
+code = """# renovate: datasource=docker depName=qdrant/qdrant extractVersion=^v(?<version>.+)$
+qdrant_version: "1.19.1\""""
+
+[[text.es.sections]]
+heading = "El plan que no cuadraba"
+paragraphs = [
+  "El PR de Qdrant subía de 1.19.1 a 1.19.2. El CI salió en verde y el plan decía que el playbook de Qdrant se lanzaría con cero tareas cambiadas. Una versión nueva que no cambia nada no tiene sentido: algo tenía que descargarse e instalarse.",
+  "El rol bajaba el binario a una ruta temporal fija y se saltaba la descarga si ya había un fichero allí. Allí estaba el de la versión anterior, así que la nueva nunca se bajaba y se reinstalaba la vieja. El número del inventario decía 1.19.2 y el servidor seguía en 1.19.1.",
+  "Traefik tenía el mismo defecto. Y la herramienta de Ansible del nodo de control usaba «que esté instalado», así que una versión ya instalada no se tocaba nunca: el PR de su versión nueva tampoco habría cambiado nada.",
+]
+
+[[text.es.sections]]
+heading = "El arreglo"
+list = [
+  "Cada versión, en su propio directorio, como ya hacían otros roles: una versión nueva es una ruta nueva, que no existe hasta que se baja.",
+  "La herramienta de Ansible compara la versión instalada con la pedida y, si no coinciden, actualiza dentro del mismo entorno, sin perder lo añadido.",
+  "De paso, fuera el ruido: varias tareas salían como «cambiadas» en cada despliegue sin cambiar nada (paquetes copiados a una carpeta que se vaciaba sola). Así un plan con cambios significa cambios.",
+]
+
+[[text.es.sections]]
+heading = "Por qué no lo había visto"
+paragraphs = [
+  "Subiendo los números a mano, lanzaba el playbook, salía en verde y daba la subida por hecha. Nadie comparaba el número con lo que de verdad corría.",
+  "Con Renovate, cada subida trae un plan que dice cuántas tareas cambiarían, y lo leo antes de fusionar. Un cero donde tenía que haber un cambio salta a la vista.",
+]
+
+[[text.es.sections]]
+heading = "Resultado"
+paragraphs = [
+  "Los tres roles actualizan de verdad, y los PR de Renovate de ese día se fusionaron con sus planes ya enseñando los cambios. Desde entonces, el único trabajo que me queda con las versiones es leer el plan y pulsar.",
+]
+links = [
+  { title = "Renovate", url = "https://docs.renovatebot.com/", source = "Documentación de Renovate" },
+  { title = "Mi propio CI/CD con Forgejo", url = "https://titopinardogutierrez.com/es/blog/forgejo-ci-cd/", source = "Este blog" },
+]
+
+[text.en]
+impact = "No outage. Three pieces stayed on the old version every time theirs was «bumped», with nothing saying so."
+detected = "Renovate's first Monday: the plan of a new-version PR said it wouldn't change a single task."
+title = "Renovate at home: three upgrades that never applied"
+description = "I set up Renovate to open a PR for every new version. On day one it uncovered three Ansible roles that bumped the number and left the old version installed."
+summary = "Renovate opens a PR for every pinned version that has a new release, and each one goes through CI and the plan like any change. On the first day of PRs, one of them came with a zero-change plan. Pulling that thread turned up three roles that had been «upgrading» for a while without upgrading anything."
+lesson = "A version bump that changes nothing is a clue, not good news. And bumps going through a plan that gets read is what made it visible."
+
+[[text.en.sections]]
+heading = "What Renovate does here"
+paragraphs = [
+  "All my infrastructure pins versions: Forgejo, Terraform, Traefik, Qdrant, the home dashboard, the Matrix client, the Terraform providers… Re-running a playbook must not upgrade anything by surprise, so every bump is a change with its own commit. Until now I did it by hand, when I remembered.",
+  "Now, every Monday, Renovate checks those versions and opens a PR for each one with a new release. Pinned downloads carry their SHA-256, and a small script takes it from the release's official checksum file. If the release doesn't publish one, no PR comes out. Major versions wait for my approval in an issue, and databases stay out.",
+  "Nothing applies on its own: every PR goes through CI, brings its plan as a comment and, once merged, is applied with the same click as one of my changes.",
+]
+code = """# renovate: datasource=docker depName=qdrant/qdrant extractVersion=^v(?<version>.+)$
+qdrant_version: "1.19.1\""""
+
+[[text.en.sections]]
+heading = "The plan that didn't add up"
+paragraphs = [
+  "The Qdrant PR went from 1.19.1 to 1.19.2. CI went green and the plan said the Qdrant playbook would run with zero tasks changed. A new version that changes nothing makes no sense: something had to be downloaded and installed.",
+  "The role downloaded the binary to a fixed temporary path and skipped the download if a file was already there. The previous version's was there, so the new one was never fetched and the old one was reinstalled. The inventory said 1.19.2 and the server was still on 1.19.1.",
+  "Traefik had the same flaw. And the control node's Ansible tool used «make sure it's installed», so an installed version was never touched: the PR for its new version wouldn't have changed anything either.",
+]
+
+[[text.en.sections]]
+heading = "The fix"
+list = [
+  "Each version in its own directory, as other roles already did: a new version is a new path, which doesn't exist until it's downloaded.",
+  "The Ansible tool compares the installed version with the requested one and, if they differ, upgrades inside the same environment without losing what was added.",
+  "Along the way, out with the noise: several tasks showed as «changed» on every deployment without changing anything (packages copied to a folder that emptied itself). Now a plan with changes means changes.",
+]
+
+[[text.en.sections]]
+heading = "Why I hadn't seen it"
+paragraphs = [
+  "Bumping numbers by hand, I'd run the playbook, it went green and I took the upgrade as done. Nobody compared the number with what was actually running.",
+  "With Renovate, every bump brings a plan that says how many tasks would change, and I read it before merging. A zero where there should be a change stands out.",
+]
+
+[[text.en.sections]]
+heading = "Result"
+paragraphs = [
+  "All three roles really upgrade now, and that day's Renovate PRs were merged with their plans already showing the changes. Since then, the only work versions leave me is reading the plan and clicking.",
+]
+links = [
+  { title = "Renovate", url = "https://docs.renovatebot.com/", source = "Renovate docs" },
+  { title = "My own CI/CD with Forgejo", url = "https://titopinardogutierrez.com/en/blog/forgejo-ci-cd/", source = "This blog" },
+]

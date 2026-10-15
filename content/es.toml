@@ -356,7 +356,7 @@ ai = "IA local"
 observability = "Observabilidad y seguridad"
 platform = "Plataforma"
 lab = "Hipervisor y laboratorio"
-delivery = "Código y entrega"
+delivery = "Entrega y secretos"
 
 [nodes.internet]
 short = "Internet"
@@ -531,7 +531,12 @@ text = "Comprueba cada push sin un solo secreto: Terraform, ansible-lint, gitlea
 [nodes.deployer]
 short = "Despliegue"
 title = "Runner de despliegue"
-text = "Vive en el nodo de control. Calcula el plan de cada cambio y, con mi aprobación, aplica ese plan exacto. Esta web la despliega sola cuando su CI sale en verde."
+text = "Vive en el nodo de control. Calcula el plan de cada cambio y, con mi aprobación, aplica ese plan exacto. Esta web la despliega sola cuando su CI sale en verde. Cada lunes, Renovate abre aquí los PR de versiones nuevas."
+
+[nodes.openbao]
+short = "OpenBao"
+title = "OpenBao (unidad 1U)"
+text = "Guarda las llaves maestras de la infraestructura: la contraseña de los secretos cifrados y las credenciales de Terraform. Las entrega en tokens de 15 minutos y, tras cada reinicio, espera sellado a que yo lo abra."
 
 [nodes.backup]
 short = "Respaldo Git"
@@ -597,6 +602,19 @@ steps = [
   "El aviso llega a Matrix.",
 ]
 verdict = "Caída visible: solo el formulario, mientras dura. Mensajes perdidos: ninguno: o se guarda entero, o se le pide al visitante que lo reintente."
+
+[flows.sealed]
+title = "OpenBao arranca sellado"
+steps = [
+  "El servidor se reinicia: un corte de luz o una actualización.",
+  "OpenBao arranca sellado: sin su clave no entrega ningún secreto.",
+  "Los despliegues se paran: sin llaves no hay plan ni playbooks.",
+  "La vigilancia lo detecta en minutos y avisa en Matrix.",
+  "Me llega: «OpenBao está sellado».",
+  "Lo deselo con su clave, que no está en ningún disco del servidor: solo en mi gestor de contraseñas.",
+  "Llega «vuelve a estar desellado» y los despliegues siguen.",
+]
+verdict = "Caída: ninguna. Los servicios no necesitan OpenBao para funcionar, solo para cambiar. Perdido: nada. Es el precio, a propósito, de que la llave no viva en el servidor."
 
 [flows.runner]
 title = "Se cae el runner del CI"
@@ -768,6 +786,16 @@ steps = [
   "Y la leo en el móvil.",
 ]
 
+[flows.secrets]
+title = "Un despliegue pide sus llaves"
+steps = [
+  "Toca desplegar: el runner necesita la contraseña de los secretos cifrados y el token de Proxmox.",
+  "Se identifica ante OpenBao con un rol de solo lectura que solo vale desde el nodo de control.",
+  "Recibe un token que caduca en 15 minutos. Las llaves ya no viven en su disco.",
+  "Terraform y Ansible trabajan con ellas en memoria.",
+  "Y cada lectura queda en el registro de auditoría de OpenBao.",
+]
+
 [flows.alert]
 title = "Algo se rompe"
 steps = [
@@ -791,6 +819,18 @@ steps = [
   "El agente de Zabbix empieza a enviar métricas.",
   "Wazuh empieza a vigilar su seguridad.",
   "Y el cambio queda guardado también en el repositorio de respaldo.",
+]
+
+[flows.renovate]
+title = "Llega una versión nueva"
+steps = [
+  "Cada lunes, Renovate revisa todas las versiones fijadas de la infraestructura.",
+  "Traefik tiene una nueva: abre un PR con la versión y su suma SHA-256 sacada del fichero oficial de la release.",
+  "El CI lo comprueba como cualquier otro cambio.",
+  "El runner de despliegue calcula el plan: qué playbook se lanzaría y qué tareas cambiarían.",
+  "Lo leo en el móvil, fusiono y apruebo con un clic.",
+  "Se aplica ese plan.",
+  "Y Traefik queda en la versión nueva, sin haber tocado yo un número.",
 ]
 
 [flows.webcd]

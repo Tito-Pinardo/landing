@@ -386,7 +386,7 @@ text = "Uno por servicio, reutilizables: paquetes, configuración, servicio y co
 [text.es.pods.vault]
 short = "Vault"
 title = "Ansible Vault"
-text = "Los secretos de cada grupo, cifrados. En el repositorio público solo hay ejemplos."
+text = "Los secretos de cada grupo, cifrados. Su contraseña ya no está en el disco: la entrega OpenBao, en tokens de 15 minutos. En el repositorio público solo hay ejemplos."
 
 [text.es.pods.diff]
 short = "--check --diff"
@@ -593,6 +593,8 @@ lxc = "Un contenedor por servicio, casi todos sin privilegios."
 zfs = "Los datos de cada servicio viven en ZFS y se montan; los roles no los tocan."
 git = "Todo versionado, con hook que empuja a dos remotos y una copia pública saneada."
 forgejo = "El origen del repositorio: rama principal protegida, CI sin secretos, plan del PR y despliegue con un clic."
+renovate = "Un PR por cada versión fijada que tiene versión nueva, con su suma oficial; se aplica con el mismo plan y el mismo clic."
+openbao = "La contraseña de los secretos y las credenciales de Terraform salen de OpenBao, no del disco del nodo de control."
 linux = "Contenedores Debian, Ubuntu y Alpine configurados de forma uniforme."
 traefik = "Sus rutas se generan desde la lista común de servicios."
 dns = "Los registros de Cloudflare se crean y se borran desde la misma lista; el DNS de casa, también configurado desde aquí."
@@ -740,7 +742,7 @@ text = "One per service, reusable: packages, configuration, service and a final 
 [text.en.pods.vault]
 short = "Vault"
 title = "Ansible Vault"
-text = "Each group's secrets, encrypted. The public repo only has examples."
+text = "Each group's secrets, encrypted. Their password is no longer on disk: OpenBao hands it out in 15-minute tokens. The public repo only has examples."
 
 [text.en.pods.diff]
 short = "--check --diff"
@@ -947,6 +949,8 @@ lxc = "One container per service, almost all unprivileged."
 zfs = "Each service's data lives on ZFS and is mounted; roles don't touch it."
 git = "Everything versioned, with a hook pushing to two remotes and a cleaned public copy."
 forgejo = "The repository's origin: protected main branch, CI with no secrets, the PR's plan and one-click deploys."
+renovate = "One PR for every pinned version with a new release, with its official checksum; applied with the same plan and the same click."
+openbao = "The secrets' password and the Terraform credentials come from OpenBao, not from the control node's disk."
 linux = "Debian, Ubuntu and Alpine containers configured uniformly."
 traefik = "Its routes are generated from the common service list."
 dns = "Cloudflare records are created and deleted from the same list; the home DNS is configured from here too."
