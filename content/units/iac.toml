@@ -283,7 +283,7 @@ grade = "Reconstruir un servicio: un comando"
 facts = [
   { label = "Cómo trabajo", value = "Desde un contenedor de control en el propio servidor, con los agentes de IA con los que trabajo en terminales que puedo abrir desde el portátil o el navegador." },
   { label = "La regla", value = "Nada se aplica sin ver antes qué va a cambiar: «terraform plan» o «--check --diff». Y versiones fijadas: volver a ejecutar un playbook no actualiza nada por sorpresa." },
-  { label = "Lo público", value = "Una copia saneada del repositorio en GitHub: estructura y roles, sin IPs reales, secretos ni reglas de cortafuegos." },
+  { label = "Lo público", value = "Una copia saneada del repositorio en GitHub, generada y comprobada sola en cada cambio y publicada cuando la apruebo: estructura y roles, sin IPs reales, secretos ni reglas de cortafuegos." },
 ]
 
 [[text.es.stats]]
@@ -326,7 +326,7 @@ text = "Un hook empuja cada commit a un segundo repositorio dentro de casa. Tien
 [text.es.pods.public]
 short = "Copia pública"
 title = "Copia pública saneada"
-text = "La versión que enseño: funciones con su descripción, IPs de documentación y dominios de ejemplo."
+text = "La versión que enseño, generada sola en cada fusión: una lista blanca de ficheros, IPs de documentación, dominios de ejemplo y funciones reducidas a su descripción. Solo se publica si la apruebo."
 
 [text.es.pods.proxmoxapi]
 short = "API Proxmox"
@@ -465,11 +465,11 @@ steps = [
 ]
 
 [text.es.flows.public]
-title = "La copia pública"
+title = "La copia pública, sola pero revisada"
 steps = [
-  "El repositorio real tiene direcciones, reglas y secretos cifrados.",
-  "Se genera una copia saneada: solo estructura, nombres y descripciones; IPs de documentación y dominios de ejemplo.",
-  "Esa es la que está en GitHub, auditada desde un clon limpio.",
+  "Cada fusión genera la copia: solo los ficheros de una lista blanca; IPs, dominios, correos y claves cambiados por ejemplos; los secretos, por sus nombres sin valor; las funciones, reducidas a su firma y su descripción.",
+  "Un control de fugas la recorre entera y para cualquier dato real; también en el CI de cada PR. Si pasa, me llega el enlace a lo que cambiaría y lo reviso.",
+  "Con mi aprobación se publica en GitHub, solo si es exactamente lo que revisé y sin reescribir su historia.",
 ]
 
 [text.es.flows.rebuild]
@@ -595,6 +595,8 @@ git = "Todo versionado, con hook que empuja a dos remotos y una copia pública s
 forgejo = "El origen del repositorio: rama principal protegida, CI sin secretos, plan del PR y despliegue con un clic."
 renovate = "Un PR por cada versión fijada que tiene versión nueva, con su suma oficial; se aplica con el mismo plan y el mismo clic."
 openbao = "La contraseña de los secretos y las credenciales de Terraform salen de OpenBao, no del disco del nodo de control."
+crowdsec = "Su rol instala el motor, sus fuentes y el resumen diario; la IP real detrás de Cloudflare y el plugin, en el de Traefik."
+pbs = "El servidor de copias, su almacén, la tarea nocturna y la copia aparte de los mundos de los juegos, todo desde código."
 linux = "Contenedores Debian, Ubuntu y Alpine configurados de forma uniforme."
 traefik = "Sus rutas se generan desde la lista común de servicios."
 dns = "Los registros de Cloudflare se crean y se borran desde la misma lista; el DNS de casa, también configurado desde aquí."
@@ -639,7 +641,7 @@ grade = "Rebuilding a service: one command"
 facts = [
   { label = "How I work", value = "From a control container on the server itself, with the AI agents I work with in terminals I can open from my laptop or the browser." },
   { label = "The rule", value = "Nothing is applied without first seeing what will change: «terraform plan» or «--check --diff». And pinned versions: rerunning a playbook updates nothing by surprise." },
-  { label = "The public part", value = "A cleaned copy of the repository on GitHub: structure and roles, with no real IPs, secrets or firewall rules." },
+  { label = "The public part", value = "A cleaned copy of the repository on GitHub, generated and checked automatically on every change and published when I approve it: structure and roles, with no real IPs, secrets or firewall rules." },
 ]
 
 [[text.en.stats]]
@@ -682,7 +684,7 @@ text = "A hook pushes every commit to a second repository inside the house. It h
 [text.en.pods.public]
 short = "Public copy"
 title = "Cleaned public copy"
-text = "The version I show: functions with their description, documentation IPs and example domains."
+text = "The version I show, generated on every merge: a whitelist of files, documentation IPs, example domains and functions cut down to their description. It's only published if I approve it."
 
 [text.en.pods.proxmoxapi]
 short = "Proxmox API"
@@ -821,11 +823,11 @@ steps = [
 ]
 
 [text.en.flows.public]
-title = "The public copy"
+title = "The public copy, automatic but reviewed"
 steps = [
-  "The real repository has addresses, rules and encrypted secrets.",
-  "A cleaned copy is generated: only structure, names and descriptions; documentation IPs and example domains.",
-  "That's the one on GitHub, audited from a clean clone.",
+  "Every merge generates the copy: only files on a whitelist; IPs, domains, emails and keys swapped for examples; secrets reduced to their names with no value; functions cut down to their signature and description.",
+  "A leak check goes through all of it and stops any real data; also in every PR's CI. If it passes, I get a link to what would change and review it.",
+  "With my approval it's published to GitHub, only if it's exactly what I reviewed and without rewriting its history.",
 ]
 
 [text.en.flows.rebuild]
@@ -951,6 +953,8 @@ git = "Everything versioned, with a hook pushing to two remotes and a cleaned pu
 forgejo = "The repository's origin: protected main branch, CI with no secrets, the PR's plan and one-click deploys."
 renovate = "One PR for every pinned version with a new release, with its official checksum; applied with the same plan and the same click."
 openbao = "The secrets' password and the Terraform credentials come from OpenBao, not from the control node's disk."
+crowdsec = "Its role installs the engine, its sources and the daily summary; the real IP behind Cloudflare and the plugin, in Traefik's."
+pbs = "The backup server, its datastore, the nightly job and the separate copy of the game worlds, all from code."
 linux = "Debian, Ubuntu and Alpine containers configured uniformly."
 traefik = "Its routes are generated from the common service list."
 dns = "Cloudflare records are created and deleted from the same list; the home DNS is configured from here too."

@@ -319,7 +319,7 @@ text = "El PC, el portátil y el nodo de control: los únicos con clave para emp
 [text.es.pods.element]
 short = "Element"
 title = "Element"
-text = "La sala de alertas, en el móvil: un mensaje por ejecución, con el commit y el enlace."
+text = "Una sala propia para el CI/CD, aparte de las incidencias: un mensaje por ejecución, con el commit y el enlace."
 
 [text.es.pods.backup]
 short = "Respaldo"
@@ -404,7 +404,7 @@ text = "Comprueba la firma del webhook y resume la ejecución: repositorio, rama
 [text.es.pods.relay]
 short = "Relay cifrado"
 title = "Relay de Matrix"
-text = "Publica el aviso cifrado de extremo a extremo en la sala de alertas."
+text = "Publica el aviso cifrado de extremo a extremo en la sala del CI/CD."
 
 [text.es.pods.renovate]
 short = "Renovate"
@@ -430,7 +430,7 @@ steps = [
   "Fusiono. Sale el plan de la rama principal y lo apruebo con un clic.",
   "Se aplica ese plan guardado. Si algo cambió entretanto, Terraform se niega.",
   "El resultado sale por el webhook.",
-  "Cifrado, hacia la sala de alertas.",
+  "Cifrado, hacia la sala del CI/CD.",
   "Y me llega al móvil.",
 ]
 
@@ -741,7 +741,7 @@ text = "The PC, the laptop and the control node: the only ones with a key to pus
 [text.en.pods.element]
 short = "Element"
 title = "Element"
-text = "The alerts room, on my phone: one message per run, with the commit and the link."
+text = "A room of its own for CI/CD, apart from incidents: one message per run, with the commit and the link."
 
 [text.en.pods.backup]
 short = "Backup"
@@ -826,7 +826,7 @@ text = "Checks the webhook's signature and sums up the run: repository, branch, 
 [text.en.pods.relay]
 short = "Encrypted relay"
 title = "Matrix relay"
-text = "Posts the alert end-to-end encrypted to the alerts room."
+text = "Posts the alert end-to-end encrypted to the CI/CD room."
 
 [text.en.pods.renovate]
 short = "Renovate"
@@ -852,7 +852,7 @@ steps = [
   "I merge. The main branch's plan comes out and I approve it with one click.",
   "That saved plan is applied. If anything changed in between, Terraform refuses.",
   "The result goes out through the webhook.",
-  "Encrypted, to the alerts room.",
+  "Encrypted, to the CI/CD room.",
   "And reaches my phone.",
 ]
 

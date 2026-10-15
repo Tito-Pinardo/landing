@@ -111,6 +111,12 @@ branch = "iac"
 level = 2
 
 [[tech]]
+id = "pbs"
+name = "Proxmox Backup Server"
+branch = "iac"
+level = 2
+
+[[tech]]
 id = "docker"
 name = "Docker"
 branch = "containers"
@@ -231,6 +237,12 @@ branch = "observability"
 level = 2
 
 [[tech]]
+id = "crowdsec"
+name = "CrowdSec"
+branch = "observability"
+level = 2
+
+[[tech]]
 id = "python"
 name = "Python"
 branch = "dev"
@@ -310,7 +322,7 @@ level = 2
 id = "homelab-iac"
 status = "ongoing"
 featured = true
-tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "forgejo", "renovate", "linux", "traefik", "dns", "hardening", "openbao"]
+tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "forgejo", "renovate", "linux", "traefik", "dns", "hardening", "openbao", "crowdsec", "pbs"]
 repo = "https://github.com/Tito-Pinardo/homelab-infra"
 
 [[projects]]
@@ -485,7 +497,7 @@ x = 515
 y = 146
 kind = "network"
 group = "edge"
-tech = ["traefik"]
+tech = ["traefik", "crowdsec"]
 unit = "traefik"
 
 [[nodes]]
@@ -716,7 +728,7 @@ x = 1070
 y = 666
 kind = "control"
 group = "lab"
-tech = ["git"]
+tech = ["pbs", "git"]
 unit = "backup"
 
 # Entrega y secretos: el origen de los repositorios, su CI, quien
@@ -829,6 +841,11 @@ category = "security"
 path = ["deployer", "openbao", "deployer", "proxmox", "openbao"]
 
 [[flows]]
+id = "crowdsec"
+category = "security"
+path = ["internet", "cloudflare", "traefik", "traefik", "matrix", "movil"]
+
+[[flows]]
 id = "alert"
 category = "security"
 path = ["plex", "zabbix", "hermes", "matrix", "movil"]
@@ -900,6 +917,12 @@ id = "sealed"
 category = "break"
 broken = "openbao"
 path = ["proxmox", "openbao", "deployer", "matrix", "movil", "openbao", "deployer"]
+
+[[flows]]
+id = "restore"
+category = "break"
+broken = "homepage"
+path = ["homepage", "proxmox", "backup", "proxmox", "homepage", "matrix"]
 
 [[flows]]
 id = "runner"

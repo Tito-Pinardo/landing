@@ -391,7 +391,7 @@ text = "Lo que enseño: el código de esta web y una copia saneada de la infraes
 [nodes.traefik]
 short = "Traefik"
 title = "Traefik"
-text = "La única puerta pública del servidor: certificados TLS automáticos y una ruta por servicio publicado. Los paneles internos no pasan por aquí."
+text = "La única puerta pública del servidor: certificados TLS automáticos y una ruta por servicio publicado, con CrowdSec vigilando quién llama. Los paneles internos no pasan por aquí."
 
 [nodes.authelia]
 short = "SSO + 2FA"
@@ -539,9 +539,9 @@ title = "OpenBao (unidad 1U)"
 text = "Guarda las llaves maestras de la infraestructura: la contraseña de los secretos cifrados y las credenciales de Terraform. Las entrega en tokens de 15 minutos y, tras cada reinicio, espera sellado a que yo lo abra."
 
 [nodes.backup]
-short = "Respaldo Git"
-title = "Respaldo del repositorio"
-text = "Un segundo repositorio que se actualiza solo en cada commit de la infraestructura."
+short = "Copias"
+title = "Copias (unidad 1U)"
+text = "Cada madrugada, una copia cifrada de todos los contenedores, verificada cada semana y con la restauración probada. Y un segundo repositorio que recibe cada commit de la infraestructura."
 
 [flow_categories]
 all = "Todos"
@@ -615,6 +615,18 @@ steps = [
   "Llega «vuelve a estar desellado» y los despliegues siguen.",
 ]
 verdict = "Caída: ninguna. Los servicios no necesitan OpenBao para funcionar, solo para cambiar. Perdido: nada. Es el precio, a propósito, de que la llave no viva en el servidor."
+
+[flows.restore]
+title = "Borro un contenedor por error"
+steps = [
+  "Borro por error el contenedor del panel de inicio.",
+  "En Proxmox, voy a su lista de copias.",
+  "Cada madrugada hay una copia cifrada y verificada de cada contenedor. La de hoy es de las 2:30.",
+  "Se restaura entero, con la clave de cifrado, que también está fuera del servidor.",
+  "El panel vuelve tal como estaba esta madrugada.",
+  "Si la copia hubiera fallado, el aviso habría llegado a Matrix esa misma noche.",
+]
+verdict = "Caída: los minutos de restaurar. Perdido: como mucho, lo cambiado desde las 2:30. Lo montado desde fuera del contenedor no va en su copia: lo que importa, como los mundos de los juegos, tiene la suya."
 
 [flows.runner]
 title = "Se cae el runner del CI"
@@ -794,6 +806,17 @@ steps = [
   "Recibe un token que caduca en 15 minutos. Las llaves ya no viven en su disco.",
   "Terraform y Ansible trabajan con ellas en memoria.",
   "Y cada lectura queda en el registro de auditoría de OpenBao.",
+]
+
+[flows.crowdsec]
+title = "Un escáner llama a la puerta"
+steps = [
+  "Un bot recorre internet probando rutas conocidas: ficheros de configuración, carpetas de Git, paneles.",
+  "Cloudflare lo deja pasar, pero apunta su IP real en una cabecera.",
+  "Traefik se fía de esa cabecera solo si viene de Cloudflare, así que ve quién es de verdad.",
+  "CrowdSec reconoce el escaneo, decide bloquear esa IP y la comparte con su red comunitaria, que le devuelve la lista de IPs que otros han visto.",
+  "Cada mañana, el resumen llega a Matrix: qué detectó y qué podría ser un falso positivo.",
+  "Y lo leo en el móvil.",
 ]
 
 [flows.alert]

@@ -1,0 +1,113 @@
+slug = "copias-pbs"
+date = "2026-10-15"
+unit = "backup"
+tech = ["pbs", "proxmox", "zfs", "hardening"]
+kind = "build"
+
+[text.es]
+impact = "Ninguno en producción. Cierra el hueco más grande del homelab: hasta ese día, los datos no tenían copias periódicas."
+detected = "Estaba escrito como pendiente desde septiembre, en rojo, en la documentación y en la propia web."
+title = "De «sin copias» a copias cifradas que el propio servidor no puede borrar"
+description = "Proxmox Backup Server en casa: todos los contenedores cada noche, cifrados en el origen, una poda que el servidor no puede tocar y una restauración comprobada."
+summary = "Durante semanas, mi homelab tuvo un hueco reconocido: el código tenía dos respaldos, pero los datos no tenían copias periódicas. En un día monté Proxmox Backup Server con un disco solo para él, copias cifradas de todo cada noche, un permiso que no deja borrar y una restauración de prueba. Por el camino aparecieron dos sorpresas: un permiso que no bastaba y 158 GB que no iban en ninguna copia."
+lesson = "Una copia que no se ha restaurado nunca es una esperanza. Y la pregunta útil no es «¿tengo copia?», sino «¿qué la destruiría junto al original?»."
+
+[[text.es.sections]]
+heading = "El punto de partida"
+paragraphs = [
+  "Los datos importantes viven en espejos y en RAIDZ, y eso protege de que muera un disco. Pero un borrado, un error o una corrupción llegan a todos los discos a la vez: un RAID no es una copia. Lo tenía escrito como pendiente, en rojo, y así lo contaba también la unidad de copias de esta web.",
+]
+
+[[text.es.sections]]
+heading = "Lo que monté"
+list = [
+  "Proxmox Backup Server en su propio contenedor, con un disco de 4,5 TB solo para él. Si el disco no está montado, el contenedor no arranca: nunca escribe copias en el disco del sistema.",
+  "Cada noche, a las 2:30, todos los contenedores, también los de documentos. Incrementales y con deduplicación: solo viaja lo que cambió.",
+  "Cifradas en el servidor antes de salir. La clave tiene una copia en mi gestor de contraseñas; quien se lleve el disco no lee nada.",
+  "Poda en el propio servidor de copias: 7 diarias, 4 semanales y 6 mensuales. Verificación todos los domingos: relee cada copia.",
+  "Avisos solo de fallos, en la sala de incidencias. Si no llega nada, ha ido bien.",
+]
+
+[[text.es.sections]]
+heading = "Quien copia no borra"
+paragraphs = [
+  "El servidor principal entra en el de copias con un token que puede hacer copias y restaurar, pero no borrar ni podar: eso solo lo hace el servidor de copias. Si alguien se hiciera con el servidor principal, lo primero que intentaría sería borrar las copias, y no podría.",
+  "Primera sorpresa: con el permiso puesto en el token, Proxmox decía que el almacén no existía. Lo que puede hacer un token es la intersección de sus permisos y los de su usuario, y el usuario no tenía ninguno. Con el mismo permiso en los dos, funcionó. Un «no existe» era un «no lo puedes ver».",
+]
+
+[[text.es.sections]]
+heading = "158 GB fuera de la copia"
+paragraphs = [
+  "Segunda sorpresa, al repasar qué entraba: los mundos de los juegos no estaban en la copia de su contenedor. Viven en el almacenamiento del servidor y se montan dentro, y Proxmox copia el disco del contenedor, no lo montado.",
+  "Ahora tienen su propia copia a las 3:30: una instantánea del almacenamiento, para copiar un estado coherente aunque haya alguien jugando, cifrada y al mismo servidor de copias. Y una regla escrita: si un contenedor guarda algo irrecuperable en un montaje, se añade a esa lista.",
+]
+
+[[text.es.sections]]
+heading = "La prueba"
+paragraphs = [
+  "Una copia sin restaurar no prueba nada. Restauré la del cliente de mensajería en un contenedor nuevo, sin arrancarlo para que no chocara con el original, y comparé fichero a fichero: 1.381 de 1.381, idénticos.",
+  "Qué no entra, a propósito: películas, series y juegos de Steam (decenas de terabytes que se vuelven a bajar) y el clúster de laboratorio, que se reconstruye desde código.",
+]
+
+[[text.es.sections]]
+heading = "Lo que sigue faltando"
+paragraphs = [
+  "Todo está en casa: el disco de copias está enchufado al mismo servidor. Protege de borrados, corrupción y discos que mueren, que es lo que ha pasado de verdad, pero no de un robo o un incendio. El siguiente paso es una copia fuera: un disco que se rota o un segundo servidor de copias en otro sitio. Sigue escrito en rojo hasta entonces.",
+]
+links = [
+  { title = "Proxmox Backup Server", url = "https://pbs.proxmox.com/docs/", source = "Documentación de Proxmox" },
+]
+
+[text.en]
+impact = "None in production. It closes the homelab's biggest gap: until that day, the data had no regular backups."
+detected = "It had been written down as pending since September, in red, in the documentation and on this very site."
+title = "From «no backups» to encrypted backups the server itself can't delete"
+description = "Proxmox Backup Server at home: every container nightly, encrypted at the source, pruning the server can't touch and a restore checked file by file."
+summary = "For weeks my homelab had an acknowledged gap: the code had two backups, but the data had no regular copies. In one day I set up Proxmox Backup Server with a disk of its own, encrypted backups of everything every night, a permission that can't delete and a test restore. Along the way, two surprises: a permission that wasn't enough and 158 GB that weren't in any backup."
+lesson = "A backup that's never been restored is a hope. And the useful question isn't «do I have a backup?», but «what would destroy it along with the original?»."
+
+[[text.en.sections]]
+heading = "Where it started"
+paragraphs = [
+  "The important data lives on mirrors and RAIDZ, which protects against a dying disk. But a deletion, a mistake or corruption reaches every disk at once: RAID isn't a backup. I had it written down as pending, in red, and that's what this site's backups unit said too.",
+]
+
+[[text.en.sections]]
+heading = "What I set up"
+list = [
+  "Proxmox Backup Server in its own container, with a 4.5 TB disk just for it. If the disk isn't mounted, the container doesn't start: it never writes backups to the system disk.",
+  "Every night at 2:30, every container, documents included. Incremental and deduplicated: only what changed travels.",
+  "Encrypted on the server before leaving. The key has a copy in my password manager; whoever takes the disk reads nothing.",
+  "Pruning on the backup server itself: 7 daily, 4 weekly and 6 monthly. Verification every Sunday: it rereads every copy.",
+  "Failure-only alerts, in the incidents room. If nothing arrives, it went fine.",
+]
+
+[[text.en.sections]]
+heading = "Who copies doesn't delete"
+paragraphs = [
+  "The main server gets into the backup server with a token that can back up and restore, but not delete or prune: only the backup server does that. If someone took over the main server, the first thing they'd try is deleting the backups, and they couldn't.",
+  "First surprise: with the permission on the token, Proxmox said the datastore didn't exist. What a token can do is the intersection of its permissions and its user's, and the user had none. With the same permission on both, it worked. «Doesn't exist» meant «you can't see it».",
+]
+
+[[text.en.sections]]
+heading = "158 GB outside the backup"
+paragraphs = [
+  "Second surprise, going over what was included: the game worlds weren't in their container's backup. They live on the server's storage and are mounted inside, and Proxmox backs up the container's disk, not what's mounted.",
+  "Now they have their own backup at 3:30: a storage snapshot, so a consistent state is copied even if someone's playing, encrypted and to the same backup server. And a written rule: if a container keeps something irreplaceable on a mount, it goes on that list.",
+]
+
+[[text.en.sections]]
+heading = "The proof"
+paragraphs = [
+  "An unrestored backup proves nothing. I restored the messaging client's into a new container, without starting it so it wouldn't clash with the original, and compared file by file: 1,381 of 1,381, identical.",
+  "What's left out, on purpose: movies, series and Steam games (tens of terabytes that can be downloaded again) and the lab cluster, which is rebuilt from code.",
+]
+
+[[text.en.sections]]
+heading = "What's still missing"
+paragraphs = [
+  "It's all at home: the backup disk is plugged into the same server. It protects against deletions, corruption and dying disks, which is what has actually happened, but not against theft or fire. The next step is an off-site copy: a rotated disk or a second backup server somewhere else. It stays written in red until then.",
+]
+links = [
+  { title = "Proxmox Backup Server", url = "https://pbs.proxmox.com/docs/", source = "Proxmox documentation" },
+]

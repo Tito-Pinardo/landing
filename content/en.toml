@@ -387,7 +387,7 @@ text = "What I show: this site's code and a sanitised copy of the infrastructure
 [nodes.traefik]
 short = "Traefik"
 title = "Traefik"
-text = "The server's only public door: automatic TLS certificates and one route per published service. Internal dashboards never go through it."
+text = "The server's only public door: automatic TLS certificates and one route per published service, with CrowdSec watching who knocks. Internal dashboards never go through it."
 
 [nodes.authelia]
 short = "SSO + 2FA"
@@ -535,9 +535,9 @@ title = "OpenBao (1U unit)"
 text = "Holds the infrastructure's master keys: the password for the encrypted secrets and the Terraform credentials. It hands them out in 15-minute tokens and, after every restart, waits sealed until I open it."
 
 [nodes.backup]
-short = "Git backup"
-title = "Repository backup"
-text = "A second repository that updates itself on every infrastructure commit."
+short = "Backups"
+title = "Backups (1U unit)"
+text = "Every night, an encrypted copy of every container, verified weekly and with restores tested. Plus a second repository that gets every infrastructure commit."
 
 [flow_categories]
 all = "All"
@@ -611,6 +611,18 @@ steps = [
   "«Unsealed again» arrives and deployments carry on.",
 ]
 verdict = "Downtime: none. Services don't need OpenBao to run, only to change. Lost: nothing. It's the deliberate price of the key not living on the server."
+
+[flows.restore]
+title = "I delete a container by mistake"
+steps = [
+  "I delete the home dashboard's container by mistake.",
+  "In Proxmox, I go to its list of backups.",
+  "Every night there's an encrypted, verified copy of every container. Today's is from 2:30.",
+  "It's restored whole, with the encryption key, which is also kept off the server.",
+  "The dashboard is back exactly as it was early this morning.",
+  "Had the backup failed, the alert would have reached Matrix that same night.",
+]
+verdict = "Downtime: the minutes it takes to restore. Lost: at most, what changed since 2:30. What's mounted from outside the container isn't in its copy: what matters, like the game worlds, has its own."
 
 [flows.runner]
 title = "The CI runner goes down"
@@ -790,6 +802,17 @@ steps = [
   "It gets a token that expires in 15 minutes. The keys no longer live on its disk.",
   "Terraform and Ansible work with them in memory.",
   "And every read is recorded in OpenBao's audit log.",
+]
+
+[flows.crowdsec]
+title = "A scanner knocks on the door"
+steps = [
+  "A bot sweeps the internet trying well-known paths: config files, Git folders, panels.",
+  "Cloudflare lets it through, but records its real IP in a header.",
+  "Traefik only trusts that header when it comes from Cloudflare, so it sees who it really is.",
+  "CrowdSec recognises the scan, decides to block that IP and shares it with its community network, which sends back the IPs others have seen.",
+  "Every morning, the summary reaches Matrix: what it detected and what might be a false positive.",
+  "And I read it on my phone.",
 ]
 
 [flows.alert]

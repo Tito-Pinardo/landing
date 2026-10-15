@@ -1,0 +1,91 @@
+slug = "crowdsec-ip-real"
+date = "2026-10-15"
+unit = "traefik"
+tech = ["crowdsec", "traefik", "hardening"]
+kind = "near_miss"
+
+[text.es]
+impact = "Ninguno: se vio antes de activar nada. Si no, CrowdSec habría bloqueado a Cloudflare, es decir, a casi todos los visitantes."
+detected = "Mirando el registro de accesos antes de dejar que nada bloqueara."
+title = "CrowdSec detrás de Cloudflare: casi bloqueo a todo el mundo"
+description = "Antes de poner CrowdSec en la puerta, el registro decía que el 95 % del tráfico venía de Cloudflare: bloquear esas IPs era bloquear a casi todos."
+summary = "Quería que la puerta pública del homelab reconociera escaneos y fuerza bruta y los bloqueara, con CrowdSec y su lista comunitaria. Antes de activarlo miré qué vería: casi todas las peticiones venían de unas pocas IPs de Cloudflare. CrowdSec habría bloqueado a Cloudflare entero. El arreglo fue enseñar a Traefik de quién fiarse, y comprobar que una cabecera falsa no engaña."
+lesson = "Antes de dejar que algo bloquee, mira qué ve. Y fíate de una cabecera solo si sabes quién la ha puesto."
+
+[[text.es.sections]]
+heading = "Qué quería"
+paragraphs = [
+  "Todo el tráfico web de internet entra por Traefik, detrás de Cloudflare. CrowdSec lee su registro de accesos y reconoce escenarios: escaneos de rutas conocidas, búsqueda de ficheros sensibles, fallos de seguridad conocidos y fuerza bruta. Comparte lo que ve con su red comunitaria y recibe la lista de IPs maliciosas que han visto los demás. Un plugin de Traefik aplica sus decisiones en la entrada.",
+]
+
+[[text.es.sections]]
+heading = "Lo que habría visto"
+paragraphs = [
+  "Antes de instalar nada miré el registro: el 95 % de las peticiones venían de un puñado de IPs, todas de Cloudflare. Tiene sentido: detrás de Cloudflare, la conexión siempre llega desde Cloudflare, y la IP del visitante viaja en una cabecera. Traefik no se fiaba de esa cabecera, así que apuntaba la de Cloudflare.",
+  "Con ese registro, CrowdSec habría visto a «Cloudflare» haciendo de todo, la habría bloqueado y la web habría dejado de verse para casi todo el mundo.",
+]
+
+[[text.es.sections]]
+heading = "De quién fiarse"
+paragraphs = [
+  "Traefik ahora se fía de la cabecera solo si la conexión viene de los rangos publicados de Cloudflare. Si alguien se conecta directamente y trae esa cabecera, Traefik la quita y apunta la IP de verdad.",
+  "Queda un truco: mandar una cabecera falsa a través de Cloudflare. Cloudflare no la borra, añade la IP real al final. Por eso CrowdSec y el plugin toman la última IP de la cadena, la que pone Cloudflare, y no la primera. Lo comprobé con una línea con una cabecera falsa: no engaña.",
+  "De paso, los servicios de detrás también reciben ahora la IP real.",
+]
+code = """visitante → Cloudflare → Traefik
+X-Forwarded-For: 203.0.113.9, 198.51.100.7
+                 └ la pone quien sea └ la añade Cloudflare: esta es la que cuenta"""
+
+[[text.es.sections]]
+heading = "Antes de bloquear, mirar"
+paragraphs = [
+  "Aun con la IP real, bloquear a alguien legítimo (un amigo en los servidores de juegos, yo mismo desde fuera) es peor que dejar pasar un escaneo que no encuentra nada. Por eso, una semana solo mirando: cada mañana llega un resumen con lo que detectó, cuántas IPs de la lista comunitaria vinieron y, aparte, las IPs que habría bloqueado y que recibieron respuestas correctas, las candidatas a falso positivo.",
+  "Y por el camino, los registros de Traefik vuelven a rotar cada día: el de accesos iba ya por 570 MB.",
+]
+links = [
+  { title = "CrowdSec", url = "https://docs.crowdsec.net/", source = "Documentación de CrowdSec" },
+  { title = "Rangos de IP de Cloudflare", url = "https://www.cloudflare.com/ips/", source = "Cloudflare" },
+]
+
+[text.en]
+impact = "None: it was caught before switching anything on. Otherwise CrowdSec would have blocked Cloudflare, meaning nearly every visitor."
+detected = "Looking at the access log before letting anything block."
+title = "CrowdSec behind Cloudflare: I nearly blocked everyone"
+description = "Before putting CrowdSec at the door, the access log said 95 % of traffic came from Cloudflare. Blocking those IPs meant blocking nearly every visitor."
+summary = "I wanted the homelab's public door to recognise scans and brute force and block them, with CrowdSec and its community list. Before switching it on I looked at what it would see: nearly every request came from a few Cloudflare IPs. CrowdSec would have blocked all of Cloudflare. The fix was teaching Traefik whom to trust, and checking that a fake header doesn't fool it."
+lesson = "Before letting something block, look at what it sees. And trust a header only if you know who set it."
+
+[[text.en.sections]]
+heading = "What I wanted"
+paragraphs = [
+  "All web traffic from the internet comes in through Traefik, behind Cloudflare. CrowdSec reads its access log and recognises scenarios: scans of well-known paths, hunts for sensitive files, known exploits and brute force. It shares what it sees with its community network and gets back the list of malicious IPs others have seen. A Traefik plugin enforces its decisions at the entrance.",
+]
+
+[[text.en.sections]]
+heading = "What it would have seen"
+paragraphs = [
+  "Before installing anything I looked at the log: 95 % of requests came from a handful of IPs, all Cloudflare's. It makes sense: behind Cloudflare, the connection always comes from Cloudflare, and the visitor's IP travels in a header. Traefik didn't trust that header, so it logged Cloudflare's.",
+  "With that log, CrowdSec would have seen «Cloudflare» doing everything, blocked it, and the site would have gone dark for nearly everyone.",
+]
+
+[[text.en.sections]]
+heading = "Whom to trust"
+paragraphs = [
+  "Traefik now trusts the header only when the connection comes from Cloudflare's published ranges. If someone connects directly carrying that header, Traefik drops it and logs the real IP.",
+  "One trick remains: sending a fake header through Cloudflare. Cloudflare doesn't remove it, it appends the real IP. That's why CrowdSec and the plugin take the last IP in the chain, the one Cloudflare adds, not the first. I checked it with a line carrying a fake header: it doesn't fool them.",
+  "As a bonus, the services behind it now get the real IP too.",
+]
+code = """visitor → Cloudflare → Traefik
+X-Forwarded-For: 203.0.113.9, 198.51.100.7
+                 └ set by anyone  └ added by Cloudflare: this is the one that counts"""
+
+[[text.en.sections]]
+heading = "Look before blocking"
+paragraphs = [
+  "Even with the real IP, blocking someone legitimate (a friend on the game servers, me from outside) is worse than letting through a scan that finds nothing. So, a week of only watching: every morning a summary arrives with what it detected, how many community-list IPs came by and, separately, the IPs it would have blocked that got successful responses, the false-positive candidates.",
+  "And along the way, Traefik's logs rotate daily again: the access log was already at 570 MB.",
+]
+links = [
+  { title = "CrowdSec", url = "https://docs.crowdsec.net/", source = "CrowdSec documentation" },
+  { title = "Cloudflare IP ranges", url = "https://www.cloudflare.com/ips/", source = "Cloudflare" },
+]

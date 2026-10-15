@@ -195,12 +195,12 @@ group = "ops"
 tech = ["linux"]
 
 [[pods]]
-id = "rotate"
+id = "crowdsec"
 x = 700
 y = 518
-kind = "control"
+kind = "observability"
 group = "ops"
-tech = ["linux"]
+tech = ["crowdsec", "hardening"]
 
 [[pods]]
 id = "systemd"
@@ -239,6 +239,10 @@ id = "www"
 path = ["visitor", "cloudflare", "entrypoint", "redirect", "visitor", "router_web", "landing"]
 
 [[flows]]
+id = "scan"
+path = ["visitor", "cloudflare", "entrypoint", "realip", "logs", "crowdsec", "entrypoint", "monitor"]
+
+[[flows]]
 id = "admin"
 path = ["visitor", "entrypoint", "dashboard", "visitor"]
 
@@ -248,6 +252,10 @@ answer = 2
 
 [[incidents]]
 id = "bot"
+answer = 1
+
+[[incidents]]
+id = "cfip"
 answer = 1
 
 [[incidents]]
@@ -400,12 +408,12 @@ text = "La web pública de los servidores de juego. El juego en sí no pasa por 
 [text.es.pods.logs]
 short = "Logs de acceso"
 title = "Registro de accesos"
-text = "Una línea por petición: quién, qué y con qué resultado. Útil… si no se come el disco."
+text = "Una línea por petición: quién, qué y con qué resultado. Rota cada día, se guardan 14 y se comprimen. Es lo que lee CrowdSec."
 
-[text.es.pods.rotate]
-short = "Rotación"
-title = "Rotación de logs"
-text = "Un fichero por día, siete días, comprimidos. Faltaba, y el log llegó a 36 GB."
+[text.es.pods.crowdsec]
+short = "CrowdSec"
+title = "CrowdSec"
+text = "Lee el registro de accesos y reconoce escaneos, búsqueda de ficheros sensibles, fallos conocidos y fuerza bruta. Comparte lo que ve con su red comunitaria y recibe su lista de IPs maliciosas."
 
 [text.es.pods.systemd]
 short = "systemd"
@@ -479,6 +487,19 @@ steps = [
   "Y la web responde. Antes de declararlo en la lista, esa variante daba un error 526.",
 ]
 
+[text.es.flows.scan]
+title = "Un escáner llama a la puerta"
+steps = [
+  "Un escáner prueba rutas conocidas: ficheros de configuración, carpetas de Git, paneles de administración.",
+  "Pasa por Cloudflare, que añade la IP real al final de la cabecera.",
+  "Traefik solo se fía de esa cabecera si la conexión viene de los rangos de Cloudflare.",
+  "Y toma la última IP de la cadena: si el escáner manda una cabecera falsa, no le sirve.",
+  "La petición queda en el registro con su IP real.",
+  "CrowdSec reconoce el escenario, decide bloquear esa IP y la comparte con su red comunitaria.",
+  "El plugin de Traefik aplica las decisiones en la entrada. La primera semana, solo cuenta lo que habría bloqueado.",
+  "Cada mañana, un resumen: qué detectó, cuántas IPs de la lista comunitaria llegaron y cuáles podrían ser falsos positivos.",
+]
+
 [text.es.flows.admin]
 title = "Alguien busca el panel desde fuera"
 steps = [
@@ -516,6 +537,20 @@ cause = "La IP de origen era la de casa. Era mi bot de Discord, que pedía el es
 fix = "Que el bot hable con el panel por la red interna. El «ataque» desapareció del log."
 lesson = "Antes de bloquear, mirar de dónde viene. La mitad de los misterios del tráfico están en casa."
 
+[text.es.incidents.cfip]
+title = "CrowdSec iba a bloquear a Cloudflare"
+meta = "15-10-2026 · CrowdSec"
+symptom = "Antes de activar CrowdSec miré el registro de accesos: el 95 % de las peticiones venían de unas pocas IPs, todas de Cloudflare."
+options = [
+  "Cloudflare estaba reenviando ataques",
+  "Traefik no se fiaba de la cabecera con la IP real, así que apuntaba la de Cloudflare: bloquear esas IPs era bloquear a todo el mundo",
+  "El registro estaba mal configurado y repetía líneas",
+  "Eran los propios avisos de monitorización",
+]
+cause = "Detrás de Cloudflare, la conexión siempre llega desde Cloudflare. Sin decirle a Traefik que se fíe de su cabecera, cada visitante quedaba apuntado con la IP de Cloudflare, y CrowdSec habría bloqueado a Cloudflare entero."
+fix = "Traefik se fía de la cabecera solo si la conexión viene de los rangos de Cloudflare, y CrowdSec y el plugin toman la última IP de la cadena, la que pone Cloudflare. Comprobado con una cabecera falsa: no engaña."
+lesson = "Antes de dejar que algo bloquee, hay que mirar qué ve. Y de paso, los servicios de detrás también reciben ahora la IP real."
+
 [text.es.incidents.e526]
 title = "La dirección con «www» daba error 526"
 meta = "Octubre de 2026 · rutas"
@@ -548,6 +583,16 @@ items = [
 ]
 
 [[text.es.timeline]]
+title = "CrowdSec en la puerta"
+period = "15-10-2026"
+items = [
+  "Traefik ve la IP real de cada visitante: antes, casi todo el tráfico parecía venir de Cloudflare.",
+  "CrowdSec lee el registro de accesos, comparte con su red comunitaria y recibe su lista.",
+  "Una semana solo mirando, con un resumen diario de lo que habría bloqueado, antes de bloquear.",
+  "Rotación de los registros, en código.",
+]
+
+[[text.es.timeline]]
 title = "Menos superficie"
 period = "26-09-2026"
 items = [
@@ -572,12 +617,18 @@ choice = "Tres, cada uno con su uso"
 why = "Uno para esta web y los proyectos personales que se pueden ver en público, otro para los juegos y otro para los servicios del servidor. Separarlos deja claro qué es qué. Los tres se mantienen solos, cada uno con su automatismo: en el de los servicios del servidor, Ansible crea y borra el registro de cada ruta; en el de los juegos, el publicador de AMP crea el nombre de cada servidor al encenderlo y lo quita al apagarlo; y la IP de casa la actualiza el sincronizador en todos."
 
 [[text.es.decisions]]
+title = "Bloquear IPs"
+choice = "CrowdSec, después de una semana mirando"
+why = "Bloquear a un visitante legítimo (un amigo en los juegos, yo desde fuera) es peor que dejar pasar un escaneo que no encuentra nada. Antes de bloquear, el resumen diario marca las IPs que habría bloqueado y que recibieron respuestas buenas: las candidatas a falso positivo."
+
+[[text.es.decisions]]
 title = "Qué se publica"
 choice = "Solo lo que tiene que verse desde fuera"
 why = "Un panel publicado es una invitación. Los internos van por Caddy y Authelia, con doble factor y solo desde casa o la VPN."
 
 [text.es.tech_notes]
 traefik = "Proxy inverso de entrada: TLS automático por DNS, una ruta por dominio, redirecciones, cabeceras de seguridad e IP real solo desde Cloudflare."
+crowdsec = "Detección en el registro de accesos, lista comunitaria, plugin de Traefik de versión fija cargado del disco y un resumen diario en Element."
 lxc = "Corre en su propio contenedor LXC, separado del resto de servicios."
 linux = "Servicio systemd con usuario propio, rotación de logs con logrotate y un disco que ya no se llena."
 git = "La lista de servicios publicados está versionada: cada dominio nuevo es un commit."
@@ -741,12 +792,12 @@ text = "The public site of the game servers. The game itself doesn't come throug
 [text.en.pods.logs]
 short = "Access logs"
 title = "Access log"
-text = "One line per request: who, what and the result. Useful… unless it eats the disk."
+text = "One line per request: who, what and the result. Rotated daily, 14 kept, compressed. It's what CrowdSec reads."
 
-[text.en.pods.rotate]
-short = "Rotation"
-title = "Log rotation"
-text = "One file per day, seven days, compressed. It was missing, and the log reached 36 GB."
+[text.en.pods.crowdsec]
+short = "CrowdSec"
+title = "CrowdSec"
+text = "Reads the access log and recognises scans, hunts for sensitive files, known exploits and brute force. It shares what it sees with its community network and gets its list of malicious IPs back."
 
 [text.en.pods.systemd]
 short = "systemd"
@@ -820,6 +871,19 @@ steps = [
   "And the site answers. Before it was declared in the list, that variant returned a 526 error.",
 ]
 
+[text.en.flows.scan]
+title = "A scanner knocks on the door"
+steps = [
+  "A scanner tries well-known paths: config files, Git folders, admin panels.",
+  "It goes through Cloudflare, which appends the real IP to the header.",
+  "Traefik only trusts that header if the connection comes from Cloudflare's ranges.",
+  "And it takes the last IP in the chain: if the scanner sends a fake header, it gets nothing out of it.",
+  "The request is logged with its real IP.",
+  "CrowdSec recognises the scenario, decides to block that IP and shares it with its community network.",
+  "The Traefik plugin enforces the decisions at the entrance. For the first week, it only counts what it would have blocked.",
+  "Every morning, a summary: what it detected, how many community-list IPs showed up and which might be false positives.",
+]
+
 [text.en.flows.admin]
 title = "Someone looks for the dashboard from outside"
 steps = [
@@ -857,6 +921,20 @@ cause = "The source IP was the home one. It was my Discord bot, asking the panel
 fix = "Have the bot talk to the panel over the internal network. The «attack» vanished from the log."
 lesson = "Before blocking, look at where it comes from. Half the traffic mysteries are at home."
 
+[text.en.incidents.cfip]
+title = "CrowdSec was about to block Cloudflare"
+meta = "15-10-2026 · CrowdSec"
+symptom = "Before switching CrowdSec on I looked at the access log: 95 % of requests came from a handful of IPs, all Cloudflare's."
+options = [
+  "Cloudflare was forwarding attacks",
+  "Traefik didn't trust the real-IP header, so it logged Cloudflare's: blocking those IPs meant blocking everyone",
+  "The log was misconfigured and repeating lines",
+  "They were the monitoring checks themselves",
+]
+cause = "Behind Cloudflare, the connection always comes from Cloudflare. Without telling Traefik to trust its header, every visitor was logged with a Cloudflare IP, and CrowdSec would have blocked all of Cloudflare."
+fix = "Traefik trusts the header only when the connection comes from Cloudflare's ranges, and CrowdSec and the plugin take the last IP in the chain, the one Cloudflare adds. Tested with a fake header: it doesn't fool them."
+lesson = "Before letting something block, look at what it sees. As a bonus, the services behind it now get the real IP too."
+
 [text.en.incidents.e526]
 title = "The «www» address gave a 526 error"
 meta = "October 2026 · routes"
@@ -889,6 +967,16 @@ items = [
 ]
 
 [[text.en.timeline]]
+title = "CrowdSec at the door"
+period = "15-10-2026"
+items = [
+  "Traefik sees each visitor's real IP: before, nearly all traffic seemed to come from Cloudflare.",
+  "CrowdSec reads the access log, shares with its community network and gets its list back.",
+  "A week of only watching, with a daily summary of what it would have blocked, before blocking.",
+  "Log rotation, in code.",
+]
+
+[[text.en.timeline]]
 title = "Less surface"
 period = "26-09-2026"
 items = [
@@ -913,12 +1001,18 @@ choice = "Three, each with its own use"
 why = "One for this site and the personal projects that can be seen in public, one for the games and one for the server's services. Keeping them apart makes it clear what's what. All three look after themselves, each with its own automation: on the server-services one, Ansible creates and deletes each route's record; on the games one, the AMP publisher creates each server's name when it starts and removes it when it stops; and the IP sync keeps the home IP up to date on all of them."
 
 [[text.en.decisions]]
+title = "Blocking IPs"
+choice = "CrowdSec, after a week of watching"
+why = "Blocking a legitimate visitor (a friend in the games, me from outside) is worse than letting through a scan that finds nothing. Before blocking, the daily summary flags the IPs it would have blocked that got good responses: the false-positive candidates."
+
+[[text.en.decisions]]
 title = "What gets published"
 choice = "Only what has to be seen from outside"
 why = "A published panel is an invitation. Internal ones go through Caddy and Authelia, with two-factor auth and only from home or the VPN."
 
 [text.en.tech_notes]
 traefik = "Entry reverse proxy: automatic TLS through DNS, one route per domain, redirects, security headers and real IP only from Cloudflare."
+crowdsec = "Detection on the access log, the community list, a pinned Traefik plugin loaded from disk and a daily summary in Element."
 lxc = "Runs in its own LXC container, separate from the other services."
 linux = "systemd service with its own user, log rotation with logrotate and a disk that no longer fills up."
 git = "The list of published services is versioned: every new domain is a commit."

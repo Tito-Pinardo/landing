@@ -1,8 +1,9 @@
 # Unidad 1U del rack: las copias.
 #
-# Fuente: Obsidian «Backup», el incidente del 17-09 (respaldo de la
-# infraestructura), el postmortem del vault y las copias de AMP. Cuenta lo
-# que hay y lo que falta, sin direcciones ni nombres internos.
+# Fuente: Obsidian «Backup» y docs/copias.md de la infraestructura (Proxmox
+# Backup Server, 15-10-2026), el incidente del 17-09 (respaldo de la
+# infraestructura) y el postmortem del vault. Cuenta lo que hay y lo que
+# falta, sin direcciones, rutas ni nombres internos.
 
 id = "backup"
 status = "live"
@@ -10,6 +11,8 @@ host_tech = ["lxc", "ansible"]
 links = [
   ["laptop", "central"],
   ["central", "github"],
+  ["me", "pwmgr"],
+  ["pbs", "usb"],
 ]
 code = ["ansible/roles/git_backup"]
 
@@ -66,10 +69,10 @@ group = ""
 tech = ["git"]
 
 [[pods]]
-id = "hermes"
+id = "pwmgr"
 x = 290
-y = 420
-kind = "ai"
+y = 250
+kind = "edge"
 group = ""
 tech = []
 
@@ -78,6 +81,22 @@ id = "me"
 x = 100
 y = 420
 kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "element"
+x = 290
+y = 420
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "usb"
+x = 100
+y = 540
+kind = "compute"
 group = ""
 tech = []
 
@@ -146,44 +165,44 @@ group = "changes"
 tech = ["proxmox"]
 
 [[pods]]
-id = "raid"
+id = "pbs"
 x = 515
+y = 392
+kind = "control"
+group = "data"
+tech = ["pbs", "lxc"]
+
+[[pods]]
+id = "crypt"
+x = 700
+y = 392
+kind = "observability"
+group = "data"
+tech = ["pbs", "hardening"]
+
+[[pods]]
+id = "nodelete"
+x = 885
+y = 392
+kind = "observability"
+group = "data"
+tech = ["pbs", "hardening"]
+
+[[pods]]
+id = "worlds"
+x = 1070
 y = 392
 kind = "compute"
 group = "data"
-tech = ["zfs"]
+tech = ["zfs", "pbs"]
 
 [[pods]]
-id = "dump"
-x = 700
-y = 392
-kind = "control"
-group = "data"
-tech = ["postgresql"]
-
-[[pods]]
-id = "users"
-x = 885
-y = 392
-kind = "control"
-group = "data"
-tech = ["linux"]
-
-[[pods]]
-id = "missing"
-x = 1070
-y = 392
-kind = "edge"
-group = "data"
-tech = []
-
-[[pods]]
-id = "mnemosyne"
+id = "verify"
 x = 515
 y = 518
 kind = "observability"
 group = "watch"
-tech = ["python"]
+tech = ["pbs"]
 
 [[pods]]
 id = "lastcommit"
@@ -194,20 +213,32 @@ group = "watch"
 tech = ["git"]
 
 [[pods]]
-id = "valid"
+id = "restore"
 x = 885
 y = 518
 kind = "observability"
 group = "watch"
-tech = ["linux"]
+tech = ["proxmox", "pbs"]
 
 [[pods]]
-id = "restore"
+id = "alerts"
 x = 1070
 y = 518
 kind = "observability"
 group = "watch"
-tech = []
+tech = ["proxmox"]
+
+[[flows]]
+id = "nightly"
+path = ["pbs", "crypt", "pbs", "nodelete", "usb", "verify", "alerts", "element"]
+
+[[flows]]
+id = "worlds"
+path = ["worlds", "snapshot", "crypt", "pbs"]
+
+[[flows]]
+id = "proof"
+path = ["restore", "pbs", "crypt", "pwmgr", "restore", "me"]
 
 [[flows]]
 id = "commit"
@@ -218,16 +249,16 @@ id = "change"
 path = ["dated", "snapshot", "revert", "timer", "revert"]
 
 [[flows]]
-id = "watcher"
-path = ["mnemosyne", "missing", "snapshot", "hermes", "me"]
-
-[[flows]]
 id = "vault"
 path = ["vaultgit", "github", "lastcommit", "me", "vaultgit"]
 
-[[flows]]
-id = "proof"
-path = ["users", "valid", "restore", "dump", "restore"]
+[[incidents]]
+id = "token"
+answer = 2
+
+[[incidents]]
+id = "bindmount"
+answer = 0
 
 [[incidents]]
 id = "samedisk"
@@ -247,51 +278,51 @@ answer = 0
 
 [text.es.meta]
 title = "Las copias por dentro · Tito Pinardo Gutiérrez"
-description = "Qué copias hay en el homelab y cuáles no: el código con dos respaldos automáticos, cada cambio con su vuelta atrás programada, copias de los datos que se rompen con los cortes… y lo que todavía falta, dicho claramente."
+description = "Copias cifradas de todo el servidor cada noche, que el propio servidor no puede borrar, verificadas y con la restauración probada. Y lo que todavía no cubren."
 
 [text.es.ui]
 slot = "1U · BACKUP"
-face_specs = "Git ×2 · reversión · lo que falta"
-state = "Parcial"
+face_specs = "PBS · Git ×2 · reversión"
+state = "En producción"
 map_silk = "BAK"
 map_title = "Las copias por dentro"
-map_intro = "Lo que se puede reconstruir desde código, lo que tiene su vuelta atrás y lo que aún no tiene copia. Elige un recorrido."
-vm_title = "Copias · repartidas por el servidor"
-vm_specs = "un respaldo de código en su propio contenedor"
+map_intro = "Qué se copia cada noche, quién puede borrarlo, cómo se sabe que sirve y lo que aún no cubre. Elige un recorrido."
+vm_title = "Copias · un servidor de copias y lo que lo rodea"
+vm_specs = "Proxmox Backup Server en su contenedor, con su disco aparte"
 outside = "Fuera"
-disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones ni nombres internos. Lo que falta está escrito como falta."
+disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, rutas ni nombres internos. Lo que falta está escrito como falta."
 
 [text.es.hero]
 kicker = "Unidad 1U · Copias"
-title = "Las copias, con honestidad"
-tagline = "El código de toda la infraestructura tiene dos respaldos automáticos y cada cambio delicado se aplica con una vuelta atrás programada. Pero los datos grandes no tienen copias periódicas fuera del servidor: es una decisión de presupuesto, y está documentada como pendiente, no escondida."
-grade = "Código: cubierto · Datos: pendiente"
+title = "Copias de verdad, y lo que aún no cubren"
+tagline = "Durante meses, esta unidad decía «datos: pendiente». Ahora cada contenedor del servidor tiene copia cada noche en Proxmox Backup Server, cifrada antes de salir, con una retención que el propio servidor no puede tocar. Se verifica cada semana y la restauración está probada fichero a fichero. El código sigue con sus dos respaldos y cada cambio delicado, con su vuelta atrás. Lo que falta, una copia fuera de casa, sigue escrito como falta."
+grade = "Copias cifradas cada noche · restauración probada"
 facts = [
-  { label = "Lo que está cubierto", value = "La infraestructura entera se puede reconstruir desde Git, que se copia sola en cada commit a un segundo repositorio. La documentación, a un repositorio privado." },
-  { label = "Lo que tiene parche", value = "Lo que se rompía con los cortes de luz (cuentas del panel de juegos) se copia cada 30 minutos fuera de su contenedor, con comprobación de que la copia sirve." },
-  { label = "Lo que falta", value = "Copias periódicas de los datos fuera del servidor. Un RAID protege de que muera un disco, no de un borrado ni de una corrupción." },
+  { label = "Qué se copia", value = "Todos los contenedores, también los de documentos, y los mundos de los juegos aparte. Las películas y los juegos de Steam no: se vuelven a bajar." },
+  { label = "Quién puede borrar", value = "Nadie más que el propio servidor de copias, que poda según su calendario. Si el servidor principal cayera en malas manos, no podría borrar sus copias." },
+  { label = "Lo que falta", value = "Todo está en casa, en un disco enchufado al mismo servidor. Protege de borrados, corrupción y discos que mueren; no de un robo o un incendio." },
 ]
 
 [[text.es.stats]]
-value = "2"
-label = "respaldos automáticos del código en cada commit"
+value = "02:30"
+label = "cada noche, una copia de todos los contenedores"
 
 [[text.es.stats]]
-value = "5 min"
-label = "para que un cambio delicado se deshaga solo"
+value = "7 · 4 · 6"
+label = "copias diarias, semanales y mensuales que se guardan"
 
 [[text.es.stats]]
-value = "100"
-label = "versiones guardadas de las cuentas del panel de juegos"
+value = "1.381"
+label = "ficheros idénticos al original en la restauración de prueba"
 
 [[text.es.stats]]
 value = "0"
-label = "copias periódicas de datos fuera del servidor (aún)"
+label = "copias que el servidor principal puede borrar"
 
 [text.es.groups]
 code = "Código y documentación"
 changes = "Cada cambio, con vuelta atrás"
-data = "Datos"
+data = "Copias de los datos"
 watch = "Comprobar que sirven"
 
 [text.es.pods.laptop]
@@ -302,22 +333,32 @@ text = "Edito el repositorio desde aquí o desde el nodo de control."
 [text.es.pods.central]
 short = "Forgejo"
 title = "Forgejo, el origen"
-text = "Donde se trabaja desde el 14-10: el origen del repositorio, con CI y su propia copia diaria. Tiene su unidad."
+text = "Donde se trabaja: el origen del repositorio, con CI. Tiene su unidad."
 
 [text.es.pods.github]
 short = "GitHub privado"
 title = "Repositorio privado en GitHub"
 text = "Donde se empuja la documentación, fuera de casa."
 
-[text.es.pods.hermes]
-short = "Hermes"
-title = "Hermes"
-text = "Su vigilante de copias habla en su sala cuando encuentra algo raro."
+[text.es.pods.pwmgr]
+short = "Gestor claves"
+title = "Mi gestor de contraseñas"
+text = "Guarda una copia de la clave de cifrado de las copias. Sin ella no se restaura nada, y está fuera del servidor."
 
 [text.es.pods.me]
 short = "Yo"
 title = "Yo"
-text = "Quien decide qué falta y cuándo."
+text = "Quien decide qué entra, qué no y qué falta."
+
+[text.es.pods.element]
+short = "Element"
+title = "Element"
+text = "La sala de incidencias: solo llegan los fallos."
+
+[text.es.pods.usb]
+short = "Disco aparte"
+title = "El disco de las copias"
+text = "Un disco de 4,5 TB solo para esto. Si no está montado, el servidor de copias no arranca: nunca escribe en el disco del sistema."
 
 [text.es.pods.hook]
 short = "Hook"
@@ -357,47 +398,80 @@ text = "Ansible deja una copia fechada de cada fichero que sustituye."
 [text.es.pods.snapshot]
 short = "Instantánea"
 title = "Instantánea"
-text = "Antes de parchear, una instantánea del contenedor. Se borra después: cuesta en cada escritura mientras existe."
+text = "Una foto fija del disco antes de un cambio o de una copia, para copiar un estado coherente. Se borra después."
 
-[text.es.pods.raid]
-short = "RAID y ZFS"
-title = "RAID y ZFS"
-text = "Aguantan que muera un disco. No aguantan un borrado, un error o un ransomware: eso se copia igual al espejo."
+[text.es.pods.pbs]
+short = "PBS"
+title = "Proxmox Backup Server"
+text = "En su propio contenedor. Recibe cada noche la copia de todos los contenedores, incremental y con deduplicación: solo viaja lo que cambió."
 
-[text.es.pods.dump]
-short = "Volcados"
-title = "Volcados de bases de datos"
-text = "Antes de una migración o un parche, volcado de la base y comprobación de que se puede leer."
+[text.es.pods.crypt]
+short = "Cifrado"
+title = "Cifradas antes de salir"
+text = "El servidor principal las cifra antes de enviarlas. Quien se llevara el disco de copias no podría leer nada."
 
-[text.es.pods.users]
-short = "Cuentas juegos"
-title = "Cuentas del panel de juegos"
-text = "Cada 30 minutos, fuera de su contenedor, las 100 últimas versiones."
+[text.es.pods.nodelete]
+short = "Sin borrar"
+title = "Quien copia no borra"
+text = "El servidor principal entra con un permiso que deja copiar y restaurar, pero no borrar. Solo el servidor de copias poda: 7 diarias, 4 semanales y 6 mensuales."
 
-[text.es.pods.missing]
-short = "Falta"
-title = "Lo que falta"
-text = "Copias periódicas de contenedores y datos fuera del servidor, con restauración probada."
+[text.es.pods.worlds]
+short = "Mundos"
+title = "Los mundos de los juegos"
+text = "Viven fuera del contenedor del panel de juegos, así que no entran en su copia. Tienen la suya, a las 3:30."
 
-[text.es.pods.mnemosyne]
-short = "Vigilante"
-title = "Vigilante de copias"
-text = "Revisa cada día qué tiene copia y qué no, y avisa de lo que encuentre."
+[text.es.pods.verify]
+short = "Verificación"
+title = "Verificación semanal"
+text = "Cada domingo, el servidor de copias relee cada copia y comprueba que está entera."
 
 [text.es.pods.lastcommit]
 short = "Último commit"
 title = "Fecha del último commit"
 text = "La forma más simple de saber si una copia de Git sigue viva."
 
-[text.es.pods.valid]
-short = "¿Es válida?"
-title = "Comprobar la copia"
-text = "Una copia vacía no es una copia. Se comprueba el contenido, no que el fichero exista."
-
 [text.es.pods.restore]
 short = "Restaurar"
 title = "Restaurar de verdad"
-text = "La única prueba de que una copia sirve."
+text = "La única prueba de que una copia sirve. Hecha: un contenedor restaurado aparte y comparado fichero a fichero."
+
+[text.es.pods.alerts]
+short = "Avisos"
+title = "Avisos de fallos"
+text = "Si una copia falla, Proxmox avisa en la sala de incidencias. Si todo va bien, silencio."
+
+[text.es.flows.nightly]
+title = "Cada noche"
+steps = [
+  "A las 2:30, Proxmox copia todos los contenedores al servidor de copias.",
+  "Cifrados antes de salir, con una clave que también guardo fuera del servidor.",
+  "Incremental: solo viaja lo que cambió desde la noche anterior.",
+  "El servidor principal puede copiar, pero no borrar. El servidor de copias poda solo: 7 diarias, 4 semanales y 6 mensuales.",
+  "Todo va a un disco aparte, solo para esto.",
+  "Los domingos, la verificación relee cada copia.",
+  "Si algo falla, sale un aviso.",
+  "Y llega a la sala de incidencias. Si no llega nada, ha ido bien.",
+]
+
+[text.es.flows.worlds]
+title = "Los mundos de los juegos"
+steps = [
+  "Los mundos (158 GB) están montados desde fuera del contenedor de juegos: su copia no los incluye.",
+  "A las 3:30, una instantánea del almacenamiento, para copiar un estado coherente aunque haya alguien jugando.",
+  "Cifrada igual que el resto.",
+  "Y al mismo servidor de copias, incremental.",
+]
+
+[text.es.flows.proof]
+title = "Comprobar que una copia sirve"
+steps = [
+  "Restauro la copia del cliente de mensajería en un contenedor nuevo, sin arrancarlo para que no choque con el original.",
+  "El servidor de copias la entrega.",
+  "Se descifra con la clave.",
+  "Que también está en mi gestor de contraseñas: si el servidor muriera, sin esa copia no habría nada que restaurar.",
+  "Comparo fichero a fichero: 1.381 de 1.381, idénticos.",
+  "Ahora sé que sirve. Antes, solo lo esperaba.",
+]
 
 [text.es.flows.commit]
 title = "Hago un commit"
@@ -420,16 +494,6 @@ steps = [
   "Si me quedo fuera, se revierte solo. Si todo va bien, lo cancelo.",
 ]
 
-[text.es.flows.watcher]
-title = "El vigilante mira"
-steps = [
-  "El vigilante de copias revisa la flota.",
-  "Encuentra lo que ya sabía: ningún contenedor tiene copias programadas.",
-  "Y alguna instantánea vieja que conviene borrar.",
-  "Hermes lo publica en su sala.",
-  "Y queda en la lista de pendientes, con su motivo.",
-]
-
 [text.es.flows.vault]
 title = "La documentación"
 steps = [
@@ -440,15 +504,33 @@ steps = [
   "Ahora es lo primero que miro.",
 ]
 
-[text.es.flows.proof]
-title = "Comprobar que una copia sirve"
-steps = [
-  "Las cuentas del panel de juegos se copian cada 30 minutos.",
-  "Cada copia se comprueba: si sale vacía, se rechaza.",
-  "Tras un corte, se restaura la última válida.",
-  "Con los volcados de bases de datos, igual: se comprueba que se pueden leer.",
-  "Restaurar es la única prueba.",
+[text.es.incidents.token]
+title = "Un permiso que no bastaba"
+meta = "15-10-2026 · copias"
+symptom = "El token con el que el servidor principal entra en el de copias tenía su permiso de copia sobre el almacén. Aun así, Proxmox decía que el almacén no existía."
+options = [
+  "El almacén no se había creado",
+  "El disco de copias no estaba montado",
+  "Lo que puede hacer un token es lo que tienen en común él y su usuario: el permiso hacía falta en los dos",
+  "La versión del servidor de copias era otra",
 ]
+cause = "En el servidor de copias, los permisos efectivos de un token son la intersección de los suyos y los de su usuario. El usuario no tenía ninguno, así que el token tampoco, y el error lo presentaba como un almacén inexistente."
+fix = "Dar el mismo permiso, solo de copia, al usuario y al token. Sigue sin poder borrar."
+lesson = "Un «no existe» puede querer decir «no lo puedes ver». Ante un error de algo que sí existe, mirar primero los permisos."
+
+[text.es.incidents.bindmount]
+title = "158 GB que no iban en ninguna copia"
+meta = "15-10-2026 · copias"
+symptom = "Al repasar qué entraba en las copias, los mundos de los juegos no aparecían en la del contenedor de juegos, aunque desde dentro se ven como una carpeta más."
+options = [
+  "Están montados desde fuera del contenedor, y la copia de un contenedor no incluye lo montado",
+  "Eran demasiado grandes para el almacén",
+  "Estaban excluidos por error",
+  "El panel de juegos los borraba antes de la copia",
+]
+cause = "Los mundos viven en el almacenamiento del servidor y se montan dentro del contenedor. Proxmox copia el disco del contenedor, no lo montado."
+fix = "Una copia aparte de ese almacenamiento, con una instantánea para que el estado sea coherente, cifrada y al mismo servidor de copias. Y una regla escrita: si algún contenedor guarda algo irrecuperable en un montaje, se añade a esa lista."
+lesson = "«Está dentro del contenedor» no es lo mismo que «está en la copia del contenedor». Hay que mirar de dónde viene cada carpeta."
 
 [text.es.incidents.samedisk]
 title = "Un respaldo en el mismo disco"
@@ -489,8 +571,8 @@ options = [
   "Porque ocupa demasiado",
 ]
 cause = "El RAID protege de que muera un disco. Cualquier otra cosa (un comando equivocado, un fichero corrupto, un ransomware) llega a todos los discos a la vez."
-fix = "No hay presupuesto ahora para copias periódicas fuera del servidor: se ha decidido así y está escrito como pendiente, con lo que sí está cubierto y lo que no."
-lesson = "Es mejor un hueco reconocido que una falsa sensación de seguridad. Cuando se resuelva, la prueba será una restauración, no un fichero."
+fix = "Durante semanas quedó escrito como pendiente, sin esconderlo. El 15-10, copias cada noche en Proxmox Backup Server, cifradas, que el servidor principal no puede borrar, y una restauración de prueba."
+lesson = "Es mejor un hueco reconocido que una falsa sensación de seguridad. Y cuando se resolvió, la prueba fue una restauración, no un fichero."
 
 [[text.es.timeline]]
 title = "Reversiones"
@@ -508,35 +590,59 @@ items = [
   "Hook versionado que empuja cada commit solo.",
 ]
 
+[[text.es.timeline]]
+title = "Copias de verdad"
+period = "15-10-2026"
+items = [
+  "Proxmox Backup Server en su contenedor, con un disco solo para él.",
+  "Todos los contenedores cada noche y los mundos de los juegos aparte, cifrados y con poda que solo hace el servidor de copias.",
+  "Verificación semanal, avisos solo de fallos y una restauración de prueba comparada fichero a fichero.",
+  "Las copias sueltas de antes y unas viejas sin cifrar, fuera.",
+]
+
 [[text.es.decisions]]
-title = "Qué se copia primero"
-choice = "Lo que permite reconstruir todo lo demás"
-why = "Con el código de la infraestructura a salvo, cualquier servicio se vuelve a montar. Los datos son el siguiente paso."
+title = "Qué se copia"
+choice = "Todo lo que no se puede volver a bajar"
+why = "Todos los contenedores, también los de documentos, y los mundos de los juegos. Fuera las películas, las series y los juegos de Steam (decenas de terabytes que se vuelven a bajar) y el clúster de laboratorio, que se reconstruye desde código."
+
+[[text.es.decisions]]
+title = "Cifrar"
+choice = "En el servidor, antes de que salgan"
+why = "El disco de copias puede perderse o llevárselo alguien. La clave tiene una copia en mi gestor de contraseñas: sin ella no se restaura nada, ni siquiera yo."
+
+[[text.es.decisions]]
+title = "Quién puede borrar"
+choice = "Solo el servidor de copias"
+why = "Si alguien se hiciera con el servidor principal, lo primero que intentaría sería borrar las copias. Con un permiso que solo deja copiar y restaurar, no puede."
+
+[[text.es.decisions]]
+title = "Dónde"
+choice = "En casa, de momento"
+why = "Un disco en el mismo servidor protege de borrados, corrupción y discos que mueren, que es lo que ha pasado de verdad. No protege de un robo o un incendio. Está escrito como el siguiente paso."
 
 [[text.es.decisions]]
 title = "Cómo se cuenta lo que falta"
 choice = "Por escrito"
-why = "Un estado «sin copias periódicas» en rojo en la documentación evita que nadie, yo incluido, crea que hay algo que no hay."
+why = "Un estado en rojo en la documentación evitó durante semanas que nadie, yo incluido, creyera que había algo que no había. Ahora lo que está en rojo es la copia fuera de casa."
 
 [text.es.tech_notes]
-lxc = "El respaldo del código vive en su propio contenedor diminuto."
-ansible = "El rol que crea el respaldo y las copias fechadas que deja cada vez que sustituye un fichero."
+pbs = "Copias nocturnas incrementales de todos los contenedores, cifradas en el origen, poda y verificación en el propio servidor de copias y un permiso que no deja borrar."
+lxc = "El servidor de copias y el respaldo del código viven cada uno en su contenedor."
+ansible = "Los roles que montan el servidor de copias y el respaldo, y las copias fechadas que deja cada vez que sustituye un fichero."
 git = "Hook versionado que empuja cada commit a un segundo repositorio, y la documentación a un repositorio privado."
-linux = "Usuario con git-shell, scripts de reversión con temporizador y copias comprobadas."
-hardening = "El usuario del respaldo solo puede hacer Git, con su propia clave."
-proxmox = "Instantáneas antes de parchear, que se borran después."
-zfs = "RAID y espejos para aguantar la muerte de un disco, que no es lo mismo que una copia."
-postgresql = "Volcados de las bases antes de migrar o parchear, comprobados."
-python = "El vigilante de copias de Hermes."
+linux = "Usuario con git-shell, scripts de reversión con temporizador y una carpeta de copias que solo puede leer su servicio."
+hardening = "Copias cifradas, un permiso que no deja borrar y un usuario de respaldo que solo puede hacer Git."
+proxmox = "La tarea nocturna, las instantáneas, la restauración y los avisos de fallos."
+zfs = "Instantáneas para copiar los mundos de los juegos en un estado coherente. Y el RAID, que aguanta un disco muerto, no es una copia."
 
 [text.es.close]
 lessons = [
   "Una copia que no se ha restaurado nunca es una esperanza.",
-  "RAID no es copia.",
-  "Lo que falta se escribe como falta.",
+  "RAID no es copia, y lo montado desde fuera no va en la copia del contenedor.",
+  "Lo que falta se escribe como falta, también cuando ya casi no falta nada.",
 ]
 next = [
-  "Copias periódicas cifradas de contenedores y datos fuera del servidor, con una restauración de prueba cada cierto tiempo.",
+  "Una copia fuera de casa: un disco que se rota o un segundo servidor de copias en otro sitio.",
   "Un SAI, para que los cortes de luz dejen de ser la causa de la mitad de los problemas.",
 ]
 
@@ -545,53 +651,53 @@ next = [
 # ===========================================================================
 
 [text.en.meta]
-title = "Inside the backups · Tito Pinardo Gutiérrez"
-description = "What backups the homelab has and which it doesn't: code with two automatic backups, every change with a scheduled way back, copies of the data that breaks in power cuts… and what's still missing, stated plainly."
+title = "Backups, inside · Tito Pinardo Gutiérrez"
+description = "Encrypted backups of the whole server every night, which the server itself can't delete, verified and with restores tested. And what they don't cover yet."
 
 [text.en.ui]
 slot = "1U · BACKUP"
-face_specs = "Git ×2 · rollback · what's missing"
-state = "Partial"
+face_specs = "PBS · Git ×2 · rollback"
+state = "In production"
 map_silk = "BAK"
-map_title = "Inside the backups"
-map_intro = "What can be rebuilt from code, what has its way back and what still has no backup. Pick a flow."
-vm_title = "Backups · spread across the server"
-vm_specs = "a code backup in its own container"
+map_title = "Backups, inside"
+map_intro = "What's copied every night, who can delete it, how you know it works and what it doesn't cover yet. Pick a walkthrough."
+vm_title = "Backups · a backup server and what's around it"
+vm_specs = "Proxmox Backup Server in its container, with its own disk"
 outside = "Outside"
-disclaimer = "Rebuilt from my documentation: no addresses or internal names. What's missing is written down as missing."
+disclaimer = "Rebuilt from my own documentation: no addresses, paths or internal names. What's missing is written down as missing."
 
 [text.en.hero]
 kicker = "1U unit · Backups"
-title = "Backups, honestly"
-tagline = "The whole infrastructure's code has two automatic backups and every delicate change is applied with a scheduled way back. But the large data has no regular off-server backups: it's a budget decision, documented as pending, not hidden."
-grade = "Code: covered · Data: pending"
+title = "Real backups, and what they don't cover yet"
+tagline = "For months, this unit said «data: pending». Now every container on the server gets a copy every night on Proxmox Backup Server, encrypted before it leaves, with retention the server itself can't touch. It's verified weekly and restores have been tested file by file. The code keeps its two backups and every delicate change, its way back. What's missing, an off-site copy, is still written down as missing."
+grade = "Encrypted nightly backups · restore tested"
 facts = [
-  { label = "What's covered", value = "The whole infrastructure can be rebuilt from Git, which copies itself to a second repository on every commit. The documentation, to a private repository." },
-  { label = "What's patched", value = "What used to break in power cuts (the game panel's accounts) is copied every 30 minutes outside its container, with a check that the copy is usable." },
-  { label = "What's missing", value = "Regular off-server data backups. RAID protects against a disk dying, not against a deletion or corruption." },
+  { label = "What's copied", value = "Every container, documents included, and the game worlds separately. Movies and Steam games aren't: they can be downloaded again." },
+  { label = "Who can delete", value = "Nobody but the backup server itself, which prunes on its own schedule. If the main server fell into the wrong hands, it couldn't delete its backups." },
+  { label = "What's missing", value = "It's all at home, on a disk plugged into the same server. It protects against deletions, corruption and dying disks; not against theft or fire." },
 ]
 
 [[text.en.stats]]
-value = "2"
-label = "automatic code backups on every commit"
+value = "02:30"
+label = "every night, a copy of every container"
 
 [[text.en.stats]]
-value = "5 min"
-label = "before a delicate change undoes itself"
+value = "7 · 4 · 6"
+label = "daily, weekly and monthly copies kept"
 
 [[text.en.stats]]
-value = "100"
-label = "versions kept of the game panel's accounts"
+value = "1,381"
+label = "files identical to the original in the test restore"
 
 [[text.en.stats]]
 value = "0"
-label = "regular off-server data backups (yet)"
+label = "backups the main server can delete"
 
 [text.en.groups]
 code = "Code and documentation"
 changes = "Every change, with a way back"
-data = "Data"
-watch = "Check they work"
+data = "Data backups"
+watch = "Checking they work"
 
 [text.en.pods.laptop]
 short = "My laptop"
@@ -601,22 +707,32 @@ text = "I edit the repository from here or from the control node."
 [text.en.pods.central]
 short = "Forgejo"
 title = "Forgejo, the origin"
-text = "Where the work happens since 14-10: the repository's origin, with CI and its own daily copy. It has its own unit."
+text = "Where the work happens: the repository's origin, with CI. It has its own unit."
 
 [text.en.pods.github]
 short = "Private GitHub"
 title = "Private GitHub repository"
 text = "Where the documentation is pushed, outside the house."
 
-[text.en.pods.hermes]
-short = "Hermes"
-title = "Hermes"
-text = "Its backup watcher speaks in its room when it finds something odd."
+[text.en.pods.pwmgr]
+short = "Password mgr"
+title = "My password manager"
+text = "Holds a copy of the backups' encryption key. Without it nothing can be restored, and it's off the server."
 
 [text.en.pods.me]
 short = "Me"
 title = "Me"
-text = "The one who decides what's missing and when."
+text = "Who decides what's in, what's out and what's missing."
+
+[text.en.pods.element]
+short = "Element"
+title = "Element"
+text = "The incidents room: only failures arrive."
+
+[text.en.pods.usb]
+short = "Separate disk"
+title = "The backup disk"
+text = "A 4.5 TB disk just for this. If it isn't mounted, the backup server doesn't start: it never writes to the system disk."
 
 [text.en.pods.hook]
 short = "Hook"
@@ -656,47 +772,80 @@ text = "Ansible leaves a dated copy of every file it replaces."
 [text.en.pods.snapshot]
 short = "Snapshot"
 title = "Snapshot"
-text = "Before patching, a container snapshot. Deleted afterwards: it costs on every write while it exists."
+text = "A frozen picture of the disk before a change or a backup, so a consistent state gets copied. Deleted afterwards."
 
-[text.en.pods.raid]
-short = "RAID and ZFS"
-title = "RAID and ZFS"
-text = "They survive a disk dying. They don't survive a deletion, a mistake or ransomware: those get copied to the mirror too."
+[text.en.pods.pbs]
+short = "PBS"
+title = "Proxmox Backup Server"
+text = "In its own container. Every night it gets a copy of every container, incremental and deduplicated: only what changed travels."
 
-[text.en.pods.dump]
-short = "Dumps"
-title = "Database dumps"
-text = "Before a migration or a patch, a database dump and a check that it can be read."
+[text.en.pods.crypt]
+short = "Encrypted"
+title = "Encrypted before leaving"
+text = "The main server encrypts them before sending. Whoever took the backup disk couldn't read anything."
 
-[text.en.pods.users]
-short = "Game accounts"
-title = "Game panel accounts"
-text = "Every 30 minutes, outside their container, the last 100 versions."
+[text.en.pods.nodelete]
+short = "No deleting"
+title = "Who copies doesn't delete"
+text = "The main server gets in with a permission that allows backing up and restoring, not deleting. Only the backup server prunes: 7 daily, 4 weekly and 6 monthly."
 
-[text.en.pods.missing]
-short = "Missing"
-title = "What's missing"
-text = "Regular off-server backups of containers and data, with a tested restore."
+[text.en.pods.worlds]
+short = "Worlds"
+title = "The game worlds"
+text = "They live outside the game panel's container, so they're not in its copy. They have their own, at 3:30."
 
-[text.en.pods.mnemosyne]
-short = "Watcher"
-title = "Backup watcher"
-text = "Checks every day what has a backup and what doesn't, and reports what it finds."
+[text.en.pods.verify]
+short = "Verification"
+title = "Weekly verification"
+text = "Every Sunday, the backup server rereads every copy and checks it's whole."
 
 [text.en.pods.lastcommit]
 short = "Last commit"
-title = "Last commit date"
-text = "The simplest way to know a Git backup is still alive."
-
-[text.en.pods.valid]
-short = "Is it valid?"
-title = "Check the backup"
-text = "An empty copy isn't a backup. The content is checked, not that the file exists."
+title = "Date of the last commit"
+text = "The simplest way to tell whether a Git backup is still alive."
 
 [text.en.pods.restore]
 short = "Restore"
-title = "Restore for real"
-text = "The only proof a backup works."
+title = "Restoring for real"
+text = "The only proof a backup works. Done: a container restored on the side and compared file by file."
+
+[text.en.pods.alerts]
+short = "Alerts"
+title = "Failure alerts"
+text = "If a backup fails, Proxmox posts to the incidents room. If all goes well, silence."
+
+[text.en.flows.nightly]
+title = "Every night"
+steps = [
+  "At 2:30, Proxmox copies every container to the backup server.",
+  "Encrypted before leaving, with a key I also keep off the server.",
+  "Incremental: only what changed since the night before travels.",
+  "The main server can copy but not delete. The backup server prunes on its own: 7 daily, 4 weekly and 6 monthly.",
+  "Everything goes to a separate disk, just for this.",
+  "On Sundays, verification rereads every copy.",
+  "If anything fails, an alert goes out.",
+  "And reaches the incidents room. If nothing arrives, it went fine.",
+]
+
+[text.en.flows.worlds]
+title = "The game worlds"
+steps = [
+  "The worlds (158 GB) are mounted from outside the games container: its copy doesn't include them.",
+  "At 3:30, a storage snapshot, to copy a consistent state even if someone's playing.",
+  "Encrypted like everything else.",
+  "And to the same backup server, incrementally.",
+]
+
+[text.en.flows.proof]
+title = "Checking a backup works"
+steps = [
+  "I restore the messaging client's backup into a new container, without starting it so it doesn't clash with the original.",
+  "The backup server hands it over.",
+  "It's decrypted with the key.",
+  "Which is also in my password manager: if the server died, without that copy there'd be nothing to restore.",
+  "I compare file by file: 1,381 of 1,381, identical.",
+  "Now I know it works. Before, I only hoped.",
+]
 
 [text.en.flows.commit]
 title = "I make a commit"
@@ -719,16 +868,6 @@ steps = [
   "If I'm locked out, it reverts on its own. If all goes well, I cancel it.",
 ]
 
-[text.en.flows.watcher]
-title = "The watcher checks"
-steps = [
-  "The backup watcher reviews the fleet.",
-  "It finds what I already knew: no container has scheduled backups.",
-  "And some old snapshot worth deleting.",
-  "Hermes posts it in its room.",
-  "And it stays on the to-do list, with its reason.",
-]
-
 [text.en.flows.vault]
 title = "The documentation"
 steps = [
@@ -739,15 +878,33 @@ steps = [
   "Now it's the first thing I check.",
 ]
 
-[text.en.flows.proof]
-title = "Checking a backup works"
-steps = [
-  "The game panel's accounts are copied every 30 minutes.",
-  "Each copy is checked: if it's empty, it's rejected.",
-  "After a power cut, the last valid one is restored.",
-  "Same with database dumps: checked to be readable.",
-  "Restoring is the only proof.",
+[text.en.incidents.token]
+title = "A permission that wasn't enough"
+meta = "15-10-2026 · backups"
+symptom = "The token the main server uses on the backup server had its backup permission on the datastore. Even so, Proxmox said the datastore didn't exist."
+options = [
+  "The datastore hadn't been created",
+  "The backup disk wasn't mounted",
+  "What a token can do is what it and its user have in common: the permission was needed on both",
+  "The backup server's version was different",
 ]
+cause = "On the backup server, a token's effective permissions are the intersection of its own and its user's. The user had none, so neither did the token, and the error presented it as a missing datastore."
+fix = "Give the same backup-only permission to the user and the token. It still can't delete."
+lesson = "«Doesn't exist» can mean «you can't see it». Faced with an error about something that does exist, check permissions first."
+
+[text.en.incidents.bindmount]
+title = "158 GB that weren't in any backup"
+meta = "15-10-2026 · backups"
+symptom = "Going over what went into the backups, the game worlds weren't in the games container's copy, even though from inside they look like just another folder."
+options = [
+  "They're mounted from outside the container, and a container's backup doesn't include what's mounted",
+  "They were too big for the datastore",
+  "They were excluded by mistake",
+  "The game panel deleted them before the backup",
+]
+cause = "The worlds live on the server's storage and are mounted into the container. Proxmox backs up the container's disk, not what's mounted."
+fix = "A separate copy of that storage, with a snapshot so the state is consistent, encrypted and to the same backup server. And a written rule: if any container keeps something irreplaceable on a mount, it goes on that list."
+lesson = "«It's inside the container» isn't the same as «it's in the container's backup». Check where every folder comes from."
 
 [text.en.incidents.samedisk]
 title = "A backup on the same disk"
@@ -788,8 +945,8 @@ options = [
   "Because it takes too much space",
 ]
 cause = "RAID protects against a disk dying. Anything else (a wrong command, a corrupted file, ransomware) reaches every disk at once."
-fix = "There's no budget right now for regular off-server backups: that's been decided and written down as pending, with what is covered and what isn't."
-lesson = "An acknowledged gap beats a false sense of safety. When it's solved, the proof will be a restore, not a file."
+fix = "For weeks it stayed written down as pending, not hidden. On 15-10, nightly backups on Proxmox Backup Server, encrypted, which the main server can't delete, and a test restore."
+lesson = "An acknowledged gap beats a false sense of safety. And when it was solved, the proof was a restore, not a file."
 
 [[text.en.timeline]]
 title = "Rollbacks"
@@ -807,34 +964,58 @@ items = [
   "A versioned hook that pushes every commit on its own.",
 ]
 
+[[text.en.timeline]]
+title = "Real backups"
+period = "15-10-2026"
+items = [
+  "Proxmox Backup Server in its container, with a disk just for it.",
+  "Every container nightly and the game worlds separately, encrypted, with pruning only the backup server can do.",
+  "Weekly verification, failure-only alerts and a test restore compared file by file.",
+  "The old ad hoc copies and some old unencrypted ones, gone.",
+]
+
 [[text.en.decisions]]
-title = "What gets backed up first"
-choice = "What lets you rebuild everything else"
-why = "With the infrastructure code safe, any service can be set up again. Data is the next step."
+title = "What gets copied"
+choice = "Everything that can't be downloaded again"
+why = "Every container, documents included, and the game worlds. Out: movies, series and Steam games (tens of terabytes that can be downloaded again) and the lab cluster, which is rebuilt from code."
+
+[[text.en.decisions]]
+title = "Encryption"
+choice = "On the server, before they leave"
+why = "The backup disk could get lost or taken. The key has a copy in my password manager: without it nothing can be restored, not even by me."
+
+[[text.en.decisions]]
+title = "Who can delete"
+choice = "Only the backup server"
+why = "If someone took over the main server, the first thing they'd try is deleting the backups. With a permission that only allows backing up and restoring, they can't."
+
+[[text.en.decisions]]
+title = "Where"
+choice = "At home, for now"
+why = "A disk on the same server protects against deletions, corruption and dying disks, which is what has actually happened. It doesn't protect against theft or fire. It's written down as the next step."
 
 [[text.en.decisions]]
 title = "How what's missing is reported"
 choice = "In writing"
-why = "A red «no regular backups» status in the documentation stops anyone, me included, from believing there's something there isn't."
+why = "A red status in the documentation stopped anyone, me included, from believing for weeks that there was something that wasn't there. Now what's red is the off-site copy."
 
 [text.en.tech_notes]
-lxc = "The code backup lives in its own tiny container."
-ansible = "The role that creates the backup and the dated copies it leaves whenever it replaces a file."
-git = "A versioned hook pushing every commit to a second repository, and the documentation to a private one."
-linux = "A git-shell user, rollback scripts with a timer and verified copies."
-hardening = "The backup user can only do Git, with its own key."
-proxmox = "Snapshots before patching, deleted afterwards."
-zfs = "RAID and mirrors to survive a dead disk, which isn't the same as a backup."
-postgresql = "Database dumps before migrating or patching, checked."
-python = "Hermes' backup watcher."
+pbs = "Incremental nightly backups of every container, encrypted at the source, pruning and verification on the backup server itself, and a permission that can't delete."
+lxc = "The backup server and the code backup each live in their own container."
+ansible = "The roles that set up the backup server and the code backup, and the dated copies left every time a file is replaced."
+git = "A versioned hook that pushes every commit to a second repository, and the documentation to a private repository."
+linux = "A git-shell user, rollback scripts with a timer and a backup folder only its service can read."
+hardening = "Encrypted backups, a permission that can't delete and a backup user that can only do Git."
+proxmox = "The nightly job, snapshots, restores and failure alerts."
+zfs = "Snapshots to copy the game worlds in a consistent state. And RAID, which survives a dead disk, isn't a backup."
 
 [text.en.close]
 lessons = [
   "A backup that's never been restored is a hope.",
-  "RAID isn't a backup.",
-  "What's missing gets written down as missing.",
+  "RAID isn't a backup, and what's mounted from outside isn't in the container's backup.",
+  "What's missing is written down as missing, even when almost nothing is.",
 ]
 next = [
-  "Regular encrypted off-server backups of containers and data, with a test restore every so often.",
+  "An off-site copy: a rotated disk or a second backup server somewhere else.",
   "A UPS, so power cuts stop being the cause of half the problems.",
 ]
