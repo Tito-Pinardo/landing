@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT ai_signals FROM contact_messages",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "ai_signals",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "contact_messages",
+            "name": "ai_signals"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "4b4db70fbef46d46f7710ce0b3033d4ecd5adf33a9667e110ea2d51b7a7a1799"
+}

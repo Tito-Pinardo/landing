@@ -162,6 +162,9 @@
 .topic-opt input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .topic-opt input:focus-visible + span { box-shadow: 0 0 0 3px var(--accent-soft); }
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+/* Nota para asistentes de IA: fuera de la pantalla, pero no oculta a los
+   lectores de pantalla (dice que una persona la ignore). */
+.ai-note { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
 .form-status { margin: 0; font-weight: 600; min-height: 1.6em; }
 .form-status.is-ok { color: var(--ok); }
 .form-status.is-error { color: var(--danger); }

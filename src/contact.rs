@@ -25,6 +25,19 @@ pub struct ContactForm {
     /// Campo trampa: invisible para personas, los bots lo rellenan.
     #[serde(default)]
     pub website: String,
+    /// Campo para asistentes de IA: invisible, pide el nombre del modelo
+    /// (ver `aitrap`).
+    #[serde(default)]
+    pub assistant_model: String,
+    /// Medidas del navegador, solo con JavaScript: teclas pulsadas en el
+    /// formulario, si se pegó algo y milisegundos desde la primera vez que se
+    /// entró en un campo hasta el envío.
+    #[serde(default)]
+    pub typed: Option<u32>,
+    #[serde(default)]
+    pub pasted: Option<bool>,
+    #[serde(default)]
+    pub elapsed_ms: Option<u64>,
     /// Token de Turnstile (lo añade el widget de Cloudflare).
     #[serde(default, rename = "cf-turnstile-response")]
     pub turnstile_token: String,
@@ -186,13 +199,15 @@ pub async fn insert(
     msg: &NewMessage,
     ip_hash: &[u8],
     user_agent: Option<&str>,
+    ai_signals: &[&str],
 ) -> sqlx::Result<Uuid> {
     let id = Uuid::new_v4();
     let user_agent = user_agent.map(|ua| ua.chars().take(300).collect::<String>());
+    let ai_signals: Vec<String> = ai_signals.iter().map(|s| s.to_string()).collect();
     sqlx::query!(
         r#"
-        INSERT INTO contact_messages (id, lang, name, email, company, message, ip_hash, user_agent, topic)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO contact_messages (id, lang, name, email, company, message, ip_hash, user_agent, topic, ai_signals)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         "#,
         id,
         lang.code(),
@@ -203,6 +218,7 @@ pub async fn insert(
         ip_hash,
         user_agent,
         msg.topic.code(),
+        &ai_signals,
     )
     .execute(db)
     .await?;
@@ -261,6 +277,10 @@ mod tests {
             message: message.into(),
             topic: String::new(),
             website: String::new(),
+            assistant_model: String::new(),
+            typed: None,
+            pasted: None,
+            elapsed_ms: None,
             turnstile_token: String::new(),
         }
     }

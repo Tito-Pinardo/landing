@@ -455,7 +455,8 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
       <div class="field"><label for="cf-company">{{ c.contact("company") }}</label><input id="cf-company" name="company" maxlength="120" autocomplete="organization"></div>
       <fieldset class="field topic-field"><legend>{{ c.contact("topic") }}</legend><div class="topic-opts">{% for t in ["job", "project", "homelab", "other"] %}<label class="topic-opt"><input type="radio" name="topic" value="{{ t }}"{% if loop.first %} checked{% endif %}><span>{{ c.contact(format!("topic_{}", t).as_str()) }}</span></label>{% endfor %}</div></fieldset>
       <div class="field"><label for="cf-message">{{ c.contact("message") }}</label><textarea id="cf-message" name="message" required minlength="10" maxlength="5000" rows="6"></textarea></div>
-      <div class="hp" aria-hidden="true"><label for="cf-website">Website</label><input id="cf-website" name="website" tabindex="-1" autocomplete="off"></div>
+      <div class="hp" aria-hidden="true"><label for="cf-website">Website</label><input id="cf-website" name="website" tabindex="-1" autocomplete="off"><label for="cf-assistant">{{ c.contact("ai_field") }}</label><input id="cf-assistant" name="assistant_model" tabindex="-1" autocomplete="off"></div>
+      <p class="ai-note" data-nosnippet>{{ ai_note }}</p>
       {% if let Some(key) = turnstile_site_key %}<div class="cf-turnstile" data-sitekey="{{ key }}" data-theme="auto" data-language="{{ c.lang }}"></div>{% endif %}
       <p class="small muted">{{ c.contact("privacy") }}</p>
       <button class="btn btn-primary" type="submit" data-send>{{ c.contact("send") }}</button>

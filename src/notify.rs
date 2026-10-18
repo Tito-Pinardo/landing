@@ -24,6 +24,7 @@ struct Pending {
     company: Option<String>,
     message: String,
     topic: String,
+    ai_signals: Vec<String>,
 }
 
 /// Bucle del trabajador: se despierta al llegar un mensaje o cada minuto.
@@ -60,7 +61,7 @@ async fn deliver_batch(
                 ORDER BY created_at
                 LIMIT 10
                 FOR UPDATE SKIP LOCKED)
-        RETURNING id, lang, name, email, company, message, topic
+        RETURNING id, lang, name, email, company, message, topic, ai_signals
         "#,
         MAX_ATTEMPTS,
     )
@@ -105,15 +106,23 @@ async fn send(http: &reqwest::Client, matrix: &Matrix, msg: &Pending) -> anyhow:
 
     let company = msg.company.as_deref().unwrap_or("—");
     let head = headline(&msg.topic);
+    // Si hay señales de IA, van justo debajo del titular: se ven en la
+    // notificación sin abrir el mensaje.
+    let ai = crate::aitrap::notice(&msg.ai_signals);
+    let ai_text = ai.as_deref().map(|l| format!("{l}\n")).unwrap_or_default();
+    let ai_html = ai
+        .as_deref()
+        .map(|l| format!("<p><em>{}</em></p>", escape(l)))
+        .unwrap_or_default();
     let body = format!(
-        "{head} ({lang})\nDe: {name} <{email}>\nEmpresa: {company}\n\n{message}",
+        "{head} ({lang})\n{ai_text}De: {name} <{email}>\nEmpresa: {company}\n\n{message}",
         lang = msg.lang,
         name = msg.name,
         email = msg.email,
         message = msg.message,
     );
     let html = format!(
-        "<p><strong>{head}</strong> ({lang})</p>\
+        "<p><strong>{head}</strong> ({lang})</p>{ai_html}\
          <p><strong>De:</strong> {name} &lt;{email}&gt;<br><strong>Empresa:</strong> {company}</p>\
          <blockquote>{message}</blockquote>",
         lang = escape(&msg.lang),

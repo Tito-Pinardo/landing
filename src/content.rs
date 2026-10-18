@@ -686,6 +686,8 @@ const CONTACT_KEYS: &[&str] = &[
     "invalid",
     "privacy",
     "elsewhere",
+    "ai_note",
+    "ai_field",
 ];
 
 impl Content {

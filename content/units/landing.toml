@@ -377,7 +377,7 @@ text = "Textos, proyectos, piezas del laboratorio y estas unidades viven en fich
 [text.es.pods.form]
 short = "Formulario"
 title = "Formulario de contacto"
-text = "Valida los campos, tiene un campo trampa para bots y un captcha opcional."
+text = "Valida los campos, tiene un campo trampa para bots, trampas para reconocer a una IA y un captcha opcional."
 
 [text.es.pods.limits]
 short = "Límites"
@@ -452,7 +452,7 @@ title = "Me escribes por el formulario"
 steps = [
   "Rellenas el formulario y lo envías.",
   "Entra por Traefik, como todo.",
-  "Se validan los campos. Si el campo trampa viene relleno, era un bot.",
+  "Se validan los campos. Si el campo trampa viene relleno, era un bot. Si cayó en las trampas para IA, llega igual, pero marcado.",
   "Se comprueban los límites: por IP (guardada solo como hash) y globales.",
   "El mensaje se guarda en PostgreSQL. A partir de aquí no se pierde.",
   "Queda un aviso pendiente en la bandeja de salida.",
@@ -600,6 +600,11 @@ choice = "Un hash de la IP, nunca la IP"
 why = "Para limitar envíos basta con saber si dos peticiones vienen del mismo sitio. Con un hash con sal secreta se puede comparar sin poder volver a la IP."
 
 [[text.es.decisions]]
+title = "Mensajes escritos por una IA"
+choice = "Reconocerlos, no bloquearlos"
+why = "Que una reclutadora le pida a su asistente que me escriba es legítimo, pero quiero saberlo. El formulario lleva una nota que solo leen las máquinas, un campo que solo ven ellas y unas medidas de cómo se rellenó (sin guardar nada de lo que se escribe). El mensaje llega siempre, con una línea que dice qué se vio. Probado con dos modelos locales: uno cayó en las dos trampas de texto y el otro no; para ese quedan las medidas del navegador."
+
+[[text.es.decisions]]
 title = "JavaScript"
 choice = "Mejora progresiva, sin librerías"
 why = "Todo se lee sin JavaScript y la CSP prohíbe cualquier script en línea. El mapa, la terminal, los logros y el sonido son una capa encima."
@@ -736,7 +741,7 @@ text = "Texts, projects, lab parts and these units live in TOML files validated 
 [text.en.pods.form]
 short = "Contact form"
 title = "Contact form"
-text = "Validates the fields, has a honeypot field for bots and an optional captcha."
+text = "Validates the fields, has a honeypot field for bots, traps that recognise an AI and an optional captcha."
 
 [text.en.pods.limits]
 short = "Limits"
@@ -811,7 +816,7 @@ title = "You write to me through the form"
 steps = [
   "You fill in the form and send it.",
   "It comes in through Traefik, like everything.",
-  "The fields are validated. If the honeypot field is filled in, it was a bot.",
+  "The fields are validated. If the honeypot field is filled in, it was a bot. If it fell for the AI traps, it still arrives, but flagged.",
   "Limits are checked: per IP (stored only as a hash) and global.",
   "The message is saved in PostgreSQL. From here on it isn't lost.",
   "A pending notice sits in the outbox.",
@@ -957,6 +962,11 @@ why = "The message is what matters, not the notice. With an outbox, Matrix not a
 title = "What it keeps about whoever writes"
 choice = "A hash of the IP, never the IP"
 why = "To limit sending it's enough to know whether two requests come from the same place. A hash with a secret salt can be compared without going back to the IP."
+
+[[text.en.decisions]]
+title = "Messages written by an AI"
+choice = "Recognise them, don't block them"
+why = "A recruiter asking their assistant to write to me is legitimate, but I want to know. The form carries a note only machines read, a field only they see and some measurements of how it was filled in (without keeping anything that's typed). The message always arrives, with a line saying what was seen. Tested with two local models: one fell for both text traps and the other didn't; for that one, there are the browser measurements."
 
 [[text.en.decisions]]
 title = "JavaScript"

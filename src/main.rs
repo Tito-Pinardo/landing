@@ -1,5 +1,6 @@
 //! Servidor de titopinardogutierrez.com.
 
+mod aitrap;
 mod app;
 #[cfg(test)]
 mod app_tests;

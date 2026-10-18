@@ -1097,10 +1097,20 @@
   // ------------------------------------------------------------ contacto
   const form = $("[data-contact-form]");
   const formStatus = $("[data-form-status]");
+  // Cómo se rellena (ver src/aitrap.rs): teclas, si se pegó algo y cuánto
+  // pasa desde que se entra en un campo hasta que se envía. Solo cuentan,
+  // no guardan nada de lo que se escribe.
+  const filling = { typed: 0, pasted: false, t0: 0 };
+  form?.addEventListener("focusin", () => { filling.t0 ||= performance.now(); });
+  form?.addEventListener("keydown", (ev) => { if (ev.target.matches("input, textarea")) filling.typed++; });
+  form?.addEventListener("paste", () => { filling.pasted = true; });
   form?.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const btn = $("[data-send]", form);
     const data = Object.fromEntries(new FormData(form).entries());
+    data.typed = filling.typed;
+    data.pasted = filling.pasted;
+    data.elapsed_ms = filling.t0 ? Math.round(performance.now() - filling.t0) : 0;
     $$(".field", form).forEach((f) => f.classList.remove("is-invalid"));
     formStatus.className = "form-status";
     formStatus.textContent = T.contact.sending;
@@ -1114,6 +1124,7 @@
       const body = await res.json().catch(() => ({}));
       if (res.ok && body.ok) {
         form.reset();
+        Object.assign(filling, { typed: 0, pasted: false, t0: 0 });
         formStatus.classList.add("is-ok");
         formStatus.textContent = T.contact.ok;
         unlock("messenger");

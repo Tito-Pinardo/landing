@@ -254,6 +254,8 @@ pub struct IndexTpl<'a> {
     pub rack: Vec<RackView>,
     pub posts: Vec<ArticleCard>,
     pub turnstile_site_key: Option<&'a str>,
+    /// Nota para asistentes de IA del formulario, con la palabra clave.
+    pub ai_note: String,
     pub i18n_json: String,
     pub jsonld: String,
 }
@@ -310,9 +312,11 @@ pub fn index(
     asset_v: &str,
     public_url: &str,
     turnstile_site_key: Option<&str>,
+    canary: &str,
 ) -> anyhow::Result<Page> {
     let site = &content.site;
     let t = content.texts(lang);
+    let ai_note = t.contact["ai_note"].replace("{canary}", canary);
     let c = ctx(content, lang, asset_v, public_url);
 
     let zones = ZONES
@@ -539,6 +543,7 @@ pub fn index(
             .map(|a| article_card(content, a, lang))
             .collect(),
         turnstile_site_key,
+        ai_note,
     };
     Ok(Page::new(tpl.render()?))
 }
@@ -1346,9 +1351,21 @@ mod tests {
     fn both_languages_render() {
         let content = Content::embedded().unwrap();
         for lang in Lang::ALL {
-            let page = index(&content, lang, "test", "https://example.org", None).unwrap();
+            let page = index(
+                &content,
+                lang,
+                "test",
+                "https://example.org",
+                None,
+                "fanal-ocelote",
+            )
+            .unwrap();
             let html = std::str::from_utf8(&page.body).unwrap();
             assert!(html.contains(&format!("<html lang=\"{}\"", lang.code())));
+            assert!(
+                html.contains("«fanal-ocelote»"),
+                "la nota del formulario lleva la palabra clave"
+            );
             assert!(
                 html.contains(&content.texts(lang).hero.pitch.replace('\'', "&#39;"))
                     || html.contains("hero")

@@ -13,6 +13,13 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 - **Aviso a Matrix con bandeja de salida.** El mensaje se guarda primero y el aviso se reintenta (`FOR UPDATE SKIP LOCKED`) hasta que Matrix devuelve un `event_id`.
 - **Sin dependencias en el navegador.** CSS y JS propios (unos 28 KB en total con brotli). Todo funciona sin JavaScript; el mapa, la terminal y los logros son una mejora encima.
 - **Seguridad.** CSP estricta sin nada en línea, cabeceras HSTS/COOP/etc., Turnstile opcional, campo trampa y límites por IP y globales.
+- **Trampas para IA en el contacto** (`src/aitrap.rs`). No bloquean; marcan el aviso a Matrix con lo que se vio:
+  - una nota que solo leen las máquinas pide una palabra clave, que sale de la sal secreta y no está en el repositorio;
+  - un campo invisible pide el nombre del modelo;
+  - el navegador mide cómo se rellenó: un mensaje largo sin teclas ni pegado, o escrito más rápido de lo humano;
+  - se buscan frases de plantilla («[tu nombre]»).
+
+  El mensaje llega siempre; un bot de spam que rellena el campo trampa se sigue descartando.
 - **CI/CD en mi propio Forgejo.** El origen del repositorio está en casa. Cada push pasa el CI ([`.forgejo/workflows/ci.yml`](.forgejo/workflows/ci.yml)): formato, clippy, pruebas contra PostgreSQL, compilación, contenido válido, JS minificado válido y gitleaks sobre todo el historial. Lo hace en un runner sin secretos. Con `main` en verde, otro runner pasa un control de fugas a lo que aún no es público, despliega con Ansible y empuja ese commit aquí: este repositorio de GitHub es la copia pública y solo recibe lo que ya está desplegado. Cada resultado llega a Element. El CI de GitHub ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) repite las comprobaciones sobre la copia.
 
 ## Estructura

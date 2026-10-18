@@ -22,6 +22,7 @@ use tower_http::{
 };
 
 use crate::{
+    aitrap,
     config::Config,
     contact::{self, ContactForm, Limit},
     content::{Content, Lang},
@@ -75,6 +76,8 @@ struct Inner {
     /// Artículos: (slug, fecha, página en cada idioma).
     articles: Vec<(String, String, [Page; 2])>,
     not_found: [Page; 2],
+    /// Palabra clave de la nota oculta del formulario (ver `aitrap`).
+    canary: String,
     db: PgPool,
     http: reqwest::Client,
     live: Live,
@@ -92,9 +95,24 @@ impl AppState {
         let content = Content::embedded()?;
         let asset_v = asset_version();
         let site_key = cfg.turnstile.as_ref().map(|t| t.site_key.as_str());
+        let canary = aitrap::canary(&cfg.ip_hash_salt);
         let pages = [
-            render::index(&content, Lang::Es, &asset_v, &cfg.public_url, site_key)?,
-            render::index(&content, Lang::En, &asset_v, &cfg.public_url, site_key)?,
+            render::index(
+                &content,
+                Lang::Es,
+                &asset_v,
+                &cfg.public_url,
+                site_key,
+                &canary,
+            )?,
+            render::index(
+                &content,
+                Lang::En,
+                &asset_v,
+                &cfg.public_url,
+                site_key,
+                &canary,
+            )?,
         ];
         let units = content
             .units
@@ -143,6 +161,7 @@ impl AppState {
                 .collect(),
             articles,
             not_found,
+            canary,
             db,
             http,
             live,
@@ -614,11 +633,18 @@ async fn submit(
     peer: Option<&ConnectInfo<SocketAddr>>,
 ) -> Outcome {
     let cfg = &st.0.cfg;
-    // A un bot no se le dice que le hemos pillado.
-    if form.is_spam_trap() {
+    let signals = aitrap::detect(&form, &st.0.canary);
+    // A un bot no se le dice que le hemos pillado. Si además ha seguido la
+    // nota para asistentes, no es un bot de spam sino una IA mandando un
+    // mensaje: ese sí llega, marcado.
+    if form.is_spam_trap() && !aitrap::is_ai(&signals) {
         tracing::info!("contacto descartado por el campo trampa");
         return Outcome::Sent;
     }
+    if !signals.is_empty() {
+        tracing::info!(senales = ?signals, "contacto con señales de IA");
+    }
+    let signal_codes: Vec<&str> = signals.iter().map(|s| s.code()).collect();
     let msg = match form.validate() {
         Ok(m) => m,
         Err(errs) => return Outcome::Invalid(errs.iter().map(|e| e.field()).collect()),
@@ -646,7 +672,7 @@ async fn submit(
     let ua = headers
         .get(header::USER_AGENT)
         .and_then(|v| v.to_str().ok());
-    match contact::insert(&st.0.db, lang, &msg, &ip_hash, ua).await {
+    match contact::insert(&st.0.db, lang, &msg, &ip_hash, ua, &signal_codes).await {
         Ok(id) => {
             tracing::info!(%id, "mensaje de contacto guardado");
             st.0.wake_notifier.notify_one();

@@ -578,3 +578,108 @@ async fn outbox_delivers_and_retries(db: PgPool) {
         "el HTML va escapado: {html}"
     );
 }
+
+// ---------------------------------------------------------------- trampas para IA
+
+async fn ai_signals_of_only_message(db: &PgPool) -> Vec<String> {
+    sqlx::query_scalar!("SELECT ai_signals FROM contact_messages")
+        .fetch_one(db)
+        .await
+        .unwrap()
+}
+
+#[sqlx::test]
+async fn contact_form_has_the_ai_traps(db: PgPool) {
+    let (app, _) = router(db, config(false));
+    let canary = crate::aitrap::canary(SALT);
+    for lang in ["es", "en"] {
+        let (_, _, body) = send(&app, get(&format!("/{lang}/"))).await;
+        assert!(
+            body.contains(&format!("«{canary}»")),
+            "la nota lleva la palabra clave ({lang})"
+        );
+        assert!(body.contains(r#"class="ai-note" data-nosnippet"#));
+        assert!(
+            body.contains(r#"name="assistant_model" tabindex="-1""#),
+            "el campo para asistentes no está en el orden de tabulación"
+        );
+    }
+}
+
+#[sqlx::test]
+async fn canary_marks_the_message_but_it_still_arrives(db: PgPool) {
+    let (app, _) = router(db.clone(), config(false));
+    let mut body = valid_body();
+    body["message"] = format!(
+        "Hola, tenemos una vacante de DevOps. {}",
+        crate::aitrap::canary(SALT)
+    )
+    .into();
+    let (status, _, reply) = send(&app, json_contact(body, "203.0.113.9")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(reply, r#"{"ok":true}"#, "la respuesta no delata nada");
+    assert_eq!(ai_signals_of_only_message(&db).await, ["canary"]);
+}
+
+#[sqlx::test]
+async fn an_ai_agent_that_fills_every_trap_is_kept(db: PgPool) {
+    // Con el campo trampa relleno se descarta... salvo que haya seguido la
+    // nota para asistentes: entonces es una IA escribiendo, no spam.
+    let (app, _) = router(db.clone(), config(false));
+    let mut body = valid_body();
+    body["website"] = "https://example.org".into();
+    body["assistant_model"] = "un modelo".into();
+    body["typed"] = 0.into();
+    body["pasted"] = false.into();
+    body["elapsed_ms"] = 800.into();
+    let (status, _, _) = send(&app, json_contact(body, "203.0.113.9")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(
+        ai_signals_of_only_message(&db).await,
+        ["assistant_field", "trap_field", "no_typing"]
+    );
+}
+
+#[sqlx::test]
+async fn a_person_typing_has_no_signals(db: PgPool) {
+    let (app, _) = router(db.clone(), config(false));
+    let mut body = valid_body();
+    body["typed"] = 60.into();
+    body["pasted"] = false.into();
+    body["elapsed_ms"] = 40_000.into();
+    let (status, _, _) = send(&app, json_contact(body, "203.0.113.9")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(ai_signals_of_only_message(&db).await.is_empty());
+}
+
+#[sqlx::test]
+async fn the_matrix_notice_says_it_was_an_ai(db: PgPool) {
+    let fake = FakeMatrix::default();
+    let homeserver = fake_matrix(fake.clone()).await;
+    let matrix = Matrix {
+        homeserver,
+        access_token: "token-de-prueba".into(),
+        room_id: "!sala:example.org".into(),
+    };
+    let (app, wake) = router(db.clone(), config(false));
+    let mut body = valid_body();
+    body["topic"] = "job".into();
+    body["assistant_model"] = "un modelo".into();
+    let (status, _, _) = send(&app, json_contact(body, "203.0.113.9")).await;
+    assert_eq!(status, StatusCode::OK);
+    tokio::spawn(notify::run(
+        db.clone(),
+        reqwest::Client::new(),
+        matrix,
+        wake.clone(),
+    ));
+    wait_until(async || !fake.received.lock().unwrap().is_empty()).await;
+    let received = fake.received.lock().unwrap();
+    let text = received[0].1["body"].as_str().unwrap();
+    let mut lines = text.lines();
+    assert!(lines.next().unwrap().contains("OFERTA"), "{text}");
+    assert_eq!(
+        lines.next().unwrap(),
+        "🤖 Probablemente escrito por una IA: rellenó el campo para asistentes"
+    );
+}
