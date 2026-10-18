@@ -557,6 +557,15 @@ items = [
   "AP y equipo de fibra limpios: sin WiFi sobrante, DHCP, UPnP ni WPS.",
 ]
 
+[[text.es.timeline]]
+title = "Una DMZ para lo que da a internet"
+period = "18-10-2026"
+items = [
+  "La puerta pública y el servidor de juegos, lo único que recibe conexiones de internet, pasan a su propio segmento.",
+  "Desde ahí solo llegan al DNS, a la monitorización y, la puerta, a los servicios que publica. A la red de casa, nada.",
+  "Cambiado en caliente, sin cortar, y después pasado al código.",
+]
+
 [[text.es.decisions]]
 title = "Dónde vive la VPN"
 choice = "En el router, no en el servidor"
@@ -571,6 +580,11 @@ why = "El plan original tenía seis VLANs. Cada una es una matriz de reglas que 
 title = "Qué se abre a internet"
 choice = "Solo lo que tiene destino, y acotado a la WAN"
 why = "Cada puerto abierto es superficie. La web entra por Traefik y Cloudflare; los paneles internos no se publican: se llega a ellos por la VPN."
+
+[[text.es.decisions]]
+title = "Lo que recibe conexiones de internet"
+choice = "En su propio segmento"
+why = "Si alguien consiguiera entrar por la puerta pública o por un servidor de juegos, lo siguiente sería moverse por la red. Aislados en una DMZ, solo ven lo que necesitan para funcionar."
 
 [text.es.tech_notes]
 mikrotik = "RouterOS 7: PPPoE, NAT, cortafuegos con listas por etapas, DHCP por segmento, scripts que reaccionan al cambio de IP y gestión restringida."
@@ -900,6 +914,15 @@ items = [
   "AP and fibre box cleaned up: no spare Wi-Fi, DHCP, UPnP or WPS.",
 ]
 
+[[text.en.timeline]]
+title = "A DMZ for what faces the internet"
+period = "18-10-2026"
+items = [
+  "The public door and the game server, the only things that take connections from the internet, move to their own segment.",
+  "From there they only reach DNS, monitoring and, for the door, the services it publishes. The home network, nothing.",
+  "Changed live, without an outage, and then put into code.",
+]
+
 [[text.en.decisions]]
 title = "Where the VPN lives"
 choice = "On the router, not the server"
@@ -914,6 +937,11 @@ why = "The original plan had six VLANs. Each one is a matrix of rules to maintai
 title = "What's open to the internet"
 choice = "Only what has somewhere to go, scoped to the WAN"
 why = "Every open port is surface. The web comes in through Traefik and Cloudflare; internal panels aren't published: you reach them through the VPN."
+
+[[text.en.decisions]]
+title = "What takes connections from the internet"
+choice = "On its own segment"
+why = "If someone got in through the public door or a game server, the next step would be moving around the network. Isolated in a DMZ, they only see what they need to work."
 
 [text.en.tech_notes]
 mikrotik = "RouterOS 7: PPPoE, NAT, a firewall with staged lists, DHCP per segment, scripts reacting to IP changes and restricted management."

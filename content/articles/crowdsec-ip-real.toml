@@ -47,6 +47,12 @@ links = [
   { title = "Rangos de IP de Cloudflare", url = "https://www.cloudflare.com/ips/", source = "Cloudflare" },
 ]
 
+[[text.es.sections]]
+heading = "Tres días después"
+paragraphs = [
+  "En 72 horas solo mirando, CrowdSec habría bloqueado 7.875 peticiones de 143 IPs: sondeos, búsquedas de WordPress y de paneles, ficheros sensibles. La lista comunitaria aportaba otras 17.451 IPs conocidas. Las 71 IPs marcadas que habían recibido alguna respuesta correcta eran escáneres de nubes visitando páginas públicas: ni un falso positivo conocido. Desde el 18-10, bloquea en la puerta.",
+]
+
 [text.en]
 impact = "None: it was caught before switching anything on. Otherwise CrowdSec would have blocked Cloudflare, meaning nearly every visitor."
 detected = "Looking at the access log before letting anything block."
@@ -88,4 +94,10 @@ paragraphs = [
 links = [
   { title = "CrowdSec", url = "https://docs.crowdsec.net/", source = "CrowdSec documentation" },
   { title = "Cloudflare IP ranges", url = "https://www.cloudflare.com/ips/", source = "Cloudflare" },
+]
+
+[[text.en.sections]]
+heading = "Three days later"
+paragraphs = [
+  "In 72 hours of only watching, CrowdSec would have blocked 7,875 requests from 143 IPs: probes, WordPress and panel hunts, sensitive files. The community list added another 17,451 known IPs. The 71 flagged IPs that had received some successful response were cloud scanners visiting public pages: not one known false positive. Since 18-10, it blocks at the door.",
 ]

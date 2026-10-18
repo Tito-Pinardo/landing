@@ -258,6 +258,10 @@ answer = 2
 id = "token"
 answer = 0
 
+[[incidents]]
+id = "root"
+answer = 1
+
 # ===========================================================================
 # Español
 # ===========================================================================
@@ -363,8 +367,8 @@ text = "En su propio contenedor, sin un solo secreto ni acceso al homelab. Si ti
 
 [text.es.pods.iaclint]
 short = "TF + lint"
-title = "Terraform y ansible-lint"
-text = "Formato y validación de Terraform sin estado ni credenciales; ansible-lint, que solo falla con avisos nuevos."
+title = "Terraform, lint y Trivy"
+text = "Formato y validación de Terraform sin estado ni credenciales, tflint, ansible-lint (solo falla con avisos nuevos) y Trivy, que busca fallos graves en la configuración y en las dependencias."
 
 [text.es.pods.rust]
 short = "Rust + PG"
@@ -580,6 +584,20 @@ cause = "El nodo de control no tenía instalada la colección de Kubernetes que 
 fix = "Arreglar el aviso. Desde entonces la referencia es el CI, que parte de una instalación limpia."
 lesson = "«En mi máquina pasa» no vale si mi máquina tiene huecos. Por eso el CI parte de cero."
 
+[text.es.incidents.root]
+title = "Lo primero que encontró Trivy"
+meta = "15-10-2026 · CI"
+symptom = "Añadí Trivy al CI para vigilar dependencias con fallos conocidos. Lo primero que marcó como grave no fue ninguna dependencia."
+options = [
+  "Una imagen con un fallo crítico sin parchear",
+  "Un servicio que lanza un navegador para leer webs ajenas corría como root dentro de su contenedor",
+  "Un secreto en claro en un fichero de configuración",
+  "Una versión vieja de Terraform",
+]
+cause = "La API que abre un navegador sin pantalla para leer páginas de terceros se ejecutaba como root. Si una de esas páginas consiguiera explotar el navegador, tendría root en el contenedor."
+fix = "Que corra con un usuario sin privilegios, el mismo que ya era dueño de sus carpetas. Comprobado que el navegador arranca igual."
+lesson = "Un escáner nuevo encuentra deudas viejas. Mejor que lo encuentre él que otro."
+
 [[text.es.timeline]]
 title = "Forgejo y el CI"
 period = "14-10-2026 · mañana"
@@ -608,6 +626,15 @@ items = [
 ]
 
 [[text.es.timeline]]
+title = "Esta web, también"
+period = "14-10-2026 · noche"
+items = [
+  "Su origen pasa a Forgejo y su CI al mismo runner: Rust, PostgreSQL y Node.",
+  "Despliegue continuo con control de fugas.",
+  "GitHub, la copia pública que solo recibe lo ya desplegado.",
+]
+
+[[text.es.timeline]]
 title = "Versiones y deriva"
 period = "15-10-2026"
 items = [
@@ -618,12 +645,12 @@ items = [
 ]
 
 [[text.es.timeline]]
-title = "Esta web, también"
-period = "14-10-2026 · noche"
+title = "Más comprobaciones y menos terminal"
+period = "15 al 18-10-2026"
 items = [
-  "Su origen pasa a Forgejo y su CI al mismo runner: Rust, PostgreSQL y Node.",
-  "Despliegue continuo con control de fugas.",
-  "GitHub, la copia pública que solo recibe lo ya desplegado.",
+  "tflint y Trivy en el CI: falla con cualquier hallazgo grave.",
+  "Actualizar la flota sin abrir una terminal: un botón en Forgejo, y los paquetes solos cada miércoles de madrugada.",
+  "Un runner propio para los plugins de la red de juegos, con sus pruebas contra servidores de verdad.",
 ]
 
 [[text.es.decisions]]
@@ -657,7 +684,7 @@ choice = "Despliegue continuo"
 why = "Si algo sale mal, se vuelve al commit anterior en minutos y no hay datos en juego. El control de fugas va antes de desplegar, no después."
 
 [text.es.tech_notes]
-forgejo = "Servidor Git con PR, ramas protegidas, Actions y webhooks; dos runners en modo host, cada uno con lo justo."
+forgejo = "Servidor Git con PR, ramas protegidas, Actions y webhooks; runners en modo host, cada uno con lo justo, y actualizaciones de la flota con un botón."
 git = "Origen en casa, respaldo en cada commit, central de antes en solo lectura y GitHub como copia pública."
 terraform = "Formato y validación en el CI sin estado; plan del PR y plan guardado que se aplica tal cual."
 ansible = "ansible-lint con línea base, playbooks afectados en ensayo y despliegue de esta web con su rol."
@@ -785,8 +812,8 @@ text = "In its own container, without a single secret or any access to the homel
 
 [text.en.pods.iaclint]
 short = "TF + lint"
-title = "Terraform and ansible-lint"
-text = "Terraform formatting and validation with no state or credentials; ansible-lint, which only fails on new warnings."
+title = "Terraform, lint and Trivy"
+text = "Terraform formatting and validation with no state or credentials, tflint, ansible-lint (only fails on new warnings) and Trivy, which looks for serious flaws in configuration and dependencies."
 
 [text.en.pods.rust]
 short = "Rust + PG"
@@ -1002,6 +1029,20 @@ cause = "The control node didn't have the Kubernetes collection that role uses, 
 fix = "Fix the warning. Since then, CI is the reference: it starts from a clean install."
 lesson = "«Works on my machine» isn't enough if my machine has gaps. That's why CI starts from scratch."
 
+[text.en.incidents.root]
+title = "The first thing Trivy found"
+meta = "15-10-2026 · CI"
+symptom = "I added Trivy to CI to watch for dependencies with known flaws. The first thing it flagged as serious wasn't a dependency at all."
+options = [
+  "An image with an unpatched critical flaw",
+  "A service that launches a browser to read other people's websites was running as root inside its container",
+  "A plain-text secret in a config file",
+  "An old Terraform version",
+]
+cause = "The API that opens a headless browser to read third-party pages ran as root. If one of those pages managed to exploit the browser, it would have root in the container."
+fix = "Run it as an unprivileged user, the same one that already owned its folders. Checked that the browser starts just the same."
+lesson = "A new scanner finds old debts. Better it finds them than someone else."
+
 [[text.en.timeline]]
 title = "Forgejo and CI"
 period = "14-10-2026 · morning"
@@ -1030,6 +1071,15 @@ items = [
 ]
 
 [[text.en.timeline]]
+title = "This site, too"
+period = "14-10-2026 · night"
+items = [
+  "Its origin moves to Forgejo and its CI to the same runner: Rust, PostgreSQL and Node.",
+  "Continuous deployment with a leak check.",
+  "GitHub, the public copy that only gets what's already deployed.",
+]
+
+[[text.en.timeline]]
 title = "Versions and drift"
 period = "15-10-2026"
 items = [
@@ -1040,12 +1090,12 @@ items = [
 ]
 
 [[text.en.timeline]]
-title = "This site, too"
-period = "14-10-2026 · night"
+title = "More checks, less terminal"
+period = "15 to 18-10-2026"
 items = [
-  "Its origin moves to Forgejo and its CI to the same runner: Rust, PostgreSQL and Node.",
-  "Continuous deployment with a leak check.",
-  "GitHub, the public copy that only gets what's already deployed.",
+  "tflint and Trivy in CI: it fails on any serious finding.",
+  "Updating the fleet without opening a terminal: a button in Forgejo, and packages on their own every Wednesday before dawn.",
+  "A runner of its own for the game network's plugins, with tests against real servers.",
 ]
 
 [[text.en.decisions]]
@@ -1079,7 +1129,7 @@ choice = "Continuous deployment"
 why = "If something goes wrong, it's back to the previous commit in minutes and no data is at stake. The leak check runs before deploying, not after."
 
 [text.en.tech_notes]
-forgejo = "Git server with PRs, protected branches, Actions and webhooks; two runners in host mode, each with just what it needs."
+forgejo = "Git server with PRs, protected branches, Actions and webhooks; runners in host mode, each with just what it needs, and fleet updates at the press of a button."
 git = "Origin at home, a backup on every commit, the old central read-only and GitHub as the public copy."
 terraform = "Formatting and validation in CI with no state; the PR's plan and a saved plan applied as is."
 ansible = "ansible-lint with a baseline, affected playbooks in dry-run and this site deployed with its role."

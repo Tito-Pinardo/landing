@@ -270,6 +270,14 @@ answer = 1
 id = "wce"
 answer = 3
 
+[[incidents]]
+id = "noboot"
+answer = 1
+
+[[incidents]]
+id = "ram"
+answer = 2
+
 # ===========================================================================
 # Español
 # ===========================================================================
@@ -562,6 +570,34 @@ cause = "Estos discos SAS traen la caché de escritura desactivada. Cada escritu
 fix = "Activarla y guardarla en el propio disco, con planificador «none» porque ZFS ya ordena la E/S. Es seguro con cortes: ZFS vacía la caché en cada transacción. De 108 a 946 escrituras con fsync por segundo."
 lesson = "Medir antes de comprar. Y apuntar que un disco de repuesto vendrá con la caché apagada otra vez."
 
+[text.es.incidents.noboot]
+title = "Sin red en cada arranque, y la copia no lo arreglaba"
+meta = "17-10-2026 · AMP"
+symptom = "Tras un reinicio, el contenedor de los juegos arrancaba sin red. Restaurarlo de la copia de la noche anterior no cambiaba nada: volvía a arrancar sin red."
+options = [
+  "La copia estaba estropeada",
+  "Su cortafuegos interno fallaba a medias al arrancar y dejaba la entrada cerrada",
+  "El DHCP del router no le daba dirección",
+  "Un cambio de red reciente lo había dejado fuera",
+]
+cause = "Al arrancar, el cortafuegos interno encontraba restos de una ejecución anterior, se limitaba a vaciarlos, fallaba a medias y dejaba toda la entrada en «denegar». Pasaba en cada arranque, por eso la copia no lo arreglaba."
+fix = "Antes de arrancar, el cortafuegos se limpia del todo y, si falla, reintenta. Probado con un reinicio real."
+lesson = "Si restaurar no arregla algo, el fallo no está en los datos sino en cómo arranca."
+
+[text.es.incidents.ram]
+title = "Un despliegue le quitó un tercio de la memoria"
+meta = "18-10-2026 · Terraform"
+symptom = "Justo después de un despliegue, el panel de juegos murió por falta de memoria."
+options = [
+  "Una fuga de memoria en el panel",
+  "Un servidor de juegos nuevo que pedía demasiado",
+  "Terraform devolvió la memoria al valor del código (yo la había subido a mano) y reinició el contenedor para aplicarlo",
+  "Un ataque desde fuera",
+]
+cause = "Había subido la memoria del contenedor a mano, en caliente, sin cambiar el código. El siguiente despliegue vio la diferencia, la deshizo y reinició el contenedor, y el panel no cabía en lo que quedaba."
+fix = "La memoria sale de Terraform en todos los contenedores: se cambia en caliente y el código queda como registro. Ampliar disco con Terraform ya era en caliente."
+lesson = "Lo que se cambia a mano sin que el código lo sepa, el código lo deshace. O todo en código, o fuera del código a propósito."
+
 [[text.es.timeline]]
 title = "Los primeros servidores"
 period = "Verano de 2026"
@@ -585,6 +621,15 @@ items = [
   "Caché de escritura, CPU en un solo procesador, Java y compresión ajustados.",
   "Router y DNS que se abren y cierran solos según lo encendido.",
   "Panel y gestión del bot fuera de internet.",
+]
+
+[[text.es.timeline]]
+title = "Más aislado y más robusto"
+period = "17 y 18-10-2026"
+items = [
+  "En la DMZ, aparte de la red de casa.",
+  "Un cortafuegos interno que arranca siempre desde cero.",
+  "Plugins propios para la red de servidores, con su propio CI que los prueba contra servidores de verdad. En desarrollo: aún no están en producción.",
 ]
 
 [[text.es.decisions]]
@@ -918,6 +963,34 @@ cause = "These SAS disks come with write cache disabled. Every write waited for 
 fix = "Turn it on and save it on the disk itself, with the «none» scheduler since ZFS already orders I/O. Safe with power cuts: ZFS flushes the cache on every transaction. From 108 to 946 fsync writes per second."
 lesson = "Measure before buying. And note that a replacement disk will come with the cache off again."
 
+[text.en.incidents.noboot]
+title = "No network on every boot, and the backup didn't fix it"
+meta = "17-10-2026 · AMP"
+symptom = "After a restart, the games container came up with no network. Restoring last night's backup changed nothing: it booted without network again."
+options = [
+  "The backup was broken",
+  "Its internal firewall half-failed at boot and left all incoming traffic blocked",
+  "The router's DHCP wasn't giving it an address",
+  "A recent network change had locked it out",
+]
+cause = "At boot, the internal firewall found leftovers from a previous run, only emptied them, half-failed and left all incoming traffic on «deny». It happened on every boot, which is why the backup didn't help."
+fix = "Before starting, the firewall is wiped clean and retries if it fails. Tested with a real restart."
+lesson = "If restoring doesn't fix something, the fault isn't in the data but in how it starts."
+
+[text.en.incidents.ram]
+title = "A deployment took away a third of its memory"
+meta = "18-10-2026 · Terraform"
+symptom = "Right after a deployment, the game panel died from lack of memory."
+options = [
+  "A memory leak in the panel",
+  "A new game server asking for too much",
+  "Terraform put the memory back to the value in the code (I'd raised it by hand) and restarted the container to apply it",
+  "An attack from outside",
+]
+cause = "I'd raised the container's memory by hand, live, without changing the code. The next deployment saw the difference, undid it and restarted the container, and the panel didn't fit in what was left."
+fix = "Memory is taken out of Terraform for every container: it's changed live and the code stays as a record. Growing a disk with Terraform was already live."
+lesson = "What you change by hand without the code knowing, the code undoes. Either everything in code, or out of code on purpose."
+
 [[text.en.timeline]]
 title = "The first servers"
 period = "Summer 2026"
@@ -941,6 +1014,15 @@ items = [
   "Write cache, CPU on one processor, Java and compression tuned.",
   "Router and DNS that open and close by themselves based on what's running.",
   "Panel and the bot's admin off the internet.",
+]
+
+[[text.en.timeline]]
+title = "More isolated, more robust"
+period = "17 and 18-10-2026"
+items = [
+  "In the DMZ, apart from the home network.",
+  "An internal firewall that always starts from scratch.",
+  "Custom plugins for the server network, with their own CI testing them against real servers. In development: not in production yet.",
 ]
 
 [[text.en.decisions]]

@@ -272,6 +272,10 @@ answer = 1
 id = "raidnotbackup"
 answer = 0
 
+[[incidents]]
+id = "chown"
+answer = 2
+
 # ===========================================================================
 # Español
 # ===========================================================================
@@ -313,7 +317,7 @@ label = "copias diarias, semanales y mensuales que se guardan"
 
 [[text.es.stats]]
 value = "1.381"
-label = "ficheros idénticos al original en la restauración de prueba"
+label = "ficheros idénticos en la primera restauración de prueba; ahora se repite sola cada domingo"
 
 [[text.es.stats]]
 value = "0"
@@ -433,7 +437,7 @@ text = "La forma más simple de saber si una copia de Git sigue viva."
 [text.es.pods.restore]
 short = "Restaurar"
 title = "Restaurar de verdad"
-text = "La única prueba de que una copia sirve. Hecha: un contenedor restaurado aparte y comparado fichero a fichero."
+text = "La única prueba de que una copia sirve, y es automática: cada domingo se restaura un grupo de contenedores aparte y se compara fichero a fichero. Cada contenedor pasa una vez al mes."
 
 [text.es.pods.alerts]
 short = "Avisos"
@@ -463,14 +467,14 @@ steps = [
 ]
 
 [text.es.flows.proof]
-title = "Comprobar que una copia sirve"
+title = "Cada domingo, una restauración de prueba"
 steps = [
-  "Restauro la copia del cliente de mensajería en un contenedor nuevo, sin arrancarlo para que no choque con el original.",
-  "El servidor de copias la entrega.",
-  "Se descifra con la clave.",
-  "Que también está en mi gestor de contraseñas: si el servidor muriera, sin esa copia no habría nada que restaurar.",
-  "Comparo fichero a fichero: 1.381 de 1.381, idénticos.",
-  "Ahora sé que sirve. Antes, solo lo esperaba.",
+  "Cada domingo se restaura un grupo de contenedores en contenedores nuevos, sin arrancarlos para que no choquen con los originales.",
+  "El servidor de copias entrega sus copias.",
+  "Se descifran con la clave.",
+  "La misma que guardo en mi gestor de contraseñas: si el servidor muriera, sin esa copia no habría nada que restaurar.",
+  "Se comparan con los originales los ficheros que no han cambiado desde la copia, y los temporales se borran. La primera vez, 1.381 de 1.381 idénticos.",
+  "El resumen llega al móvil; si algo falla, a la sala de incidencias. Ya no espero que sirva: lo sé cada semana.",
 ]
 
 [text.es.flows.commit]
@@ -574,6 +578,20 @@ cause = "El RAID protege de que muera un disco. Cualquier otra cosa (un comando 
 fix = "Durante semanas quedó escrito como pendiente, sin esconderlo. El 15-10, copias cada noche en Proxmox Backup Server, cifradas, que el servidor principal no puede borrar, y una restauración de prueba."
 lesson = "Es mejor un hueco reconocido que una falsa sensación de seguridad. Y cuando se resolvió, la prueba fue una restauración, no un fichero."
 
+[text.es.incidents.chown]
+title = "La prueba del domingo falló en todos los contenedores"
+meta = "18-10-2026 · copias"
+symptom = "La restauración de prueba falló en los siete contenedores del grupo y en los mundos de los juegos, todos con «Permission denied». El día antes iba bien."
+options = [
+  "Las copias se habían corrompido",
+  "Había cambiado la clave de cifrado",
+  "Un despliegue de otro servicio cambió el dueño de todos los trozos de las copias, que viven en el mismo disco que las películas",
+  "El disco de copias se había llenado",
+]
+cause = "Esa mañana, un despliegue del gestor de descargas cambió el dueño de todo lo que había en los discos de medios, como hace siempre. Las copias viven en una carpeta de uno de esos discos: sus 96.672 trozos pasaron a otro usuario y el servidor de copias ya no podía leerlos. Las copias estaban intactas."
+fix = "Devolver el dueño a la carpeta de las copias y repetir la prueba. Para que no vuelva: el rol salta las carpetas que no son medios y solo toca los ficheros con otro dueño, que además es mucho más rápido."
+lesson = "La prueba semanal lo encontró el mismo día. Sin ella, lo habría descubierto el día que necesitara una copia."
+
 [[text.es.timeline]]
 title = "Reversiones"
 period = "Septiembre de 2026"
@@ -598,6 +616,15 @@ items = [
   "Todos los contenedores cada noche y los mundos de los juegos aparte, cifrados y con poda que solo hace el servidor de copias.",
   "Verificación semanal, avisos solo de fallos y una restauración de prueba comparada fichero a fichero.",
   "Las copias sueltas de antes y unas viejas sin cifrar, fuera.",
+]
+
+[[text.es.timeline]]
+title = "Restaurar cada semana"
+period = "15 al 18-10-2026"
+items = [
+  "Prueba de restauración automática cada domingo, con resumen en el móvil.",
+  "Su primer fallo de verdad, detectado el mismo día: lo contó la prueba, no una emergencia.",
+  "Los mundos de los juegos se comprueban montando la copia y leyendo solo lo necesario: segundos en vez de horas.",
 ]
 
 [[text.es.decisions]]
@@ -687,7 +714,7 @@ label = "daily, weekly and monthly copies kept"
 
 [[text.en.stats]]
 value = "1,381"
-label = "files identical to the original in the test restore"
+label = "files identical in the first test restore; now it repeats itself every Sunday"
 
 [[text.en.stats]]
 value = "0"
@@ -807,7 +834,7 @@ text = "The simplest way to tell whether a Git backup is still alive."
 [text.en.pods.restore]
 short = "Restore"
 title = "Restoring for real"
-text = "The only proof a backup works. Done: a container restored on the side and compared file by file."
+text = "The only proof a backup works, and it's automatic: every Sunday a group of containers is restored on the side and compared file by file. Each container gets its turn once a month."
 
 [text.en.pods.alerts]
 short = "Alerts"
@@ -837,14 +864,14 @@ steps = [
 ]
 
 [text.en.flows.proof]
-title = "Checking a backup works"
+title = "Every Sunday, a test restore"
 steps = [
-  "I restore the messaging client's backup into a new container, without starting it so it doesn't clash with the original.",
-  "The backup server hands it over.",
-  "It's decrypted with the key.",
-  "Which is also in my password manager: if the server died, without that copy there'd be nothing to restore.",
-  "I compare file by file: 1,381 of 1,381, identical.",
-  "Now I know it works. Before, I only hoped.",
+  "Every Sunday a group of containers is restored into new containers, without starting them so they don't clash with the originals.",
+  "The backup server hands over their copies.",
+  "They're decrypted with the key.",
+  "The same one I keep in my password manager: if the server died, without that copy there'd be nothing to restore.",
+  "Files unchanged since the backup are compared with the originals, and the temporary containers are deleted. The first time, 1,381 of 1,381 identical.",
+  "The summary reaches my phone; if anything fails, the incidents room. I no longer hope it works: I know, every week.",
 ]
 
 [text.en.flows.commit]
@@ -948,6 +975,20 @@ cause = "RAID protects against a disk dying. Anything else (a wrong command, a c
 fix = "For weeks it stayed written down as pending, not hidden. On 15-10, nightly backups on Proxmox Backup Server, encrypted, which the main server can't delete, and a test restore."
 lesson = "An acknowledged gap beats a false sense of safety. And when it was solved, the proof was a restore, not a file."
 
+[text.en.incidents.chown]
+title = "Sunday's test failed on every container"
+meta = "18-10-2026 · backups"
+symptom = "The test restore failed on all seven containers in the group and on the game worlds, every one with «Permission denied». The day before it was fine."
+options = [
+  "The backups had been corrupted",
+  "The encryption key had changed",
+  "A deployment of another service changed the owner of every chunk of the backups, which live on the same disk as the movies",
+  "The backup disk had filled up",
+]
+cause = "That morning, a deployment of the download manager changed the owner of everything on the media disks, as it always does. The backups live in a folder on one of those disks: their 96,672 chunks went to another user and the backup server could no longer read them. The backups were intact."
+fix = "Give the backups folder its owner back and rerun the test. So it doesn't happen again: the role skips folders that aren't media and only touches files with the wrong owner, which is also much faster."
+lesson = "The weekly test caught it the same day. Without it, I'd have found out the day I needed a backup."
+
 [[text.en.timeline]]
 title = "Rollbacks"
 period = "September 2026"
@@ -972,6 +1013,15 @@ items = [
   "Every container nightly and the game worlds separately, encrypted, with pruning only the backup server can do.",
   "Weekly verification, failure-only alerts and a test restore compared file by file.",
   "The old ad hoc copies and some old unencrypted ones, gone.",
+]
+
+[[text.en.timeline]]
+title = "Restoring every week"
+period = "15 to 18-10-2026"
+items = [
+  "An automatic test restore every Sunday, with a summary on my phone.",
+  "Its first real failure, caught the same day: the test told me, not an emergency.",
+  "The game worlds are checked by mounting the copy and reading only what's needed: seconds instead of hours.",
 ]
 
 [[text.en.decisions]]

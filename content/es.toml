@@ -536,7 +536,7 @@ text = "Vive en el nodo de control. Calcula el plan de cada cambio y, con mi apr
 [nodes.openbao]
 short = "OpenBao"
 title = "OpenBao (unidad 1U)"
-text = "Guarda las llaves maestras de la infraestructura: la contraseña de los secretos cifrados y las credenciales de Terraform. Las entrega en tokens de 15 minutos y, tras cada reinicio, espera sellado a que yo lo abra."
+text = "Guarda todos los secretos de la infraestructura y las credenciales de Terraform, y firma los certificados internos. Los entrega en tokens de 15 minutos y, tras cada reinicio, espera sellado a que yo lo abra."
 
 [nodes.backup]
 short = "Copias"
@@ -801,9 +801,9 @@ steps = [
 [flows.secrets]
 title = "Un despliegue pide sus llaves"
 steps = [
-  "Toca desplegar: el runner necesita la contraseña de los secretos cifrados y el token de Proxmox.",
+  "Toca desplegar: el runner necesita los secretos del servicio y el token de Proxmox.",
   "Se identifica ante OpenBao con un rol de solo lectura que solo vale desde el nodo de control.",
-  "Recibe un token que caduca en 15 minutos. Las llaves ya no viven en su disco.",
+  "Recibe un token que caduca en 15 minutos. Los secretos ya no viven ni en el repositorio ni en su disco.",
   "Terraform y Ansible trabajan con ellas en memoria.",
   "Y cada lectura queda en el registro de auditoría de OpenBao.",
 ]

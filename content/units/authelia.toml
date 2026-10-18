@@ -510,6 +510,15 @@ items = [
   "El panel del DNS nuevo también, con su backend aceptando solo a Caddy.",
 ]
 
+[[text.es.timeline]]
+title = "Un solo inicio de sesión"
+period = "15 al 18-10-2026"
+items = [
+  "El servidor Git, el hipervisor, el servidor de copias y el gestor de secretos entran con Authelia por OIDC, exigiendo el grupo de administradores.",
+  "Una cuenta, un segundo factor y un sitio donde quitar el acceso.",
+  "Sus certificados internos, firmados por la autoridad de casa.",
+]
+
 [[text.es.decisions]]
 title = "Dónde se autentica"
 choice = "Una vez, en Authelia, para todos los paneles"
@@ -815,6 +824,15 @@ period = "26-09-2026"
 items = [
   "Panels that were visible from the internet move to this door.",
   "The new DNS panel too, with its backend accepting only Caddy.",
+]
+
+[[text.en.timeline]]
+title = "One sign-on"
+period = "15 to 18-10-2026"
+items = [
+  "The Git server, the hypervisor, the backup server and the secrets manager log in through Authelia over OIDC, requiring the admins group.",
+  "One account, one second factor and one place to revoke access.",
+  "Their internal certificates, signed by the home authority.",
 ]
 
 [[text.en.decisions]]

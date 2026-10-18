@@ -532,7 +532,7 @@ text = "Lives on the control node. It works out the plan for each change and, on
 [nodes.openbao]
 short = "OpenBao"
 title = "OpenBao (1U unit)"
-text = "Holds the infrastructure's master keys: the password for the encrypted secrets and the Terraform credentials. It hands them out in 15-minute tokens and, after every restart, waits sealed until I open it."
+text = "Holds every secret in the infrastructure and the Terraform credentials, and signs internal certificates. It hands them out in 15-minute tokens and, after every restart, waits sealed until I open it."
 
 [nodes.backup]
 short = "Backups"
@@ -797,9 +797,9 @@ steps = [
 [flows.secrets]
 title = "A deployment asks for its keys"
 steps = [
-  "Time to deploy: the runner needs the password for the encrypted secrets and the Proxmox token.",
+  "Time to deploy: the runner needs the service's secrets and the Proxmox token.",
   "It identifies itself to OpenBao with a read-only role that only works from the control node.",
-  "It gets a token that expires in 15 minutes. The keys no longer live on its disk.",
+  "It gets a token that expires in 15 minutes. Secrets no longer live in the repository or on its disk.",
   "Terraform and Ansible work with them in memory.",
   "And every read is recorded in OpenBao's audit log.",
 ]

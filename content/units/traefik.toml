@@ -496,7 +496,7 @@ steps = [
   "Y toma la última IP de la cadena: si el escáner manda una cabecera falsa, no le sirve.",
   "La petición queda en el registro con su IP real.",
   "CrowdSec reconoce el escenario, decide bloquear esa IP y la comparte con su red comunitaria.",
-  "El plugin de Traefik aplica las decisiones en la entrada. La primera semana, solo cuenta lo que habría bloqueado.",
+  "El plugin de Traefik aplica las decisiones en la entrada: esa IP ya no pasa.",
   "Cada mañana, un resumen: qué detectó, cuántas IPs de la lista comunitaria llegaron y cuáles podrían ser falsos positivos.",
 ]
 
@@ -583,22 +583,30 @@ items = [
 ]
 
 [[text.es.timeline]]
-title = "CrowdSec en la puerta"
-period = "15-10-2026"
-items = [
-  "Traefik ve la IP real de cada visitante: antes, casi todo el tráfico parecía venir de Cloudflare.",
-  "CrowdSec lee el registro de accesos, comparte con su red comunitaria y recibe su lista.",
-  "Una semana solo mirando, con un resumen diario de lo que habría bloqueado, antes de bloquear.",
-  "Rotación de los registros, en código.",
-]
-
-[[text.es.timeline]]
 title = "Menos superficie"
 period = "26-09-2026"
 items = [
   "Fuera de internet los paneles internos: hipervisor, automatizaciones, panel de inicio, el propio panel de Traefik y otros.",
   "Borradas sus rutas y sus registros DNS; siguen en uso detrás de la puerta interna con doble factor.",
   "Rutas generadas desde una sola lista en el repositorio, con redirecciones declaradas.",
+]
+
+[[text.es.timeline]]
+title = "CrowdSec en la puerta"
+period = "15-10-2026"
+items = [
+  "Traefik ve la IP real de cada visitante: antes, casi todo el tráfico parecía venir de Cloudflare.",
+  "CrowdSec lee el registro de accesos, comparte con su red comunitaria y recibe su lista.",
+  "Tres días solo mirando: habría bloqueado 7.875 peticiones de 143 IPs, todas de escáneres, sin un falso positivo conocido. Después, bloqueo activado.",
+  "Rotación de los registros, en código.",
+]
+
+[[text.es.timeline]]
+title = "En su propia red"
+period = "18-10-2026"
+items = [
+  "La puerta pública pasa a una red aparte (DMZ), aislada de la red de casa: desde ahí solo llega al DNS, a la monitorización y a los servicios que publica.",
+  "Si alguien la comprometiera, no vería el resto de la casa.",
 ]
 
 [[text.es.decisions]]
@@ -618,8 +626,8 @@ why = "Uno para esta web y los proyectos personales que se pueden ver en públic
 
 [[text.es.decisions]]
 title = "Bloquear IPs"
-choice = "CrowdSec, después de una semana mirando"
-why = "Bloquear a un visitante legítimo (un amigo en los juegos, yo desde fuera) es peor que dejar pasar un escaneo que no encuentra nada. Antes de bloquear, el resumen diario marca las IPs que habría bloqueado y que recibieron respuestas buenas: las candidatas a falso positivo."
+choice = "CrowdSec, después de unos días mirando"
+why = "Bloquear a un visitante legítimo (un amigo en los juegos, yo desde fuera) es peor que dejar pasar un escaneo que no encuentra nada. Antes de bloquear, el resumen diario marca las IPs que habría bloqueado y que recibieron respuestas buenas: las candidatas a falso positivo. Las 71 que salieron eran escáneres en páginas públicas."
 
 [[text.es.decisions]]
 title = "Qué se publica"
@@ -880,7 +888,7 @@ steps = [
   "And it takes the last IP in the chain: if the scanner sends a fake header, it gets nothing out of it.",
   "The request is logged with its real IP.",
   "CrowdSec recognises the scenario, decides to block that IP and shares it with its community network.",
-  "The Traefik plugin enforces the decisions at the entrance. For the first week, it only counts what it would have blocked.",
+  "The Traefik plugin enforces the decisions at the entrance: that IP no longer gets through.",
   "Every morning, a summary: what it detected, how many community-list IPs showed up and which might be false positives.",
 ]
 
@@ -967,22 +975,30 @@ items = [
 ]
 
 [[text.en.timeline]]
-title = "CrowdSec at the door"
-period = "15-10-2026"
-items = [
-  "Traefik sees each visitor's real IP: before, nearly all traffic seemed to come from Cloudflare.",
-  "CrowdSec reads the access log, shares with its community network and gets its list back.",
-  "A week of only watching, with a daily summary of what it would have blocked, before blocking.",
-  "Log rotation, in code.",
-]
-
-[[text.en.timeline]]
 title = "Less surface"
 period = "26-09-2026"
 items = [
   "Internal panels off the internet: hypervisor, automations, start page, Traefik's own dashboard and others.",
   "Their routes and DNS records deleted; they're still in use behind the internal door with two-factor auth.",
   "Routes generated from a single list in the repo, with declared redirects.",
+]
+
+[[text.en.timeline]]
+title = "CrowdSec at the door"
+period = "15-10-2026"
+items = [
+  "Traefik sees each visitor's real IP: before, nearly all traffic seemed to come from Cloudflare.",
+  "CrowdSec reads the access log, shares with its community network and gets its list back.",
+  "Three days of only watching: it would have blocked 7,875 requests from 143 IPs, all scanners, with no known false positive. Then, blocking switched on.",
+  "Log rotation, in code.",
+]
+
+[[text.en.timeline]]
+title = "On its own network"
+period = "18-10-2026"
+items = [
+  "The public door moves to a separate network (DMZ), isolated from the home network: from there it only reaches DNS, monitoring and the services it publishes.",
+  "If someone compromised it, they wouldn't see the rest of the house.",
 ]
 
 [[text.en.decisions]]
@@ -1002,8 +1018,8 @@ why = "One for this site and the personal projects that can be seen in public, o
 
 [[text.en.decisions]]
 title = "Blocking IPs"
-choice = "CrowdSec, after a week of watching"
-why = "Blocking a legitimate visitor (a friend in the games, me from outside) is worse than letting through a scan that finds nothing. Before blocking, the daily summary flags the IPs it would have blocked that got good responses: the false-positive candidates."
+choice = "CrowdSec, after a few days of watching"
+why = "Blocking a legitimate visitor (a friend in the games, me from outside) is worse than letting through a scan that finds nothing. Before blocking, the daily summary flags the IPs it would have blocked that got good responses: the false-positive candidates. The 71 that showed up were scanners hitting public pages."
 
 [[text.en.decisions]]
 title = "What gets published"

@@ -537,6 +537,14 @@ items = [
   "El bot propio de esta web, en su sala.",
 ]
 
+[[text.es.timeline]]
+title = "Avisos ordenados y un diagnóstico"
+period = "15 y 18-10-2026"
+items = [
+  "Salas aparte para el CI/CD y CrowdSec: la de incidencias solo recibe lo que hay que mirar.",
+  "Un bot que, al pedírselo, recorre la cadena de un servicio (DNS, Cloudflare, router, la puerta, el contenedor) y dice el primer punto que falla. Todo con permisos de solo lectura.",
+]
+
 [[text.es.decisions]]
 title = "Qué servidor"
 choice = "Synapse, el de referencia"
@@ -859,6 +867,14 @@ period = "September and October 2026"
 items = [
   "Topic rooms for Hermes and its watchers.",
   "This site's own bot, in its room.",
+]
+
+[[text.en.timeline]]
+title = "Tidier alerts and a diagnosis"
+period = "15 and 18-10-2026"
+items = [
+  "Separate rooms for CI/CD and CrowdSec: incidents only gets what needs looking at.",
+  "A bot that, when asked, walks a service's chain (DNS, Cloudflare, router, the door, the container) and names the first point that fails. All with read-only permissions.",
 ]
 
 [[text.en.decisions]]

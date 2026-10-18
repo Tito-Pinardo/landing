@@ -58,6 +58,13 @@ links = [
   { title = "Proxmox Backup Server", url = "https://pbs.proxmox.com/docs/", source = "Documentación de Proxmox" },
 ]
 
+[[text.es.sections]]
+heading = "Tres días después: la prueba cumple"
+paragraphs = [
+  "Desde el 15-10, cada domingo se restaura sola una tanda de contenedores y se compara con los originales. El primer domingo falló en todos con «Permission denied». Las copias estaban bien: esa mañana, un despliegue del gestor de descargas había cambiado el dueño de todo lo que había en los discos de medios, y las copias viven en uno de ellos. 96.672 trozos pasaron a otro usuario.",
+  "Devolverles el dueño lo arregló, y el rol ya salta las carpetas que no son medios. Lo importante es cuándo lo supe: el mismo día, por la prueba, y no el día que hubiera necesitado una copia.",
+]
+
 [text.en]
 impact = "None in production. It closes the homelab's biggest gap: until that day, the data had no regular backups."
 detected = "It had been written down as pending since September, in red, in the documentation and on this very site."
@@ -110,4 +117,11 @@ paragraphs = [
 ]
 links = [
   { title = "Proxmox Backup Server", url = "https://pbs.proxmox.com/docs/", source = "Proxmox documentation" },
+]
+
+[[text.en.sections]]
+heading = "Three days later: the test earns its keep"
+paragraphs = [
+  "Since 15-10, every Sunday a batch of containers restores itself and is compared with the originals. The first Sunday it failed on all of them with «Permission denied». The backups were fine: that morning, a deployment of the download manager had changed the owner of everything on the media disks, and the backups live on one of them. 96,672 chunks went to another user.",
+  "Giving them their owner back fixed it, and the role now skips folders that aren't media. What matters is when I found out: the same day, thanks to the test, not the day I'd have needed a backup.",
 ]

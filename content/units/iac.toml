@@ -384,9 +384,9 @@ title = "Roles"
 text = "Uno por servicio, reutilizables: paquetes, configuración, servicio y comprobación final."
 
 [text.es.pods.vault]
-short = "Vault"
-title = "Ansible Vault"
-text = "Los secretos de cada grupo, cifrados. Su contraseña ya no está en el disco: la entrega OpenBao, en tokens de 15 minutos. En el repositorio público solo hay ejemplos."
+short = "Secretos"
+title = "Secretos"
+text = "Ya no hay ficheros de secretos: cada grupo lee los suyos de OpenBao, en tokens de 15 minutos, y en el repositorio solo están sus nombres. En el público, ni eso: ejemplos."
 
 [text.es.pods.diff]
 short = "--check --diff"
@@ -411,7 +411,7 @@ text = "SSH solo con clave y desde orígenes concretos, servicios sobrantes fuer
 [text.es.pods.updates]
 short = "Actualizar"
 title = "Actualizaciones"
-text = "Paquetes de toda la flota e imágenes Docker, esperando a que cada contenedor esté sano antes de seguir."
+text = "Los paquetes de toda la flota, solos cada miércoles de madrugada; las imágenes Docker y lo demás, con un botón en Forgejo. Ninguno se reinicia solo."
 
 [text.es.pods.storage]
 short = "ZFS"
@@ -431,7 +431,7 @@ steps = [
   "Por la API de Proxmox.",
   "Y el contenedor existe.",
   "Escribo el rol del servicio.",
-  "Sus secretos, cifrados en el vault.",
+  "Sus secretos, a OpenBao; en el repositorio, solo sus nombres.",
   "Ensayo: qué ficheros cambiarían.",
   "Lo reviso.",
   "Aplico el rol.",
@@ -446,12 +446,12 @@ steps = [
 [text.es.flows.update]
 title = "Actualizo la flota"
 steps = [
-  "Desde el nodo de control, lanzo la actualización.",
+  "Cada miércoles de madrugada se actualizan solos los paquetes; para el resto, un botón en Forgejo: qué (paquetes, contenedores o todo) y en qué equipos.",
   "Primero, una simulación por equipo.",
   "Se rechazan cambios de kernel, drivers o servicios críticos.",
   "Se aplica equipo a equipo.",
   "Cada contenedor tiene que volver sano antes de pasar al siguiente.",
-  "Y los agentes de monitorización confirman.",
+  "Los agentes de monitorización confirman, y el resumen llega al móvil: qué cambió y qué equipos piden reiniciar. Eso lo decido yo.",
 ]
 
 [text.es.flows.danger]
@@ -587,14 +587,14 @@ why = "Cada migración deja el contenedor antiguo apagado como vuelta atrás has
 
 [text.es.tech_notes]
 terraform = "Un fichero por contenedor o VM con el proveedor de Proxmox, plan antes de cada aplicación y cuidado con los campos que recrean."
-ansible = "Un rol por servicio, secretos en Ansible Vault, ensayo con --check --diff y actualizaciones de la flota equipo a equipo."
+ansible = "Un rol por servicio, secretos leídos de OpenBao, ensayo con --check --diff y actualizaciones de la flota equipo a equipo."
 proxmox = "Terraform habla con su API con un token de permisos justos; el nodo de control vive en un contenedor del propio servidor."
 lxc = "Un contenedor por servicio, casi todos sin privilegios."
 zfs = "Los datos de cada servicio viven en ZFS y se montan; los roles no los tocan."
 git = "Todo versionado, con hook que empuja a dos remotos y una copia pública saneada."
 forgejo = "El origen del repositorio: rama principal protegida, CI sin secretos, plan del PR y despliegue con un clic."
 renovate = "Un PR por cada versión fijada que tiene versión nueva, con su suma oficial; se aplica con el mismo plan y el mismo clic."
-openbao = "La contraseña de los secretos y las credenciales de Terraform salen de OpenBao, no del disco del nodo de control."
+openbao = "Todos los secretos y las credenciales de Terraform salen de OpenBao, no del repositorio ni del disco del nodo de control."
 crowdsec = "Su rol instala el motor, sus fuentes y el resumen diario; la IP real detrás de Cloudflare y el plugin, en el de Traefik."
 pbs = "El servidor de copias, su almacén, la tarea nocturna y la copia aparte de los mundos de los juegos, todo desde código."
 linux = "Contenedores Debian, Ubuntu y Alpine configurados de forma uniforme."
@@ -742,9 +742,9 @@ title = "Roles"
 text = "One per service, reusable: packages, configuration, service and a final check."
 
 [text.en.pods.vault]
-short = "Vault"
-title = "Ansible Vault"
-text = "Each group's secrets, encrypted. Their password is no longer on disk: OpenBao hands it out in 15-minute tokens. The public repo only has examples."
+short = "Secrets"
+title = "Secrets"
+text = "No more secret files: each group reads its own from OpenBao in 15-minute tokens, and the repository only has their names. The public one, not even that: examples."
 
 [text.en.pods.diff]
 short = "--check --diff"
@@ -769,7 +769,7 @@ text = "Key-only SSH from specific sources, spare services removed and monitorin
 [text.en.pods.updates]
 short = "Update"
 title = "Updates"
-text = "Packages across the fleet and Docker images, waiting for each container to be healthy before moving on."
+text = "Packages across the fleet, on their own every Wednesday before dawn; Docker images and the rest, with a button in Forgejo. Nothing restarts on its own."
 
 [text.en.pods.storage]
 short = "ZFS"
@@ -789,7 +789,7 @@ steps = [
   "Through the Proxmox API.",
   "And the container exists.",
   "I write the service's role.",
-  "Its secrets, encrypted in the vault.",
+  "Its secrets, into OpenBao; in the repository, only their names.",
   "Dry run: which files would change.",
   "I review it.",
   "I apply the role.",
@@ -804,12 +804,12 @@ steps = [
 [text.en.flows.update]
 title = "I update the fleet"
 steps = [
-  "From the control node, I start the update.",
+  "Every Wednesday before dawn, packages update on their own; for the rest, a button in Forgejo: what (packages, containers or everything) and on which machines.",
   "First, a simulation per machine.",
   "Kernel, driver or critical-service changes are rejected.",
   "It's applied machine by machine.",
   "Each container has to come back healthy before moving to the next.",
-  "And the monitoring agents confirm it.",
+  "The monitoring agents confirm it, and the summary reaches my phone: what changed and which machines want a restart. That's my call.",
 ]
 
 [text.en.flows.danger]
@@ -945,14 +945,14 @@ why = "Each migration leaves the old container switched off as a way back until 
 
 [text.en.tech_notes]
 terraform = "One file per container or VM with the Proxmox provider, a plan before every apply and care with fields that recreate."
-ansible = "One role per service, secrets in Ansible Vault, dry runs with --check --diff and fleet updates machine by machine."
+ansible = "One role per service, secrets read from OpenBao, dry runs with --check --diff and fleet updates machine by machine."
 proxmox = "Terraform talks to its API with a least-privilege token; the control node lives in a container on the server itself."
 lxc = "One container per service, almost all unprivileged."
 zfs = "Each service's data lives on ZFS and is mounted; roles don't touch it."
 git = "Everything versioned, with a hook pushing to two remotes and a cleaned public copy."
 forgejo = "The repository's origin: protected main branch, CI with no secrets, the PR's plan and one-click deploys."
 renovate = "One PR for every pinned version with a new release, with its official checksum; applied with the same plan and the same click."
-openbao = "The secrets' password and the Terraform credentials come from OpenBao, not from the control node's disk."
+openbao = "Every secret and the Terraform credentials come from OpenBao, not from the repository or the control node's disk."
 crowdsec = "Its role installs the engine, its sources and the daily summary; the real IP behind Cloudflare and the plugin, in Traefik's."
 pbs = "The backup server, its datastore, the nightly job and the separate copy of the game worlds, all from code."
 linux = "Debian, Ubuntu and Alpine containers configured uniformly."
