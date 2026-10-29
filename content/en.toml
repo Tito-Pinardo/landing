@@ -152,6 +152,21 @@ bullets = [
 outcome = "Rebuilding a service goes from an afternoon of trial and error to a single command."
 lesson = "After a power cut left LVM storage inactive and every service down, I wrote the postmortem with the root cause, how to detect it and the exact fix."
 
+[projects.battlepros]
+title = "BattlePros · a custom Minecraft network"
+tagline = "One world split across several servers, with no loading screens between them, and my own gateway, controller and agents in Rust."
+context = "Personal project, open for external testing since October 2026."
+problem = "A single Minecraft server runs out of room with many players, and regular proxies show a loading screen every time you switch servers."
+bullets = [
+  "My own Rust gateway that splices a player's connection from one server to another with no loading screen; Mojang accounts only, with zero holes in the impersonation suite.",
+  "A Rust controller that splits the world into cells across Folia shards, never cutting through bases or redstone, and reassigns them if a server dies.",
+  "A Svelte panel to add physical servers with one command, change network-wide player slots, send announcements, pin versions and watch metrics.",
+  "Every change measured with 100 bots against the previous version and logged with its reason: paying went from 707 to 140 ms, TPS with 100 bots from 17.4 to 19.",
+  "Tested with two zones 80 ms apart to validate the cross-continent split; in production, a single zone on this server.",
+]
+outcome = "Open for external testing: the gateway lives isolated in the DMZ and everything else sits behind it, with nothing on my PC."
+lesson = "With a distant database the cost isn't queries but round trips: merging five into one beat any cache."
+
 [projects.hermes]
 title = "Hermes · local AI assistant"
 tagline = "A chat assistant that knows the state of my servers, and nothing leaves my network."
@@ -353,6 +368,7 @@ observability = "Observability & security"
 platform = "Platform"
 lab = "Hypervisor & lab"
 delivery = "Delivery & secrets"
+games = "Custom games"
 
 [nodes.internet]
 short = "Internet"
@@ -528,6 +544,16 @@ text = "Checks every push without a single secret: Terraform, ansible-lint, gitl
 short = "Deploy"
 title = "Deploy runner"
 text = "Lives on the control node. It works out the plan for each change and, once I approve, applies that exact plan. This site it deploys on its own when its CI goes green. Every Monday, Renovate opens the PRs for new versions here."
+
+[nodes.bpborde]
+short = "MC gateway"
+title = "BattlePros gateway (1U unit)"
+text = "My Rust Minecraft proxy, isolated in the DMZ: the only part of the game network visible from the internet. Mojang accounts only."
+
+[nodes.battlepros]
+short = "BattlePros"
+title = "BattlePros (1U unit)"
+text = "The controller, the Folia shards, the world store and the database of the Minecraft network. Tested with two zones; in production, just this one."
 
 [nodes.openbao]
 short = "OpenBao"
@@ -752,6 +778,18 @@ steps = [
   "The Rust binary already has the page rendered in memory: it answers in microseconds.",
   "The response goes back through Cloudflare, which keeps a copy of whatever can be cached.",
   "And you're looking at it. The whole trip, in milliseconds.",
+]
+
+[flows.battlepros]
+title = "You join BattlePros"
+steps = [
+  "You open Minecraft and type the server's domain.",
+  "DNS tells you which port to use. Here Cloudflare only answers: Minecraft doesn't go through its proxy.",
+  "The router lets that port through, and only to the DMZ.",
+  "The gateway, my Rust proxy, checks your account with Mojang.",
+  "It hands you to the shard that owns your part of the world. Click the part and open the unit to see inside.",
+  "If you cross into another area, the gateway switches servers with no loading screen.",
+  "And you keep playing as if it were a single server.",
 ]
 
 [flows.xpify]

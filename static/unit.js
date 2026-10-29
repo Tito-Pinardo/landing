@@ -592,4 +592,39 @@
     });
   });
   paintScore();
+
+  // ------------------------------------------------------- antes y después
+  // Sin JS se ven todos los grupos; con él, uno por pestaña y las barras de
+  // «después» crecen desde cero al enseñarlo.
+  const tabs = $$("[data-bench-tab]");
+  const groups = $$("[data-bench-group]");
+  function showBench(id, focus) {
+    tabs.forEach((t) => {
+      const on = t.dataset.benchTab === id;
+      t.setAttribute("aria-selected", on ? "true" : "false");
+      t.tabIndex = on ? 0 : -1;
+      if (on && focus) t.focus();
+    });
+    groups.forEach((g) => {
+      const on = g.dataset.benchGroup === id;
+      g.hidden = !on;
+      if (!on) return;
+      $$("rect[data-w]", g).forEach((r) => {
+        if (reduceMotion()) return r.setAttribute("width", r.dataset.w);
+        r.setAttribute("width", "0");
+        requestAnimationFrame(() => requestAnimationFrame(() => r.setAttribute("width", r.dataset.w)));
+      });
+    });
+  }
+  if (tabs.length) {
+    $("#bench")?.classList.add("has-tabs");
+    tabs.forEach((t, i) => {
+      t.addEventListener("click", () => { snd("click"); showBench(t.dataset.benchTab); });
+      t.addEventListener("keydown", (ev) => {
+        const d = ev.key === "ArrowRight" ? 1 : ev.key === "ArrowLeft" ? -1 : 0;
+        if (d) showBench(tabs[(i + d + tabs.length) % tabs.length].dataset.benchTab, true);
+      });
+    });
+    showBench(tabs[0].dataset.benchTab);
+  }
 })();

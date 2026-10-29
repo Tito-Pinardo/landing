@@ -554,6 +554,89 @@ pub struct SkillView {
     pub note: String,
 }
 
+/// Una pestaña de «antes y después»: sus medidas con las barras ya
+/// calculadas (anchos en % del mayor de los dos, para el SVG).
+pub struct BenchGroupView<'a> {
+    pub id: &'a str,
+    pub name: &'a str,
+    pub rows: Vec<BenchRowView<'a>>,
+}
+
+pub struct BenchRowView<'a> {
+    pub label: &'a str,
+    pub why: &'a str,
+    pub before: String,
+    pub after: String,
+    pub before_w: String,
+    pub after_w: String,
+    /// «−84 %» o «×2,3»; `better` lo pinta en verde.
+    pub delta: String,
+    pub better: bool,
+}
+
+/// Número con la coma o el punto de cada idioma; sin decimales si es entero.
+fn num(v: f64, lang: Lang) -> String {
+    let s = if v.fract() == 0.0 || v.abs() >= 100.0 {
+        format!("{v:.0}")
+    } else {
+        format!("{v:.1}")
+    };
+    if lang == Lang::Es {
+        s.replace('.', ",")
+    } else {
+        s
+    }
+}
+
+fn bench_views<'a>(unit: &'a Unit, t: &'a UnitText, lang: Lang) -> Vec<BenchGroupView<'a>> {
+    let Some(tb) = &t.bench else {
+        return Vec::new();
+    };
+    tb.groups
+        .iter()
+        .map(|(id, name)| BenchGroupView {
+            id,
+            name,
+            rows: unit
+                .bench
+                .iter()
+                .filter(|b| &b.group == id)
+                .map(|b| {
+                    let max = b.before.max(b.after);
+                    let better = if b.higher {
+                        b.after > b.before
+                    } else {
+                        b.after < b.before
+                    };
+                    // Lo que sube mucho se cuenta en veces; lo demás, en %.
+                    let ratio = b.after / b.before;
+                    let delta = if ratio >= 2.0 {
+                        format!("×{}", num((ratio * 10.0).round() / 10.0, lang))
+                    } else {
+                        let pct = ((ratio - 1.0) * 100.0).round();
+                        format!(
+                            "{}{} %",
+                            if pct < 0.0 { "−" } else { "+" },
+                            num(pct.abs(), lang)
+                        )
+                    };
+                    let rt = &tb.rows[&b.id];
+                    BenchRowView {
+                        label: &rt.label,
+                        why: &rt.why,
+                        before: format!("{} {}", num(b.before, lang), b.unit),
+                        after: format!("{} {}", num(b.after, lang), b.unit),
+                        before_w: format!("{:.1}", 100.0 * b.before / max),
+                        after_w: format!("{:.1}", 100.0 * b.after / max),
+                        delta,
+                        better,
+                    }
+                })
+                .collect(),
+        })
+        .collect()
+}
+
 pub struct IncidentView<'a> {
     pub id: &'a str,
     pub n: usize,
@@ -581,6 +664,7 @@ pub struct UnitTpl<'a> {
     pub flows: Vec<FlowView>,
     pub skills: Vec<SkillView>,
     pub incidents: Vec<IncidentView<'a>>,
+    pub bench: Vec<BenchGroupView<'a>>,
     pub common: &'a BTreeMap<String, String>,
     pub status: &'a str,
     /// «Posición 3 de 23 en el rack» y el estado, ya rellenos.
@@ -752,6 +836,7 @@ pub fn unit(
         ("skills", "SKILLS".into(), true),
         ("xp", "XP ENGINE".into(), unit.xp.is_some()),
         ("vram", "VRAM".into(), unit.vram.is_some()),
+        ("bench", "BENCH".into(), !unit.bench.is_empty()),
         ("incidents", "LOGS".into(), !unit.incidents.is_empty()),
         ("build", "BUILD".into(), true),
         ("close", "EOF".into(), true),
@@ -799,6 +884,7 @@ pub fn unit(
         flows,
         skills,
         incidents,
+        bench: bench_views(unit, t, lang),
         common: &mt.unit_ui,
         status: &unit.status,
         pos_label: ui["rack_pos"]

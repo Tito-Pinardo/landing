@@ -29,6 +29,7 @@ pub const EMBEDDED: &[&str] = units![
     "n8n",
     "homepage",
     "amp",
+    "battlepros",
     "plex",
     "arr",
     "tv",
@@ -76,7 +77,27 @@ pub struct Unit {
     pub flows: Vec<UnitFlow>,
     #[serde(default)]
     pub incidents: Vec<UnitIncident>,
+    /// Antes y después medidos, por grupos (pestañas con barras).
+    #[serde(default)]
+    pub bench: Vec<BenchRow>,
     pub text: BTreeMap<String, UnitText>,
+}
+
+/// Una medida de antes y después. Los nombres y el porqué van en
+/// `[text.*.bench]`; aquí solo los números, para que no se desfasen entre
+/// idiomas.
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BenchRow {
+    pub id: String,
+    pub group: String,
+    pub before: f64,
+    pub after: f64,
+    /// ms, TPS, %…: se pinta tras el número.
+    pub unit: String,
+    /// true si más es mejor (TPS); por defecto, menos es mejor (latencia).
+    #[serde(default)]
+    pub higher: bool,
 }
 
 /// Simulador de VRAM: qué parte del modelo cabe en la GPU según lo que haya
@@ -158,6 +179,8 @@ pub struct UnitText {
     pub vram: Option<VramText>,
     #[serde(default)]
     pub incidents: BTreeMap<String, IncidentLog>,
+    #[serde(default)]
+    pub bench: Option<BenchText>,
     pub timeline: Vec<Phase>,
     pub decisions: Vec<Decision>,
     /// Para qué usé cada tecnología del proyecto; también lo enseña la
@@ -227,6 +250,26 @@ pub struct IncidentLog {
     pub cause: String,
     pub fix: String,
     pub lesson: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BenchText {
+    pub title: String,
+    pub intro: String,
+    pub before: String,
+    pub after: String,
+    pub note: String,
+    /// Nombre de cada grupo (pestaña), en el orden en que salen.
+    pub groups: Vec<(String, String)>,
+    pub rows: BTreeMap<String, BenchRowText>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct BenchRowText {
+    pub label: String,
+    pub why: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -469,6 +512,20 @@ impl Unit {
                 ctx("vram: la reserva no cabe en la tarjeta")
             );
         }
+        let mut bench_ids = HashSet::new();
+        for b in &self.bench {
+            ensure!(
+                bench_ids.insert(b.id.as_str()),
+                ctx(&format!("bench {}: repetida", b.id))
+            );
+            ensure!(
+                b.before > 0.0 && b.after > 0.0 && b.before.is_finite() && b.after.is_finite(),
+                ctx(&format!(
+                    "bench {}: los valores van por encima de cero",
+                    b.id
+                ))
+            );
+        }
         if let Some(x) = &self.xp {
             ensure!(
                 x.base_min <= x.base_default && x.base_default <= x.base_max,
@@ -571,6 +628,22 @@ impl Unit {
                 ),
                 (None, None) => {}
                 _ => anyhow::bail!(ctx("[xp] y [text.*.xp] van juntos")),
+            }
+            match (self.bench.is_empty(), &t.bench) {
+                (false, Some(tb)) => {
+                    same(
+                        self.bench.iter().map(|b| b.group.as_str()),
+                        tb.groups.iter().map(|(g, _)| g),
+                        &ctx("bench.groups"),
+                    )?;
+                    same(
+                        self.bench.iter().map(|b| b.id.as_str()),
+                        tb.rows.keys(),
+                        &ctx("bench.rows"),
+                    )?;
+                }
+                (true, None) => {}
+                _ => anyhow::bail!(ctx("[[bench]] y [text.*.bench] van juntos")),
             }
             match (&self.vram, &t.vram) {
                 (Some(v), Some(tv)) => {

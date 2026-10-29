@@ -270,6 +270,39 @@
 </section>
 {% endif %}
 
+<!-- ========================== ANTES Y DESPUÉS ========================== -->
+{% if let Some(tb) = t.bench %}
+<section class="bay" id="bench" aria-labelledby="bench-title">
+  <p class="bay-silk" aria-hidden="true">{{ bay("bench") }}</p>
+  <h2 id="bench-title">{{ tb.title }}</h2>
+  <p class="muted">{{ tb.intro }}</p>
+  <div class="bench-tabs js-only" role="tablist" data-bench-tabs>
+  {% for g in bench %}<button type="button" role="tab" class="bench-tab" data-bench-tab="{{ g.id }}" aria-selected="{% if loop.first %}true{% else %}false{% endif %}">{{ g.name }}</button>{% endfor %}
+  </div>
+  <p class="bench-legend small"><span class="bench-key bench-key-before"></span>{{ tb.before }} <span class="bench-key bench-key-after"></span>{{ tb.after }}</p>
+  {% for g in bench %}
+  <div class="bench-group" data-bench-group="{{ g.id }}" role="tabpanel">
+    <h3 class="bench-group-name">{{ g.name }}</h3>
+    <ul class="bench-rows">
+    {% for r in g.rows %}
+      <li class="bench-row">
+        <p class="bench-label"><strong>{{ r.label }}</strong> <span class="bench-delta{% if r.better %} is-better{% endif %}">{{ r.delta }}</span></p>
+        <div class="bench-bars">
+          <span class="bench-v">{{ r.before }}</span>
+          <svg class="bench-bar" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect class="bench-bg" width="100" height="6" rx="1.5"/><rect class="bench-before" width="{{ r.before_w }}" height="6" rx="1.5"/></svg>
+          <span class="bench-v bench-v-after">{{ r.after }}</span>
+          <svg class="bench-bar" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect class="bench-bg" width="100" height="6" rx="1.5"/><rect class="bench-after" width="{{ r.after_w }}" height="6" rx="1.5" data-w="{{ r.after_w }}"/></svg>
+        </div>
+        <p class="muted small">{{ r.why }}</p>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+  <p class="muted small">{{ tb.note }}</p>
+</section>
+{% endif %}
+
 <!-- ============================== BITÁCORA ============================== -->
 {% if !incidents.is_empty() %}
 <section class="bay" id="incidents" aria-labelledby="inc-title">

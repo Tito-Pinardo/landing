@@ -1,0 +1,1388 @@
+# Unidad 1U del rack: BattlePros, una red de Minecraft hecha a medida.
+#
+# Fuente: la wiki de resultados del proyecto (cada medida contra la línea
+# base, con su porqué) y su documentación. Sin direcciones, puertos ni
+# nombres internos: solo qué hace cada pieza.
+
+id = "battlepros"
+project = "battlepros"
+status = "live"
+host_tech = ["proxmox", "lxc", "linux"]
+links = [
+  ["player", "dns"],
+  ["friend", "dns"],
+  ["dns", "router"],
+  ["router", "entrada"],
+  ["entrada", "mojang"],
+  ["admin", "authelia"],
+  ["forgejo", "mando"],
+  ["otro", "mando"],
+]
+
+# Antes y después: números de la wiki de resultados. `higher = true` si más
+# es mejor. Los nombres y el porqué van en [text.*.bench].
+[[bench]]
+id = "pay"
+group = "db"
+before = 707
+after = 140
+unit = "ms"
+
+[[bench]]
+id = "sethome"
+group = "db"
+before = 461
+after = 144
+unit = "ms"
+
+[[bench]]
+id = "perfil"
+group = "db"
+before = 393
+after = 138
+unit = "ms"
+
+[[bench]]
+id = "venta"
+group = "db"
+before = 2768
+after = 852
+unit = "ms"
+
+[[bench]]
+id = "msg"
+group = "db"
+before = 84
+after = 3
+unit = "ms"
+
+[[bench]]
+id = "tps"
+group = "tick"
+before = 17.4
+after = 19.0
+unit = "TPS"
+higher = true
+
+[[bench]]
+id = "mspt"
+group = "tick"
+before = 33.7
+after = 26.7
+unit = "ms"
+
+[[bench]]
+id = "mobs"
+group = "tick"
+before = 10.3
+after = 15.8
+unit = "TPS"
+higher = true
+
+[[bench]]
+id = "menus"
+group = "tick"
+before = 270
+after = 19
+unit = "ms"
+
+[[bench]]
+id = "generar"
+group = "world"
+before = 23
+after = 54
+unit = "chunks/s"
+higher = true
+
+[[bench]]
+id = "zstd"
+group = "world"
+before = 6.9
+after = 7.5
+unit = "×"
+higher = true
+
+[[bench]]
+id = "entrada"
+group = "world"
+before = 28.6
+after = 18.8
+unit = "%"
+
+[[bench]]
+id = "disco"
+group = "world"
+before = 465
+after = 208
+unit = "ms"
+
+# ---------------------------------------------------------------------------
+# Mapa. Lienzo de 1200x630; `group` vacío = fuera del servidor.
+# ---------------------------------------------------------------------------
+
+[[groups]]
+id = "dmz"
+x = 420
+y = 80
+w = 760
+h = 104
+
+[[groups]]
+id = "control"
+x = 420
+y = 206
+w = 760
+h = 104
+
+[[groups]]
+id = "game"
+x = 420
+y = 332
+w = 760
+h = 104
+
+[[groups]]
+id = "data"
+x = 420
+y = 458
+w = 760
+h = 104
+
+# Fuera
+[[pods]]
+id = "player"
+x = 100
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "mojang"
+x = 290
+y = 110
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "dns"
+x = 100
+y = 250
+kind = "network"
+group = ""
+tech = ["dns"]
+
+[[pods]]
+id = "router"
+x = 290
+y = 250
+kind = "network"
+group = ""
+tech = ["mikrotik", "vlan"]
+
+[[pods]]
+id = "friend"
+x = 100
+y = 390
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "admin"
+x = 290
+y = 390
+kind = "edge"
+group = ""
+tech = []
+
+[[pods]]
+id = "forgejo"
+x = 100
+y = 530
+kind = "control"
+group = ""
+tech = ["forgejo", "git"]
+
+[[pods]]
+id = "otro"
+x = 290
+y = 530
+kind = "compute"
+group = ""
+tech = ["linux"]
+
+# DMZ: lo único que se ve desde internet
+[[pods]]
+id = "entrada"
+x = 515
+y = 140
+kind = "network"
+group = "dmz"
+tech = ["rust", "hardening"]
+
+[[pods]]
+id = "voz"
+x = 700
+y = 140
+kind = "network"
+group = "dmz"
+tech = ["rust"]
+
+[[pods]]
+id = "fw"
+x = 885
+y = 140
+kind = "network"
+group = "dmz"
+tech = ["vlan", "hardening"]
+
+# Control
+[[pods]]
+id = "authelia"
+x = 515
+y = 266
+kind = "control"
+group = "control"
+tech = ["hardening"]
+
+[[pods]]
+id = "panel"
+x = 700
+y = 266
+kind = "app"
+group = "control"
+tech = ["typescript"]
+
+[[pods]]
+id = "mando"
+x = 885
+y = 266
+kind = "control"
+group = "control"
+tech = ["rust", "postgresql"]
+
+[[pods]]
+id = "postgres"
+x = 1070
+y = 266
+kind = "app"
+group = "control"
+tech = ["postgresql"]
+
+# El juego
+[[pods]]
+id = "eu1"
+x = 515
+y = 392
+kind = "compute"
+group = "game"
+tech = ["java"]
+
+[[pods]]
+id = "eu2"
+x = 700
+y = 392
+kind = "compute"
+group = "game"
+tech = ["java"]
+
+[[pods]]
+id = "coliseo"
+x = 885
+y = 392
+kind = "compute"
+group = "game"
+tech = ["java"]
+
+[[pods]]
+id = "generador"
+x = 1070
+y = 392
+kind = "compute"
+group = "game"
+tech = ["rust"]
+
+# Mundo y datos
+[[pods]]
+id = "almacen"
+x = 515
+y = 518
+kind = "app"
+group = "data"
+tech = ["rust"]
+
+[[pods]]
+id = "agente"
+x = 700
+y = 518
+kind = "control"
+group = "data"
+tech = ["rust", "linux"]
+
+[[pods]]
+id = "copias"
+x = 885
+y = 518
+kind = "observability"
+group = "data"
+tech = ["pbs"]
+
+[[pods]]
+id = "metricas"
+x = 1070
+y = 518
+kind = "observability"
+group = "data"
+tech = ["postgresql"]
+
+# ---------------------------------------------------------------------------
+# Recorridos: el camino real que hace cada cosa.
+# ---------------------------------------------------------------------------
+
+[[flows]]
+id = "login"
+path = ["player", "dns", "router", "fw", "entrada", "mojang", "entrada", "mando", "entrada", "eu1", "player"]
+
+[[flows]]
+id = "cross"
+path = ["player", "eu1", "mando", "entrada", "eu2", "almacen", "eu2", "player"]
+
+[[flows]]
+id = "chat"
+path = ["player", "entrada", "eu1", "postgres", "eu2", "entrada", "friend"]
+
+[[flows]]
+id = "install"
+path = ["admin", "authelia", "panel", "mando", "panel", "admin", "otro", "mando", "otro", "agente", "mando"]
+
+[[flows]]
+id = "slots"
+path = ["admin", "authelia", "panel", "mando", "postgres", "mando", "agente", "entrada", "friend"]
+
+[[flows]]
+id = "release"
+path = ["forgejo", "mando", "agente", "eu1", "agente", "eu2", "agente", "coliseo", "mando"]
+
+[[flows]]
+id = "crash"
+path = ["eu2", "agente", "mando", "postgres", "mando", "eu1", "entrada", "player"]
+
+# ---------------------------------------------------------------------------
+# Bitácora: fallos reales. `answer` es el índice de la causa correcta.
+# ---------------------------------------------------------------------------
+
+[[incidents]]
+id = "dns"
+answer = 2
+
+[[incidents]]
+id = "chat"
+answer = 1
+
+[[incidents]]
+id = "lock"
+answer = 0
+
+[[incidents]]
+id = "oom"
+answer = 2
+
+[[incidents]]
+id = "menus"
+answer = 1
+
+# ===========================================================================
+# Español
+# ===========================================================================
+
+[text.es.meta]
+title = "BattlePros por dentro · Tito Pinardo Gutiérrez"
+description = "Una red de Minecraft hecha a medida: entrada propia en Rust, fragmentos con Folia, un mando que lo reparte todo y un panel para añadir servidores con una orden. Cada cambio, medido contra la línea base."
+
+[text.es.ui]
+slot = "1U · BATTLEPROS"
+face_specs = "Rust · Folia · PostgreSQL"
+state = "Abierto a pruebas externas"
+map_silk = "GAME NET"
+map_title = "La red por dentro"
+map_intro = "Pulsa una pieza o elige un recorrido: entrar, cruzar de un servidor a otro sin pantalla de carga, añadir un servidor con una orden…"
+vm_title = "Un goliat · contenedores en Proxmox"
+vm_specs = "una zona en producción"
+outside = "Fuera"
+disclaimer = "Reconstrucción a partir de la documentación y la wiki de resultados del proyecto: sin direcciones, puertos ni nombres internos."
+
+[text.es.hero]
+kicker = "Unidad 1U · Proyecto personal en marcha"
+title = "BattlePros"
+tagline = "Una red de Minecraft hecha a medida: un solo mundo repartido entre varios servidores, sin pantallas de carga al pasar de uno a otro, y todo lo que hay detrás (entrada, mando, agentes, panel) escrito desde cero."
+grade = "Abierto a pruebas · 0.7.45"
+facts = [
+  { label = "Mi parte", value = "La idea, la arquitectura, las decisiones y las pruebas. El código lo escribo con un agente de IA como compañero, con reglas fijas: medir antes y después, documentar el porqué y no tocar la jugabilidad." },
+  { label = "Dónde vive", value = "En este mismo servidor: el mando y los fragmentos en un contenedor y la entrada pública aislada en la DMZ, en otro. Sin nada en mi PC." },
+  { label = "Pruebas y producción", value = "Todo se probó con dos zonas (dos «continentes» a 80 ms de distancia) para comprobar que el reparto, los cruces y la alta disponibilidad funcionan. En producción, para las pruebas externas, hay una sola: el goliat de este servidor." },
+]
+
+[[text.es.stats]]
+value = "20 TPS"
+label = "con 100 bots a la vez en la zona"
+
+[[text.es.stats]]
+value = "−80 %"
+label = "en pagar a otro jugador (/pay), tras juntar 5 viajes a la base en uno"
+
+[[text.es.stats]]
+value = "2 → 1"
+label = "zonas: dos en pruebas, una en producción"
+
+[[text.es.stats]]
+value = "0"
+label = "agujeros en la batería de suplantación de cuentas"
+
+[[text.es.stats]]
+value = "1 orden"
+label = "para sumar un servidor físico nuevo a la red"
+
+[[text.es.stats]]
+value = "2,35×"
+label = "más rápido generando terreno con el generador en Rust"
+
+[text.es.groups]
+dmz = "DMZ · lo único visible desde internet"
+control = "Control · detrás del inicio de sesión"
+game = "Fragmentos · el mundo repartido"
+data = "Mundo, agentes y copias"
+
+[text.es.pods.player]
+short = "Jugador"
+title = "Jugador"
+text = "Cualquiera con una cuenta original de Minecraft. Solo cuentas de Mojang: nadie puede entrar haciéndose pasar por otro."
+
+[text.es.pods.friend]
+short = "Otro jugador"
+title = "Otro jugador"
+text = "Alguien en otra parte del mundo, quizá en otro servidor. Para él es el mismo mundo y el mismo chat."
+
+[text.es.pods.mojang]
+short = "Mojang"
+title = "Sesiones de Mojang"
+text = "La entrada pregunta a Mojang si la cuenta es de verdad (y trae su skin). Si no responde a tiempo, no se entra."
+
+[text.es.pods.dns]
+short = "DNS (SRV)"
+title = "DNS con registro SRV"
+text = "El jugador escribe solo el dominio; un registro SRV le dice a qué puerto ir. Sin proxy de Cloudflare: Minecraft no es HTTP."
+
+[text.es.pods.router]
+short = "Router"
+title = "Router"
+text = "Reenvía el puerto del juego y la voz solo hacia la DMZ. Desde la DMZ solo se puede hablar con los puertos exactos del juego."
+
+[text.es.pods.admin]
+short = "Yo (admin)"
+title = "Administrador"
+text = "Yo desde el navegador: el panel está detrás de Authelia y solo se ve desde casa."
+
+[text.es.pods.forgejo]
+short = "Forgejo CI"
+title = "Forgejo (CI y releases)"
+text = "Cada pieza tiene su repositorio: en cada push se compila y se prueba, y con una etiqueta sale una release con su suma SHA-256."
+
+[text.es.pods.otro]
+short = "Otro servidor"
+title = "Un servidor físico nuevo"
+text = "Cualquier Linux con systemd: se le pega una orden y se instala solo (Java, usuario, agente y alta), comprobando antes la huella de la CA."
+
+[text.es.pods.entrada]
+short = "Entrada (Rust)"
+title = "La entrada (Rust)"
+text = "Mi proxy de Minecraft: cifrado y login con Mojang, cola de plazas y el empalme que pasa al jugador de un servidor a otro sin pantalla de carga."
+
+[text.es.pods.voz]
+short = "Voz"
+title = "Chat de voz"
+text = "El relé UDP del chat de voz por proximidad, en la misma entrada: la voz no toca los fragmentos."
+
+[text.es.pods.fw]
+short = "Cortafuegos"
+title = "Cortafuegos de la DMZ"
+text = "La entrada vive aislada en su VLAN. Si alguien la rompiera, solo podría hablar con los puertos del juego, nunca con la base de datos ni con el resto de casa."
+
+[text.es.pods.authelia]
+short = "Authelia"
+title = "Authelia (inicio de sesión)"
+text = "El panel no tiene usuarios propios: pasa por el inicio de sesión único de casa y el mando apunta quién hizo cada cosa."
+
+[text.es.pods.panel]
+short = "Panel"
+title = "Panel de administración"
+text = "Una web en Svelte: servidores, fragmentos, jugadores, staff, plazas, anuncios a toda la red, versiones, mapa en vivo y monitorización."
+
+[text.es.pods.mando]
+short = "Mando (Rust)"
+title = "El mando (Rust)"
+text = "El cerebro: decide qué servidor lleva cada trozo del mundo, guarda el estado deseado, da de alta máquinas con fichas de un solo uso y reparte versiones."
+
+[text.es.pods.postgres]
+short = "PostgreSQL"
+title = "PostgreSQL"
+text = "Economía, casas, equipos, sanciones y el reparto del mundo. Lo que da o quita algo se comprueba siempre aquí, en una sola sentencia."
+
+[text.es.pods.eu1]
+short = "eu-1"
+title = "Fragmento eu-1 (Folia)"
+text = "Un servidor de juego con mi versión de Folia: lleva unas celdas del mundo. Con gente cerca, la zona entera se queda en un mismo fragmento para no partir bases ni redstone."
+
+[text.es.pods.eu2]
+short = "eu-2"
+title = "Fragmento eu-2 (Folia)"
+text = "Otro trozo del mismo mundo. Si eu-1 cae, sus celdas pasan aquí y los jugadores siguen jugando."
+
+[text.es.pods.coliseo]
+short = "Coliseo"
+title = "Coliseo (liga)"
+text = "Un fragmento solo para la liga: duelos con kits, elo, retos y temporadas, sin cargar el mundo principal."
+
+[text.es.pods.generador]
+short = "Generador"
+title = "Generador de terreno (Rust)"
+text = "Genera el terreno nuevo fuera de Folia, con la misma semilla y un 99,3 % de bloques iguales que el original. Folia solo pone encima las estructuras."
+
+[text.es.pods.almacen]
+short = "Almacén"
+title = "Almacén del mundo (Rust)"
+text = "Guarda los chunks comprimidos con zstd y un diccionario (7,5 veces más pequeños). Cualquier fragmento puede cargar cualquier zona."
+
+[text.es.pods.agente]
+short = "Agente"
+title = "Agente (uno por máquina)"
+text = "Arranca, para y actualiza los fragmentos de su máquina según lo que diga el mando, y le manda métricas cada pocos segundos."
+
+[text.es.pods.copias]
+short = "Copias"
+title = "Copias (PBS)"
+text = "Copia diaria y cifrada del contenedor y de la base de datos, con la prueba de restauración semanal de todo el homelab."
+
+[text.es.pods.metricas]
+short = "Métricas"
+title = "Métricas"
+text = "TPS, MSPT, memoria, CPU, red y disco de cada fragmento y cada máquina, guardados en el propio mando: 14 días de gráficas en el panel."
+
+[text.es.flows.login]
+title = "Entras al servidor"
+steps = [
+  "Escribes el dominio en Minecraft.",
+  "El DNS responde con un registro SRV: a qué puerto ir.",
+  "El router solo deja pasar ese puerto, y solo hacia la DMZ.",
+  "El cortafuegos de la DMZ deja hablar a la entrada solo con lo justo.",
+  "La entrada cifra la conexión y pide a tu cliente que se identifique.",
+  "Mojang confirma que la cuenta es tuya y trae tu skin.",
+  "Si la red está llena (las plazas del panel), aquí te lo dice.",
+  "El mando sabe qué fragmento lleva la zona donde estabas.",
+  "La entrada te conecta con él.",
+  "eu-1 te recibe con tus datos de la base.",
+  "Ya estás jugando.",
+]
+
+[text.es.flows.cross]
+title = "Cruzas a otro servidor sin pantalla de carga"
+steps = [
+  "Caminas hacia una zona que lleva otro fragmento.",
+  "eu-1 ve que te acercas al borde de su celda.",
+  "El mando confirma quién lleva la celda de al lado.",
+  "La entrada abre por debajo una conexión con eu-2…",
+  "…que ya te tiene preparado al otro lado.",
+  "eu-2 carga el terreno del almacén común.",
+  "La entrada cambia el flujo de paquetes al vuelo: un empalme.",
+  "Sigues andando. No has visto ninguna pantalla de carga.",
+]
+
+[text.es.flows.chat]
+title = "Hablas con alguien de otro servidor"
+steps = [
+  "Escribes en el chat.",
+  "La entrada lo pasa a tu fragmento.",
+  "eu-1 lo filtra (palabrotas, spam, silenciados) y se lo enseña a los de aquí.",
+  "PostgreSQL lo reparte con LISTEN/NOTIFY a los demás fragmentos.",
+  "eu-2 lo pinta igual que si fuera suyo.",
+  "Llega como mensaje del sistema: sin el aviso de «no se puede verificar».",
+  "Tu amigo lo lee, aunque esté en otro servidor.",
+]
+
+[text.es.flows.install]
+title = "Añado un servidor físico con una orden"
+steps = [
+  "Entro en el panel desde casa.",
+  "Authelia comprueba que soy yo.",
+  "En «Servidores» le doy un nombre al servidor nuevo.",
+  "El mando crea una ficha de un solo uso que caduca.",
+  "El panel me enseña la orden, una sola vez.",
+  "La copio…",
+  "…y la pego como root en el servidor nuevo.",
+  "Antes de bajar nada, comprueba la huella de la CA del mando: nadie en medio puede cambiar el guion.",
+  "Instala Java, el usuario, el agente (comprobando su suma) y el servicio.",
+  "El agente se da de alta con la ficha y recibe su certificado.",
+  "Ya aparece en el panel: le pongo servicios y fragmentos.",
+]
+
+[text.es.flows.slots]
+title = "Cambio las plazas de toda la red"
+steps = [
+  "Quiero que entren 300 en vez de 500.",
+  "Paso por Authelia.",
+  "En «Red» cambio las plazas y guardo.",
+  "El mando lo apunta en el registro (quién y cuándo)…",
+  "…y lo guarda en la base.",
+  "En el siguiente latido se lo manda a cada agente.",
+  "El agente se lo pasa a la entrada de su máquina.",
+  "La lista de servidores enseña el nuevo máximo y, con la red llena, la entrada no deja pasar a nadie nuevo.",
+  "Los que ya están dentro siguen jugando: a nadie se le echa.",
+]
+
+[text.es.flows.release]
+title = "Sale una versión nueva"
+steps = [
+  "Una etiqueta en Forgejo compila, prueba y publica la release con su suma.",
+  "Fijo la versión en el panel: el mando la baja y comprueba la suma.",
+  "Los agentes ven que su versión ya no es la deseada.",
+  "eu-1 avisa en el juego, se para, se actualiza y vuelve…",
+  "…y solo cuando está bien, sigue el siguiente.",
+  "eu-2, igual: de uno en uno, nunca todos a la vez.",
+  "Mientras, sus jugadores han pasado al fragmento que sigue en marcha.",
+  "El coliseo, el último.",
+  "El mando lo da por hecho cuando todos están en marcha con la versión nueva.",
+]
+
+[text.es.flows.crash]
+title = "Se cae un fragmento"
+steps = [
+  "eu-2 se cuelga o se queda sin memoria.",
+  "Su agente deja de verlo sano y lo cuenta.",
+  "El mando ve que hay celdas sin quien las lleve.",
+  "Las reasigna en la base, de una vez y sin duplicados.",
+  "Avisa a los fragmentos que quedan.",
+  "eu-1 se queda también con las celdas de eu-2.",
+  "La entrada lleva a los jugadores al fragmento que sigue vivo.",
+  "Pierdes unos segundos, no la partida. El agente vuelve a arrancar eu-2.",
+]
+
+[text.es.incidents.dns]
+title = "«Failed to connect: disconnected»"
+meta = "29-10-2026 · Bloqueante: el servidor aparecía en la lista, pero nadie podía entrar"
+symptom = "Desde fuera el servidor salía en la lista con su número de jugadores, pero al entrar el juego decía «Failed to connect to the server: disconnected». En la red de casa, con bots, todo iba bien."
+options = [
+  "El router bloqueaba el puerto de entrada.",
+  "Las cuentas de prueba no eran originales.",
+  "El contenedor de la DMZ resolvía nombres primero con el DNS de casa, al que no puede llegar: cada consulta tardaba 5 s y la comprobación con Mojang caducaba.",
+  "El certificado de la entrada había caducado.",
+]
+cause = "El contenedor nuevo de la DMZ heredó el DNS de casa como primero. Desde la DMZ no se puede llegar a él (bien hecho), así que cada consulta esperaba 5 s antes de probar el siguiente. La lista de servidores no pregunta a Mojang, pero entrar sí: llegaba tarde y se cortaba."
+fix = "DNS públicos en el contenedor de la DMZ, en Terraform (no a mano), y una nota en la documentación. Las pruebas de suplantación se repitieron: antes «pasaban» solo porque Mojang no respondía."
+lesson = "Una prueba que pasa por la razón equivocada es peor que una que falla. Hay que mirar por qué pasa."
+
+[text.es.incidents.chat]
+title = "«No se puede verificar el mensaje»"
+meta = "29-10-2026 · Media: un aviso en el chat de cada jugador"
+symptom = "Minecraft avisaba de que los mensajes del chat no se podían verificar, y algunos clientes los marcaban como inseguros."
+options = [
+  "Mojang tenía caído el servicio de firmas.",
+  "Los fragmentos van sin modo online detrás de la entrada (es quien comprueba las cuentas) y no pueden verificar firmas, así que el cliente veía un servidor que no exige chat seguro.",
+  "El filtro de palabrotas cambiaba el texto y rompía la firma.",
+]
+cause = "Detrás de un proxy, los servidores de juego no pueden comprobar las firmas del chat: quien verifica la cuenta es la entrada. El cliente veía un servidor sin chat seguro y lo avisaba."
+fix = "La entrada le dice al cliente, en el paquete de login, que el servidor es online y exige chat seguro, y los fragmentos mandan el chat como mensajes del sistema (sin firma), igual que el que llega de otros fragmentos."
+lesson = "El cliente solo sabe lo que el servidor le cuenta: si en medio hay un proxy, tiene que contarlo bien."
+
+[text.es.incidents.lock]
+title = "Vender un diamante tardaba 3 segundos"
+meta = "27-10-2026 · Alta: con 10 jugadores vendiendo a la vez"
+symptom = "Con diez jugadores vendiendo a la vez, cada venta tardaba de mediana 2,8 s y algunas casi 5. La base de datos apenas trabajaba."
+options = [
+  "Cada venta tenía el cerrojo del precio del material mientras hacía varios viajes de ida y vuelta a la base; las demás esperaban en fila.",
+  "Faltaba un índice en la tabla de ventas.",
+  "El servidor de juego iba lento por los mobs.",
+]
+cause = "La venta abría una transacción, bloqueaba el precio del material (para no vender de más ni de menos) y hacía varios viajes de 80 ms antes del COMMIT. Diez ventas a la vez = diez en fila."
+fix = "Toda la venta en una sola sentencia SQL y el COMMIT en el mismo envío: el cerrojo dura un viaje en vez de cinco. De 2.768 ms a 852 de mediana, y nadie vende de más ni de menos."
+lesson = "Con una base lejos, lo que cuesta no son las consultas: son los viajes, sobre todo con un cerrojo puesto."
+
+[text.es.incidents.oom]
+title = "El fragmento que tardó 40 minutos en morir"
+meta = "22-10-2026 · Alta: un fragmento colgado en plena prueba"
+symptom = "Con 100 bots explorando terreno nuevo, un fragmento se quedó sin memoria y tardó 40 minutos en apagarse."
+options = [
+  "Una fuga de memoria del plugin.",
+  "Demasiados bots para la máquina.",
+  "Cada jugador podía pedir terreno nuevo sin límite: generarlo era el cuello de botella y las peticiones se acumulaban en memoria.",
+]
+cause = "Generar chunks nuevos es lo más caro de Minecraft. Sin límite por jugador, cien exploradores llenaban la cola de generación más rápido de lo que se vaciaba."
+fix = "Un límite de generación por jugador (−20 % de CPU, 0 bots echados) y, después, un generador propio en Rust con la misma semilla: 2,35 veces más rápido que Folia sola en la misma máquina."
+lesson = "Antes de dar más memoria, hay que ver qué se acumula y por qué."
+
+[text.es.incidents.menus]
+title = "Los menús lentos con una consulta de 1 ms"
+meta = "23-10-2026 · Media: cada menú tardaba 115-270 ms en abrirse"
+symptom = "Abrir menús que leen de la base (casas, perfil…) tardaba hasta 270 ms, aunque la consulta tardaba menos de 1,5 ms."
+options = [
+  "PostgreSQL estaba mal configurado.",
+  "El tiempo se iba en volver al hilo del jugador: con Folia, la respuesta tiene que esperar al siguiente tick de su región.",
+  "Los menús tenían demasiados objetos.",
+]
+cause = "En Folia cada región tiene su hilo. La consulta iba en otro hilo y la respuesta tenía que esperar su turno en el de la región del jugador."
+fix = "Lo que solo se enseña (casas, cachés de presentación) vive en memoria; lo que da o quita algo se sigue comprobando en la base. De 115-270 ms a 17-19."
+lesson = "Medir dónde se va el tiempo de verdad: la consulta era lo único que no hacía falta optimizar."
+
+[text.es.bench]
+title = "Antes y después, medido"
+intro = "Cada cambio se mide contra la versión anterior con la misma prueba (bots haciendo de todo durante 6 minutos) y se queda solo si mejora sin romper nada. Algunas medidas son de la zona lejana de pruebas, a 80 ms de la base: ahí es donde más se notan los viajes."
+before = "antes"
+after = "después"
+note = "Datos de la wiki de resultados del proyecto (p50 salvo que se diga otra cosa). Las pruebas se hicieron con dos zonas para comprobar que todo funciona entre continentes; en producción hay una sola."
+groups = [
+  ["db", "Base de datos"],
+  ["tick", "Servidor de juego"],
+  ["world", "Mundo, red y disco"],
+]
+
+[text.es.bench.rows.pay]
+label = "/pay (pagar a otro)"
+why = "Cinco viajes a la base (buscar el nombre, transacción, avisos) juntados en una sola sentencia."
+
+[text.es.bench.rows.sethome]
+label = "/sethome (guardar una casa)"
+why = "Bloquear, contar, poner, leer y COMMIT: cinco viajes, ahora uno."
+
+[text.es.bench.rows.perfil]
+label = "/perfil"
+why = "Perfil y saldos en una consulta con subconsultas en vez de cuatro."
+
+[text.es.bench.rows.venta]
+label = "Vender con 10 a la vez"
+why = "La venta entera y su COMMIT en un solo envío: el cerrojo del precio dura un viaje."
+
+[text.es.bench.rows.msg]
+label = "/msg en el mismo servidor"
+why = "Si el otro juega en el mismo fragmento, el mensaje no pasa por la base."
+
+[text.es.bench.rows.tps]
+label = "TPS con 100 bots"
+why = "Folia usaba un solo hilo de región con 12 núcleos: ahora se reparten."
+
+[text.es.bench.rows.mspt]
+label = "MSPT con 100 bots"
+why = "Lo mismo: menos milisegundos por tick y sin la parada de la región global."
+
+[text.es.bench.rows.mobs]
+label = "TPS de noche con 40 jugadores"
+why = "Rangos de activación de la IA, aparición cada N ticks y colisiones más baratas."
+
+[text.es.bench.rows.menus]
+label = "Abrir un menú que lee de la base"
+why = "Lo que solo se enseña, en memoria; lo que da o quita, en la base."
+
+[text.es.bench.rows.generar]
+label = "Generar terreno nuevo"
+why = "El terreno lo genera un servicio en Rust; Folia solo pone las estructuras."
+
+[text.es.bench.rows.zstd]
+label = "Compresión del mundo"
+why = "zstd con un diccionario entrenado con chunks reales (el End, de 17× a 25×)."
+
+[text.es.bench.rows.entrada]
+label = "CPU de la entrada con 100 bots"
+why = "Caché de chunks ya comprimidos: el 93 % de aciertos con 42 MB."
+
+[text.es.bench.rows.disco]
+label = "/pay p95 al cambiar de disco"
+why = "La base de pruebas pasó del RAID 1 de sistema al RAID 10 de discos SAS."
+
+[[text.es.timeline]]
+title = "Un mundo, varios servidores"
+period = "20-22 oct 2026"
+items = [
+  "Entrada propia en Rust con el empalme sin pantalla de carga.",
+  "Mando con el reparto por celdas y agentes que arrancan y paran fragmentos.",
+  "Almacén del mundo con zstd y diccionario.",
+]
+
+[[text.es.timeline]]
+title = "Rendimiento con datos"
+period = "22-25 oct 2026"
+items = [
+  "Generador de terreno en Rust con paridad del 99,3 % con la misma semilla.",
+  "Hilos de región, mobs y anti-xray medidos uno a uno.",
+  "Wiki de resultados: cada cambio, con su línea base y su decisión.",
+]
+
+[[text.es.timeline]]
+title = "Dos continentes"
+period = "25-28 oct 2026"
+items = [
+  "Una segunda zona a 80 ms, con su propio mando, réplica de PostgreSQL y paso de una a otra.",
+  "Bucle de optimización: juntar viajes a la base y medir cada orden con 100 bots.",
+  "Alta disponibilidad: si cae el mando, otro toma el control y vuelve junto a su base.",
+]
+
+[[text.es.timeline]]
+title = "Abierto al público"
+period = "29 oct 2026"
+items = [
+  "Entrada en la DMZ, solo cuentas de Mojang y auditoría de suplantación.",
+  "Una sola zona en producción y nada en mi PC.",
+  "Panel nuevo: servidores con una orden, plazas de toda la red y anuncios.",
+]
+
+[[text.es.decisions]]
+title = "Velocity o una entrada propia"
+choice = "Entrada propia en Rust"
+why = "Para pasar de un servidor a otro sin pantalla de carga hay que empalmar los paquetes al vuelo, y eso un proxy genérico no lo hace."
+
+[[text.es.decisions]]
+title = "Paper, Purpur o Folia"
+choice = "Folia, con parches propios"
+why = "Folia reparte el mundo en regiones con su propio hilo: con muchos jugadores separados aprovecha todos los núcleos."
+
+[[text.es.decisions]]
+title = "Redis delante de PostgreSQL"
+choice = "No: menos viajes"
+why = "33 horas de pg_stat_statements: lo que pesaba eran escrituras que tienen que persistir. Juntar viajes ganó más que una caché."
+
+[[text.es.decisions]]
+title = "Repartir el mundo a mano o solo"
+choice = "Lo reparte el mando"
+why = "Por celdas, sin partir nunca una zona con gente (bases y redstone intactas) y con reasignación sola si un servidor cae."
+
+[[text.es.decisions]]
+title = "Exponer el mando o solo la entrada"
+choice = "Solo la entrada, en la DMZ"
+why = "La base de datos no se ve desde internet y los servicios hablan entre sí con certificados mutuos (mTLS)."
+
+[text.es.tech_notes]
+rust = "Entrada, mando, agente, almacén y generador: todo lo que no es el juego en sí."
+java = "El plugin del juego sobre Folia 26.3: economía, casas, equipos, liga, staff y chat de toda la red."
+postgresql = "Todo el estado del juego y del reparto; sentencias únicas para que nada se duplique y LISTEN/NOTIFY para avisar entre servidores."
+typescript = "El panel de administración en Svelte 5 y TypeScript."
+linux = "Contenedores Debian con systemd de usuario; el agente se instala en cualquier Linux con una orden."
+proxmox = "Los dos contenedores viven en el Proxmox de casa, junto al resto del homelab."
+lxc = "El mando y los fragmentos en un contenedor; la entrada, en otro aislado en la DMZ."
+terraform = "Los contenedores, su red y su DNS, declarados en Terraform."
+ansible = "Roles para el contenedor de desarrollo y para la entrada de la DMZ, desplegados desde Forgejo."
+forgejo = "Un repositorio por pieza con CI y releases firmadas por su suma."
+git = "Ramas por cambio, etiquetas por versión y la wiki de resultados versionada."
+vlan = "La entrada pública en la VLAN de la DMZ, sin acceso al resto de casa."
+mikrotik = "Reenvío del puerto del juego y la voz, y reglas de la DMZ hacia los puertos justos."
+dns = "Registro SRV para entrar solo con el dominio, creado por API."
+hardening = "Solo cuentas de Mojang, mTLS entre servicios, base de datos sin exponer y batería de suplantación sin agujeros."
+pbs = "Copias diarias y cifradas con prueba de restauración semanal."
+
+[text.es.close]
+lessons = [
+  "Medir antes de tocar: la mitad de las ideas que parecían buenas no mejoraban nada y se descartaron con datos.",
+  "Con una base lejos, el enemigo son los viajes, no las consultas.",
+  "Una prueba que pasa por la razón equivocada es peor que una que falla.",
+  "Probar con dos continentes desde el principio obligó a que todo funcionara sin trucos locales.",
+]
+next = [
+  "Más jugadores reales en las pruebas externas.",
+  "Sacar la IA de los mobs a un servicio aparte sin bajar los TPS.",
+  "Una segunda zona en producción cuando haya hierro para ello.",
+  "La versión 1.0.0, con el visto bueno de los que juegan.",
+]
+
+# ===========================================================================
+# English
+# ===========================================================================
+
+[text.en.meta]
+title = "Inside BattlePros · Tito Pinardo Gutiérrez"
+description = "A custom-built Minecraft network: my own Rust gateway, Folia shards, a controller that splits the world and a panel that adds servers with one command. Every change measured against a baseline."
+
+[text.en.ui]
+slot = "1U · BATTLEPROS"
+face_specs = "Rust · Folia · PostgreSQL"
+state = "Open for external testing"
+map_silk = "GAME NET"
+map_title = "Inside the network"
+map_intro = "Click a part or pick a flow: joining, crossing to another server with no loading screen, adding a server with one command…"
+vm_title = "One goliath · Proxmox containers"
+vm_specs = "one zone in production"
+outside = "Outside"
+disclaimer = "Rebuilt from the project's documentation and results wiki: no addresses, ports or internal names."
+
+[text.en.hero]
+kicker = "1U unit · Ongoing personal project"
+title = "BattlePros"
+tagline = "A custom-built Minecraft network: one world split across several servers, no loading screens when you cross between them, and everything behind it (gateway, controller, agents, panel) written from scratch."
+grade = "Open for testing · 0.7.45"
+facts = [
+  { label = "My part", value = "The idea, the architecture, the decisions and the testing. I write the code with an AI agent as a teammate, under fixed rules: measure before and after, document why, and never change the gameplay." },
+  { label = "Where it lives", value = "On this same server: the controller and shards in one container, the public gateway isolated in the DMZ in another. Nothing on my PC." },
+  { label = "Testing vs production", value = "Everything was tested with two zones (two “continents” 80 ms apart) to prove the world split, crossings and high availability work. In production, for external testing, there is just one: this server's goliath." },
+]
+
+[[text.en.stats]]
+value = "20 TPS"
+label = "with 100 bots at once in the zone"
+
+[[text.en.stats]]
+value = "−80 %"
+label = "on paying another player (/pay), after merging 5 database round trips into 1"
+
+[[text.en.stats]]
+value = "2 → 1"
+label = "zones: two in testing, one in production"
+
+[[text.en.stats]]
+value = "0"
+label = "holes in the account impersonation test suite"
+
+[[text.en.stats]]
+value = "1 command"
+label = "to add a new physical server to the network"
+
+[[text.en.stats]]
+value = "2.35×"
+label = "faster terrain generation with the Rust generator"
+
+[text.en.groups]
+dmz = "DMZ · the only part visible from the internet"
+control = "Control · behind single sign-on"
+game = "Shards · the world, split"
+data = "World, agents and backups"
+
+[text.en.pods.player]
+short = "Player"
+title = "Player"
+text = "Anyone with an original Minecraft account. Mojang accounts only: nobody can join pretending to be someone else."
+
+[text.en.pods.friend]
+short = "Another player"
+title = "Another player"
+text = "Someone elsewhere in the world, maybe on another server. To them it is the same world and the same chat."
+
+[text.en.pods.mojang]
+short = "Mojang"
+title = "Mojang sessions"
+text = "The gateway asks Mojang whether the account is real (and gets the skin). If Mojang doesn't answer in time, you don't get in."
+
+[text.en.pods.dns]
+short = "DNS (SRV)"
+title = "DNS with an SRV record"
+text = "Players type just the domain; an SRV record tells them which port to use. No Cloudflare proxy: Minecraft isn't HTTP."
+
+[text.en.pods.router]
+short = "Router"
+title = "Router"
+text = "Forwards the game and voice ports only to the DMZ. From the DMZ, only the exact game ports are reachable."
+
+[text.en.pods.admin]
+short = "Me (admin)"
+title = "Administrator"
+text = "Me in the browser: the panel sits behind Authelia and is only reachable from home."
+
+[text.en.pods.forgejo]
+short = "Forgejo CI"
+title = "Forgejo (CI and releases)"
+text = "Each part has its own repository: every push is built and tested, and a tag publishes a release with its SHA-256 checksum."
+
+[text.en.pods.otro]
+short = "Another server"
+title = "A new physical server"
+text = "Any Linux with systemd: paste one command and it installs itself (Java, user, agent and sign-up), checking the CA fingerprint first."
+
+[text.en.pods.entrada]
+short = "Gateway (Rust)"
+title = "The gateway (Rust)"
+text = "My own Minecraft proxy: encryption and Mojang login, player slots, and the splice that moves a player between servers with no loading screen."
+
+[text.en.pods.voz]
+short = "Voice"
+title = "Voice chat"
+text = "The UDP relay for proximity voice chat, in the same gateway: voice never touches the shards."
+
+[text.en.pods.fw]
+short = "Firewall"
+title = "DMZ firewall"
+text = "The gateway lives isolated in its own VLAN. If someone broke it, they could only reach the game ports, never the database or the rest of the house."
+
+[text.en.pods.authelia]
+short = "Authelia"
+title = "Authelia (sign-in)"
+text = "The panel has no users of its own: it goes through the home single sign-on and the controller records who did what."
+
+[text.en.pods.panel]
+short = "Panel"
+title = "Admin panel"
+text = "A Svelte web app: servers, shards, players, staff, slots, network-wide announcements, versions, live map and monitoring."
+
+[text.en.pods.mando]
+short = "Controller"
+title = "The controller (Rust)"
+text = "The brain: decides which server runs each piece of the world, stores the desired state, enrols machines with single-use tokens and rolls out versions."
+
+[text.en.pods.postgres]
+short = "PostgreSQL"
+title = "PostgreSQL"
+text = "Economy, homes, teams, punishments and the world split. Anything that gives or takes something is always checked here, in a single statement."
+
+[text.en.pods.eu1]
+short = "eu-1"
+title = "Shard eu-1 (Folia)"
+text = "A game server running my build of Folia: it owns some cells of the world. With players nearby, the whole area stays on one shard so bases and redstone are never split."
+
+[text.en.pods.eu2]
+short = "eu-2"
+title = "Shard eu-2 (Folia)"
+text = "Another piece of the same world. If eu-1 goes down, its cells move here and players keep playing."
+
+[text.en.pods.coliseo]
+short = "Colosseum"
+title = "Colosseum (league)"
+text = "A shard just for the league: duels with kits, elo, challenges and seasons, without loading the main world."
+
+[text.en.pods.generador]
+short = "Generator"
+title = "Terrain generator (Rust)"
+text = "Generates new terrain outside Folia, with the same seed and 99.3 % identical blocks. Folia only adds the structures on top."
+
+[text.en.pods.almacen]
+short = "World store"
+title = "World store (Rust)"
+text = "Stores chunks compressed with zstd and a dictionary (7.5 times smaller). Any shard can load any area."
+
+[text.en.pods.agente]
+short = "Agent"
+title = "Agent (one per machine)"
+text = "Starts, stops and updates the shards on its machine as the controller says, and sends it metrics every few seconds."
+
+[text.en.pods.copias]
+short = "Backups"
+title = "Backups (PBS)"
+text = "Daily encrypted backups of the container and the database, plus the weekly restore test for the whole homelab."
+
+[text.en.pods.metricas]
+short = "Metrics"
+title = "Metrics"
+text = "TPS, MSPT, memory, CPU, network and disk for every shard and machine, stored in the controller itself: 14 days of charts in the panel."
+
+[text.en.flows.login]
+title = "You join the server"
+steps = [
+  "You type the domain into Minecraft.",
+  "DNS answers with an SRV record: which port to use.",
+  "The router only lets that port through, and only to the DMZ.",
+  "The DMZ firewall lets the gateway talk to just what it needs.",
+  "The gateway encrypts the connection and asks your client to identify itself.",
+  "Mojang confirms the account is yours and sends your skin.",
+  "If the network is full (the slots set in the panel), you're told here.",
+  "The controller knows which shard owns the area where you were.",
+  "The gateway connects you to it.",
+  "eu-1 loads your data from the database.",
+  "You're playing.",
+]
+
+[text.en.flows.cross]
+title = "You cross to another server with no loading screen"
+steps = [
+  "You walk towards an area owned by another shard.",
+  "eu-1 sees you approaching the edge of its cell.",
+  "The controller confirms who owns the next cell.",
+  "Underneath, the gateway opens a connection to eu-2…",
+  "…which already has you ready on the other side.",
+  "eu-2 loads the terrain from the shared world store.",
+  "The gateway switches the packet stream on the fly: a splice.",
+  "You keep walking. You never saw a loading screen.",
+]
+
+[text.en.flows.chat]
+title = "You talk to someone on another server"
+steps = [
+  "You type in chat.",
+  "The gateway passes it to your shard.",
+  "eu-1 filters it (swearing, spam, muted players) and shows it to players here.",
+  "PostgreSQL fans it out with LISTEN/NOTIFY to the other shards.",
+  "eu-2 renders it as if it were its own.",
+  "It arrives as a system message: no “cannot be verified” warning.",
+  "Your friend reads it, even on another server.",
+]
+
+[text.en.flows.install]
+title = "I add a physical server with one command"
+steps = [
+  "I open the panel from home.",
+  "Authelia checks it's me.",
+  "In “Servers” I name the new server.",
+  "The controller creates a single-use, expiring token.",
+  "The panel shows me the command, only once.",
+  "I copy it…",
+  "…and paste it as root on the new server.",
+  "Before downloading anything, it checks the controller's CA fingerprint: nobody in the middle can swap the script.",
+  "It installs Java, the user, the agent (checking its checksum) and the service.",
+  "The agent signs up with the token and receives its certificate.",
+  "It shows up in the panel: I give it services and shards.",
+]
+
+[text.en.flows.slots]
+title = "I change the slots for the whole network"
+steps = [
+  "I want 300 players instead of 500.",
+  "Through Authelia.",
+  "In “Network” I change the slots and save.",
+  "The controller logs it (who and when)…",
+  "…and stores it in the database.",
+  "On the next heartbeat it sends it to every agent.",
+  "The agent hands it to the gateway on its machine.",
+  "The server list shows the new maximum and, when full, the gateway lets nobody new in.",
+  "Those already inside keep playing: nobody gets kicked.",
+]
+
+[text.en.flows.release]
+title = "A new version ships"
+steps = [
+  "A tag in Forgejo builds, tests and publishes the release with its checksum.",
+  "I pin the version in the panel: the controller downloads it and checks the checksum.",
+  "The agents see their version is no longer the desired one.",
+  "eu-1 warns in game, stops, updates and comes back…",
+  "…and only when it's healthy does the next one go.",
+  "eu-2 the same: one by one, never all at once.",
+  "Meanwhile its players have moved to the shard that's still running.",
+  "The colosseum goes last.",
+  "The controller marks it done when all are running the new version.",
+]
+
+[text.en.flows.crash]
+title = "A shard goes down"
+steps = [
+  "eu-2 hangs or runs out of memory.",
+  "Its agent stops seeing it healthy and reports it.",
+  "The controller sees cells with nobody running them.",
+  "It reassigns them in the database, in one go and with no duplicates.",
+  "It tells the remaining shards.",
+  "eu-1 takes over eu-2's cells too.",
+  "The gateway moves players to the shard that's still alive.",
+  "You lose a few seconds, not your game. The agent restarts eu-2.",
+]
+
+[text.en.incidents.dns]
+title = "“Failed to connect: disconnected”"
+meta = "29-10-2026 · Blocking: the server showed up in the list, but nobody could join"
+symptom = "From outside the server appeared in the list with its player count, but joining said “Failed to connect to the server: disconnected”. On the home network, with bots, everything worked."
+options = [
+  "The router was blocking the game port.",
+  "The test accounts weren't original.",
+  "The DMZ container resolved names with the home DNS first, which it can't reach: every lookup took 5 s and the Mojang check timed out.",
+  "The gateway's certificate had expired.",
+]
+cause = "The new DMZ container inherited the home DNS as its first resolver. The DMZ can't reach it (by design), so every lookup waited 5 s before trying the next one. The server list doesn't ask Mojang, but joining does: it was too late and got cut off."
+fix = "Public DNS for the DMZ container, in Terraform (not by hand), plus a note in the docs. The impersonation tests were rerun: before, they only “passed” because Mojang never answered."
+lesson = "A test that passes for the wrong reason is worse than one that fails. Look at why it passes."
+
+[text.en.incidents.chat]
+title = "“Message cannot be verified”"
+meta = "29-10-2026 · Medium: a warning in every player's chat"
+symptom = "Minecraft warned that chat messages couldn't be verified, and some clients flagged them as unsafe."
+options = [
+  "Mojang's signing service was down.",
+  "The shards run without online mode behind the gateway (which is what checks accounts) and can't verify signatures, so the client saw a server that doesn't enforce secure chat.",
+  "The swear filter changed the text and broke the signature.",
+]
+cause = "Behind a proxy, game servers can't check chat signatures: the gateway is what verifies the account. The client saw a server without secure chat and warned about it."
+fix = "The gateway tells the client, in the login packet, that the server is online and enforces secure chat, and the shards send chat as system messages (unsigned), like chat coming from other shards."
+lesson = "The client only knows what the server tells it: with a proxy in the middle, it has to tell it right."
+
+[text.en.incidents.lock]
+title = "Selling a diamond took 3 seconds"
+meta = "27-10-2026 · High: with 10 players selling at once"
+symptom = "With ten players selling at once, the median sale took 2.8 s and some nearly 5. The database was barely working."
+options = [
+  "Each sale held the material's price lock across several database round trips; the others queued behind it.",
+  "An index was missing on the sales table.",
+  "The game server was slow because of mobs.",
+]
+cause = "A sale opened a transaction, locked the material's price (so nobody over- or under-sells) and made several 80 ms round trips before COMMIT. Ten sales at once = ten in a queue."
+fix = "The whole sale in a single SQL statement with the COMMIT in the same send: the lock lasts one round trip instead of five. From 2,768 ms to 852 median, and nobody over- or under-sells."
+lesson = "With a distant database, queries aren't the cost: round trips are, especially with a lock held."
+
+[text.en.incidents.oom]
+title = "The shard that took 40 minutes to die"
+meta = "22-10-2026 · High: a shard hung mid-test"
+symptom = "With 100 bots exploring new terrain, a shard ran out of memory and took 40 minutes to shut down."
+options = [
+  "A memory leak in the plugin.",
+  "Too many bots for the machine.",
+  "Every player could request new terrain without limit: generating it was the bottleneck and requests piled up in memory.",
+]
+cause = "Generating new chunks is the most expensive thing in Minecraft. With no per-player limit, a hundred explorers filled the generation queue faster than it drained."
+fix = "A per-player generation limit (−20 % CPU, no bots kicked) and then my own Rust generator with the same seed: 2.35 times faster than Folia alone on the same machine."
+lesson = "Before adding memory, find out what's piling up and why."
+
+[text.en.incidents.menus]
+title = "Slow menus with a 1 ms query"
+meta = "23-10-2026 · Medium: every menu took 115-270 ms to open"
+symptom = "Opening menus that read from the database (homes, profile…) took up to 270 ms, even though the query took under 1.5 ms."
+options = [
+  "PostgreSQL was misconfigured.",
+  "The time went into getting back to the player's thread: in Folia, the answer has to wait for the next tick of its region.",
+  "The menus had too many items.",
+]
+cause = "In Folia each region has its own thread. The query ran on another thread and the answer had to wait its turn on the player's region thread."
+fix = "What is only displayed (homes, display caches) lives in memory; anything that gives or takes is still checked in the database. From 115-270 ms to 17-19."
+lesson = "Measure where the time really goes: the query was the one thing that didn't need optimising."
+
+[text.en.bench]
+title = "Before and after, measured"
+intro = "Every change is measured against the previous version with the same test (bots doing everything for 6 minutes) and only stays if it improves things without breaking anything. Some numbers come from the far test zone, 80 ms from the database: that's where round trips hurt most."
+before = "before"
+after = "after"
+note = "Data from the project's results wiki (p50 unless stated). Tests ran with two zones to prove everything works across continents; production has just one."
+groups = [
+  ["db", "Database"],
+  ["tick", "Game server"],
+  ["world", "World, network and disk"],
+]
+
+[text.en.bench.rows.pay]
+label = "/pay (pay someone)"
+why = "Five database round trips (look up the name, transaction, notices) merged into one statement."
+
+[text.en.bench.rows.sethome]
+label = "/sethome (save a home)"
+why = "Lock, count, insert, read and COMMIT: five round trips, now one."
+
+[text.en.bench.rows.perfil]
+label = "/profile"
+why = "Profile and balances in one query with subqueries instead of four."
+
+[text.en.bench.rows.venta]
+label = "Selling with 10 at once"
+why = "The whole sale and its COMMIT in one send: the price lock lasts one round trip."
+
+[text.en.bench.rows.msg]
+label = "/msg on the same server"
+why = "If the other player is on the same shard, the message skips the database."
+
+[text.en.bench.rows.tps]
+label = "TPS with 100 bots"
+why = "Folia used a single region thread on 12 cores: now they're spread out."
+
+[text.en.bench.rows.mspt]
+label = "MSPT with 100 bots"
+why = "Same change: fewer milliseconds per tick and no global-region stall."
+
+[text.en.bench.rows.mobs]
+label = "TPS at night with 40 players"
+why = "AI activation ranges, spawning every N ticks and cheaper collisions."
+
+[text.en.bench.rows.menus]
+label = "Opening a database-backed menu"
+why = "Display-only data in memory; anything that gives or takes, in the database."
+
+[text.en.bench.rows.generar]
+label = "Generating new terrain"
+why = "Terrain comes from a Rust service; Folia only adds the structures."
+
+[text.en.bench.rows.zstd]
+label = "World compression"
+why = "zstd with a dictionary trained on real chunks (the End went from 17× to 25×)."
+
+[text.en.bench.rows.entrada]
+label = "Gateway CPU with 100 bots"
+why = "A cache of already-compressed chunks: 93 % hits with 42 MB."
+
+[text.en.bench.rows.disco]
+label = "/pay p95 after a disk move"
+why = "The test database moved from the system RAID 1 to the SAS RAID 10."
+
+[[text.en.timeline]]
+title = "One world, several servers"
+period = "20-22 Oct 2026"
+items = [
+  "My own Rust gateway with the no-loading-screen splice.",
+  "Controller with the cell-based world split and agents that start and stop shards.",
+  "World store with zstd and a dictionary.",
+]
+
+[[text.en.timeline]]
+title = "Performance, with data"
+period = "22-25 Oct 2026"
+items = [
+  "Rust terrain generator with 99.3 % parity on the same seed.",
+  "Region threads, mobs and anti-xray measured one by one.",
+  "Results wiki: every change with its baseline and its decision.",
+]
+
+[[text.en.timeline]]
+title = "Two continents"
+period = "25-28 Oct 2026"
+items = [
+  "A second zone 80 ms away, with its own controller, a PostgreSQL replica and crossings between them.",
+  "Optimisation loop: merge database round trips and measure every command with 100 bots.",
+  "High availability: if the controller dies, another takes over and moves back next to its database.",
+]
+
+[[text.en.timeline]]
+title = "Open to the public"
+period = "29 Oct 2026"
+items = [
+  "Gateway in the DMZ, Mojang accounts only, and an impersonation audit.",
+  "A single zone in production and nothing on my PC.",
+  "New panel: servers with one command, network-wide slots and announcements.",
+]
+
+[[text.en.decisions]]
+title = "Velocity or my own gateway"
+choice = "My own gateway, in Rust"
+why = "Crossing between servers with no loading screen means splicing packets on the fly, and a generic proxy doesn't do that."
+
+[[text.en.decisions]]
+title = "Paper, Purpur or Folia"
+choice = "Folia, with my own patches"
+why = "Folia splits the world into regions with their own threads: with many players spread out it uses every core."
+
+[[text.en.decisions]]
+title = "Redis in front of PostgreSQL"
+choice = "No: fewer round trips"
+why = "33 hours of pg_stat_statements: the weight was writes that must persist. Merging round trips beat a cache."
+
+[[text.en.decisions]]
+title = "Split the world by hand or automatically"
+choice = "The controller does it"
+why = "By cells, never splitting an area with players in it (bases and redstone intact), and reassigning on its own if a server dies."
+
+[[text.en.decisions]]
+title = "Expose the controller or just the gateway"
+choice = "Just the gateway, in the DMZ"
+why = "The database isn't reachable from the internet and services talk to each other with mutual TLS."
+
+[text.en.tech_notes]
+rust = "Gateway, controller, agent, world store and generator: everything that isn't the game itself."
+java = "The game plugin on Folia 26.3: economy, homes, teams, league, staff tools and network-wide chat."
+postgresql = "All game and world-split state; single statements so nothing duplicates, and LISTEN/NOTIFY to signal between servers."
+typescript = "The admin panel in Svelte 5 and TypeScript."
+linux = "Debian containers with user-level systemd; the agent installs on any Linux with one command."
+proxmox = "Both containers live on the home Proxmox, next to the rest of the homelab."
+lxc = "Controller and shards in one container; the gateway in another, isolated in the DMZ."
+terraform = "The containers, their network and their DNS, declared in Terraform."
+ansible = "Roles for the development container and the DMZ gateway, deployed from Forgejo."
+forgejo = "One repository per part with CI and checksummed releases."
+git = "A branch per change, a tag per version and a versioned results wiki."
+vlan = "The public gateway in the DMZ VLAN, with no access to the rest of the house."
+mikrotik = "Forwarding for the game and voice ports, and DMZ rules to just the right ports."
+dns = "An SRV record so you join with just the domain, created via API."
+hardening = "Mojang accounts only, mTLS between services, database not exposed, and an impersonation suite with zero holes."
+pbs = "Daily encrypted backups with a weekly restore test."
+
+[text.en.close]
+lessons = [
+  "Measure before touching: half the ideas that looked good improved nothing and were dropped with data.",
+  "With a distant database, the enemy is round trips, not queries.",
+  "A test that passes for the wrong reason is worse than one that fails.",
+  "Testing with two continents from day one forced everything to work without local shortcuts.",
+]
+next = [
+  "More real players in external testing.",
+  "Move mob AI to a separate service without lowering TPS.",
+  "A second zone in production when there's hardware for it.",
+  "Version 1.0.0, signed off by the people who play it.",
+]

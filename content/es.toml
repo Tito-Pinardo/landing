@@ -156,6 +156,21 @@ bullets = [
 outcome = "Reconstruir un servicio pasa de ser una tarde de prueba y error a un comando."
 lesson = "Tras un corte de luz que dejó el almacenamiento LVM inactivo y todos los servicios caídos, escribí el postmortem con la causa raíz, cómo detectarlo y el arreglo exacto."
 
+[projects.battlepros]
+title = "BattlePros · red de Minecraft a medida"
+tagline = "Un solo mundo repartido entre varios servidores, sin pantallas de carga entre ellos, con entrada, mando y agentes propios en Rust."
+context = "Proyecto personal, abierto a pruebas externas desde octubre de 2026."
+problem = "Un servidor de Minecraft se queda corto con muchos jugadores y los proxies normales enseñan una pantalla de carga cada vez que cambias de servidor."
+bullets = [
+  "Entrada propia en Rust que empalma la conexión del jugador de un servidor a otro sin pantalla de carga; solo cuentas de Mojang y sin agujeros en la batería de suplantación.",
+  "Mando en Rust que reparte el mundo por celdas entre fragmentos con Folia, sin partir nunca bases ni redstone, y lo reasigna solo si un servidor cae.",
+  "Panel en Svelte para añadir servidores físicos con una orden, cambiar las plazas de toda la red, anunciar, fijar versiones y ver métricas.",
+  "Cada cambio medido con 100 bots contra la versión anterior y apuntado con su porqué: de 707 a 140 ms en pagar, de 17,4 a 19 TPS con 100 bots.",
+  "Probado con dos zonas a 80 ms para validar el reparto entre continentes; en producción, una sola zona en este servidor.",
+]
+outcome = "Abierto a pruebas externas: la entrada vive aislada en la DMZ y todo lo demás detrás, sin nada en mi PC."
+lesson = "Con una base de datos lejos, lo caro no son las consultas sino los viajes: juntar cinco en uno ganó más que cualquier caché."
+
 [projects.hermes]
 title = "Hermes · asistente de IA local"
 tagline = "Un asistente en el chat que conoce el estado de mis servidores, y nada sale de mi red."
@@ -357,6 +372,7 @@ observability = "Observabilidad y seguridad"
 platform = "Plataforma"
 lab = "Hipervisor y laboratorio"
 delivery = "Entrega y secretos"
+games = "Juegos a medida"
 
 [nodes.internet]
 short = "Internet"
@@ -532,6 +548,16 @@ text = "Comprueba cada push sin un solo secreto: Terraform, ansible-lint, gitlea
 short = "Despliegue"
 title = "Runner de despliegue"
 text = "Vive en el nodo de control. Calcula el plan de cada cambio y, con mi aprobación, aplica ese plan exacto. Esta web la despliega sola cuando su CI sale en verde. Cada lunes, Renovate abre aquí los PR de versiones nuevas."
+
+[nodes.bpborde]
+short = "Entrada MC"
+title = "Entrada de BattlePros (unidad 1U)"
+text = "Mi proxy de Minecraft en Rust, aislado en la DMZ: lo único de la red de juego que se ve desde internet. Solo cuentas de Mojang."
+
+[nodes.battlepros]
+short = "BattlePros"
+title = "BattlePros (unidad 1U)"
+text = "El mando, los fragmentos con Folia, el almacén del mundo y la base de datos de la red de Minecraft. Pruebas con dos zonas; en producción, solo esta."
 
 [nodes.openbao]
 short = "OpenBao"
@@ -756,6 +782,18 @@ steps = [
   "El binario de Rust ya tiene la página renderizada en memoria: responde en microsegundos.",
   "La respuesta vuelve por Cloudflare, que guarda una copia de lo que se puede cachear.",
   "Y ya la estás viendo. Todo el viaje, en milisegundos.",
+]
+
+[flows.battlepros]
+title = "Entras a jugar a BattlePros"
+steps = [
+  "Abres Minecraft y escribes el dominio del servidor.",
+  "El DNS te dice a qué puerto ir. Aquí Cloudflare solo responde: Minecraft no pasa por su proxy.",
+  "El router deja pasar ese puerto, y solo hacia la DMZ.",
+  "La entrada, mi proxy en Rust, comprueba tu cuenta con Mojang.",
+  "Te pasa al fragmento que lleva tu zona del mundo. Pulsa la pieza y entra en la unidad para verlo por dentro.",
+  "Si cruzas a otra zona, la entrada te cambia de servidor sin pantalla de carga.",
+  "Y sigues jugando como si fuera un único servidor.",
 ]
 
 [flows.xpify]

@@ -10,6 +10,7 @@ links = [
   ["router", "traefik"],
   ["router", "pc"],
   ["router", "dns"],
+  ["router", "bpborde"],
 ]
 
 # Logros: se desbloquean en el navegador, sin cuentas ni cookies.
@@ -309,6 +310,12 @@ branch = "dev"
 level = 1
 
 [[tech]]
+id = "java"
+name = "Java (Paper/Folia)"
+branch = "dev"
+level = 2
+
+[[tech]]
 id = "llm"
 name = "LLM locales (Ollama, Qdrant, RAG)"
 branch = "dev"
@@ -324,6 +331,12 @@ status = "ongoing"
 featured = true
 tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "forgejo", "renovate", "linux", "traefik", "dns", "hardening", "openbao", "crowdsec", "pbs"]
 repo = "https://github.com/Tito-Pinardo/homelab-infra"
+
+[[projects]]
+id = "battlepros"
+status = "ongoing"
+featured = true
+tech = ["rust", "java", "postgresql", "typescript", "linux", "proxmox", "lxc", "terraform", "ansible", "forgejo", "git", "vlan", "mikrotik", "dns", "hardening", "pbs"]
 
 [[projects]]
 id = "hermes"
@@ -427,6 +440,13 @@ h = 90
 id = "delivery"
 x = 420
 y = 728
+w = 760
+h = 90
+
+[[groups]]
+id = "games"
+x = 420
+y = 842
 w = 760
 h = 90
 
@@ -769,6 +789,25 @@ group = "delivery"
 tech = ["openbao", "hardening"]
 unit = "openbao"
 
+# Juegos
+[[nodes]]
+id = "bpborde"
+x = 515
+y = 894
+kind = "network"
+group = "games"
+tech = ["rust", "vlan"]
+unit = "battlepros"
+
+[[nodes]]
+id = "battlepros"
+x = 700
+y = 894
+kind = "app"
+group = "games"
+tech = ["rust", "java", "postgresql"]
+unit = "battlepros"
+
 # ---------------------------------------------------------------------------
 # Recorridos: el camino que hace algo de verdad por dentro del servidor.
 # Cada paso de `path` tiene su texto en es/en.toml (mismo número de pasos);
@@ -779,6 +818,11 @@ unit = "openbao"
 id = "visit"
 category = "visitors"
 path = ["internet", "cloudflare", "router", "traefik", "landing", "cloudflare", "internet"]
+
+[[flows]]
+id = "battlepros"
+category = "visitors"
+path = ["pc", "cloudflare", "router", "bpborde", "battlepros", "bpborde", "pc"]
 
 [[flows]]
 id = "xpify"
@@ -888,6 +932,7 @@ path = ["casa", "authelia", "paperless", "zfs"]
 # «Rompe el servidor»: averías provocadas a propósito. `broken` es la pieza
 # que se rompe; el veredicto (cuánto se cayó y qué se perdió) está en los
 # textos. Solo comportamientos que constan en las unidades y los artículos.
+
 [[flows]]
 id = "disk"
 category = "break"
