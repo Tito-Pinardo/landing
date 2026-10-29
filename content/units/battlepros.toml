@@ -393,6 +393,118 @@ answer = 2
 id = "menus"
 answer = 1
 
+# Los repositorios (cifras de git del 29-10: líneas sin las vacías ni lo
+# generado; en el fork de Folia, solo nuestros parches).
+[[repos]]
+id = "folia"
+name = "battlepros-folia"
+layer = "game"
+lang = "patch"
+loc = 625
+tests = 0
+commits = 19
+version = "26.3.17"
+talks = ["mundo", "generador"]
+
+[[repos]]
+id = "plugin"
+name = "battlepros"
+layer = "game"
+lang = "java"
+loc = 28431
+tests = 122
+commits = 194
+version = "0.7.46"
+uses = ["comun"]
+talks = ["entrada"]
+
+[[repos]]
+id = "comun"
+name = "battlepros-comun"
+layer = "game"
+lang = "java"
+loc = 10431
+tests = 119
+commits = 79
+version = "0.63.0"
+
+[[repos]]
+id = "mundo"
+name = "battlepros-mundo"
+layer = "game"
+lang = "rust"
+loc = 1448
+tests = 16
+commits = 25
+version = "0.3.9"
+
+[[repos]]
+id = "generador"
+name = "battlepros-generador"
+layer = "game"
+lang = "rust"
+loc = 934
+tests = 3
+commits = 12
+version = "0.1"
+
+[[repos]]
+id = "entrada"
+name = "battlepros-entrada"
+layer = "edge"
+lang = "rust"
+loc = 7162
+tests = 53
+commits = 241
+version = "0.3.2"
+talks = ["folia", "agente"]
+
+[[repos]]
+id = "proxy"
+name = "battleproxy"
+layer = "edge"
+lang = "java"
+loc = 680
+tests = 2
+commits = 16
+version = "0.1"
+uses = ["comun"]
+retired = true
+
+[[repos]]
+id = "mando"
+name = "battlepros-mando"
+layer = "control"
+lang = "rust"
+loc = 6995
+tests = 39
+commits = 78
+version = "0.3.29"
+talks = ["mundo"]
+
+[[repos]]
+id = "agente"
+name = "battlepros-agente"
+layer = "control"
+lang = "rust"
+loc = 2610
+tests = 20
+commits = 74
+version = "0.3.32"
+uses = ["mando"]
+talks = ["mando", "folia"]
+
+[[repos]]
+id = "admin"
+name = "battlepros-administracion"
+layer = "control"
+lang = "svelte"
+loc = 1788
+tests = 0
+commits = 35
+version = "0.3.10"
+talks = ["mando"]
+
 # ===========================================================================
 # Español
 # ===========================================================================
@@ -1385,4 +1497,258 @@ next = [
   "Move mob AI to a separate service without lowering TPS.",
   "A second zone in production when there's hardware for it.",
   "Version 1.0.0, signed off by the people who play it.",
+]
+
+[text.es.repos]
+title = "El código, repo a repo"
+intro = "BattlePros son diez repositorios privados que se publican por separado, cada uno con su CI, sus pruebas y su wiki. A la izquierda lo que corre dentro del juego, en el centro la puerta de entrada de los jugadores y a la derecha el plano de control que lo despliega y vigila todo. Pasa el ratón por uno para ver con quién se relaciona; púlsalo para abrir lo que hay dentro."
+layers = [
+  ["game", "Juego"],
+  ["edge", "Entrada"],
+  ["control", "Control"],
+]
+mix = "Líneas de código por lenguaje"
+langs = { java = "Java", rust = "Rust", svelte = "Svelte y TypeScript", patch = "Parches de Folia" }
+uses = "lleva su código"
+talks = "hablan en marcha"
+loc = "líneas"
+tests = "pruebas"
+commits = "commits"
+inside = "Qué hay dentro"
+retired = "retirado"
+hint = "pulsa un repo para abrir su ficha"
+note = "Cifras de git a 29-10-2026: líneas sin contar las vacías ni lo generado (en el fork de Folia, solo nuestros parches; los scripts de pruebas en Python van aparte). Cada etiqueta vX.Y.Z crea una release con su suma SHA-256; el mando la fija y los agentes la despliegan de uno en uno. Los repositorios no son públicos: esto es su mapa."
+
+[text.es.repos.items.folia]
+role = "Fork de Folia 26.3 con 15 parches propios"
+summary = "El servidor de Minecraft multihilo (cada región del mapa en su hilo) con parches encima, mantenidos como ficheros .patch sobre el Folia oficial para poder subir de versión sin perderlos."
+tree = [
+  ["0012 almacén externo", "los chunks se leen y escriben en battlepros-mundo, no en el disco local"],
+  ["0013 salud de regiones", "MSPT por región para que el mando reparta la carga"],
+  ["0014 E/S en paralelo", "varias lecturas del almacén a la vez en vez de una cola"],
+  ["0016 terreno de Pumpkin", "pide el terreno nuevo a battlepros-generador en hilos propios"],
+  ["0017–0026 rendimiento", "IA de mobs, aparición y búsquedas solo en lo cargado (medido antes y después)"],
+  [".forgejo/workflows", "CI: aplica los parches, compila el jar y lo publica por etiqueta"],
+]
+
+[text.es.repos.items.plugin]
+role = "El plugin del juego: 33 módulos en un solo jar"
+summary = "Todo lo que hace BattlePros como servidor estilo DonutSMP: economía, subastas, spawners, equipos, liga, moderación… Cada módulo se apaga en la configuración y ninguna consulta a la base de datos se espera en el hilo del servidor."
+tree = [
+  ["nucleo/", "jugadores, mensajes en dos idiomas, menús y el planificador compatible con Folia"],
+  ["sincronizacion/", "el inventario y el estado viajan con el jugador entre fragmentos sin duplicar nada"],
+  ["fragmentos/", "el empalme: firmas HMAC del cambio de servidor, portales y la raya entre celdas"],
+  ["economia/ · mercado/", "/sell con mercado dinámico, /shop, /ah con compra rápida y pedidos"],
+  ["generadores/ · shards/", "spawners apilables y su botín, la segunda moneda"],
+  ["duelos/ · liga/", "duelos en el mundo y liga en el coliseo con elo y temporadas"],
+  ["moderacion/ · staff/ · anticheat/", "sanciones en toda la red, vanish, X-ray y avisos al staff"],
+  ["interfaz/", "marcador lateral y tab por paquetes"],
+  ["nms/", "lo que necesita tocar el servidor por dentro: el precio en el tooltip, en el hilo de red"],
+]
+
+[text.es.repos.items.comun]
+role = "Librería compartida: base de datos y avisos"
+summary = "No es un plugin: va dentro del jar del juego. Tiene todo el SQL y las reglas de lo que da o quita algo; cada operación es una sola petición a Postgres para que dos servidores a la vez no dupliquen nada."
+tree = [
+  ["bd/", "pool de conexiones, hilos virtuales, transacciones con reintento y el migrador"],
+  ["protocolo/", "avisos entre servidores con LISTEN/NOTIFY (saldo, entregas, sanciones, chat…)"],
+  ["economia/ · mercado/", "cuentas, ventas, subastas y el stock de lo vendido, con cerrojos por fila"],
+  ["estado/", "el guardado del jugador con versión, para que solo un servidor lo tenga"],
+  ["resources/bp/migraciones", "47 migraciones del esquema, una por fichero"],
+  ["src/test", "119 pruebas contra un PostgreSQL 18 de verdad"],
+]
+
+[text.es.repos.items.mundo]
+role = "El almacén del mundo único"
+summary = "Un servicio en Rust que guarda todos los chunks. Cualquier servidor puede llevar cualquier celda del mapa: al moverla no se copia ningún fichero, solo cambia quién la tiene tomada."
+tree = [
+  ["almacen.rs", "chunks por celda con época: solo escribe quien la tiene tomada"],
+  ["protocolo.rs", "TOMAR, LEER, ESCRIBIR y SOLTAR, binario y con mTLS"],
+  ["servidor.rs", "el servicio en tokio, con E/S en paralelo"],
+]
+
+[text.es.repos.items.generador]
+role = "Terreno nuevo en Rust (pumpkin-world)"
+summary = "Folia le pide los chunks que no existen y él los devuelve generados con la misma semilla, por teselas y en paralelo. Va en un proceso aparte porque es GPL: así nada más tendría que publicarse."
+tree = [
+  ["motor.rs", "teselas con margen: un chunk termina cuando él y sus 8 vecinos han decorado"],
+  ["nivel.rs", "el terreno de Pumpkin con un parche para que las estructuras las ponga Folia"],
+  ["herramientas.rs", "comparar con vanilla bloque a bloque"],
+]
+
+[text.es.repos.items.entrada]
+role = "La puerta de los jugadores, en Rust"
+summary = "Sustituye a Velocity. Habla el protocolo de Minecraft 26.3 y, al acercarse un jugador a la raya entre dos servidores, prepara el de al lado y le cambia sin pantalla de carga (el empalme). También pone el tab de toda la red y hace de puente del chat de voz."
+tree = [
+  ["crates/protocolo", "VarInt, tramas, compresión, cifrado AES-CFB8 e ids de paquetes generadas del servidor"],
+  ["crates/entrada/src/juego.rs", "la sesión de cada jugador y el empalme entre fragmentos"],
+  ["crates/entrada/src/tab_red.rs", "el tab con todos los de la red, respetando el vanish"],
+  ["crates/entrada/src/voz.rs", "puente UDP del chat de voz"],
+  ["crates/cliente-pruebas", "un cliente 26.3 para los bots de carga (latencias reales, wifi incluido)"],
+  ["pruebas/bateria", "las baterías de pruebas en Python: cruces, chat, ventas, duplicados, 100–200 bots"],
+]
+
+[text.es.repos.items.proxy]
+role = "El plugin de Velocity del principio"
+summary = "Lo primero que hubo: MOTD, mantenimiento y permisos en Velocity. battlepros-entrada lo sustituyó por fases y hoy no se usa; se queda como historia."
+tree = [
+  ["src/main/java", "MOTD, mantenimiento y permisos desde la base de datos"],
+]
+
+[text.es.repos.items.mando]
+role = "El plano de control, estilo Kubernetes"
+summary = "Decide qué servidor lleva cada celda del mapa, despliega versiones de uno en uno, da de alta máquinas nuevas con una orden y aguanta la caída de una región. Todo cambio queda registrado."
+tree = [
+  ["crates/mando/src/reparto.rs", "reparte las celdas sin partir bases ni redstone (rendezvous, sin reiniciar)"],
+  ["crates/mando/src/actualizar.rs · releases.rs", "baja la release, comprueba su suma y actualiza de uno en uno"],
+  ["crates/mando/src/instalar.rs · provision.rs", "alta de un servidor físico nuevo o local"],
+  ["crates/mando/src/ha/", "alta disponibilidad: otra región toma el mando si cae"],
+  ["crates/mando/src/ca.rs", "su propia CA: certificados mTLS para cada agente"],
+  ["crates/mando-api", "los tipos de la API, compartidos con el agente"],
+]
+
+[text.es.repos.items.agente]
+role = "Uno por máquina, como el kubelet"
+summary = "Arranca y para los servidores de juego con systemd, mide CPU, RAM y MSPT, y solo obedece órdenes firmadas por el mando (mTLS)."
+tree = [
+  ["ciclo.rs", "el latido al mando: estado de la máquina y de cada fragmento"],
+  ["servicios.rs", "fragmentos como servicios de systemd con sus límites"],
+  ["provision.rs · aot.rs", "prepara un fragmento nuevo y la caché AOT de Java para que arranque antes"],
+  ["medidas.rs", "CPU, RAM, disco, red y MSPT"],
+]
+
+[text.es.repos.items.admin]
+role = "El panel de administración"
+summary = "Una web en Svelte 5 que sirve el mando: servidores, jugadores, plazas, versiones, consola en vivo, mapa del mundo y registro. Sustituyó al panel comercial que había antes."
+tree = [
+  ["src/vistas/", "una pantalla por fichero: resumen, servidores, jugadores, red, monitorización, registro"],
+  ["src/datos.svelte.ts", "el estado compartido, pedido al mando cada 3 s"],
+  ["src/Mapa.svelte · Consola.svelte", "el mundo en vivo y la consola de cada fragmento"],
+]
+
+[text.en.repos]
+title = "The code, repo by repo"
+intro = "BattlePros is ten private repositories released independently, each with its own CI, tests and wiki. On the left, what runs inside the game; in the middle, the players' front door; on the right, the control plane that deploys and watches everything. Hover one to see what it relates to; click it to open what's inside."
+layers = [
+  ["game", "Game"],
+  ["edge", "Edge"],
+  ["control", "Control"],
+]
+mix = "Lines of code by language"
+langs = { java = "Java", rust = "Rust", svelte = "Svelte & TypeScript", patch = "Folia patches" }
+uses = "embeds its code"
+talks = "talk at runtime"
+loc = "lines"
+tests = "tests"
+commits = "commits"
+inside = "What's inside"
+retired = "retired"
+hint = "click a repo to open its card"
+note = "Git figures as of 2026-10-29: lines excluding blanks and generated code (for the Folia fork, only our patches; the Python test scripts are counted apart). Every vX.Y.Z tag builds a release with its SHA-256; the control plane pins it and the agents roll it out one at a time. The repositories aren't public: this is their map."
+
+[text.en.repos.items.folia]
+role = "Folia 26.3 fork with 15 patches of our own"
+summary = "The multithreaded Minecraft server (each map region on its own thread) with our patches on top, kept as .patch files over upstream Folia so upgrades don't lose them."
+tree = [
+  ["0012 external store", "chunks are read from and written to battlepros-mundo, not the local disk"],
+  ["0013 region health", "per-region MSPT so the control plane can balance load"],
+  ["0014 parallel I/O", "several store reads at once instead of a queue"],
+  ["0016 Pumpkin terrain", "asks battlepros-generador for new terrain on its own threads"],
+  ["0017–0026 performance", "mob AI, spawning and lookups only in loaded chunks (measured before and after)"],
+  [".forgejo/workflows", "CI: applies the patches, builds the jar and releases it on tag"],
+]
+
+[text.en.repos.items.plugin]
+role = "The game plugin: 33 modules in one jar"
+summary = "Everything BattlePros does as a DonutSMP-style server: economy, auctions, spawners, teams, league, moderation… Every module can be switched off in config, and no database query is ever awaited on the server thread."
+tree = [
+  ["nucleo/", "players, two-language messages, menus and the Folia-safe scheduler"],
+  ["sincronizacion/", "inventory and state travel with the player between shards without duplicating anything"],
+  ["fragmentos/", "the splice: HMAC-signed server switches, portals and the line between cells"],
+  ["economia/ · mercado/", "/sell with a dynamic market, /shop, /ah with quick buy and orders"],
+  ["generadores/ · shards/", "stackable spawners and their loot, the second currency"],
+  ["duelos/ · liga/", "in-world duels and a colosseum league with elo and seasons"],
+  ["moderacion/ · staff/ · anticheat/", "network-wide punishments, vanish, X-ray and staff alerts"],
+  ["interfaz/", "sidebar and tab list sent as packets"],
+  ["nms/", "what has to touch the server internals: the price in the tooltip, on the network thread"],
+]
+
+[text.en.repos.items.comun]
+role = "Shared library: database and signals"
+summary = "Not a plugin: it ships inside the game jar. It holds all the SQL and the rules for anything that gives or takes; each operation is a single Postgres round trip so two servers at once never duplicate anything."
+tree = [
+  ["bd/", "connection pool, virtual threads, retrying transactions and the migrator"],
+  ["protocolo/", "server-to-server signals over LISTEN/NOTIFY (balance, deliveries, punishments, chat…)"],
+  ["economia/ · mercado/", "accounts, sales, auctions and the resale stock, with row locks"],
+  ["estado/", "versioned player saves so only one server owns a player"],
+  ["resources/bp/migraciones", "47 schema migrations, one per file"],
+  ["src/test", "119 tests against a real PostgreSQL 18"],
+]
+
+[text.en.repos.items.mundo]
+role = "The single world's store"
+summary = "A Rust service that holds every chunk. Any server can run any cell of the map: moving one copies no files, it only changes who holds it."
+tree = [
+  ["almacen.rs", "chunks per cell with an epoch: only the holder can write"],
+  ["protocolo.rs", "TAKE, READ, WRITE and RELEASE, binary over mTLS"],
+  ["servidor.rs", "the tokio service, with parallel I/O"],
+]
+
+[text.en.repos.items.generador]
+role = "New terrain in Rust (pumpkin-world)"
+summary = "Folia asks it for chunks that don't exist yet and gets them back generated from the same seed, in tiles and in parallel. It runs as a separate process because it's GPL: that way nothing else would ever need publishing."
+tree = [
+  ["motor.rs", "tiles with margins: a chunk is done when it and its 8 neighbours have decorated"],
+  ["nivel.rs", "Pumpkin's terrain with a patch so Folia places the structures"],
+  ["herramientas.rs", "block-by-block comparison against vanilla"],
+]
+
+[text.en.repos.items.entrada]
+role = "The players' front door, in Rust"
+summary = "Replaces Velocity. It speaks the Minecraft 26.3 protocol and, as a player nears the line between two servers, warms up the next one and switches them over with no loading screen (the splice). It also builds the network-wide tab list and bridges voice chat."
+tree = [
+  ["crates/protocolo", "VarInt, framing, compression, AES-CFB8 encryption and packet ids generated from the server"],
+  ["crates/entrada/src/juego.rs", "each player's session and the splice between shards"],
+  ["crates/entrada/src/tab_red.rs", "the tab list with everyone on the network, honouring vanish"],
+  ["crates/entrada/src/voz.rs", "UDP bridge for voice chat"],
+  ["crates/cliente-pruebas", "a 26.3 client for load bots (real latencies, wifi included)"],
+  ["pruebas/bateria", "Python test batteries: crossings, chat, sales, duplication, 100–200 bots"],
+]
+
+[text.en.repos.items.proxy]
+role = "The original Velocity plugin"
+summary = "The first piece: MOTD, maintenance and permissions on Velocity. battlepros-entrada replaced it in phases and it's no longer used; it stays as history."
+tree = [
+  ["src/main/java", "MOTD, maintenance and permissions from the database"],
+]
+
+[text.en.repos.items.mando]
+role = "The control plane, Kubernetes-style"
+summary = "Decides which server runs each map cell, rolls versions out one at a time, adds new machines with a single command and survives a region going down. Every change is audited."
+tree = [
+  ["crates/mando/src/reparto.rs", "assigns cells without splitting bases or redstone (rendezvous, no restarts)"],
+  ["crates/mando/src/actualizar.rs · releases.rs", "downloads the release, checks its hash and updates one by one"],
+  ["crates/mando/src/instalar.rs · provision.rs", "onboarding a new physical or local server"],
+  ["crates/mando/src/ha/", "high availability: another region takes over if one falls"],
+  ["crates/mando/src/ca.rs", "its own CA: mTLS certificates for every agent"],
+  ["crates/mando-api", "API types shared with the agent"],
+]
+
+[text.en.repos.items.agente]
+role = "One per machine, like the kubelet"
+summary = "Starts and stops game servers through systemd, measures CPU, RAM and MSPT, and only obeys orders signed by the control plane (mTLS)."
+tree = [
+  ["ciclo.rs", "the heartbeat: machine and per-shard status"],
+  ["servicios.rs", "shards as systemd services with their limits"],
+  ["provision.rs · aot.rs", "prepares a new shard and Java's AOT cache so it starts faster"],
+  ["medidas.rs", "CPU, RAM, disk, network and MSPT"],
+]
+
+[text.en.repos.items.admin]
+role = "The admin panel"
+summary = "A Svelte 5 web app served by the control plane: servers, players, slots, versions, live console, world map and audit log. It replaced the commercial panel used before."
+tree = [
+  ["src/vistas/", "one screen per file: overview, servers, players, network, monitoring, log"],
+  ["src/datos.svelte.ts", "shared state, polled from the control plane every 3 s"],
+  ["src/Mapa.svelte · Consola.svelte", "the live world and each shard's console"],
 ]

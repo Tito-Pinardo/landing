@@ -637,6 +637,209 @@ fn bench_views<'a>(unit: &'a Unit, t: &'a UnitText, lang: Lang) -> Vec<BenchGrou
         .collect()
 }
 
+/// El plano de los repositorios: nodos en columnas por capa, las líneas de
+/// quién usa a quién y el reparto de líneas por lenguaje. Las posiciones se
+/// calculan aquí; el navegador solo resalta.
+pub struct ReposView<'a> {
+    pub repos: Vec<RepoView<'a>>,
+    pub edges: Vec<RepoEdge>,
+    pub layers: Vec<(&'a str, u32)>,
+    pub mix: Vec<LangShare<'a>>,
+    pub total: String,
+    pub h: u32,
+}
+
+pub struct RepoView<'a> {
+    pub id: &'a str,
+    pub name: &'a str,
+    pub lang: &'a str,
+    pub lang_name: &'a str,
+    pub loc: String,
+    pub tests: String,
+    pub commits: String,
+    pub version: &'a str,
+    pub retired: bool,
+    pub role: &'a str,
+    pub summary: &'a str,
+    pub tree: &'a [(String, String)],
+    /// (id, nombre) de los que usa y con los que habla.
+    pub uses: Vec<(&'a str, &'a str)>,
+    pub talks: Vec<(&'a str, &'a str)>,
+    pub x: u32,
+    pub y: u32,
+}
+
+pub struct RepoEdge {
+    pub from: String,
+    pub to: String,
+    pub uses: bool,
+    pub d: String,
+}
+
+pub struct LangShare<'a> {
+    pub id: &'a str,
+    pub name: &'a str,
+    pub x: String,
+    pub w: String,
+    pub pct: String,
+}
+
+const REPO_COL: u32 = 300;
+const REPO_W: u32 = 272;
+const REPO_H: u32 = 58;
+const REPO_ROW: u32 = 80;
+const REPO_TOP: u32 = 46;
+
+/// Miles con el separador de cada idioma (28 431 / 28,431).
+fn miles(v: u32, lang: Lang) -> String {
+    let s = v.to_string();
+    let mut out = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
+            out.push(if lang == Lang::Es { '\u{202f}' } else { ',' });
+        }
+        out.push(c);
+    }
+    out
+}
+
+fn repos_view<'a>(unit: &'a Unit, t: &'a UnitText, lang: Lang) -> Option<ReposView<'a>> {
+    let tr = t.repos.as_ref()?;
+    let mut pos: BTreeMap<&str, (u32, u32)> = BTreeMap::new();
+    let mut rows = 0;
+    let layers: Vec<(&str, u32)> = tr
+        .layers
+        .iter()
+        .enumerate()
+        .map(|(i, (id, name))| {
+            let x = 10 + i as u32 * REPO_COL;
+            let mut n = 0;
+            for r in unit.repos.iter().filter(|r| &r.layer == id) {
+                pos.insert(&r.id, (x, REPO_TOP + n * REPO_ROW));
+                n += 1;
+            }
+            rows = rows.max(n);
+            (name.as_str(), x)
+        })
+        .collect();
+    let name = |id: &str| {
+        unit.repos
+            .iter()
+            .find(|r| r.id == id)
+            .map_or("", |r| r.name.as_str())
+    };
+    // Curva entre los lados que se miran; en la misma columna, por fuera a la derecha.
+    let curve = |a: &str, b: &str| {
+        let ((ax, ay), (bx, by)) = (pos[a], pos[b]);
+        let (ay, by) = (ay + REPO_H / 2, by + REPO_H / 2);
+        if ax == bx {
+            let x = ax + REPO_W;
+            format!("M{x} {ay} C{} {ay} {} {by} {x} {by}", x + 24, x + 24)
+        } else if ax < bx {
+            let (x1, x2) = (ax + REPO_W, bx);
+            let m = (x1 + x2) / 2;
+            format!("M{x1} {ay} C{m} {ay} {m} {by} {x2} {by}")
+        } else {
+            let (x1, x2) = (ax, bx + REPO_W);
+            let m = (x1 + x2) / 2;
+            format!("M{x1} {ay} C{m} {ay} {m} {by} {x2} {by}")
+        }
+    };
+    let mut edges = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+    for r in &unit.repos {
+        for u in &r.uses {
+            edges.push(RepoEdge {
+                from: r.id.clone(),
+                to: u.clone(),
+                uses: true,
+                d: curve(&r.id, u),
+            });
+        }
+        for o in &r.talks {
+            let k = if &r.id < o {
+                (r.id.as_str(), o.as_str())
+            } else {
+                (o.as_str(), r.id.as_str())
+            };
+            if seen.insert(k) {
+                edges.push(RepoEdge {
+                    from: r.id.clone(),
+                    to: o.clone(),
+                    uses: false,
+                    d: curve(&r.id, o),
+                });
+            }
+        }
+    }
+    let mut por_lang: Vec<(&str, u32)> = Vec::new();
+    for r in unit.repos.iter().filter(|r| !r.retired) {
+        match por_lang.iter_mut().find(|(l, _)| *l == r.lang) {
+            Some(x) => x.1 += r.loc,
+            None => por_lang.push((&r.lang, r.loc)),
+        }
+    }
+    por_lang.sort_by_key(|a| std::cmp::Reverse(a.1));
+    let total: u32 = por_lang.iter().map(|(_, n)| n).sum();
+    let mut x = 0.0;
+    let mix = por_lang
+        .iter()
+        .map(|(l, n)| {
+            let w = 100.0 * f64::from(*n) / f64::from(total.max(1));
+            let v = LangShare {
+                id: l,
+                name: &tr.langs[*l],
+                x: format!("{x:.2}"),
+                w: format!("{w:.2}"),
+                pct: format!("{} %", num((w * 10.0).round() / 10.0, lang)),
+            };
+            x += w;
+            v
+        })
+        .collect();
+    let repos = unit
+        .repos
+        .iter()
+        .map(|r| {
+            let it = &tr.items[&r.id];
+            let (x, y) = pos[r.id.as_str()];
+            // Con quién habla, en los dos sentidos (se apunta en uno solo).
+            let talks = unit
+                .repos
+                .iter()
+                .filter(|o| r.talks.contains(&o.id) || o.talks.contains(&r.id))
+                .map(|o| (o.id.as_str(), o.name.as_str()))
+                .collect();
+            RepoView {
+                id: &r.id,
+                name: &r.name,
+                lang: &r.lang,
+                lang_name: &tr.langs[&r.lang],
+                loc: miles(r.loc, lang),
+                tests: miles(r.tests, lang),
+                commits: miles(r.commits, lang),
+                version: &r.version,
+                retired: r.retired,
+                role: &it.role,
+                summary: &it.summary,
+                tree: &it.tree,
+                uses: r.uses.iter().map(|u| (u.as_str(), name(u))).collect(),
+                talks,
+                x,
+                y,
+            }
+        })
+        .collect();
+    Some(ReposView {
+        repos,
+        edges,
+        layers,
+        mix,
+        total: miles(total, lang),
+        h: REPO_TOP + rows * REPO_ROW,
+    })
+}
+
 pub struct IncidentView<'a> {
     pub id: &'a str,
     pub n: usize,
@@ -665,6 +868,7 @@ pub struct UnitTpl<'a> {
     pub skills: Vec<SkillView>,
     pub incidents: Vec<IncidentView<'a>>,
     pub bench: Vec<BenchGroupView<'a>>,
+    pub repos: Option<ReposView<'a>>,
     pub common: &'a BTreeMap<String, String>,
     pub status: &'a str,
     /// «Posición 3 de 23 en el rack» y el estado, ya rellenos.
@@ -837,6 +1041,7 @@ pub fn unit(
         ("xp", "XP ENGINE".into(), unit.xp.is_some()),
         ("vram", "VRAM".into(), unit.vram.is_some()),
         ("bench", "BENCH".into(), !unit.bench.is_empty()),
+        ("repos", "SOURCE".into(), !unit.repos.is_empty()),
         ("incidents", "LOGS".into(), !unit.incidents.is_empty()),
         ("build", "BUILD".into(), true),
         ("close", "EOF".into(), true),
@@ -885,6 +1090,7 @@ pub fn unit(
         skills,
         incidents,
         bench: bench_views(unit, t, lang),
+        repos: repos_view(unit, t, lang),
         common: &mt.unit_ui,
         status: &unit.status,
         pos_label: ui["rack_pos"]

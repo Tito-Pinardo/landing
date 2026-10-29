@@ -80,7 +80,37 @@ pub struct Unit {
     /// Antes y después medidos, por grupos (pestañas con barras).
     #[serde(default)]
     pub bench: Vec<BenchRow>,
+    /// Los repositorios del proyecto: el plano de quién usa a quién.
+    #[serde(default)]
+    pub repos: Vec<Repo>,
     pub text: BTreeMap<String, UnitText>,
+}
+
+/// Un repositorio. Las cifras salen de git (líneas sin las vacías, sin lo
+/// generado); lo que hay dentro y para qué, en `[text.*.repos]`.
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Repo {
+    pub id: String,
+    /// Su nombre de verdad (battlepros-entrada).
+    pub name: String,
+    /// Columna del plano: una de `[text.*.repos].layers`.
+    pub layer: String,
+    /// Lenguaje principal: una de `[text.*.repos].langs`.
+    pub lang: String,
+    pub loc: u32,
+    pub tests: u32,
+    pub commits: u32,
+    pub version: String,
+    /// Repos cuyo código lleva dentro (librería, crate).
+    #[serde(default)]
+    pub uses: Vec<String>,
+    /// Repos con los que habla en marcha (red, ficheros, canales).
+    #[serde(default)]
+    pub talks: Vec<String>,
+    /// Ya no se usa (lo sustituyó otro).
+    #[serde(default)]
+    pub retired: bool,
 }
 
 /// Una medida de antes y después. Los nombres y el porqué van en
@@ -181,6 +211,8 @@ pub struct UnitText {
     pub incidents: BTreeMap<String, IncidentLog>,
     #[serde(default)]
     pub bench: Option<BenchText>,
+    #[serde(default)]
+    pub repos: Option<ReposText>,
     pub timeline: Vec<Phase>,
     pub decisions: Vec<Decision>,
     /// Para qué usé cada tecnología del proyecto; también lo enseña la
@@ -263,6 +295,38 @@ pub struct BenchText {
     /// Nombre de cada grupo (pestaña), en el orden en que salen.
     pub groups: Vec<(String, String)>,
     pub rows: BTreeMap<String, BenchRowText>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReposText {
+    pub title: String,
+    pub intro: String,
+    /// Columnas del plano, de izquierda a derecha: (id, nombre).
+    pub layers: Vec<(String, String)>,
+    /// Nombre de cada lenguaje.
+    pub langs: BTreeMap<String, String>,
+    pub mix: String,
+    pub uses: String,
+    pub talks: String,
+    pub loc: String,
+    pub tests: String,
+    pub commits: String,
+    pub inside: String,
+    pub retired: String,
+    pub hint: String,
+    pub note: String,
+    pub items: BTreeMap<String, RepoText>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RepoText {
+    /// Una línea: qué es.
+    pub role: String,
+    pub summary: String,
+    /// (carpeta o fichero, qué hay).
+    pub tree: Vec<(String, String)>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -526,6 +590,19 @@ impl Unit {
                 ))
             );
         }
+        let repo_ids: HashSet<&str> = self.repos.iter().map(|r| r.id.as_str()).collect();
+        ensure!(
+            repo_ids.len() == self.repos.len(),
+            ctx("repos: id repetida")
+        );
+        for r in &self.repos {
+            for o in r.uses.iter().chain(&r.talks) {
+                ensure!(
+                    repo_ids.contains(o.as_str()) && o != &r.id,
+                    ctx(&format!("repos {}: «{o}» no es otro repo", r.id))
+                );
+            }
+        }
         if let Some(x) = &self.xp {
             ensure!(
                 x.base_min <= x.base_default && x.base_default <= x.base_max,
@@ -644,6 +721,32 @@ impl Unit {
                 }
                 (true, None) => {}
                 _ => anyhow::bail!(ctx("[[bench]] y [text.*.bench] van juntos")),
+            }
+            match (self.repos.is_empty(), &t.repos) {
+                (false, Some(tr)) => {
+                    same(
+                        self.repos.iter().map(|r| r.layer.as_str()),
+                        tr.layers.iter().map(|(l, _)| l),
+                        &ctx("repos.layers"),
+                    )?;
+                    same(
+                        self.repos.iter().map(|r| r.id.as_str()),
+                        tr.items.keys(),
+                        &ctx("repos.items"),
+                    )?;
+                    for r in &self.repos {
+                        ensure!(
+                            tr.langs.contains_key(&r.lang),
+                            ctx(&format!("repos {}: sin nombre para {}", r.id, r.lang))
+                        );
+                        ensure!(
+                            !tr.items[&r.id].tree.is_empty(),
+                            ctx(&format!("repos {}: sin lo que hay dentro", r.id))
+                        );
+                    }
+                }
+                (true, None) => {}
+                _ => anyhow::bail!(ctx("[[repos]] y [text.*.repos] van juntos")),
             }
             match (&self.vram, &t.vram) {
                 (Some(v), Some(tv)) => {

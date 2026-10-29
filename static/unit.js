@@ -627,4 +627,39 @@
     });
     showBench(tabs[0].dataset.benchTab);
   }
+
+  // El código: al pasar por un repo (o abrir su ficha) se ven sus líneas.
+  const map = $(".repo-map");
+  if (map) {
+    const nodes = $$("[data-repo]", map);
+    const edges = $$(".repo-edge", map);
+    const light = (id) => {
+      map.classList.toggle("is-focus", !!id);
+      const near = new Set();
+      edges.forEach((e) => {
+        const on = !!id && (e.dataset.from === id || e.dataset.to === id);
+        e.classList.toggle("is-on", on);
+        if (on) { near.add(e.dataset.from); near.add(e.dataset.to); }
+      });
+      nodes.forEach((n) => {
+        n.classList.toggle("is-on", n.dataset.repo === id);
+        n.classList.toggle("is-near", near.has(n.dataset.repo));
+      });
+    };
+    const open = (id) => {
+      const card = document.getElementById("repo-" + id);
+      if (!card) return;
+      card.open = true;
+      light(id);
+      card.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "nearest" });
+    };
+    nodes.forEach((n) => {
+      n.addEventListener("mouseenter", () => light(n.dataset.repo));
+      n.addEventListener("focus", () => light(n.dataset.repo));
+      n.addEventListener("mouseleave", () => light($("[data-repo-card][open]")?.dataset.repoCard));
+      n.addEventListener("click", (ev) => { ev.preventDefault(); snd("click"); open(n.dataset.repo); });
+    });
+    $$("[data-repo-card]").forEach((c) => c.addEventListener("toggle", () => { if (c.open) light(c.dataset.repoCard); }));
+    $$("[data-repo-link]").forEach((a) => a.addEventListener("click", (ev) => { ev.preventDefault(); open(a.dataset.repoLink); }));
+  }
 })();

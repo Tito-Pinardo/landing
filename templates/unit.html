@@ -303,6 +303,69 @@
 </section>
 {% endif %}
 
+<!-- =========================== EL CÓDIGO =========================== -->
+{% if let Some(tr) = t.repos %}{% if let Some(rv) = repos %}
+<section class="bay" id="repos" aria-labelledby="repos-title">
+  <p class="bay-silk" aria-hidden="true">{{ bay("repos") }}</p>
+  <h2 id="repos-title">{{ tr.title }}</h2>
+  <p class="muted">{{ tr.intro }}</p>
+
+  <div class="repo-mix">
+    <p class="repo-mix-head small"><strong>{{ tr.mix }}</strong> <span class="muted">{{ rv.total }} {{ tr.loc }}</span></p>
+    <svg class="repo-mix-bar" viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+      {% for m in rv.mix %}<rect class="lang-{{ m.id }}" x="{{ m.x }}" width="{{ m.w }}" height="4"/>{% endfor %}
+    </svg>
+    <ul class="repo-mix-legend small">
+      {% for m in rv.mix %}<li><span class="lang-dot lang-{{ m.id }}"></span>{{ m.name }} <span class="muted">{{ m.pct }}</span></li>{% endfor %}
+    </ul>
+  </div>
+
+  <figure class="repo-map">
+    <svg viewBox="0 0 920 {{ rv.h }}" role="img" aria-labelledby="repos-title">
+      {% for (name, x) in rv.layers %}<text class="repo-layer" x="{{ x }}" y="22">{{ name }}</text>{% endfor %}
+      {% for e in rv.edges %}<path class="repo-edge{% if e.uses %} is-uses{% endif %}" d="{{ e.d }}" data-from="{{ e.from }}" data-to="{{ e.to }}"/>{% endfor %}
+      {% for r in rv.repos %}
+      <a href="#repo-{{ r.id }}" class="repo-node{% if r.retired %} is-retired{% endif %}" data-repo="{{ r.id }}">
+        <rect x="{{ r.x }}" y="{{ r.y }}" width="272" height="58" rx="8"/>
+        <circle class="lang-{{ r.lang }}" cx="{{ r.x + 16 }}" cy="{{ r.y + 21 }}" r="5"/>
+        <text class="repo-node-name" x="{{ r.x + 28 }}" y="{{ r.y + 25 }}">{{ r.name }}</text>
+        <text class="repo-node-meta" x="{{ r.x + 16 }}" y="{{ r.y + 45 }}">{{ r.lang_name }} · {{ r.loc }} · v{{ r.version }}</text>
+      </a>
+      {% endfor %}
+    </svg>
+    <figcaption class="small muted"><span class="repo-key is-uses"></span>{{ tr.uses }} <span class="repo-key"></span>{{ tr.talks }} · {{ tr.hint }}</figcaption>
+  </figure>
+
+  <div class="repo-list">
+  {% for r in rv.repos %}
+    <details class="repo-card{% if r.retired %} is-retired{% endif %}" id="repo-{{ r.id }}" data-repo-card="{{ r.id }}">
+      <summary>
+        <span class="lang-dot lang-{{ r.lang }}"></span>
+        <strong class="repo-name">{{ r.name }}</strong>
+        <span class="repo-role">{{ r.role }}</span>
+        <span class="repo-ver">{% if r.retired %}{{ tr.retired }}{% else %}v{{ r.version }}{% endif %}</span>
+      </summary>
+      <div class="repo-body">
+        <p>{{ r.summary }}</p>
+        <dl class="repo-stats">
+          <div><dt>{{ r.lang_name }}</dt><dd>{{ r.loc }} <span class="muted">{{ tr.loc }}</span></dd></div>
+          <div><dt>{{ tr.tests }}</dt><dd>{{ r.tests }}</dd></div>
+          <div><dt>{{ tr.commits }}</dt><dd>{{ r.commits }}</dd></div>
+        </dl>
+        <h3 class="repo-inside">{{ tr.inside }}</h3>
+        <ul class="repo-tree">
+          {% for (path, what) in r.tree %}<li><code>{{ path }}</code><span>{{ what }}</span></li>{% endfor %}
+        </ul>
+        {% if !r.uses.is_empty() %}<p class="repo-links small"><span class="repo-key is-uses"></span>{{ tr.uses }}: {% for (id, name) in r.uses %}<a href="#repo-{{ id }}" data-repo-link="{{ id }}">{{ name }}</a>{% if !loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+        {% if !r.talks.is_empty() %}<p class="repo-links small"><span class="repo-key"></span>{{ tr.talks }}: {% for (id, name) in r.talks %}<a href="#repo-{{ id }}" data-repo-link="{{ id }}">{{ name }}</a>{% if !loop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+      </div>
+    </details>
+  {% endfor %}
+  </div>
+  <p class="muted small">{{ tr.note }}</p>
+</section>
+{% endif %}{% endif %}
+
 <!-- ============================== BITÁCORA ============================== -->
 {% if !incidents.is_empty() %}
 <section class="bay" id="incidents" aria-labelledby="inc-title">
