@@ -1,0 +1,85 @@
+slug = "resumen-2026-10-19"
+date = "2026-10-19"
+unit = "homepage"
+tech = ["docker", "typescript", "hardening", "linux", "wazuh", "mikrotik", "terraform", "proxmox"]
+kind = "digest"
+
+[text.es]
+title = "Resumen del lunes 19 de octubre: Homepage v2.6.0 incluye correcciones de seguridad y refactor de autenticación"
+description = "Novedades de la semana para mi homelab: Homepage, n8n, OpenSSH, Wazuh, MikroTik RouterOS, Proveedor bpg/proxmox de Terraform."
+summary = "Esta semana destacan varias vulnerabilidades críticas en herramientas clave de gestión y automatización como n8n, Wazuh, OpenSSH y WinBox para MikroTik. Por otro lado, el panel Homepage se actualiza con correcciones de seguridad y el proveedor de Terraform para Proxmox añade soporte para modelos de CPU personalizados."
+lesson = "La segmentación estricta de accesos y el principio de mínimo privilegio son indispensables para limitar el impacto en el homelab cuando fallan las capas de autenticación de los servicios."
+
+[[text.es.sections]]
+heading = "Homepage v2.6.0 incluye correcciones de seguridad y refactor de autenticación"
+paragraphs = ["Se ha publicado la versión 2.6.0 del panel Homepage, que resuelve el aviso de seguridad GHSA-qxcr-4rv3-v23r, refactoriza la arquitectura de autenticación y corrige el tratamiento de secuencias con el símbolo de dólar en los secretos.", "En mi servidor: Es una versión importante para el panel donde organizo los accesos del homelab, al corregir una vulnerabilidad de seguridad y mejorar la gestión de secretos."]
+list = ["Idea: Consultar las notas de la versión v2.6.0 para aplicar el parche de seguridad y comprobar los cambios en la autenticación."]
+links = [{ title = "v2.6.0", url = "https://github.com/gethomepage/homepage/releases/tag/v2.6.0", source = "Homepage" }]
+
+[[text.es.sections]]
+heading = "Seguridad · Múltiples vulnerabilidades graves detectadas en n8n"
+paragraphs = ["Se han descubierto varias vulnerabilidades en n8n que abarcan desde inyección SQL y contaminación de prototipos hasta denegación de servicio por llenado de disco y ejecución de código en el nodo Git.", "Por qué importa: Un atacante no autenticado podría agotar el espacio en disco o ejecutar SQL arbitrario, mientras que un usuario con permisos limitados podría tomar el control de cuentas o ejecutar comandos con los privilegios del proceso del motor de automatización."]
+list = ["Idea: Se corrige en las versiones 1.123.83, 2.41.4 y 2.42.1 según la rama utilizada."]
+links = [{ title = "14 vulnerabilidades en n8n (CVE-2026-110840, CVE-2026-110842, CVE-2026-110843, CVE-2026-110844…)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-110840", source = "n8n" }]
+
+[[text.es.sections]]
+heading = "Seguridad · Vulnerabilidades en OpenSSH, SFTP y filtros de Fail2ban"
+paragraphs = ["Se han descubierto varias vulnerabilidades que afectan a OpenSSH y herramientas asociadas, incluyendo un fallo en el cliente SFTP y la manipulación de registros en Fail2ban.", "Por qué importa: Un servidor SFTP malicioso podría escribir archivos fuera del directorio seleccionado durante una copia, y un atacante no autenticado podría manipular los registros de sshd para lograr que Fail2ban bloquee direcciones IP legítimas."]
+links = [{ title = "15 vulnerabilidades en OpenSSH (CVE-2026-70163, CVE-2026-83754, CVE-2026-83769, CVE-2026-83871…)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-70163", source = "OpenSSH" }]
+
+[[text.es.sections]]
+heading = "Seguridad · Múltiples vulnerabilidades en Wazuh permiten RCE y bypass de autenticación"
+paragraphs = ["Se han descubierto varias vulnerabilidades en versiones de Wazuh anteriores a la 4.14.8 que incluyen fallos de cruce de directorios, elusión de autenticación y ejecución remota de código.", "Por qué importa: Un atacante o agente comprometido podría borrar o sobreescribir archivos críticos del sistema, tomar el control de la cuenta de superusuario o ejecutar comandos con privilegios de root en los agentes de monitorización."]
+list = ["Idea: Lo corrige la versión 4.14.8."]
+links = [{ title = "15 vulnerabilidades en Wazuh (CVE-2026-74031, CVE-2026-74033, CVE-2026-74034, CVE-2026-74035…)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-74031", source = "Wazuh" }]
+
+[[text.es.sections]]
+heading = "Seguridad · Vulnerabilidad de elevación de privilegios en WinBox para MikroTik RouterOS"
+paragraphs = ["Se ha descubierto una vulnerabilidad de autorización en el flujo de autenticación de WinBox en MikroTik RouterOS. Un usuario autenticado con un perfil de bajos privilegios puede obtener una sesión con permisos de administración completos sin conocer la contraseña de la cuenta objetivo.", "Por qué importa: Permite que un usuario con credenciales limitadas para WinBox consiga acceso de administración total en el router de la red especificando una cuenta con más permisos en la segunda etapa del proceso."]
+links = [{ title = "CVE-2026-103903 en MikroTik RouterOS", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-103903", source = "MikroTik RouterOS" }]
+
+[[text.es.sections]]
+heading = "Nueva versión 0.117.0 del proveedor bpg/proxmox para Terraform"
+paragraphs = ["El proveedor bpg/proxmox para Terraform se ha actualizado a la versión 0.117.0. Añade un recurso para definir modelos de CPU personalizados en MVs, permite ejecutar llamadas a la API que requieren root@pam mediante tickets generados por SSH y corrige varios errores en la gestión de LXC, Cloud-Init y volúmenes de disco.", "En mi servidor: Aporta más flexibilidad al desplegar máquinas virtuales por código y resuelve fallos al clonar plantillas con Cloud-Init o al gestionar la conexión con pveproxy durante los despliegues."]
+list = ["Idea: Revisar las notas del cambio si se utilizan plantillas Cloud-Init o nombres de volumen no estándar antes de actualizar el proveedor en la configuración de Terraform."]
+links = [{ title = "v0.117.0", url = "https://github.com/bpg/terraform-provider-proxmox/releases/tag/v0.117.0", source = "Proveedor bpg/proxmox de Terraform" }]
+
+[text.en]
+title = "Monday digest, 19 October: Homepage v2.6.0 brings security fixes and authentication refactoring"
+description = "This week's news for my homelab: Homepage, n8n, OpenSSH, Wazuh, MikroTik RouterOS, Proveedor bpg/proxmox de Terraform."
+summary = "This week highlights several critical vulnerabilities affecting core management and automation tools such as n8n, Wazuh, OpenSSH and WinBox for MikroTik. On the other hand, Homepage receives security fixes and the Terraform provider for Proxmox introduces support for custom CPU models."
+lesson = "Strict access segmentation and the principle of least privilege are essential to limit the blast radius in a homelab when application authentication layers fail."
+
+[[text.en.sections]]
+heading = "Homepage v2.6.0 brings security fixes and authentication refactoring"
+paragraphs = ["Homepage v2.6.0 has been released, resolving security advisory GHSA-qxcr-4rv3-v23r, refactoring the authentication architecture, and fixing dollar sequence handling in environment and file secrets.", "On my server: It is a relevant update for the dashboard used to group homelab service links, as it addresses a security flaw and improves secret handling."]
+list = ["Idea: Read the v2.6.0 release notes to check the security fix and verify authentication changes."]
+links = [{ title = "v2.6.0", url = "https://github.com/gethomepage/homepage/releases/tag/v2.6.0", source = "Homepage" }]
+
+[[text.en.sections]]
+heading = "Security · Multiple high-severity vulnerabilities identified in n8n"
+paragraphs = ["Several vulnerabilities have been discovered in n8n ranging from SQL injection and prototype pollution to disk exhaustion and code execution in the Git node.", "Why it matters: An unauthenticated attacker could exhaust disk space or execute arbitrary SQL, while a user with limited permissions could take over accounts or run commands with the automation engine process privileges."]
+list = ["Idea: Fixed in versions 1.123.83, 2.41.4, and 2.42.1 depending on the branch used."]
+links = [{ title = "14 vulnerabilidades en n8n (CVE-2026-110840, CVE-2026-110842, CVE-2026-110843, CVE-2026-110844…)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-110840", source = "n8n" }]
+
+[[text.en.sections]]
+heading = "Security · Vulnerabilities in OpenSSH, SFTP, and Fail2ban filters"
+paragraphs = ["Several vulnerabilities have been discovered affecting OpenSSH and associated tools, including a flaw in the SFTP client and log manipulation in Fail2ban.", "Why it matters: A malicious SFTP server could write files outside the selected directory during a copy operation, whilst an unauthenticated attacker could manipulate sshd logs to cause Fail2ban to ban legitimate IP addresses."]
+links = [{ title = "15 vulnerabilidades en OpenSSH (CVE-2026-70163, CVE-2026-83754, CVE-2026-83769, CVE-2026-83871…)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-70163", source = "OpenSSH" }]
+
+[[text.en.sections]]
+heading = "Security · Multiple vulnerabilities in Wazuh allow RCE and authentication bypass"
+paragraphs = ["Several vulnerabilities have been disclosed in Wazuh versions prior to 4.14.8, covering path traversal, authentication bypass, and remote code execution flaws.", "Why it matters: An attacker or a compromised worker/agent could delete or overwrite critical system files, bypass authentication to take over the superuser account, or execute commands as root on monitoring agents."]
+list = ["Idea: Fixed in version 4.14.8."]
+links = [{ title = "15 vulnerabilidades en Wazuh (CVE-2026-74031, CVE-2026-74033, CVE-2026-74034, CVE-2026-74035…)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-74031", source = "Wazuh" }]
+
+[[text.en.sections]]
+heading = "Security · Privilege escalation vulnerability in WinBox for MikroTik RouterOS"
+paragraphs = ["An incorrect authorisation vulnerability has been discovered in the WinBox authentication flow in MikroTik RouterOS. An authenticated user with low privileges can obtain a full administrative session without knowing the target account's password.", "Why it matters: It enables a user with limited WinBox access credentials to escalate their permissions and gain full administrative control of the network router by supplying a higher-privilege account during the second stage."]
+links = [{ title = "CVE-2026-103903 en MikroTik RouterOS", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-103903", source = "MikroTik RouterOS" }]
+
+[[text.en.sections]]
+heading = "Terraform bpg/proxmox provider release v0.117.0"
+paragraphs = ["Version 0.117.0 of the bpg/proxmox Terraform provider has been released. It adds a resource for custom VM CPU models, enables root@pam-only API calls via SSH-minted tickets, and fixes several bugs in LXC cloning, Cloud-Init cleanup, and disk volume handling.", "On my server: It provides greater flexibility when declaring virtual machines in code and resolves stability issues when provisioning LXC containers, cloning templates, or maintaining idle connections with pveproxy."]
+list = ["Idea: Review the release notes before updating the provider in the Terraform configuration if using Cloud-Init templates or custom VM CPU configurations."]
+links = [{ title = "v0.117.0", url = "https://github.com/bpg/terraform-provider-proxmox/releases/tag/v0.117.0", source = "Proveedor bpg/proxmox de Terraform" }]
