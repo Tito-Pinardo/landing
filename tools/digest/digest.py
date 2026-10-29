@@ -51,6 +51,9 @@ MADRID = ZoneInfo("Europe/Madrid")
 UA = "tito-landing-digest/1.0 (+https://titopinardogutierrez.com)"
 HERE = Path(__file__).resolve().parent
 PUBLIC_URL = "https://titopinardogutierrez.com"
+# El despliegue rechaza commits con otra identidad (control de fugas): el
+# clon del CT 123 hereda la de la máquina, así que se fija al commitear.
+PUBLIC_AUTHOR = ["-c", "user.name=Tito-Pinardo", "-c", "user.email=Tito-Pinardo@users.noreply.github.com"]
 # Cuánto se espera a que el CI y el despliegue continuo publiquen el artículo.
 PUBLISH_WAIT = 40 * 60
 
@@ -817,7 +820,7 @@ def push_article(cfg: Config, st: dict, monday: dt.date, path: Path) -> None:
            f"{len(st['items'])} novedades de la semana para el homelab: "
            + ", ".join(i["source"] for i in st["items"]) + ".\n"
            "Escrito por tools/digest y aprobado en Matrix.")
-    run(["git", "commit", "-q", "-m", msg], cfg.repo)
+    run(["git", *PUBLIC_AUTHOR, "commit", "-q", "-m", msg], cfg.repo)
     try:
         run(["git", "push", "-q", "origin", "HEAD:main"], cfg.repo)
     except RuntimeError:
