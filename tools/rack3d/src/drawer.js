@@ -1,12 +1,12 @@
 // Lo de dentro de una unidad: cuando un recorrido pasa por ella, el cajón sale
-// del armario, la tapa se levanta y se ve la placa (con su nombre serigrafiado),
+// del armario, la tapa se desliza hacia dentro (como la de un servidor de
+// verdad, sin tapar las unidades de arriba) y se ve la placa (con su nombre serigrafiado),
 // el disipador que brilla mientras trabaja, la RAM, los discos y un ventilador
 // que gira. Se construye la primera vez que hace falta y se reutiliza.
 
 import { BoxGeometry, CanvasTexture, CylinderGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3 } from "three";
 
 export const OPEN = 0.72; // cuánto sale el cajón
-const LID_MAX = 1.45; // la tapa casi vertical, sin meterse en el armario
 
 const hidden = new MeshBasicMaterial({ visible: false });
 const wallMat = new MeshStandardMaterial({ color: 0x2b3345, metalness: 0.7, roughness: 0.45 });
@@ -16,7 +16,9 @@ const ramChip = new MeshStandardMaterial({ color: 0x111827, roughness: 0.5 });
 const diskMat = new MeshStandardMaterial({ color: 0x9aa3b2, metalness: 0.8, roughness: 0.35 });
 const fanMat = new MeshStandardMaterial({ color: 0x1f2937, roughness: 0.6 });
 const bladeMat = new MeshStandardMaterial({ color: 0x475569, roughness: 0.5 });
-const ledMat = new MeshBasicMaterial({ color: 0x22d3ee });
+const ledBase = new MeshBasicMaterial({ color: 0x22d3ee });
+const OK_C = 0x22d3ee;
+const FAULT_C = 0xef4444;
 
 let pcbTex = null;
 function pcbTexture() {
@@ -145,7 +147,8 @@ export function buildInside(u, w, h, d, bodyMat, hingeZ) {
   fan.scale.setScalar(0.85);
   g.add(fan);
   // LED de la placa
-  const led = new Mesh(new BoxGeometry(0.012, 0.006, 0.012), ledMat);
+  const ledMat = ledBase.clone();
+  const led = new Mesh(new BoxGeometry(0.016, 0.008, 0.016), ledMat);
   led.position.set(0.36, floor + 0.004, 0.33);
   g.add(led);
   // Nombre serigrafiado
@@ -154,8 +157,8 @@ export function buildInside(u, w, h, d, bodyMat, hingeZ) {
   label.position.set(-0.2, floor + 0.002, 0.33);
   g.add(label);
 
-  // Tapa en dos trozos: el de atrás (dentro del armario) fijo y la solapa de
-  // delante, con bisagra justo en el frontal del armario.
+  // Tapa en dos trozos: el de atrás (dentro del armario) fijo y el de
+  // delante, que se desliza hacia atrás por encima y queda dentro del armario.
   const lidT = 0.006;
   const rearLen = hingeZ + d / 2;
   const rear = new Mesh(new BoxGeometry(w, lidT, rearLen), bodyMat);
@@ -178,17 +181,25 @@ export function buildInside(u, w, h, d, bodyMat, hingeZ) {
     // Dónde se posa el paquete al llegar: encima del disipador
     cpu: () => u.mesh.localToWorld(new Vector3(0.1, floor + 0.07, 0.12)),
     centre: () => u.mesh.localToWorld(new Vector3(0, floor, 0.08)),
-    update(dt, now, still, hot) {
+    // `fault`: en el modo detective, la pieza con la avería brilla en rojo
+    update(dt, now, still, hot, fault = false) {
+      const col = fault ? FAULT_C : OK_C;
+      if (sinkMat.emissive.getHex() !== col) {
+        sinkMat.emissive.setHex(col);
+        ledMat.color.setHex(col);
+      }
       const want = hot && u.out > OPEN * 0.9 ? 1 : 0;
       const before = this.lid;
       if (still) this.lid = want;
       else this.lid += (want - this.lid) * Math.min(1, dt * 5);
       if (Math.abs(this.lid - want) < 0.002) this.lid = want;
-      hinge.rotation.x = -LID_MAX * this.lid;
+      hinge.position.z = hingeZ - flapLen * this.lid;
+      hinge.position.y = h / 2 + (this.lid > 0 ? 0.002 : 0) + 0.006 * Math.sin(Math.PI * this.lid);
       const shown = hot || this.lid > 0.001 || u.out > 0.2;
       g.visible = shown;
       u.mesh.material[2] = shown ? hidden : topMat;
-      sinkMat.emissiveIntensity = hot ? 0.5 + 0.4 * Math.sin(now / 160) : 0;
+      sinkMat.emissiveIntensity = hot ? (fault ? 0.7 + 0.3 * Math.sin(now / 90) : 0.5 + 0.4 * Math.sin(now / 160)) : 0;
+      ledMat.visible = !fault || still || Math.sin(now / 120) > 0;
       if (!still && shown) fan.rotation.z -= dt * 18;
       return shown && (!still || this.lid !== before);
     },

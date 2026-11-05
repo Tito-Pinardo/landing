@@ -72,6 +72,8 @@ const COLORS = {
   activity: "#38bdf8",
 };
 
+const LIVE_HEX = new Color(COLORS.live).getHex();
+const CLUE_HEX = 0xef4444;
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp = MathUtils.clamp;
 
@@ -829,6 +831,8 @@ export function mount(stage, opts = {}) {
     stage.classList.remove("is-dragging");
     if (moved || ev.target !== el) return;
     const u = pick(ev);
+    if (caseOn && u && caseHit(u)) return;
+    if (caseOn && !u) return goView("overview"); // tocar el vacío: el rack entero
     if (u?.kind) act(u);
     else if (u) select(u === selected ? null : u);
     else if (selected) select(null);
@@ -1196,6 +1200,67 @@ export function mount(stage, opts = {}) {
     return true;
   }
 
+  // ---- modo detective: cada pieza que se toca abre su cajón; la de la
+  // avería brilla en rojo y la página cuenta la pista.
+  let caseOn = null;
+  const unitNodes = {};
+  for (const [n, uid] of Object.entries(nodeUnit)) (unitNodes[uid] ||= []).push(n);
+  const OBJ_NODES = { window: ["internet", "cloudflare"], phone: ["movil"], pc: ["pc"], terminal: ["casa"] };
+  function caseHit(o) {
+    const nodes = o.kind ? OBJ_NODES[o.kind] : unitNodes[o.id] || [o.id];
+    if (!nodes) return false;
+    inspect(nodes.find((n) => caseOn.clues.has(n)) || nodes[0]);
+    return true;
+  }
+  function inspect(node) {
+    sound("hop");
+    lastInput = performance.now();
+    select(null, true);
+    hotOff();
+    for (const u of units) u.fault = false;
+    hotOn(node);
+    const clue = caseOn.clues.has(node);
+    const u = !room.anchors[node] && byId(nodeUnit[node]);
+    if (u) {
+      u.fault = clue;
+      if (clue) u.clue = true;
+      u.pulse = false;
+    }
+    caseHint(null);
+    // Más abierto que en los recorridos: se ve el cajón y las piezas de al
+    // lado, para seguir tocando sin cambiar de plano.
+    const s = shotFor(node);
+    if (u) {
+      s.r *= 2.3;
+      s.phi = 1.15;
+      s.target.y += 0.22;
+      s.target.z -= 0.2;
+    }
+    current = null;
+    stage.querySelectorAll("[data-r3-cam]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+    flyTo(s.target, s.theta, s.phi, s.r, 1.0);
+    send("rack3d:inspect", { node, clue });
+  }
+  let hinted = null;
+  function caseHint(node) {
+    if (hinted) pulse(hinted, false);
+    hinted = null;
+    if (!node) return;
+    const u = !room.anchors[node] && byId(nodeUnit[node]);
+    hinted = u ? { kind: "unit", id: u.id } : { kind: Object.keys(OBJ_NODES).find((k) => OBJ_NODES[k].includes(node)) || "window" };
+    pulse(hinted, true);
+  }
+  function investigate(spec) {
+    stopFlow();
+    tourStop();
+    caseHint(null);
+    for (const u of units) u.clue = u.fault = false;
+    hotOff();
+    caseOn = spec ? { clues: new Set(spec.clues) } : null;
+    stage.classList.toggle("is-case", !!caseOn);
+    goView(caseOn ? "overview" : HOME);
+  }
+
   // La lista de recorridos vive en el laboratorio; el botón lo abre.
   stage.querySelector("[data-r3-flows]")?.addEventListener("click", () => send("rack3d:note", { id: "lab" }));
 
@@ -1409,8 +1474,11 @@ export function mount(stage, opts = {}) {
       } else u.out = out;
       u.mesh.position.z = u.baseZ + u.out;
       if (u.hot && !u.inside) u.inside = buildInside(u, W - 0.01, U * 0.9, D, bodyMat, FRONT - (u.baseZ + OPEN));
-      if (u.inside?.update(dt, now, still, u.hot && u !== selected)) busy = true;
-      const g = Math.max(u.glowTo, u.hover ? 0.55 : 0, u === selected ? 0.8 : 0, u.hot ? 0.9 : 0, u.pulse ? 0.4 + 0.4 * Math.sin(now / 220) : 0);
+      if (u.inside?.update(dt, now, still, u.hot && u !== selected, u.fault)) busy = true;
+      // Pieza donde ya se encontró una pista (modo detective): frontal rojo
+      const ec = u.clue ? CLUE_HEX : LIVE_HEX;
+      if (u.face.emissive.getHex() !== ec) u.face.emissive.setHex(ec);
+      const g = Math.max(u.glowTo, u.clue ? 0.75 : 0, u.hover ? 0.55 : 0, u === selected ? 0.8 : 0, u.hot ? 0.9 : 0, u.pulse ? 0.4 + 0.4 * Math.sin(now / 220) : 0);
       if (u.pulse) busy = true;
       if (Math.abs(u.glow - g) > 0.002) {
         u.glow += (g - u.glow) * Math.min(1, dt * 8);
@@ -1521,8 +1589,16 @@ export function mount(stage, opts = {}) {
     mark(id) {
       if (!player && !mission) activeNote(id);
     },
-    play: playFlow,
-    mission: missionStart,
+    play(id) {
+      if (caseOn) investigate(null);
+      playFlow(id);
+    },
+    investigate,
+    hint: caseHint,
+    mission() {
+      if (caseOn) investigate(null);
+      missionStart();
+    },
     tour: tourStart,
     get selected() {
       return selected?.id || null;

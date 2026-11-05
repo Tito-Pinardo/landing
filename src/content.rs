@@ -701,6 +701,9 @@ const HERMES_KEYS: &[&str] = &[
     "lang",
 ];
 const INCIDENT_UI_KEYS: &[&str] = &[
+    "room_pick",
+    "room_touch",
+    "room_hint",
     "button",
     "title",
     "intro",

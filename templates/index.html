@@ -165,6 +165,16 @@
       <p class="r3-m-text" data-r3-m-text></p>
       <p class="r3-m-hint" data-r3-m-hint hidden></p>
     </div>
+    <div class="r3-case" data-r3-case role="region" aria-live="polite" aria-labelledby="r3-case-h" hidden>
+      <p class="r3-cap-top"><span class="r3-n" id="r3-case-h">🔍 {{ c.t.incident_ui["title"] }}</span><button type="button" class="r3-x" data-r3-case-exit aria-label="{{ c.t.incident_ui["exit"] }}">×</button></p>
+      <h3 class="r3-case-title" data-r3-case-title hidden></h3>
+      <p class="r3-case-text" data-r3-case-text></p>
+      <ul class="r3-case-list" data-r3-case-list></ul>
+      <p class="r3-case-last" data-r3-case-last hidden></p>
+      <p class="r3-case-count" data-r3-case-count hidden></p>
+      <ol class="r3-case-found" data-r3-case-found></ol>
+      <div class="r3-case-options" data-r3-case-options></div>
+    </div>
     <div class="r3-done" data-r3-mission-done role="dialog" aria-labelledby="r3-done-title" hidden>
       <p class="r3-done-star" aria-hidden="true">★</p>
       <h3 id="r3-done-title">{{ c.t.rack["mission_done_title"] }}</h3>
@@ -198,6 +208,7 @@
     <button type="button" class="btn btn-sm btn-icon" data-r3-zoom="out" aria-label="{{ c.t.rack["zoom_out"] }}">−</button>
     <span class="stage-row" aria-hidden="true"></span>
     <button type="button" class="btn btn-sm btn-flows" data-r3-flows><span aria-hidden="true">⇄</span> {{ c.t.rack["flows"] }}</button>
+    <button type="button" class="btn btn-sm btn-case" data-r3-case-start><span aria-hidden="true">🔍</span> {{ c.t.incident_ui["button"] }}</button>
     <button type="button" class="btn btn-sm btn-mission" data-r3-mission-start><span aria-hidden="true">★</span> {{ c.t.rack["mission"] }}</button>
     <button type="button" class="btn btn-sm btn-tour" data-r3-tour aria-pressed="false"><span aria-hidden="true">▶</span> {{ c.t.rack["tour"] }}</button>
   </div>

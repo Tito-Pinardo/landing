@@ -1135,6 +1135,9 @@ angry = ["¡¿Quién me despierta?! ¡Las copias van a las cuatro y necesito est
 fed_up = ["¡Vale ya! ¡Que estoy trabajando!", "¡Uno más y te pongo en la lista negra de CrowdSec!", "¡Me voy a otro sitio, que aquí no hay quien cablee!", "¡Basta! Esto no es soporte técnico."]
 
 [incident_ui]
+room_pick = "Elige una avería que pasó de verdad en mi servidor y encuentra la causa."
+room_touch = "Toca las piezas del rack (o la ventana, el móvil…) para abrir su cajón y buscar pistas. La que tiene la avería brilla en rojo. Con dos pistas, decide la causa."
+room_hint = "¿Atascado? Mira en {name}: está parpadeando."
 button = "Modo detective"
 title = "Modo detective"
 intro = "Elige una avería que pasó de verdad en mi servidor. Pulsa las piezas del mapa para buscar pistas y, cuando tengas al menos dos, decide la causa."

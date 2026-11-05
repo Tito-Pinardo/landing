@@ -1123,6 +1123,9 @@ angry = ["Who woke me up?! Backups run at four and I need to be fresh!", "Grrr! 
 fed_up = ["That's enough! I'm working here!", "One more and you're on CrowdSec's blocklist!", "I'm off somewhere else, nobody can run cables here!", "Stop it! This isn't tech support."]
 
 [incident_ui]
+room_pick = "Pick a fault that really happened on my server and find the cause."
+room_touch = "Touch the rack pieces (or the window, the phone…) to open their drawer and look for clues. The faulty one glows red. With two clues, decide the cause."
+room_hint = "Stuck? Look at {name}: it's blinking."
 button = "Detective mode"
 title = "Detective mode"
 intro = "Pick a failure that really happened on my server. Tap pieces on the map to look for clues and, once you have at least two, decide the cause."

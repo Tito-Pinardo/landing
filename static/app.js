@@ -1186,6 +1186,165 @@
     typeInto(consoleEl.text, T.lab.pick_node);
   }
   incEl.open?.addEventListener("click", () => (lab.classList.contains("is-incident") ? closeIncident() : openIncidents()));
+
+  // En la sala 3D el detective se juega en el propio rack: tocar una pieza
+  // abre su cajón (rojo si tiene la avería) y aquí se cuentan las pistas.
+  const cs = {
+    box: $("[data-r3-case]"),
+    title: $("[data-r3-case-title]"),
+    text: $("[data-r3-case-text]"),
+    list: $("[data-r3-case-list]"),
+    last: $("[data-r3-case-last]"),
+    count: $("[data-r3-case-count]"),
+    found: $("[data-r3-case-found]"),
+    options: $("[data-r3-case-options]"),
+  };
+  const rc = { cur: null, found: [], solved: false, timer: 0 };
+  const shortTitle = (id) => (nodeById[id]?.title || id).split(" (")[0];
+  function caseHintLater() {
+    clearTimeout(rc.timer);
+    if (!rc.cur || rc.solved) return;
+    rc.timer = setTimeout(() => {
+      const next = Object.keys(rc.cur.clues).find((n) => !rc.found.includes(n));
+      if (!next) return;
+      r3((c) => c.hint(next));
+      cs.last.hidden = false;
+      cs.last.className = "r3-case-last is-hint";
+      cs.last.textContent = fill(IU.room_hint, { name: shortTitle(next) });
+    }, 20000);
+  }
+  function caseReset() {
+    clearTimeout(rc.timer);
+    cs.title.hidden = true;
+    cs.last.hidden = true;
+    cs.count.hidden = true;
+    cs.found.replaceChildren();
+    cs.options.replaceChildren();
+  }
+  function caseOpen() {
+    if (!cs.box) return;
+    closeSheet();
+    caseReset();
+    rc.cur = null;
+    cs.box.hidden = false;
+    cs.box.classList.remove("is-solved");
+    cs.text.textContent = IU.room_pick;
+    cs.list.hidden = false;
+    cs.list.replaceChildren(...T.incidents.map((c) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn btn-sm";
+      b.textContent = c.title;
+      b.addEventListener("click", () => casePick(c));
+      li.append(b);
+      return li;
+    }));
+    $("button", cs.list)?.focus({ preventScroll: true });
+    r3((c) => c.investigate(null));
+    window.tpSound?.play("hop");
+  }
+  function casePick(c) {
+    caseReset();
+    rc.cur = c;
+    rc.found = [];
+    rc.solved = false;
+    cs.list.hidden = true;
+    cs.title.hidden = false;
+    cs.title.textContent = c.title;
+    cs.text.textContent = c.intro;
+    cs.last.hidden = false;
+    cs.last.className = "r3-case-last";
+    cs.last.textContent = IU.room_touch;
+    cs.count.hidden = false;
+    cs.count.textContent = `${IU.clues} 0 / ${Object.keys(c.clues).length}`;
+    r3((x) => x.investigate({ clues: Object.keys(c.clues) }));
+    caseHintLater();
+  }
+  function caseClose() {
+    if (!cs.box || cs.box.hidden) return;
+    clearTimeout(rc.timer);
+    cs.box.hidden = true;
+    rc.cur = null;
+    r3((c) => c.investigate(null));
+  }
+  function caseOptions(c) {
+    const label = document.createElement("p");
+    label.className = "r3-case-ask";
+    label.textContent = IU.diagnose;
+    cs.options.replaceChildren(label, ...c.options.map((text, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn btn-sm";
+      b.textContent = text;
+      b.addEventListener("click", () => {
+        if (rc.solved) return;
+        cs.last.hidden = false;
+        if (i !== c.answer) {
+          b.classList.add("is-wrong");
+          b.disabled = true;
+          window.tpSound?.play("err");
+          cs.last.className = "r3-case-last is-wrong";
+          cs.last.textContent = `${IU.wrong} ${c.feedback[i]}`;
+          return;
+        }
+        rc.solved = true;
+        clearTimeout(rc.timer);
+        window.tpSound?.play("ok");
+        cs.box.classList.add("is-solved");
+        $$("button", cs.options).forEach((x) => { x.disabled = x !== b; });
+        b.classList.add("is-right");
+        cs.last.className = "r3-case-last is-solved";
+        cs.last.replaceChildren();
+        const h = document.createElement("strong");
+        h.textContent = `${IU.solved} `;
+        const l = document.createElement("span");
+        l.className = "r3-case-lesson";
+        const lt = document.createElement("strong");
+        lt.textContent = `${IU.lesson}: `;
+        l.append(lt, c.lesson);
+        cs.last.append(h, c.solution, l);
+        const again = document.createElement("button");
+        again.type = "button";
+        again.className = "btn btn-sm btn-primary";
+        again.textContent = IU.again;
+        again.addEventListener("click", caseOpen);
+        cs.options.append(again);
+        unlock("detective");
+        hermesSay(T.personality.detective);
+      });
+      return b;
+    }));
+  }
+  stage?.addEventListener("rack3d:inspect", (ev) => {
+    const c = rc.cur;
+    if (!c || rc.solved) return;
+    const { node } = ev.detail;
+    const clue = c.clues[node];
+    cs.last.hidden = false;
+    cs.last.className = "r3-case-last" + (clue ? " is-clue" : "");
+    cs.last.replaceChildren();
+    const who = document.createElement("strong");
+    who.textContent = shortTitle(node) + ": ";
+    cs.last.append(who, clue || IU.normal);
+    caseHintLater();
+    if (!clue || rc.found.includes(node)) return;
+    rc.found.push(node);
+    const li = document.createElement("li");
+    li.textContent = shortTitle(node);
+    cs.found.append(li);
+    cs.count.textContent = `${IU.clues} ${rc.found.length} / ${Object.keys(c.clues).length}`;
+    window.tpSound?.play("ok");
+    if (rc.found.length >= 2 && !cs.options.childElementCount) caseOptions(c);
+  });
+  $("[data-r3-case-start]")?.addEventListener("click", () => (cs.box.hidden ? caseOpen() : caseClose()));
+  $("[data-r3-case-exit]")?.addEventListener("click", caseClose);
+  // Un recorrido o la misión cierran el caso abierto.
+  stage?.addEventListener("rack3d:flow", caseClose);
+  stage?.addEventListener("rack3d:mission", (ev) => ev.detail?.state === "start" && caseClose());
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape" && cs.box && !cs.box.hidden && !sheet && !$("dialog[open]")) caseClose();
+  });
   $("[data-incident-exit]")?.addEventListener("click", closeIncident);
 
   // ------------------------------------------------------------ datos en vivo
