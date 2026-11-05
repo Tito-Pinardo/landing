@@ -1,0 +1,13 @@
+{
+  "name": "banco-ux",
+  "private": true,
+  "description": "Banco de pruebas de experiencia de la portada: visitas típicas con capturas y medidas (ver README.md)",
+  "type": "module",
+  "scripts": {
+    "banco": "node banco.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "4.10.3",
+    "playwright": "1.56.1"
+  }
+}

@@ -32,7 +32,8 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 | `content/units/*.toml` | Unidades del rack (una por pieza del servidor): mapa, recorridos, averías y textos ES/EN; se validan contra `site.toml` y el orden del rack está en `src/unit.rs` |
 | `templates/` | Plantillas HTML (y el avatar de Hermes en SVG) |
 | `static/` | CSS (`app.css` común; `home.css`, `unit.css` y `blog.css`, solo en sus páginas; se minifica al arrancar), JS (`app.js` para la portada, `unit.js` para las unidades, `sound.js` para el sonido, `prefs.js` para el panel de vista: tema, animaciones, enanitos y la noche en casa), imágenes y CV (se compilan dentro del binario) |
-| `tools/rack3d/` | Fuente de la sala 3D (`src/rack3d.js`: rack, cámara, recorridos y misión; `src/room.js`: paredes, tablero, mesa, ventana y puerta) y su empaquetado: `npm ci && npm run build` escribe `static/rack3d.min.js`, que se versiona (el servidor no necesita Node). Three.js y esbuild van fijados en `package.json` |
+| `tools/rack3d/` | Fuente de la sala 3D (`src/rack3d.js`: rack, cámara, recorridos y misión; `src/room.js`: paredes, tablero, mesa, ventana y puerta; `src/drawer.js`: lo de dentro de los cajones; `src/gnomes.js`: los enanitos) y su empaquetado: `npm ci && npm run build` escribe `static/rack3d.min.js`, que se versiona (el servidor no necesita Node). Three.js y esbuild van fijados en `package.json` |
+| `tools/ux/` | Banco de pruebas de experiencia: visitas típicas con Playwright que sacan capturas y cifras (paneles que se pisan, scroll lateral, accesibilidad con axe…) sobre la portada generada con `landing dump-site`. Uso y visitas en `tools/ux/README.md`; registro de vueltas en `docs/UX.md` |
 | `migrations/` | Esquema de PostgreSQL |
 | `src/` | Servidor |
 | `.forgejo/workflows/` | CI/CD en Forgejo (comprobar y desplegar); `.github/workflows/`, el CI de la copia pública |

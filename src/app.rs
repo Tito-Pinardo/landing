@@ -37,6 +37,25 @@ struct Assets;
 
 /// CSS y JS minificados una vez, al arrancar (ver `minify`): (ruta, cuerpo,
 /// etag). El resto de ficheros se sirve tal cual.
+/// Todos los ficheros de `static/` tal como se sirven: los CSS y JS
+/// minificados y el resto sin tocar (para `landing dump-site`).
+pub fn served_assets() -> Vec<(String, Bytes)> {
+    let mut min: std::collections::HashMap<String, Bytes> = minified_assets()
+        .into_iter()
+        .map(|(n, b, _)| (n, b))
+        .collect();
+    Assets::iter()
+        .filter_map(|name| {
+            let name = name.into_owned();
+            let body = match min.remove(&name) {
+                Some(b) => b,
+                None => Bytes::from(Assets::get(&name)?.data.into_owned()),
+            };
+            Some((name, body))
+        })
+        .collect()
+}
+
 pub fn minified_assets() -> Vec<(String, Bytes, String)> {
     Assets::iter()
         .filter_map(|name| {

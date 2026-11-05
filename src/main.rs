@@ -49,6 +49,27 @@ async fn main() -> anyhow::Result<()> {
         println!("escrito en {}", dir.display());
         return Ok(());
     }
+    // `landing dump-site <dir>` escribe la portada (es y en) y `static/` tal
+    // como se sirven, para probarla sin base de datos (banco de pruebas de
+    // experiencia, tools/ux). Los formularios no funcionan ahí.
+    if std::env::args().nth(1).as_deref() == Some("dump-site") {
+        let dir = std::path::PathBuf::from(std::env::args().nth(2).context("falta el directorio")?);
+        let c = content::Content::embedded()?;
+        for (lang, code) in [(content::Lang::Es, "es"), (content::Lang::En, "en")] {
+            let page = render::index(&c, lang, "dev", "http://127.0.0.1:8099", None, "banco")?;
+            std::fs::create_dir_all(dir.join(code))?;
+            std::fs::write(dir.join(code).join("index.html"), &page.body)?;
+        }
+        for (name, body) in app::served_assets() {
+            let path = dir.join("static").join(&name);
+            if let Some(p) = path.parent() {
+                std::fs::create_dir_all(p)?;
+            }
+            std::fs::write(path, &body)?;
+        }
+        println!("escrito en {}", dir.display());
+        return Ok(());
+    }
     // `landing check-article <fichero>` valida un borrador de artículo (el
     // resumen semanal) sin tener que recompilar la web.
     if std::env::args().nth(1).as_deref() == Some("check-article") {
