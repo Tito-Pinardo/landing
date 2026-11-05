@@ -68,3 +68,8 @@ Visitante ─▶ Cloudflare (caché en el borde, Turnstile) ─▶ Traefik (su p
      - actualizaciones de la flota con un botón y los paquetes solos cada miércoles;
      - dos averías nuevas de AMP;
      - el bot de diagnóstico en Matrix.
+4j. **La sala del servidor en 3D** ✅ (05-11):
+   - La portada gira alrededor de un rack 3D (Three.js empaquetado con esbuild en `tools/rack3d`, cargado solo al acercarse) fijo al lado de un tablero de corcho con las notas clavadas. Las unidades salen como cajones con su ficha; vistas de frente, lado y cableado, recorrido guiado, contador de unidades inspeccionadas y el logro «Técnico de guardia». Las zonas del tablero mueven el rack al llegar y cada misión con unidad tiene «Ver en el rack».
+   - La lista del rack sigue siendo la versión sin WebGL y la accesible; el filtro por habilidad y el estado real se ven también en el armario.
+   - Hermes deja de abrirse solo y desaparece en el móvil.
+   - Artículo nuevo: lo que deja un reinicio de Docker tras la actualización automática (contenedores «Up» sin red y el puente de avisos caído dos semanas).

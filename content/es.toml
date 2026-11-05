@@ -1092,6 +1092,7 @@ ctf = { title = "Retos de bandera", solved_by = "resuelto por {n}", nobody = "na
 # ---------------------------------------------------------------------------
 
 [achievements]
+technician = { title = "Técnico de guardia", text = "Has sacado seis unidades del rack en 3D." }
 explorer = { title = "Explorador", text = "Has visitado todas las zonas." }
 root = { title = "Acceso root", text = "Has usado la terminal." }
 architect = { title = "Arquitecto", text = "Has abierto cinco piezas del homelab." }
@@ -1313,6 +1314,26 @@ status_retired = "Retirada"
 status_lab = "Laboratorio"
 
 [rack]
+here = "Fuera del rack"
+stage_kicker = "Pasa y mira"
+stage_title = "La sala del servidor"
+loading = "Encendiendo el rack…"
+hint = "Arrastra para girarlo · pulsa una unidad para sacarla · Ctrl + rueda para acercar"
+hint_touch = "Desliza de lado para girarlo · toca una unidad para sacarla"
+inspected = "unidades inspeccionadas"
+card_label = "Unidad seleccionada"
+close = "Cerrar y volver a la vista general"
+prev = "Unidad de arriba"
+next = "Unidad de abajo"
+controls = "Cámara del rack"
+cam_overview = "General"
+cam_front = "Frente"
+cam_side = "Lado"
+cam_back = "Cableado"
+zoom_in = "Acercar"
+zoom_out = "Alejar"
+tour = "Recorrido"
+show_in_rack = "Ver en el rack"
 incident_banner = "Avería de verdad, ahora mismo: {list}. No es un simulacro: así se ve en el rack."
 incident_hermes = "Mira el rack: {list}. No es un simulacro, es una avería de verdad, ahora mismo. Así se ve desde fuera cuando algo cae; el resto sigue funcionando."
 incident_more = "y {n} más"

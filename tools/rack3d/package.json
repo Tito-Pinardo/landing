@@ -1,0 +1,13 @@
+{
+  "name": "rack3d",
+  "private": true,
+  "description": "Rack 3D de la portada: Three.js recortado y empaquetado en static/rack3d.min.js",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/rack3d.js --bundle --format=esm --minify --target=es2022 --legal-comments=none --outfile=../../static/rack3d.min.js"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1",
+    "three": "0.186.1"
+  }
+}

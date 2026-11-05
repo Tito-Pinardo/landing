@@ -107,6 +107,8 @@ pub struct ProjectView {
     pub tech_ids: String,
     /// URL de su unidad en el rack, si la tiene.
     pub unit_url: Option<String>,
+    /// Id de esa unidad (para sacarla en el rack 3D).
+    pub unit_id: Option<String>,
 }
 
 pub struct NodeView {
@@ -150,6 +152,8 @@ pub struct RackView {
     pub state: String,
     pub status: String,
     pub title: String,
+    /// Una línea de qué es (la del héroe de su página).
+    pub tagline: String,
     pub tech_ids: String,
     /// Piezas del laboratorio que llevan a esta unidad: su estado en vivo
     /// es el de la unidad.
@@ -410,6 +414,7 @@ pub fn index(
                     .collect(),
                 tech_ids: p.tech.join(" "),
                 unit_url: content.project_unit(&p.id).map(|u| unit_url(lang, &u.id)),
+                unit_id: content.project_unit(&p.id).map(|u| u.id.clone()),
             }
         })
         .collect();
@@ -516,6 +521,7 @@ pub fn index(
                 state: ut.ui["state"].clone(),
                 status: u.status.clone(),
                 title: ut.hero.title.clone(),
+                tagline: ut.hero.tagline.clone(),
                 tech_ids: u.tech(site).join(" "),
                 nodes: unit_nodes(site, &u.id).join(" "),
             }

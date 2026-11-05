@@ -1,0 +1,368 @@
+/* La sala: el rack en 3D (fijo a la derecha en escritorio, donde Hermes no
+   lo tapa) y el tablero de corcho con las notas clavadas a la izquierda. Sin estilos en línea: lo que
+   cambia con JS va por variables (--x, --y, --r3-progress). */
+
+/* ------------------------------------------------------------ distribución */
+.workspace {
+  width: 100%; max-width: calc(1480px + 2 * var(--gutter));
+  margin: 46px auto 0; padding: 0 var(--gutter);
+  display: grid; gap: 28px; align-items: start;
+}
+@media (min-width: 1000px) {
+  .workspace { grid-template-columns: minmax(0, 1fr) minmax(360px, 42%); }
+  .workspace > .stage { order: 2; }
+  .js .stage:not(.no-3d) {
+    position: sticky; top: 76px;
+    height: calc(100vh - 92px); min-height: 520px; max-height: 980px;
+  }
+}
+
+.btn-room { border-color: var(--accent); }
+#rack { scroll-margin-top: 76px; }
+
+/* ------------------------------------------------------------ el escenario */
+.stage {
+  --room: #070b13;
+  --room-2: #0f1828;
+  --room-line: rgba(148, 163, 184, .16);
+  --room-text: #e6edf7;
+  --room-muted: #93a1b8;
+  position: relative;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  border-radius: 18px; overflow: hidden;
+  background:
+    radial-gradient(120% 70% at 50% 100%, rgba(45, 212, 191, .16), transparent 60%),
+    radial-gradient(90% 60% at 80% 0%, rgba(129, 140, 248, .18), transparent 60%),
+    linear-gradient(180deg, var(--room-2), var(--room));
+  border: 1px solid #1d2a42;
+  box-shadow: 0 30px 60px -24px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .06);
+  color: var(--room-text);
+  /* Dentro de la sala siempre es de noche, también con el tema claro. */
+  --text: var(--room-text); --muted: var(--room-muted);
+  --surface: #111827; --surface-2: #172036; --border: #23314b; --border-strong: #33456a;
+  --accent: #2dd4bf; --accent-ink: #042f2b; --accent-soft: rgba(45, 212, 191, .14);
+  --accent-2: #818cf8; --accent-2-soft: rgba(129, 140, 248, .16);
+}
+html:not(.js) .stage, .stage.no-3d { grid-template-rows: auto auto; }
+
+.stage-hud {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 16px 18px 6px; position: relative; z-index: 2;
+}
+.stage-title .kicker { margin: 0 0 4px; font-size: .78rem; }
+.stage-title h2 { margin: 0; font-size: clamp(1.25rem, 1rem + 1vw, 1.7rem); }
+.stage-count {
+  display: grid; grid-template-columns: auto auto; align-items: center; column-gap: 8px;
+  margin: 0; font: 600 .75rem/1.2 var(--mono); color: var(--muted); text-align: right;
+}
+.stage-count strong { font-size: 1rem; color: var(--xp); }
+.stage-count > span:last-child { grid-column: 1 / -1; max-width: 12ch; justify-self: end; }
+.stage-count-ring {
+  width: 22px; height: 22px; border-radius: 50%; grid-row: span 1;
+  background: conic-gradient(var(--xp) calc(var(--r3-progress, 0) * 360deg), rgba(148, 163, 184, .2) 0);
+  -webkit-mask: radial-gradient(circle, transparent 6px, #000 7px);
+  mask: radial-gradient(circle, transparent 6px, #000 7px);
+  transition: background .4s;
+}
+
+.stage-view { position: relative; min-height: 380px; outline: none; }
+@media (min-width: 1000px) { .stage-view { min-height: 0; } }
+@media (max-width: 999px) { .stage-view { height: min(72vh, 620px); } }
+.r3-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: pan-y; }
+.r3-canvas.is-pointing { cursor: pointer; }
+.stage.is-dragging .r3-canvas { cursor: grabbing; }
+
+.stage-loading {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px;
+  margin: 0; font: 600 .85rem/1 var(--mono); color: var(--muted);
+}
+.spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(45, 212, 191, .2); border-top-color: var(--accent); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.stage.is-3d .stage-loading, .stage.no-3d .stage-view, .stage.no-3d .stage-controls, .stage.no-3d .stage-count { display: none; }
+
+.stage-hint {
+  position: absolute; left: 50%; bottom: 10px; translate: -50% 0; z-index: 2; margin: 0;
+  padding: 6px 12px; border-radius: 999px; white-space: nowrap; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis;
+  font: 600 .72rem/1.2 var(--mono); color: var(--muted);
+  background: rgba(7, 11, 19, .72); border: 1px solid var(--room-line);
+  opacity: 0; transition: opacity .5s;
+  pointer-events: none;
+}
+.stage.is-3d:not(.has-selection) .stage-hint { opacity: 1; }
+.stage.is-3d .stage-hint { animation: hint-out 1s 9s forwards; }
+@keyframes hint-out { to { opacity: 0; } }
+.hint-touch { display: none; }
+@media (hover: none) { .hint-mouse { display: none; } .hint-touch { display: inline; } }
+
+.stage-controls {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 10px 14px 14px; position: relative; z-index: 2;
+  border-top: 1px solid var(--room-line);
+  background: rgba(7, 11, 19, .5);
+}
+.stage-controls .btn { min-height: 34px; color: var(--text); background: rgba(23, 32, 54, .8); border-color: var(--border); }
+.stage-controls .btn[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.stage-controls .btn-icon { width: 34px; padding: 0; font-size: 1.1rem; }
+.stage-controls .btn-tour { margin-left: auto; border-color: var(--accent-2); }
+.stage-controls .btn-tour[aria-pressed="true"] { background: var(--accent-2); border-color: var(--accent-2); color: #0b1020; }
+.stage-sep { flex: 1 1 0; min-width: 0; }
+/* Hermes vive abajo a la izquierda: los botones le dejan sitio. */
+.stage.has-selection .stage-hint { display: none; }
+
+/* Etiqueta que sigue al ratón */
+.r3-tip {
+  position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none;
+  translate: calc(var(--x, 0px) + 14px) calc(var(--y, 0px) - 70px);
+  max-width: 260px; padding: 6px 10px; border-radius: 8px;
+  font: 600 .78rem/1.3 var(--mono); color: #e6edf7;
+  background: rgba(7, 11, 19, .9); border: 1px solid var(--accent);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .45);
+}
+
+/* Ficha de la unidad elegida: abajo, para que la unidad se vea arriba */
+.r3-card {
+  position: absolute; z-index: 3; left: 12px; right: 12px; bottom: 12px;
+  width: auto; max-width: 480px; margin-left: auto;
+  padding: 12px 14px 10px; border-radius: 14px;
+  background: linear-gradient(160deg, rgba(23, 32, 54, .95), rgba(10, 14, 23, .95));
+  border: 1px solid #2b3c5e; border-left: 3px solid var(--accent);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 1px rgba(45, 212, 191, .08), 0 0 40px rgba(45, 212, 191, .12);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.r3-card[data-status="lab"] { border-left-color: #a78bfa; }
+.r3-card[data-status="retired"], .r3-card[data-status="off"] { border-left-color: #64748b; }
+.r3-card[data-status="down"] { border-left-color: var(--danger); }
+.r3-card.is-new { animation: card-in .45s cubic-bezier(.2, .9, .3, 1.2); }
+@keyframes card-in { from { opacity: 0; translate: 0 24px; scale: .97; } }
+.r3-card p, .r3-card h3 { margin: 0; }
+.r3-card-top { display: flex; align-items: center; gap: 10px; font: 600 .72rem/1 var(--mono); color: var(--muted); }
+.r3-n { color: var(--accent); }
+.r3-state { display: inline-flex; align-items: center; gap: 6px; }
+.r3-state i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.r3-card[data-status="lab"] .r3-state i { background: #a78bfa; box-shadow: 0 0 8px #a78bfa; }
+.r3-card[data-status="retired"] .r3-state i, .r3-card[data-status="off"] .r3-state i { background: #64748b; box-shadow: none; }
+.r3-card[data-status="down"] .r3-state i { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: blink .6s infinite; }
+.r3-x {
+  margin-left: auto; width: 28px; height: 28px; border-radius: 8px; cursor: pointer;
+  font: 600 1.1rem/1 var(--font); color: var(--muted); background: none; border: 1px solid var(--border);
+}
+.r3-x:hover { color: var(--text); border-color: var(--accent); }
+.r3-slot { margin-top: 10px !important; font: 800 .8rem/1.2 var(--mono); letter-spacing: .06em; color: var(--accent); }
+.r3-title { margin-top: 4px !important; font-size: 1.12rem; line-height: 1.25; }
+.r3-tagline {
+  margin-top: 6px !important; font-size: .88rem; line-height: 1.45; color: var(--muted);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
+}
+.r3-tagline:empty { display: none; }
+.r3-specs { margin-top: 8px !important; font: 500 .74rem/1.4 var(--mono); color: var(--muted); }
+.r3-actions { display: flex; gap: 6px; margin-top: 12px !important; }
+.r3-actions .btn-unit { margin-left: auto; }
+
+/* La lista: visible sin JS o sin WebGL; con el 3D, solo para el teclado y
+   los lectores de pantalla (al enfocar una fila, su unidad sale). */
+.stage .rack { margin: 0; padding: 4px 16px 18px; }
+.stage .rack-head h3 { font-size: 1rem; }
+.js .stage:not(.no-3d) .rack {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.ru-tagline { display: none; }
+
+/* ------------------------------------------------------------ el tablero */
+.board {
+  --cork: #b9844f;
+  --cork-dark: rgba(84, 47, 18, .38);
+  --cork-light: rgba(255, 232, 196, .22);
+  --frame: #5b3a1e;
+  --frame-hi: #8a5c33;
+  position: relative; min-width: 0;
+  padding: 26px clamp(14px, 2.6vw, 34px) 34px;
+  border-radius: 14px;
+  background-color: var(--cork);
+  background-image:
+    radial-gradient(var(--cork-dark) 1px, transparent 1.6px),
+    radial-gradient(var(--cork-light) 1px, transparent 1.8px),
+    radial-gradient(var(--cork-dark) 1.4px, transparent 2.1px),
+    radial-gradient(130% 90% at 50% 40%, transparent 55%, rgba(40, 20, 5, .35));
+  background-size: 7px 7px, 11px 13px, 17px 19px, 100% 100%;
+  background-position: 0 0, 3px 5px, 9px 2px, 0 0;
+  border: 12px solid var(--frame);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, .35),
+    inset 0 6px 14px rgba(0, 0, 0, .35),
+    0 0 0 1px var(--frame-hi),
+    0 28px 50px -22px rgba(0, 0, 0, .7);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .board { --cork: #93653a; --frame: #3e2814; --frame-hi: #6b4524; } }
+:root[data-theme="dark"] .board { --cork: #93653a; --frame: #3e2814; --frame-hi: #6b4524; }
+@media (max-width: 760px) { .board { border-width: 8px; padding: 18px 12px 24px; border-radius: 10px; } }
+
+/* Las zonas dentro del tablero dejan de ser chasis: son grupos de notas. */
+.board .zone {
+  max-width: none; margin: 0 0 18px; padding: 22px 0 18px;
+  background: none; border: 0; border-radius: 0; box-shadow: none;
+}
+.board .zone::before, .board .zone::after, .board .chassis-leds, .board .chassis-vent, .board .tree-svg { display: none; }
+.board .zone.is-racking { animation: none; }
+
+/* Papel: las notas llevan el tema claro por dentro, sea cual sea el de la página. */
+.board .paper, .board .zone-head, .board .prose, .board .values > li, .board .ba, .board .branch,
+.board .quest article, .board .timeline > li, .board .side .card, .board .filter-status,
+.board .zone > p, .board .zone > .legend {
+  --text: #1d2433; --muted: #566074; --surface: #fffdf6; --surface-2: #f3eee1;
+  --border: #e2dac6; --border-strong: #cbbf9f; --accent: #0f766e; --accent-ink: #fff;
+  --accent-soft: rgba(15, 118, 110, .12); --accent-2: #4f46e5; --accent-2-soft: rgba(79, 70, 229, .1);
+  --xp: #4d7c0f; --chassis-hi: transparent;
+  color: var(--text);
+}
+
+/* Rótulo de cada zona: una tira de cinta de carrocero */
+.board .zone-head {
+  display: inline-grid; width: auto; max-width: 100%;
+  padding: 12px 18px 12px 14px; margin: 0 0 22px;
+  background: linear-gradient(180deg, #f8f1dc, #efe4c4);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, .25), 0 10px 18px -8px rgba(0, 0, 0, .4);
+  rotate: -1deg; position: relative;
+}
+.board .zone-head::after {
+  content: ""; position: absolute; top: -8px; left: 50%; width: 84px; height: 20px; translate: -50% 0; rotate: 3deg;
+  background: rgba(255, 250, 230, .55); border: 1px dashed rgba(120, 100, 60, .2);
+}
+.board .zone-head .zone-n { color: #b91c1c; border-color: #b91c1c; }
+.board .zone-head h2 { font-family: var(--mono); letter-spacing: -.01em; }
+
+/* Chincheta */
+.pin, .board .values > li::after, .board .branch::after, .board .quest article::after,
+.board .timeline > li::after, .board .side .card::after, .board .prose::after {
+  content: ""; position: absolute; top: -8px; left: 50%; width: 18px; height: 18px; margin-left: -9px; z-index: 2;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffb3b3 0 12%, #e23b3b 34%, #8f1111 78%);
+  box-shadow: 0 4px 4px -1px rgba(0, 0, 0, .5), inset 0 -2px 2px rgba(0, 0, 0, .25);
+  transition: transform .25s;
+}
+.board .values > li:nth-child(4n+2)::after, .board .branch:nth-child(4n+2)::after, .board .quest:nth-child(4n+2) article::after, .board .timeline > li:nth-child(4n+2)::after { background: radial-gradient(circle at 35% 30%, #bfdbfe 0 12%, #2563eb 34%, #1e3a8a 78%); }
+.board .values > li:nth-child(4n+3)::after, .board .branch:nth-child(4n+3)::after, .board .quest:nth-child(4n+3) article::after, .board .timeline > li:nth-child(4n+3)::after { background: radial-gradient(circle at 35% 30%, #fef3c7 0 12%, #f59e0b 34%, #92400e 78%); }
+.board .values > li:nth-child(4n)::after, .board .branch:nth-child(4n)::after, .board .quest:nth-child(4n) article::after, .board .timeline > li:nth-child(4n)::after { background: radial-gradient(circle at 35% 30%, #bbf7d0 0 12%, #16a34a 34%, #14532d 78%); }
+
+/* Las notas: un poco torcidas, se enderezan y levantan al pasar por encima */
+.board .prose, .board .values > li, .board .ba, .board .branch, .board .quest article,
+.board .timeline > li, .board .side .card {
+  position: relative;
+  background: var(--surface);
+  border: 0; border-radius: 3px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .18), 0 12px 22px -10px rgba(0, 0, 0, .55);
+  transition: rotate .3s, translate .3s, box-shadow .3s, scale .3s;
+}
+.board .values > li:nth-child(odd), .board .branch:nth-child(odd), .board .quest:nth-child(3n+1) article, .board .timeline > li:nth-child(odd) { rotate: -1.3deg; }
+.board .values > li:nth-child(even), .board .branch:nth-child(even), .board .quest:nth-child(3n+2) article, .board .timeline > li:nth-child(even) { rotate: 1.1deg; }
+.board .quest:nth-child(3n) article { rotate: -.5deg; }
+@media (hover: hover) {
+  .board .prose:hover, .board .values > li:hover, .board .branch:hover, .board .quest article:hover,
+  .board .timeline > li:hover, .board .side .card:hover {
+    rotate: 0deg; translate: 0 -4px; scale: 1.01;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, .15), 0 22px 34px -12px rgba(0, 0, 0, .6);
+  }
+  .board .values > li:hover::after, .board .branch:hover::after, .board .quest article:hover::after,
+  .board .timeline > li:hover::after, .board .side .card:hover::after, .board .prose:hover::after { transform: translateY(-2px) rotate(-12deg); }
+}
+
+/* Sobre mí: una carta con renglones y las ideas en pósits de colores */
+.board .about-grid { gap: 30px; }
+.board .prose {
+  padding: 26px 24px 18px 46px;
+  background:
+    linear-gradient(90deg, transparent 32px, rgba(220, 38, 38, .35) 32px 34px, transparent 34px),
+    repeating-linear-gradient(180deg, transparent 0 27px, rgba(59, 130, 246, .16) 27px 28px),
+    var(--surface);
+  line-height: 28px;
+}
+.board .prose p { margin: 0 0 28px; }
+.board .prose p:last-child { margin: 0; }
+.board .values { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 22px 18px; }
+.board .values > li { padding: 22px 16px 16px; border-left: 0; }
+.board .values > li:nth-child(4n+1) { --surface: #fff3a6; }
+.board .values > li:nth-child(4n+2) { --surface: #c9f0ff; }
+.board .values > li:nth-child(4n+3) { --surface: #ffd6e5; }
+.board .values > li:nth-child(4n) { --surface: #d7f7c8; }
+.board .values > li { background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 88%, #000) 0, var(--surface) 10px); }
+.board .values h3 { font-size: 1rem; }
+.board .values p { color: #374151; }
+
+/* Antes y después: una hoja impresa */
+.board .ba { padding: 22px 18px 18px; margin-top: 30px; rotate: .6deg; }
+.board .ba::before {
+  content: ""; position: absolute; top: -10px; left: 24px; width: 90px; height: 22px; rotate: -4deg;
+  background: rgba(255, 250, 230, .6); box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+}
+.board .ba-pane { --surface: #f8f5ec; }
+
+/* Habilidades: fichas de cartulina con la línea roja de arriba */
+.board .tree { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 26px 18px; padding-left: 0; }
+.board .tree::before, .board .branch::before { display: none; }
+.board .branch {
+  padding: 20px 14px 14px;
+  background: linear-gradient(180deg, transparent 50px, rgba(220, 38, 38, .5) 50px 51px, transparent 51px), repeating-linear-gradient(180deg, transparent 0 23px, rgba(59, 130, 246, .12) 23px 24px) 0 52px / 100% calc(100% - 52px) no-repeat, var(--surface);
+}
+.board .branch-icon { stroke: #b91c1c; }
+.board .skill { --surface: #fffdf6; }
+.board .zone > p, .board .zone > .legend, .board .filter-status {
+  display: inline-block; max-width: 100%; padding: 6px 12px; margin: 0 0 18px;
+  background: #fffdf6; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); border-radius: 2px;
+}
+.board .zone > .legend { margin-top: 18px; }
+.board .filter-status { display: flex; border: 0; }
+
+/* Misiones: fichas grandes; las destacadas, con cinta en vez de chincheta */
+.board .quests { gap: 30px 20px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); }
+.board .quest article { padding-top: 24px; }
+.board .quest.is-featured article { background: var(--surface); }
+.board .quest.is-featured article::after {
+  width: 96px; height: 24px; top: -11px; margin-left: -48px; border-radius: 1px; rotate: -3deg;
+  background: rgba(255, 249, 220, .7); box-shadow: 0 1px 2px rgba(0, 0, 0, .18);
+  border-left: 1px dashed rgba(120, 100, 60, .25); border-right: 1px dashed rgba(120, 100, 60, .25);
+}
+.board .quest.is-match article { box-shadow: 0 0 0 3px #0f766e, 0 12px 22px -10px rgba(0, 0, 0, .55); }
+.board .quest.is-dim article { opacity: .55; }
+.board .quest-unit { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+/* La que está fuera del rack ahora mismo: una nota adhesiva «aquí» */
+.board .quest.is-r3 article { box-shadow: 0 0 0 3px #f59e0b, 0 22px 34px -12px rgba(0, 0, 0, .6); rotate: 0deg; }
+.board .quest.is-r3 article::before {
+  content: "◎ " attr(data-r3-here); position: absolute; right: -8px; top: -12px; z-index: 3;
+  padding: 4px 8px; rotate: 4deg; font: 700 .7rem/1 var(--mono); color: #3b2a00;
+  background: #fde047; box-shadow: 0 2px 4px rgba(0, 0, 0, .3);
+}
+
+/* Trayectoria: billetes clavados en fila, unidos por un hilo rojo */
+.board .timeline { padding-left: 0; display: grid; gap: 26px; }
+.board .timeline::before {
+  left: 50%; top: -6px; bottom: 10px; width: 2px; translate: -1px 0;
+  background: repeating-linear-gradient(180deg, #c81e1e 0 9px, #e85b5b 9px 12px);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, .25);
+}
+.board .timeline > li { padding: 22px 18px 12px; }
+.board .timeline > li::before { display: none; }
+.board .timeline > li.tl-education { --surface: #eef6ff; }
+.board .tl-period { font-family: var(--mono); color: #b91c1c; }
+.board .side .card { padding: 22px 18px 16px; }
+.board .journey-grid { gap: 30px; }
+
+/* En el tablero, «aparecer» es que te clavan la nota */
+.js .board .reveal { opacity: 0; transform: translateY(-26px) scale(1.04); }
+.js .board .reveal.is-in { opacity: 1; transform: none; transition: opacity .45s ease, transform .55s cubic-bezier(.2, 1.4, .4, 1); }
+
+/* ------------------------------------------------------------ texto del tablero en móvil */
+@media (max-width: 999px) {
+  .board .about-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+  .board .prose, .board .values > li, .board .branch, .board .quest article, .board .timeline > li { transition: none; }
+}
+html[data-motion="off"] .spinner { animation: none; }
+
+/* Hermes: en el móvil no hay sitio para un guía flotante (ni para el tour
+   de un minuto, que habla por él). */
+@media (max-width: 759px) {
+  .hermes, [data-tour60] { display: none !important; }
+}

@@ -40,7 +40,10 @@ struct Assets;
 pub fn minified_assets() -> Vec<(String, Bytes, String)> {
     Assets::iter()
         .filter_map(|name| {
-            let min = if name.ends_with(".css") {
+            // Lo ya minificado por su herramienta (el rack 3D) va tal cual.
+            let min = if name.ends_with(".min.js") {
+                return None;
+            } else if name.ends_with(".css") {
                 crate::minify::css
             } else if name.ends_with(".js") {
                 crate::minify::js

@@ -1080,6 +1080,7 @@ ctf = { title = "Flag challenges", solved_by = "solved by {n}", nobody = "nobody
 # ---------------------------------------------------------------------------
 
 [achievements]
+technician = { title = "On-call technician", text = "You pulled six units out of the 3D rack." }
 explorer = { title = "Explorer", text = "You visited every zone." }
 root = { title = "Root access", text = "You used the terminal." }
 architect = { title = "Architect", text = "You opened five homelab pieces." }
@@ -1301,6 +1302,26 @@ status_retired = "Retired"
 status_lab = "Lab"
 
 [rack]
+here = "Out of the rack"
+stage_kicker = "Step inside"
+stage_title = "The server room"
+loading = "Powering up the rack…"
+hint = "Drag to turn it · click a unit to pull it out · Ctrl + wheel to zoom"
+hint_touch = "Swipe sideways to turn it · tap a unit to pull it out"
+inspected = "units inspected"
+card_label = "Selected unit"
+close = "Close and go back to the overview"
+prev = "Unit above"
+next = "Unit below"
+controls = "Rack camera"
+cam_overview = "Overview"
+cam_front = "Front"
+cam_side = "Side"
+cam_back = "Cabling"
+zoom_in = "Zoom in"
+zoom_out = "Zoom out"
+tour = "Tour"
+show_in_rack = "Show in the rack"
 incident_banner = "A real failure, right now: {list}. Not a drill: this is how it looks on the rack."
 incident_hermes = "Look at the rack: {list}. Not a drill, a real failure, right now. This is what it looks like from outside when something goes down; the rest keeps running."
 incident_more = "and {n} more"

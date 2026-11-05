@@ -116,14 +116,15 @@
     hermesIdleReset();
   }
 
-  function hermesMenu(greeting) {
+  // force: solo cuando lo pide el visitante (pulsar el avatar, la terminal).
+  function hermesMenu(greeting, force = false) {
     hermesSay(greeting, [
       { label: H.tour60_choice, run: () => tour60Go(0) },
       { label: H.choice_tour, run: () => tourGo(Math.max(0, hermes.tour)) },
       { label: H.choice_hr, run: hermesHr },
       { label: H.choice_lab, run: hermesLab },
       { label: H.choice_free, run: hermesFree },
-    ], true);
+    ], force);
   }
   function hermesHr() {
     scrollTo($("#quick"));
@@ -270,7 +271,7 @@
   hermes.toggle?.addEventListener("click", () => {
     if (hermesIsOpen()) return hermesShow(false);
     if (hermes.pending) return hermesSay(hermes.pending.msg, hermes.pending.choices, true);
-    hermesMenu(fill(H.greet_return, { zones: store.get("zones", []).length }));
+    hermesMenu(fill(H.greet_return, { zones: store.get("zones", []).length }), true);
   });
   $("[data-hermes-min]")?.addEventListener("click", () => hermesShow(false));
 
@@ -462,6 +463,74 @@
     }
     rackUnits.forEach((r) => r.addEventListener("mouseenter", () => window.tpSound?.play("tick")));
   }
+  // ------------------------------------------------------------ rack 3D
+  // El armario en 3D (static/rack3d.min.js, Three.js empaquetado) se carga
+  // al acercarse a él. Si no hay WebGL o falla, se queda la lista de
+  // siempre. Las notas del tablero lo mueven: cada zona tiene su vista y
+  // cada misión con unidad, su botón «Ver en el rack».
+  const stage = $("[data-stage]");
+  let rack3d = null;
+  const r3wait = [];
+  const r3 = (fn) => (rack3d ? fn(rack3d) : r3wait.push(fn));
+  let r3picked = 0; // cuándo se eligió algo a mano (para no pisarlo al bajar)
+  if (stage && stage.dataset.src) {
+    const load = () => {
+      import(stage.dataset.src).then((m) => {
+        rack3d = m.mount(stage, {
+          reduce: reduceMotion,
+          inspected: store.get("r3", []),
+          focus: returning ? location.hash.slice(4) : null,
+          tour: ["landing", "forgejo", "openbao", "traefik", "backup", "battlepros", "hermes", "proxmox"],
+        });
+        if (!rack3d) throw new Error("sin WebGL");
+        r3wait.splice(0).forEach((fn) => fn(rack3d));
+      }).catch((e) => {
+        console.warn("rack 3D:", e);
+        stage.classList.add("no-3d");
+      });
+    };
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((es) => {
+        if (!es.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        load();
+      }, { rootMargin: "600px 0px" });
+      io.observe(stage);
+    } else load();
+    stage.addEventListener("rack3d:inspected", (ev) => {
+      store.set("r3", ev.detail.ids);
+      if (ev.detail.n >= 6) unlock("technician");
+    });
+    // La misión de la unidad que está fuera del rack se marca en el tablero.
+    stage.addEventListener("rack3d:select", (ev) => {
+      if (ev.detail.id) r3picked = Date.now();
+      $$(".quest.is-r3").forEach((q) => q.classList.remove("is-r3"));
+      const q = ev.detail.id && $(`.quest[data-r3-unit="${CSS.escape(ev.detail.id)}"]`);
+      if (q) {
+        q.classList.add("is-r3");
+        $("article", q).dataset.r3Here = T.rack.here;
+      }
+    });
+    // ¿El rack va fijo al lado (escritorio) o encima del tablero (móvil)?
+    const docked = () => getComputedStyle(stage).position === "sticky";
+    $$("[data-r3-focus]").forEach((b) => b.addEventListener("click", () => {
+      r3picked = Date.now();
+      if (!docked()) scrollTo(stage);
+      r3((c) => c.focus(b.dataset.r3Focus));
+    }));
+    // Al bajar por el tablero, el rack enseña lo que toca en cada zona
+    // (salvo que se acabe de elegir una unidad a mano).
+    if ("IntersectionObserver" in window) {
+      const zio = new IntersectionObserver((es) => {
+        for (const e of es) {
+          if (!e.isIntersecting || !docked() || Date.now() - r3picked < 8000) continue;
+          r3((c) => c.view(e.target.dataset.r3ViewOn));
+        }
+      }, { rootMargin: "-45% 0px -50% 0px" });
+      $$("[data-r3-view-on]").forEach((z) => zio.observe(z));
+    }
+  }
+
   $$(".skill").forEach((b) => b.addEventListener("click", () => {
     if (b.hasAttribute("data-unused")) return;
     const tech = b.dataset.tech;
@@ -1439,7 +1508,7 @@
       for (const u of rackList()) print(pad(u.slot, 20) + u.state, u.down ? "t-err" : null);
     },
     history() { FS_FILES["/home/tito/.bash_history"].forEach((l, i) => print(`${String(i + 1).padStart(4)}  ${l}`)); },
-    hermes() { closeTerminal(); hermesMenu(fill(H.greet_return, { zones: found.size })); },
+    hermes() { closeTerminal(); hermesMenu(fill(H.greet_return, { zones: found.size }), true); },
     ssh(arg) {
       const id = (arg || "").replace(/^.*@/, "");
       const node = T.nodes.find((n) => n.unit && n.id === id);
@@ -1997,6 +2066,8 @@
     // Al volver de una unidad no se saluda otra vez: ya estabas aquí.
     if (doc.classList.contains("quick-mode") || returning) return;
     const tour = store.get("hermesTour", -1);
+    // Hermes ya no se abre solo: deja el saludo pendiente (con el punto
+    // en el avatar) y habla cuando se le pulsa. En el móvil no está.
     if (!store.get("hermesGreeted", false)) {
       store.set("hermesGreeted", true);
       hermesMenu(personalGreeting());
@@ -2005,9 +2076,7 @@
       hermesSay(personalGreeting(), [
         { label: H.tour_next, run: () => tourGo(tour) },
         { label: H.choice_free, run: hermesFree },
-      ], !store.get("hermesMin", false));
-    } else if (!store.get("hermesMin", true)) {
-      hermesMenu(personalGreeting());
+      ]);
     }
   }, 1400);
 

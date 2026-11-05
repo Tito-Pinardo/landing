@@ -47,6 +47,8 @@ jobs:
           min="$(mktemp -d)"
           "$CARGO_TARGET_DIR/release/landing" dump-assets "$min"
           for f in "$min"/*.js; do node --check "$f"; done
+          # El rack 3D ya viene minificado por esbuild y es un módulo ES.
+          cp static/rack3d.min.js "$min/rack3d.mjs" && node --check "$min/rack3d.mjs"
           rm -rf "$min"
       - name: Pruebas del resumen semanal (Python, sin red)
         run: python3 -m unittest tools/digest/test_digest.py

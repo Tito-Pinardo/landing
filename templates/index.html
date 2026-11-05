@@ -2,6 +2,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/home.css?v={{ c.asset_v }}">
+<link rel="stylesheet" href="/static/sala.css?v={{ c.asset_v }}">
 <link rel="canonical" href="{{ c.public_url }}/{{ c.lang }}/">
 <link rel="alternate" hreflang="es" href="{{ c.public_url }}/es/">
 <link rel="alternate" hreflang="en" href="{{ c.public_url }}/en/">
@@ -53,6 +54,7 @@
     <div class="cta">
       <a class="btn btn-primary" href="{{ c.cv_url }}" download data-cv>{{ c.ui("download_cv") }}</a>
       <a class="btn" href="#contact">{{ c.ui("contact") }}</a>
+      <a class="btn btn-room" href="#rack"><span aria-hidden="true">▣</span> {{ c.t.rack["stage_title"] }} ↓</a>
       <button class="btn btn-tour js-only" type="button" data-tour60><span aria-hidden="true">▶</span> {{ c.t.hermes.text["tour60_button"] }}</button>
       <a class="btn btn-ghost" href="{{ c.linkedin }}" rel="me noopener" target="_blank">LinkedIn</a>
       <a class="btn btn-ghost" href="{{ c.github }}" rel="me noopener" target="_blank">GitHub</a>
@@ -124,8 +126,77 @@
   </ol>
 </nav>
 
+<!-- ============================ LA SALA ============================ -->
+<!-- El rack en 3D a la derecha (fijo al bajar) y el tablero con las notas a
+     la izquierda: al pulsar una nota, o al llegar a ella, el rack se mueve para
+     enseñar lo que cuenta. La lista del rack es la versión accesible y la
+     de sin WebGL. -->
+<div class="workspace" data-workspace>
+<aside class="stage" id="rack" data-stage data-src="/static/rack3d.min.js?v={{ c.asset_v }}" aria-labelledby="rack-title">
+  <div class="stage-hud">
+    <div class="stage-title">
+      <p class="kicker">{{ c.t.rack["stage_kicker"] }}</p>
+      <h2 id="rack-title">{{ c.t.rack["stage_title"] }}</h2>
+    </div>
+    <p class="stage-count js-only" title="{{ c.t.rack["inspected"] }}"><span class="stage-count-ring" aria-hidden="true"></span><strong data-r3-count>0/{{ rack.len() }}</strong> <span>{{ c.t.rack["inspected"] }}</span></p>
+  </div>
+  <div class="stage-view js-only" data-r3-view>
+    <p class="stage-loading" data-r3-loading><span class="spinner" aria-hidden="true"></span>{{ c.t.rack["loading"] }}</p>
+    <p class="stage-hint" aria-hidden="true"><span class="hint-mouse">{{ c.t.rack["hint"] }}</span><span class="hint-touch">{{ c.t.rack["hint_touch"] }}</span></p>
+    <div class="r3-tip" data-r3-tip hidden></div>
+    <div class="r3-card" data-r3-card role="region" aria-live="polite" aria-label="{{ c.t.rack["card_label"] }}" hidden>
+      <p class="r3-card-top"><span class="r3-n" data-r3-n></span><span class="r3-state"><i aria-hidden="true"></i><span data-r3-state></span></span><button type="button" class="r3-x" data-r3-close aria-label="{{ c.t.rack["close"] }}">×</button></p>
+      <p class="r3-slot" data-r3-slot></p>
+      <h3 class="r3-title" data-r3-title></h3>
+      <p class="r3-tagline" data-r3-tagline></p>
+      <p class="r3-specs" data-r3-specs></p>
+      <p class="r3-actions">
+        <button type="button" class="btn btn-sm btn-ghost" data-r3-prev aria-label="{{ c.t.rack["prev"] }}">↑</button>
+        <button type="button" class="btn btn-sm btn-ghost" data-r3-next aria-label="{{ c.t.rack["next"] }}">↓</button>
+        <a class="btn btn-sm btn-primary btn-unit" href="#" data-r3-link><span class="unit-icon" aria-hidden="true"></span>{{ c.t.rack["enter"] }} →</a>
+      </p>
+    </div>
+  </div>
+  <div class="stage-controls js-only" role="toolbar" aria-label="{{ c.t.rack["controls"] }}">
+    <button type="button" class="btn btn-sm" data-r3-cam="overview" aria-pressed="true">{{ c.t.rack["cam_overview"] }}</button>
+    <button type="button" class="btn btn-sm" data-r3-cam="front" aria-pressed="false">{{ c.t.rack["cam_front"] }}</button>
+    <button type="button" class="btn btn-sm" data-r3-cam="side" aria-pressed="false">{{ c.t.rack["cam_side"] }}</button>
+    <button type="button" class="btn btn-sm" data-r3-cam="back" aria-pressed="false">{{ c.t.rack["cam_back"] }}</button>
+    <span class="stage-sep" aria-hidden="true"></span>
+    <button type="button" class="btn btn-sm btn-icon" data-r3-zoom="in" aria-label="{{ c.t.rack["zoom_in"] }}">+</button>
+    <button type="button" class="btn btn-sm btn-icon" data-r3-zoom="out" aria-label="{{ c.t.rack["zoom_out"] }}">−</button>
+    <button type="button" class="btn btn-sm btn-tour" data-r3-tour aria-pressed="false"><span aria-hidden="true">▶</span> {{ c.t.rack["tour"] }}</button>
+  </div>
+  <div class="rack" data-rack-list>
+    <div class="rack-head">
+      <h3>{{ c.t.rack["title"] }}</h3>
+      <p class="muted">{{ c.t.rack["intro"] }}</p>
+      <p class="rack-lit small" data-rack-lit hidden></p>
+    </div>
+    <ol class="rack-units">
+    {% for r in rack %}
+      <li class="rack-unit status-{{ r.status }}" id="ru-{{ r.id }}" data-rack-unit="{{ r.id }}" data-tech="{{ r.tech_ids }}" data-nodes="{{ r.nodes }}">
+        <a href="{{ r.url }}" data-href="{{ r.url }}">
+          <span class="ru-n" aria-hidden="true">U{{ "{:02}"|format(r.n) }}</span>
+          <span class="ru-ear" aria-hidden="true"></span>
+          <span class="ru-leds" aria-hidden="true"><i></i><i></i></span>
+          <span class="ru-name"><strong>{{ r.slot }}</strong><small>{{ r.specs }}</small></span>
+          <span class="ru-text">{{ r.title }}</span>
+          <span class="ru-tagline">{{ r.tagline }}</span>
+          <span class="ru-vent" aria-hidden="true"></span>
+          <span class="ru-state" data-ru-state>{{ r.state }}</span>
+          <span class="ru-go">{{ c.t.rack["enter"] }} →</span>
+        </a>
+      </li>
+    {% endfor %}
+    </ol>
+  </div>
+
+</aside>
+
+<div class="board" data-board>
 <!-- ============================== BASE ============================== -->
-<section id="about" class="zone" data-zone="about" aria-labelledby="about-title">
+<section id="about" class="zone note-zone" data-zone="about" data-r3-view-on="overview" aria-labelledby="about-title">
   <header class="zone-head"><span class="zone-n">01</span><h2 id="about-title">{{ c.t.zones["about"].title }}</h2><p>{{ c.t.zones["about"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <div class="about-grid">
     <div class="prose">
@@ -167,7 +238,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 </section>
 
 <!-- ========================= ÁRBOL DE HABILIDADES ========================= -->
-<section id="skills" class="zone" data-zone="skills" aria-labelledby="skills-title">
+<section id="skills" class="zone note-zone" data-zone="skills" data-r3-view-on="side" aria-labelledby="skills-title">
   <header class="zone-head"><span class="zone-n">02</span><h2 id="skills-title">{{ c.t.zones["skills"].title }}</h2><p>{{ c.t.zones["skills"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <p class="muted js-only">{{ c.ui("filter_hint") }}</p>
   <svg class="tree-svg" viewBox="0 0 1000 110" preserveAspectRatio="none" aria-hidden="true" data-tree-svg>
@@ -197,7 +268,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 </section>
 
 <!-- ============================== MISIONES ============================== -->
-<section id="quests" class="zone" data-zone="quests" aria-labelledby="quests-title">
+<section id="quests" class="zone note-zone" data-zone="quests" data-r3-view-on="front" aria-labelledby="quests-title">
   <header class="zone-head"><span class="zone-n">03</span><h2 id="quests-title">{{ c.t.zones["quests"].title }}</h2><p>{{ c.t.zones["quests"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <p class="filter-status" data-filter-status hidden>
     <span>{{ c.ui("projects_with") }} <strong data-filter-name></strong></span>
@@ -205,7 +276,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
   </p>
   <ol class="quests">
   {% for p in projects %}
-    <li id="quest-{{ p.id }}" class="quest{% if p.featured %} is-featured{% endif %}{% if p.unit_url.is_some() %} has-unit{% endif %}" data-tech="{{ p.tech_ids }}">
+    <li id="quest-{{ p.id }}" class="quest{% if p.featured %} is-featured{% endif %}{% if p.unit_url.is_some() %} has-unit{% endif %}" data-tech="{{ p.tech_ids }}"{% if let Some(uid) = p.unit_id %} data-r3-unit="{{ uid }}"{% endif %}>
       <article>
         <header>
           <span class="badge badge-{{ p.status }}">{{ p.status_label }}</span>
@@ -219,6 +290,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
         <div class="quest-unit">
           <p class="unit-note small" data-unit-note hidden></p>
           <a class="btn btn-sm btn-unit" href="{{ url }}" data-unit-link="{{ p.id }}" title="{{ c.ui("unit_badge") }}"><span class="unit-icon" aria-hidden="true"></span><span data-unit-label>{{ c.ui("unit_enter") }}</span> →</a>
+          {% if let Some(uid) = p.unit_id %}<button type="button" class="btn btn-sm btn-ghost js-only" data-r3-focus="{{ uid }}"><span aria-hidden="true">◎</span> {{ c.t.rack["show_in_rack"] }}</button>{% endif %}
         </div>
         {% endif %}
         <details>
@@ -238,7 +310,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 </section>
 
 <!-- ============================= TRAYECTORIA ============================= -->
-<section id="journey" class="zone" data-zone="journey" aria-labelledby="journey-title">
+<section id="journey" class="zone note-zone" data-zone="journey" data-r3-view-on="back" aria-labelledby="journey-title">
   <header class="zone-head"><span class="zone-n">04</span><h2 id="journey-title">{{ c.t.zones["journey"].title }}</h2><p>{{ c.t.zones["journey"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <div class="journey-grid">
     <ol class="timeline">
@@ -261,6 +333,9 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
     </aside>
   </div>
 </section>
+
+</div>
+</div>
 
 <!-- ============================= LABORATORIO ============================= -->
 <section id="lab" class="zone" data-zone="lab" aria-labelledby="lab-title">
@@ -372,30 +447,6 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
     {% endfor %}
     </ol>
     <p class="muted small">{{ c.lab("disclaimer") }}</p>
-  </div>
-
-  <div class="rack" id="rack" aria-labelledby="rack-title">
-    <div class="rack-head">
-      <h3 id="rack-title">{{ c.t.rack["title"] }}</h3>
-      <p class="muted">{{ c.t.rack["intro"] }}</p>
-      <p class="rack-lit small" data-rack-lit hidden></p>
-    </div>
-    <ol class="rack-units">
-    {% for r in rack %}
-      <li class="rack-unit status-{{ r.status }}" id="ru-{{ r.id }}" data-rack-unit="{{ r.id }}" data-tech="{{ r.tech_ids }}" data-nodes="{{ r.nodes }}">
-        <a href="{{ r.url }}" data-href="{{ r.url }}">
-          <span class="ru-n" aria-hidden="true">U{{ "{:02}"|format(r.n) }}</span>
-          <span class="ru-ear" aria-hidden="true"></span>
-          <span class="ru-leds" aria-hidden="true"><i></i><i></i></span>
-          <span class="ru-name"><strong>{{ r.slot }}</strong><small>{{ r.specs }}</small></span>
-          <span class="ru-text">{{ r.title }}</span>
-          <span class="ru-vent" aria-hidden="true"></span>
-          <span class="ru-state" data-ru-state>{{ r.state }}</span>
-          <span class="ru-go">{{ c.t.rack["enter"] }} →</span>
-        </a>
-      </li>
-    {% endfor %}
-    </ol>
   </div>
 
   <div class="home-posts">
