@@ -52,6 +52,7 @@ import {
 } from "three";
 import { buildRoom, ROOM } from "./room.js";
 import { buildGnomes } from "./gnomes.js";
+import { buildInside, OPEN } from "./drawer.js";
 
 const U = 0.1; // 1U
 const W = 1.0; // ancho interior
@@ -644,6 +645,7 @@ export function mount(stage, opts = {}) {
 
   function goView(name, keepNote = false) {
     const v = VIEWS[name] || VIEWS[HOME];
+    if (player) player.free = true; // quien elige un plano manda sobre el seguimiento
     current = name;
     select(null, true);
     if (!keepNote) activeNote(null);
@@ -854,6 +856,7 @@ export function mount(stage, opts = {}) {
 
   function zoom(f) {
     anim.on = false;
+    if (player) player.free = true;
     sph.radius = clamp(sph.radius * f, 1.2, VIEWS[HOME].fit() * 1.25);
     lastInput = performance.now();
     wake();
@@ -1031,7 +1034,7 @@ export function mount(stage, opts = {}) {
   function anchorFor(node) {
     if (room.anchors[node]) return room.anchors[node].clone();
     const u = byId(nodeUnit[node]);
-    if (u) return new Vector3(0.25, slotY(u.i + 1), FRONT + 0.32);
+    if (u) return new Vector3(0.1, slotY(u.i + 1) - (U * 0.9) / 2 + 0.075, u.baseZ + OPEN + 0.12);
     return room.anchors.internet.clone();
   }
   function hotOff() {
@@ -1044,6 +1047,42 @@ export function mount(stage, opts = {}) {
     const kind = { internet: "window", cloudflare: "window", movil: "phone", pc: "pc", casa: "terminal" }[node];
     if (kind) for (const m of room.objects) if (m.userData.obj.kind === kind) m.userData.obj.active = true;
   }
+  // Plano de cámara para cada parada: dentro del cajón, desde arriba; en la
+  // ventana, el móvil o la mesa, de cerca.
+  function shotFor(node) {
+    const u = !room.anchors[node] && byId(nodeUnit[node]);
+    const narrowCam = camera.aspect < 1;
+    if (u) return { target: new Vector3(0.02, slotY(u.i + 1) - 0.04, u.baseZ + OPEN + 0.06), theta: 0.28, phi: 0.82, r: narrowCam ? 1.9 : 1.5 };
+    const a = anchorFor(node);
+    if (node === "internet" || node === "cloudflare" || node === "sunFrom") return { target: a.clone().add(new Vector3(0, -0.15, 0.25)), theta: Math.PI / 2 - 0.1, phi: 1.45, r: fitBox(2.6, 1.9) };
+    return { target: a, theta: Math.PI / 2 - 0.4, phi: 1.2, r: narrowCam ? 2.3 : 1.7 };
+  }
+  const angTo = (a, b) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a));
+  const want = { target: new Vector3(), theta: 0, phi: 0, r: 0 };
+  function chaseTick(dt, still, pos) {
+    const p = player;
+    if (!p.shotA || p.free || drag?.moved) {
+      if (drag?.moved) p.free = true;
+      return;
+    }
+    const k = ease(p.t);
+    const A = p.shotA;
+    const B = p.shotB;
+    // Mientras vuela, la cámara sigue al paquete y se aleja un poco a mitad
+    // de camino para ver de dónde sale y adónde va.
+    want.target.copy(p.t < 1 ? pos : B.target);
+    if (p.t < 1) want.target.lerp(B.target, k * k);
+    const thB = angTo(A.theta, B.theta);
+    want.theta = MathUtils.lerp(A.theta, thB, k);
+    want.phi = MathUtils.lerp(A.phi, B.phi, k);
+    want.r = MathUtils.lerp(A.r, B.r, k) + Math.sin(Math.PI * k) * Math.min(3.2, p.span * 0.45);
+    const f = still ? 1 : 1 - Math.exp(-dt * 4);
+    target.lerp(want.target, f);
+    sph.theta += (angTo(sph.theta, want.theta) - sph.theta) * f;
+    sph.phi += (want.phi - sph.phi) * f;
+    sph.radius += (want.r - sph.radius) * f;
+  }
+
   function stepTo(i) {
     const f = player.f;
     i = clamp(i, 0, f.path.length - 1);
@@ -1053,6 +1092,11 @@ export function mount(stage, opts = {}) {
     const mid = from.clone().lerp(to, 0.5);
     mid.y += 0.5 + from.distanceTo(to) * 0.18;
     player.curve = new QuadraticBezierCurve3(from, mid, to);
+    player.span = from.distanceTo(to);
+    player.free = false;
+    anim.on = false;
+    player.shotA = i === 0 ? shotFor(f.path[0]) : { target: target.clone(), theta: sph.theta, phi: sph.phi, r: sph.radius };
+    player.shotB = shotFor(f.path[i]);
     player.t = i === 0 ? 1 : 0;
     player.hold = 0;
     hotOff();
@@ -1070,8 +1114,10 @@ export function mount(stage, opts = {}) {
     const f = flows.find((x) => x.id === id);
     if (!f || !caption) return;
     tourStop();
-    if (current !== HOME) goView(HOME);
-    else select(null, true);
+    select(null, true);
+    activeNote(null);
+    current = null;
+    stage.querySelectorAll("[data-r3-cam]").forEach((b) => b.setAttribute("aria-pressed", "false"));
     player = { f, i: 0, t: 1, hold: 0, playing: true, curve: null };
     caption.hidden = false;
     capSet("[data-r3-cap-title]", f.title);
@@ -1090,6 +1136,7 @@ export function mount(stage, opts = {}) {
     const id = player.f.id;
     player = null;
     hotOff();
+    goView(HOME);
     if (caption) caption.hidden = true;
     stage.classList.remove("is-playing");
     pktMesh.visible = trail.visible = false;
@@ -1135,9 +1182,12 @@ export function mount(stage, opts = {}) {
       }
     }
     const pos = p.curve.getPoint(ease(p.t));
+    chaseTick(dt, still, pos);
     pktMesh.position.copy(pos);
     pktLight.position.copy(pos);
-    pktMesh.scale.setScalar(1 + 0.25 * Math.sin(now / 120));
+    // Dentro del cajón el paquete se encoge para caber
+    const inUnit = !room.anchors[p.f.path[p.i]] && byId(nodeUnit[p.f.path[p.i]]);
+    pktMesh.scale.setScalar((inUnit ? 1 - 0.55 * ease(p.t) : 1) * (1 + 0.25 * Math.sin(now / 120)));
     trailPos.copyWithin(3, 0, (TRAIL - 1) * 3);
     trailPos[0] = pos.x;
     trailPos[1] = pos.y;
@@ -1350,12 +1400,16 @@ export function mount(stage, opts = {}) {
     }
 
     for (const u of units) {
-      const out = u.outTo + (u.hover && u !== selected ? 0.05 : 0) + (u.hot && u !== selected ? 0.12 : 0);
+      // En un recorrido el cajón sale entero (y no entra hasta cerrar la tapa)
+      const open = (u.hot || (u.inside && u.inside.lid > 0.03)) && u !== selected;
+      const out = open ? OPEN : u.outTo + (u.hover && u !== selected ? 0.05 : 0);
       if (Math.abs(u.out - out) > 0.0005) {
         u.out += (out - u.out) * Math.min(1, dt * (still ? 60 : 9));
         busy = true;
       } else u.out = out;
       u.mesh.position.z = u.baseZ + u.out;
+      if (u.hot && !u.inside) u.inside = buildInside(u, W - 0.01, U * 0.9, D, bodyMat, FRONT - (u.baseZ + OPEN));
+      if (u.inside?.update(dt, now, still, u.hot && u !== selected)) busy = true;
       const g = Math.max(u.glowTo, u.hover ? 0.55 : 0, u === selected ? 0.8 : 0, u.hot ? 0.9 : 0, u.pulse ? 0.4 + 0.4 * Math.sin(now / 220) : 0);
       if (u.pulse) busy = true;
       if (Math.abs(u.glow - g) > 0.002) {

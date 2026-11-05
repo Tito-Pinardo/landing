@@ -519,3 +519,9 @@ html[data-motion="off"] .spinner { animation: none; }
 .r3-say.is-angry::after { border-top-color: #be123c; }
 @keyframes say-shake { 25% { rotate: -4deg; } 75% { rotate: 4deg; } }
 @media (prefers-reduced-motion: reduce) { .r3-say.is-angry { animation: none; } }
+
+/* Laboratorio en la sala: solo la lista de recorridos; el recorrido se ve en
+   la propia sala (el paquete viaja y los cajones se abren), sin el mapa de
+   antes en pequeño ni su texto repetido. */
+.room-mode .lab-modes, .room-mode .lab-screen, .room-mode .lab-legend,
+.room-mode .flow-lists, .room-mode .lab-nodes { display: none !important; }
