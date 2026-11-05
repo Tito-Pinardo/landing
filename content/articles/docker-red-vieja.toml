@@ -1,0 +1,117 @@
+slug = "docker-red-vieja"
+date = "2026-11-05"
+unit = "arr"
+tech = ["docker", "ansible", "linux"]
+kind = "incident"
+
+[text.es]
+impact = "Los contenedores de descargas, un día sin internet tras la actualización automática. Todos decían «Up»."
+detected = "A mano, al ver que no bajaba nada. Ningún aviso: el que tenía que avisar también estaba caído."
+title = "«Up» y sin red: lo que deja un reinicio de Docker"
+description = "La actualización automática del miércoles subió Docker, los contenedores volvieron en una red que ya no existía y ningún aviso llegó. Así lo arreglé para siempre."
+summary = "Cada miércoles los servidores de casa se actualizan solos. Esta vez subió Docker: al reiniciarse, varios contenedores que salen a internet a través de otro (uno de VPN) arrancaron antes que él y se quedaron enganchados a su red antigua. Seguían «Up», sin internet. Y el aviso no llegó porque el puente hacia el chat llevaba dos semanas muerto."
+lesson = "«Nada se reinicia solo» era falso: apt reinicia lo que actualiza. Después de cambiar algo hay que comprobarlo, y el que vigila también necesita que alguien lo vigile."
+
+[[text.es.sections]]
+heading = "Síntoma"
+paragraphs = [
+  "El jueves por la mañana no bajaba nada. En el panel de Docker, todo en verde: cuatro contenedores «Up» y el de la VPN, sano. Desde dentro de cualquiera de los cuatro, ni una conexión salía.",
+  "Un quinto contenedor, el que sincroniza el puerto de la VPN, estaba parado con un error claro: no podía unirse a un espacio de red que ya no existía.",
+]
+
+[[text.es.sections]]
+heading = "Causa"
+paragraphs = [
+  "Esos contenedores no tienen red propia: usan la del contenedor de la VPN, para que todo su tráfico salga por el túnel. Cuando Docker se reinicia, el de la VPN vuelve con un espacio de red nuevo, pero los que ya habían arrancado se quedan en el viejo, que ya no lleva a ninguna parte.",
+  "¿Y por qué se reinició Docker? La actualización de los miércoles subió el paquete de Docker, y apt reinicia el servicio que actualiza. Mi idea de que «los paquetes se actualizan, pero nada se reinicia solo» era falsa.",
+]
+code = """# ¿Comparten red de verdad? Cada proceso apunta a su espacio de red:
+for c in vpn descargas; do
+  pid=$(docker inspect -f '{{.State.Pid}}' "$c")
+  echo "$c $(readlink /proc/$pid/ns/net)"
+done
+# vpn       net:[4026533120]
+# descargas net:[4026532871]   ← distintos"""
+
+[[text.es.sections]]
+heading = "Por qué no avisó nadie"
+paragraphs = [
+  "La monitorización solo miraba si los contenedores estaban en marcha, y lo estaban. Y el resumen de la actualización no comprobaba nada después de actualizar: decía «todo bien» porque apt había terminado bien.",
+  "Peor aún: el puente que lleva los avisos a mi chat llevaba caído desde el 19 de octubre, tras un corte de luz. No arrancaba solo después de reiniciar el servidor. Durante dos semanas no llegó ningún aviso: ni del CI/CD, ni de las actualizaciones, ni del bloqueo de ataques. El silencio parecía calma.",
+]
+
+[[text.es.sections]]
+heading = "El arreglo"
+list = [
+  "live-restore en Docker: los contenedores siguen corriendo mientras el servicio se reinicia, así que una actualización de Docker ya no los mueve.",
+  "Un vigilante cada dos minutos: compara el espacio de red de cada contenedor con el del contenedor del que depende. Si no coinciden, lo reinicia y avisa en la sala de incidencias.",
+  "La actualización comprueba antes y después qué servicios y contenedores estaban en marcha, y marca con ❌ en el resumen lo que no ha vuelto.",
+  "El puente de avisos arranca con el sistema y se reinicia solo si se cae.",
+  "Todo en Ansible y por PR, como siempre. Ya está en los cuatro servidores con Docker.",
+]
+links = [
+  { title = "Live restore", url = "https://docs.docker.com/engine/daemon/live-restore/", source = "Documentación de Docker" },
+]
+
+[[text.es.sections]]
+heading = "Resultado"
+paragraphs = [
+  "Ahora reiniciar Docker a propósito no deja ningún contenedor sin red, y si algún día alguno se queda descolgado, el vigilante lo devuelve y me lo dice.",
+  "La parte que más me ha enseñado es la del silencio: un sistema de avisos que no avisa de que está roto es peor que no tenerlo. Ahora el puente también se vigila.",
+]
+
+[text.en]
+impact = "The download containers, a day without internet after the automatic update. All of them said «Up»."
+detected = "By hand, noticing nothing was downloading. No alert: the thing that should have alerted was down too."
+title = "«Up» and offline: what a Docker restart leaves behind"
+description = "Wednesday's automatic update bumped Docker, the containers came back on a network that no longer existed and no alert arrived. This is how I fixed it for good."
+summary = "Every Wednesday the home servers update themselves. This time Docker got bumped: on restart, several containers that reach the internet through another one (a VPN container) started before it and stayed attached to its old network. Still «Up», no internet. And no alert came, because the bridge to my chat had been dead for two weeks."
+lesson = "«Nothing restarts on its own» was false: apt restarts what it upgrades. After changing something you have to check it, and whatever watches also needs someone watching it."
+
+[[text.en.sections]]
+heading = "Symptom"
+paragraphs = [
+  "On Thursday morning nothing was downloading. In the Docker panel everything was green: four containers «Up» and the VPN one healthy. From inside any of the four, not a single connection got out.",
+  "A fifth container, the one that syncs the VPN port, was stopped with a clear error: it couldn't join a network namespace that no longer existed.",
+]
+
+[[text.en.sections]]
+heading = "Cause"
+paragraphs = [
+  "Those containers have no network of their own: they use the VPN container's, so all their traffic goes through the tunnel. When Docker restarts, the VPN container comes back with a new network namespace, but the ones that had already started stay in the old one, which leads nowhere.",
+  "And why did Docker restart? The Wednesday update bumped the Docker package, and apt restarts the service it upgrades. My idea that «packages get upgraded but nothing restarts on its own» was false.",
+]
+code = """# Do they really share a network? Each process points to its namespace:
+for c in vpn descargas; do
+  pid=$(docker inspect -f '{{.State.Pid}}' "$c")
+  echo "$c $(readlink /proc/$pid/ns/net)"
+done
+# vpn       net:[4026533120]
+# descargas net:[4026532871]   ← different"""
+
+[[text.en.sections]]
+heading = "Why nobody was told"
+paragraphs = [
+  "Monitoring only checked whether the containers were running, and they were. And the update summary checked nothing after updating: it said «all good» because apt had finished fine.",
+  "Worse: the bridge that carries alerts to my chat had been down since 19 October, after a power cut. It didn't start on its own after the server rebooted. For two weeks no alert arrived: not from CI/CD, not from updates, not from attack blocking. Silence looked like calm.",
+]
+
+[[text.en.sections]]
+heading = "The fix"
+list = [
+  "live-restore in Docker: containers keep running while the service restarts, so a Docker upgrade no longer moves them.",
+  "A watcher every two minutes: it compares each container's network namespace with the one of the container it depends on. If they differ, it restarts it and posts in the incidents room.",
+  "The update checks which services and containers were running before and after, and marks with ❌ in the summary whatever didn't come back.",
+  "The alert bridge starts with the system and restarts itself if it dies.",
+  "All in Ansible and through a PR, as always. It's already on the four servers running Docker.",
+]
+links = [
+  { title = "Live restore", url = "https://docs.docker.com/engine/daemon/live-restore/", source = "Docker docs" },
+]
+
+[[text.en.sections]]
+heading = "Result"
+paragraphs = [
+  "Now restarting Docker on purpose leaves no container without a network, and if one ever gets left hanging, the watcher brings it back and tells me.",
+  "The part that taught me the most is the silence: an alert system that doesn't tell you it's broken is worse than having none. Now the bridge is watched too.",
+]
