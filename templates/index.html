@@ -144,6 +144,30 @@
     <p class="stage-loading" data-r3-loading><span class="spinner" aria-hidden="true"></span>{{ c.t.rack["loading"] }}</p>
     <p class="stage-hint" aria-hidden="true"><span class="hint-mouse">{{ c.t.rack["hint"] }}</span><span class="hint-touch">{{ c.t.rack["hint_touch"] }}</span></p>
     <div class="r3-tip" data-r3-tip hidden></div>
+    <div class="r3-caption" data-r3-caption role="region" aria-live="polite" hidden>
+      <p class="r3-cap-top"><span class="r3-cap-title" data-r3-cap-title></span><button type="button" class="r3-x" data-r3-cap-close aria-label="{{ c.t.rack["stop"] }}">×</button></p>
+      <p class="r3-cap-node"><span class="r3-n" data-r3-cap-step></span> <strong data-r3-cap-node></strong></p>
+      <p class="r3-cap-text" data-r3-cap-text></p>
+      <p class="r3-actions">
+        <button type="button" class="btn btn-sm btn-ghost" data-r3-cap-prev aria-label="{{ c.t.rack["prev_step"] }}">←</button>
+        <button type="button" class="btn btn-sm btn-ghost" data-r3-cap-play aria-label="{{ c.t.rack["pause"] }}">⏸</button>
+        <button type="button" class="btn btn-sm btn-ghost" data-r3-cap-next aria-label="{{ c.t.rack["next_step"] }}">→</button>
+      </p>
+    </div>
+    <div class="r3-mission" data-r3-mission role="region" aria-live="polite" hidden>
+      <p class="r3-cap-top"><span class="r3-n" data-r3-m-step></span><button type="button" class="r3-x" data-r3-m-skip aria-label="{{ c.t.rack["mission_skip"] }}">×</button></p>
+      <p class="r3-m-text" data-r3-m-text></p>
+      <p class="r3-m-hint" data-r3-m-hint hidden></p>
+    </div>
+    <div class="r3-done" data-r3-mission-done role="dialog" aria-labelledby="r3-done-title" hidden>
+      <p class="r3-done-star" aria-hidden="true">★</p>
+      <h3 id="r3-done-title">{{ c.t.rack["mission_done_title"] }}</h3>
+      <p>{{ c.t.rack["mission_done_text"] }}</p>
+      <p class="r3-actions">
+        <a class="btn btn-sm btn-primary" href="{{ c.cv_url }}" download data-cv>{{ c.ui("download_cv") }}</a>
+        <a class="btn btn-sm" href="#contact" data-r3-m-close>{{ c.ui("contact") }}</a>
+      </p>
+    </div>
     <div class="r3-card" data-r3-card role="region" aria-live="polite" aria-label="{{ c.t.rack["card_label"] }}" hidden>
       <p class="r3-card-top"><span class="r3-n" data-r3-n></span><span class="r3-state"><i aria-hidden="true"></i><span data-r3-state></span></span><button type="button" class="r3-x" data-r3-close aria-label="{{ c.t.rack["close"] }}">×</button></p>
       <p class="r3-slot" data-r3-slot></p>
@@ -158,14 +182,19 @@
     </div>
   </div>
   <div class="stage-controls js-only" role="toolbar" aria-label="{{ c.t.rack["controls"] }}">
-    <button type="button" class="btn btn-sm" data-r3-cam="overview" aria-pressed="true">{{ c.t.rack["cam_overview"] }}</button>
-    <button type="button" class="btn btn-sm" data-r3-cam="front" aria-pressed="false">{{ c.t.rack["cam_front"] }}</button>
-    <button type="button" class="btn btn-sm" data-r3-cam="side" aria-pressed="false">{{ c.t.rack["cam_side"] }}</button>
+    <button type="button" class="btn btn-sm" data-r3-cam="room" aria-pressed="true">{{ c.t.rack["cam_room"] }}</button>
+    <button type="button" class="btn btn-sm" data-r3-cam="overview" aria-pressed="false">{{ c.t.rack["cam_rack"] }}</button>
+    <button type="button" class="btn btn-sm" data-r3-cam="board" aria-pressed="false">{{ c.t.rack["cam_board"] }}</button>
+    <button type="button" class="btn btn-sm" data-r3-cam="desk" aria-pressed="false">{{ c.t.rack["cam_desk"] }}</button>
     <button type="button" class="btn btn-sm" data-r3-cam="back" aria-pressed="false">{{ c.t.rack["cam_back"] }}</button>
     <span class="stage-sep" aria-hidden="true"></span>
     <button type="button" class="btn btn-sm btn-icon" data-r3-zoom="in" aria-label="{{ c.t.rack["zoom_in"] }}">+</button>
     <button type="button" class="btn btn-sm btn-icon" data-r3-zoom="out" aria-label="{{ c.t.rack["zoom_out"] }}">−</button>
+    <span class="stage-row" aria-hidden="true"></span>
+    <button type="button" class="btn btn-sm btn-flows" data-r3-flows aria-expanded="false" aria-haspopup="true"><span aria-hidden="true">⇄</span> {{ c.t.rack["flows"] }}</button>
+    <button type="button" class="btn btn-sm btn-mission" data-r3-mission-start><span aria-hidden="true">★</span> {{ c.t.rack["mission"] }}</button>
     <button type="button" class="btn btn-sm btn-tour" data-r3-tour aria-pressed="false"><span aria-hidden="true">▶</span> {{ c.t.rack["tour"] }}</button>
+    <div class="r3-menu" data-r3-flows-menu role="group" aria-label="{{ c.t.rack["flows_label"] }}" hidden></div>
   </div>
   <div class="rack" data-rack-list>
     <div class="rack-head">
@@ -196,7 +225,7 @@
 
 <div class="board" data-board>
 <!-- ============================== BASE ============================== -->
-<section id="about" class="zone note-zone" data-zone="about" data-r3-view-on="overview" aria-labelledby="about-title">
+<section id="about" class="zone note-zone" data-zone="about" data-r3-view-on="room" aria-labelledby="about-title">
   <header class="zone-head"><span class="zone-n">01</span><h2 id="about-title">{{ c.t.zones["about"].title }}</h2><p>{{ c.t.zones["about"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <div class="about-grid">
     <div class="prose">
@@ -238,7 +267,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 </section>
 
 <!-- ========================= ÁRBOL DE HABILIDADES ========================= -->
-<section id="skills" class="zone note-zone" data-zone="skills" data-r3-view-on="side" aria-labelledby="skills-title">
+<section id="skills" class="zone note-zone" data-zone="skills" data-r3-view-on="board" aria-labelledby="skills-title">
   <header class="zone-head"><span class="zone-n">02</span><h2 id="skills-title">{{ c.t.zones["skills"].title }}</h2><p>{{ c.t.zones["skills"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <p class="muted js-only">{{ c.ui("filter_hint") }}</p>
   <svg class="tree-svg" viewBox="0 0 1000 110" preserveAspectRatio="none" aria-hidden="true" data-tree-svg>
@@ -268,7 +297,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 </section>
 
 <!-- ============================== MISIONES ============================== -->
-<section id="quests" class="zone note-zone" data-zone="quests" data-r3-view-on="front" aria-labelledby="quests-title">
+<section id="quests" class="zone note-zone" data-zone="quests" data-r3-view-on="overview" aria-labelledby="quests-title">
   <header class="zone-head"><span class="zone-n">03</span><h2 id="quests-title">{{ c.t.zones["quests"].title }}</h2><p>{{ c.t.zones["quests"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <p class="filter-status" data-filter-status hidden>
     <span>{{ c.ui("projects_with") }} <strong data-filter-name></strong></span>
@@ -310,7 +339,7 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
 </section>
 
 <!-- ============================= TRAYECTORIA ============================= -->
-<section id="journey" class="zone note-zone" data-zone="journey" data-r3-view-on="back" aria-labelledby="journey-title">
+<section id="journey" class="zone note-zone" data-zone="journey" data-r3-view-on="desk" aria-labelledby="journey-title">
   <header class="zone-head"><span class="zone-n">04</span><h2 id="journey-title">{{ c.t.zones["journey"].title }}</h2><p>{{ c.t.zones["journey"].subtitle }}</p><span class="chassis-leds" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="chassis-vent" aria-hidden="true"></span></header>
   <div class="journey-grid">
     <ol class="timeline">

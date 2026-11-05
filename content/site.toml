@@ -14,7 +14,7 @@ links = [
 ]
 
 # Logros: se desbloquean en el navegador, sin cuentas ni cookies.
-achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger", "navigator", "companion", "detective", "hacker", "gnome_friend", "insider", "ctf_master", "technician"]
+achievements = ["explorer", "root", "architect", "skill_hunter", "recruiter", "polyglot", "messenger", "navigator", "companion", "detective", "hacker", "gnome_friend", "insider", "ctf_master", "technician", "field_agent"]
 
 
 # Retos de bandera de la terminal: solo el SHA-256 (la web comprueba y cuenta

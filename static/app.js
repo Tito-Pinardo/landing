@@ -481,6 +481,21 @@
           inspected: store.get("r3", []),
           focus: returning ? location.hash.slice(4) : null,
           tour: ["landing", "forgejo", "openbao", "traefik", "backup", "battlepros", "hermes", "proxmox"],
+          // La sala: notas del tablero (las zonas de la página), recorridos
+          // del laboratorio y la misión.
+          labels: { ...T.rack, name: $("#hero-title")?.textContent.trim() || "", role: $(".hero .role")?.textContent.trim() || "" },
+          zones: $$(".world-tile").map((a) => ({ id: a.dataset.tile, title: $("strong", a)?.textContent.trim() || "", sub: $(".muted", a)?.textContent.trim() || "" })),
+          flows: T.flows,
+          flowCats: T.flow_categories || {},
+          nodeUnit: Object.fromEntries(T.nodes.filter((n) => n.unit_id).map((n) => [n.id, n.unit_id])),
+          nodeTitle: Object.fromEntries(T.nodes.map((n) => [n.id, n.title])),
+          blogUrl: $(`a[href="/${document.documentElement.lang}/blog/"]`)?.getAttribute("href") || null,
+          mission: [
+            { text: T.rack.m1, hint: T.rack.m1_hint, target: { kind: "unit", id: "landing" } },
+            { text: T.rack.m2, hint: T.rack.m2_hint, target: { kind: "window" } },
+            { text: T.rack.m3, hint: T.rack.m3_hint, target: { kind: "unit", id: "openbao" } },
+            { text: T.rack.m4, hint: T.rack.m4_hint, target: { kind: "note", id: "about" } },
+          ],
         });
         if (!rack3d) throw new Error("sin WebGL");
         r3wait.splice(0).forEach((fn) => fn(rack3d));
@@ -513,6 +528,25 @@
     });
     // ¿El rack va fijo al lado (escritorio) o encima del tablero (móvil)?
     const docked = () => getComputedStyle(stage).position === "sticky";
+    // Lo que se toca en la sala lleva a su sitio en la página.
+    stage.addEventListener("rack3d:note", (ev) => {
+      r3picked = Date.now();
+      const z = document.getElementById(ev.detail.id);
+      if (z) scrollTo(z);
+    });
+    stage.addEventListener("rack3d:cv", () => $("[data-cv]")?.click());
+    stage.addEventListener("rack3d:terminal", () => $("[data-terminal-open]")?.click());
+    stage.addEventListener("rack3d:contact", () => scrollTo($("#contact")));
+    stage.addEventListener("rack3d:flow", (ev) => {
+      r3picked = Date.now();
+      flowsDone.add(ev.detail.id);
+      store.set("flowsDone", [...flowsDone]);
+    });
+    stage.addEventListener("rack3d:mission", (ev) => {
+      r3picked = Date.now();
+      if (ev.detail.state === "done") unlock("field_agent");
+    });
+    $("[data-r3-m-close]")?.addEventListener("click", () => ($("[data-r3-mission-done]").hidden = true));
     $$("[data-r3-focus]").forEach((b) => b.addEventListener("click", () => {
       r3picked = Date.now();
       if (!docked()) scrollTo(stage);
@@ -524,7 +558,10 @@
       const zio = new IntersectionObserver((es) => {
         for (const e of es) {
           if (!e.isIntersecting || !docked() || Date.now() - r3picked < 8000) continue;
-          r3((c) => c.view(e.target.dataset.r3ViewOn));
+          r3((c) => {
+            c.view(e.target.dataset.r3ViewOn);
+            c.mark(e.target.dataset.zone);
+          });
         }
       }, { rootMargin: "-45% 0px -50% 0px" });
       $$("[data-r3-view-on]").forEach((z) => zio.observe(z));

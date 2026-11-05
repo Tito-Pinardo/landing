@@ -1494,6 +1494,7 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
         "nodes": site.nodes.iter().map(|n| serde_json::json!({
             "id": n.id, "x": n.x, "y": n.y, "title": t.nodes[&n.id].title, "text": t.nodes[&n.id].text,
             "unit": n.unit.as_deref().map(|u| unit_url(lang, u)),
+            "unit_id": n.unit,
         })).collect::<Vec<_>>(),
         // Unidades del rack: a dónde llevar y qué contar al filtrar.
         "units": content.units.iter().map(|u| serde_json::json!({
@@ -1518,6 +1519,7 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
                 "lesson": it.lesson, "clues": it.clues,
             })
         }).collect::<Vec<_>>(),
+        "flow_categories": t.flow_categories,
         "flows": site.flows.iter().map(|f| serde_json::json!({
             "id": f.id, "category": f.category, "title": t.flows[&f.id].title, "path": f.path, "steps": t.flows[&f.id].steps,
             "broken": f.broken, "verdict": t.flows[&f.id].verdict,

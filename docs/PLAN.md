@@ -73,3 +73,8 @@ Visitante ─▶ Cloudflare (caché en el borde, Turnstile) ─▶ Traefik (su p
    - La lista del rack sigue siendo la versión sin WebGL y la accesible; el filtro por habilidad y el estado real se ven también en el armario.
    - Hermes deja de abrirse solo y desaparece en el móvil.
    - Artículo nuevo: lo que deja un reinicio de Docker tras la actualización automática (contenedores «Up» sin red y el puente de avisos caído dos semanas).
+4k. **La sala entera en 3D** ✅ (05-11):
+   - Alrededor del rack, una sala que se toca: el tablero de corcho en la pared con una nota por zona (lleva a esa parte de la página), la foto y el CV clavados, la mesa con la terminal (la abre), el teléfono (contacto) y el PC de la GPU (pregunta a Hermes), la ventana a la ciudad (por ahí entra Internet) y la puerta al blog, que se abre. Las paredes de detrás de la cámara se esconden, como una casa de muñecas.
+   - Los recorridos del laboratorio se ven en la sala: un paquete de luz salta de la ventana al rack y de unidad en unidad (sacando cada una) con el paso narrado abajo, pausa y paso a paso.
+   - Misión de 1 minuto para RR. HH.: cuatro retos (la unidad de esta web, cómo llega tu visita, dónde van los secretos, quién lo ha montado), con pista y la pieza parpadeando si tardas; al acabar, el CV y el contacto y el logro «Agente de campo».
+   - Calidad automática: si los fotogramas tardan (gráfica integrada), baja la resolución y luego quita las sombras. Suelo y paredes con material Lambert, que es lo que más píxeles ocupa.
