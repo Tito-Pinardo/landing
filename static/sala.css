@@ -438,7 +438,7 @@ html[data-motion="off"] .spinner { animation: none; }
 .room-mode .lab-quick-note, .room-mode .btn-room, .room-mode [data-tour60] { display: none !important; }
 .room-mode .board { display: contents; }
 .room-mode .workspace { display: block; max-width: none; margin: 0; padding: 0; }
-/* Entre los raíles del armario de los lados (30 px; 10 en el móvil) */
+/* Entre los raíles del armario de los lados (30 px) */
 .room-mode { --rails: 30px; }
 .room-mode .stage {
   position: relative; top: auto; height: calc(100dvh - var(--hdr, 64px)); min-height: 460px;
@@ -494,21 +494,8 @@ html[data-motion="off"] .spinner { animation: none; }
 .has-sheet .r3-card, .has-sheet .r3-caption { right: calc(min(620px, 46vw) + 24px); margin-left: 0; }
 .has-sheet .stage-controls { padding-right: calc(min(620px, 46vw) + 24px); }
 .has-sheet .stage-hint { display: none; }
-@media (max-width: 760px) { .room-mode { --rails: 10px; } }
-.room-mode .stage-role { display: none; }
-.room-mode .stage-cta { margin: 0; }
-@media (max-width: 759px) {
-  .room-mode .zone.is-sheet {
-    top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 64dvh;
-    border-radius: 18px 18px 0 0; animation-name: sheet-up;
-  }
-  .room-mode .board .zone.is-sheet { border-width: 8px 8px 0; }
-  .has-sheet .r3-card, .has-sheet .stage-controls, .has-sheet .r3-mission { display: none; }
-  .has-sheet .r3-caption { right: 12px; }
-  .has-sheet .stage-hud { display: none; }
-  .room-mode .stage-id { max-width: calc(100% - 120px); }
-}
-@keyframes sheet-up { from { translate: 0 30%; opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .room-mode .zone.is-sheet { animation: none; } }
 /* En «leer como página» (vista rápida) no hay sala: todo es página */
 .quick-mode .stage { display: none; }
+/* En el móvil no hay 3D: fuera lo que solo sirve para moverlo */
+@media (max-width: 759px) { .btn-room, [data-r3-focus] { display: none !important; } }

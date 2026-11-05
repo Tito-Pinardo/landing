@@ -328,7 +328,13 @@
   // hoja encima, sin repetir nada fuera. Sin WebGL, o en «leer como página»
   // (la vista rápida), la página de siempre.
   const stage = $("[data-stage]");
-  let roomOk = !!stage?.dataset.src && "WebGL2RenderingContext" in window;
+  // En el móvil no hay 3D: con el dedo y en poca pantalla sería mala
+  // interfaz. Ahí la web es la página de siempre y el rack, su lista (ni se
+  // descarga el 3D).
+  const mobile = matchMedia("(max-width: 759px)");
+  let webgl = !!stage?.dataset.src && "WebGL2RenderingContext" in window;
+  let roomOk = webgl && !mobile.matches;
+  const quickOn = () => doc.classList.contains("quick-mode");
   function roomMode(on) {
     doc.classList.toggle("room-mode", !!on);
     if (on) measure();
@@ -343,11 +349,10 @@
     if (sheet) insetFor(sheet);
   });
   let sheet = null;
-  const narrow = () => matchMedia("(max-width: 759px)").matches;
   // Lo que tapa la hoja, para correr el encuadre del 3D a la parte libre.
   function insetFor(z) {
     const r = z.getBoundingClientRect();
-    r3((c) => (narrow() ? c.inset(0, Math.round(r.height / 2)) : c.inset(Math.round((r.width + 12) / 2), 0)));
+    r3((c) => c.inset(Math.round((r.width + 12) / 2), 0));
   }
   function openSheet(id, target) {
     const z = document.getElementById(id);
@@ -609,16 +614,32 @@
       }).catch((e) => {
         console.warn("rack 3D:", e);
         stage.classList.add("no-3d");
-        roomOk = false;
+        webgl = roomOk = false;
         roomMode(false);
       });
     };
-    if (doc.classList.contains("room-mode") || !("IntersectionObserver" in window)) load();
+    let loaded = false;
+    const loadOnce = () => {
+      if (loaded) return;
+      loaded = true;
+      load();
+    };
+    stage.classList.toggle("no-3d", mobile.matches);
+    mobile.addEventListener("change", () => {
+      roomOk = webgl && !mobile.matches;
+      if (mobile.matches) closeSheet();
+      stage.classList.toggle("no-3d", !roomOk);
+      roomMode(roomOk && !quickOn());
+      if (roomOk) loadOnce();
+    });
+    if (mobile.matches) {
+      /* sin 3D: se queda la lista */
+    } else if (doc.classList.contains("room-mode") || !("IntersectionObserver" in window)) loadOnce();
     else {
       const io = new IntersectionObserver((es) => {
         if (!es.some((e) => e.isIntersecting)) return;
         io.disconnect();
-        load();
+        if (!mobile.matches) loadOnce();
       }, { rootMargin: "600px 0px" });
       io.observe(stage);
     }
