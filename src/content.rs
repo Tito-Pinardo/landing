@@ -524,12 +524,14 @@ const UI_KEYS: &[&str] = &[
     "night_note",
 ];
 const RACK_KEYS: &[&str] = &[
+    "sheet_close",
+    "clock",
+    "clock_sub",
     "cam_room",
     "cam_rack",
     "cam_board",
     "cam_desk",
     "flows",
-    "flows_label",
     "flow_step",
     "play",
     "pause",

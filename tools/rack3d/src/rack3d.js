@@ -510,7 +510,8 @@ export function mount(stage, opts = {}) {
   for (const m of room.objects) pickables.push(m);
 
   // ---- luces
-  scene.add(new HemisphereLight(0xbfd7ff, 0x0b0f18, 0.55));
+  const hemi = new HemisphereLight(0xbfd7ff, 0x0b0f18, 0.55);
+  scene.add(hemi);
   scene.add(new AmbientLight(0x6070a0, 0.25));
   const key = new DirectionalLight(0xffffff, 2.2);
   key.position.set(2.6, 5.5, 4.2);
@@ -539,6 +540,35 @@ export function mount(stage, opts = {}) {
   const lamp = new PointLight(0xffe4b5, 2.4, 4.5);
   lamp.position.set(ROOM.left + 1.4, 3.0, 0.95);
   scene.add(lamp);
+  // El sol entra por la ventana (sin sombras: sería otro mapa de sombras)
+  const sun = new DirectionalLight(0xfff4dc, 0);
+  sun.position.copy(room.anchors.sunFrom);
+  sun.target.position.set(0, 0, 0.6);
+  scene.add(sun, sun.target);
+
+  // ---- la hora de casa (Madrid) manda en la luz; ?hora=19 la fuerza
+  const homeClock = new Intl.DateTimeFormat("en-GB", { timeZone: opts.timeZone || "Europe/Madrid", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  function applyTime() {
+    let h;
+    let text;
+    if (typeof opts.hour === "number") {
+      h = opts.hour;
+      text = `${String(Math.floor(h)).padStart(2, "0")}:${String(Math.round((h % 1) * 60)).padStart(2, "0")}`;
+    } else {
+      text = homeClock.format(new Date());
+      const [hh, mm] = text.split(":").map(Number);
+      h = hh + mm / 60;
+    }
+    const d = room.setTime(h, text);
+    sun.intensity = d.sun;
+    sun.color.set(d.sunCol);
+    hemi.intensity = d.hemi;
+    lamp.intensity = d.lamp;
+    // De noche la luz del techo baja y manda la lámpara de la mesa
+    key.intensity = 1.5 + (d.sun / 2.4) * 1.1;
+    stage.dataset.daylight = d.sun > 1.8 ? "day" : d.sun > 0.2 ? "dusk" : "night";
+    wake();
+  }
 
   // Una luz que sigue a la unidad elegida
   const spot = new PointLight(0x2dd4bf, 0, 1.6);
@@ -553,10 +583,10 @@ export function mount(stage, opts = {}) {
     return Math.max(w / 2 / Math.tan(hfov / 2), h / 2 / Math.tan(vfov / 2));
   }
   const rackR = () => fitR;
-  const roomCenter = new Vector3(ROOM.left + 3.1, 1.55, 0.7);
+  const roomCenter = new Vector3(ROOM.left + 3.0, 2.0, 0.7);
   const VIEWS = {
     // La sala entera; en vertical (móvil) se recorta por los lados.
-    room: { target: roomCenter, theta: 0.6, phi: 1.18, fit: () => fitBox(camera.aspect < 0.9 ? 7.2 : 8.2, 4.4) * 0.86 },
+    room: { target: roomCenter, theta: 0.6, phi: 1.18, fit: () => fitBox(camera.aspect < 0.9 ? 7.2 : 8.2, 5.3) * 0.86 },
     overview: { target: center.clone(), theta: 0.42, phi: 1.36, fit: rackR },
     front: { target: center.clone(), theta: 0.0, phi: 1.5, fit: rackR },
     side: { target: center.clone(), theta: 1.25, phi: 1.42, fit: rackR },
@@ -884,9 +914,11 @@ export function mount(stage, opts = {}) {
   // Vuela al tablero y destaca la nota; `scroll` pide a la página que baje
   // hasta esa zona.
   function showNote(id, scroll = true) {
+    if (!room.notes.some((o) => o.id === id)) return false;
     if (current !== "board") goView("board", true);
     activeNote(id);
     if (scroll) send("rack3d:note", { id });
+    return true;
   }
   function act(o) {
     sound("hop");
@@ -991,7 +1023,6 @@ export function mount(stage, opts = {}) {
     const f = flows.find((x) => x.id === id);
     if (!f || !caption) return;
     tourStop();
-    closeFlowsMenu();
     if (current !== HOME) goView(HOME);
     else select(null, true);
     player = { f, i: 0, t: 1, hold: 0, playing: true, curve: null };
@@ -1068,44 +1099,8 @@ export function mount(stage, opts = {}) {
     return true;
   }
 
-  // Menú de recorridos, por categorías
-  const flowsBtn = stage.querySelector("[data-r3-flows]");
-  const flowsMenu = stage.querySelector("[data-r3-flows-menu]");
-  function closeFlowsMenu() {
-    if (!flowsMenu) return;
-    flowsMenu.hidden = true;
-    flowsBtn?.setAttribute("aria-expanded", "false");
-  }
-  if (flowsMenu && flowsBtn) {
-    const cats = opts.flowCats || {};
-    const groups = new Map();
-    for (const f of flows) {
-      if (!groups.has(f.category)) groups.set(f.category, []);
-      groups.get(f.category).push(f);
-    }
-    for (const [cat, list] of groups) {
-      const h = document.createElement("p");
-      h.className = "r3-menu-cat";
-      h.textContent = cats[cat] || cat;
-      flowsMenu.append(h);
-      for (const f of list) {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "r3-menu-item";
-        b.textContent = f.title;
-        b.addEventListener("click", () => playFlow(f.id));
-        flowsMenu.append(b);
-      }
-    }
-    flowsBtn.addEventListener("click", () => {
-      const open = flowsMenu.hidden;
-      flowsMenu.hidden = !open;
-      flowsBtn.setAttribute("aria-expanded", String(open));
-      if (open) flowsMenu.querySelector("button")?.focus();
-    });
-    stage.addEventListener("keydown", (ev) => { if (ev.key === "Escape") closeFlowsMenu(); });
-    el.addEventListener("pointerdown", closeFlowsMenu);
-  }
+  // La lista de recorridos vive en el laboratorio; el botón lo abre.
+  stage.querySelector("[data-r3-flows]")?.addEventListener("click", () => send("rack3d:note", { id: "lab" }));
 
   // ---- misión para quien tiene poco tiempo: cuatro retos guiados
   const M = opts.mission || [];
@@ -1191,6 +1186,42 @@ export function mount(stage, opts = {}) {
     mDone.hidden = true;
   });
 
+  // ---- hoja abierta encima: el centro de la imagen se corre para que lo
+  // que se enseña quede en la parte libre (dx a la izquierda, dy arriba).
+  const shift = { x: 0, y: 0, tx: 0, ty: 0 };
+  function inset(dx, dy) {
+    shift.tx = dx || 0;
+    shift.ty = dy || 0;
+    if (reduce()) {
+      shift.x = shift.tx;
+      shift.y = shift.ty;
+      applyShift();
+    }
+    wake();
+  }
+  function applyShift() {
+    const w = view.clientWidth;
+    const h = view.clientHeight;
+    if (!w || !h) return;
+    if (Math.abs(shift.x) < 0.5 && Math.abs(shift.y) < 0.5) camera.clearViewOffset();
+    else camera.setViewOffset(w, h, shift.x, shift.y, w, h);
+  }
+  function shiftTick(dt) {
+    if (Math.abs(shift.x - shift.tx) < 0.5 && Math.abs(shift.y - shift.ty) < 0.5) {
+      if (shift.x !== shift.tx || shift.y !== shift.ty) {
+        shift.x = shift.tx;
+        shift.y = shift.ty;
+        applyShift();
+      }
+      return false;
+    }
+    const k = Math.min(1, dt * 7);
+    shift.x += (shift.tx - shift.x) * k;
+    shift.y += (shift.ty - shift.y) * k;
+    applyShift();
+    return true;
+  }
+
   // ---- tamaño
   function resize() {
     const w = view.clientWidth;
@@ -1198,6 +1229,7 @@ export function mount(stage, opts = {}) {
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
+    applyShift();
     camera.updateProjectionMatrix();
     fitR = fitRadius();
     if (!selected && current && VIEWS[current] && !anim.on) sph.radius = VIEWS[current].fit();
@@ -1331,6 +1363,7 @@ export function mount(stage, opts = {}) {
     pktGeo.attributes.position.needsUpdate = true;
 
     if (playerTick(now, dt, still)) busy = true;
+    if (shiftTick(dt)) busy = true;
 
     camera.position.setFromSpherical(sph).add(target);
     camera.lookAt(target);
@@ -1352,6 +1385,8 @@ export function mount(stage, opts = {}) {
     }
   }
 
+  applyTime();
+  setInterval(applyTime, 60000);
   resize();
   sph.radius = VIEWS[HOME].fit();
   goView(HOME);
@@ -1370,6 +1405,12 @@ export function mount(stage, opts = {}) {
       if (name.startsWith("note:")) return showNote(name.slice(5), false);
       if (VIEWS[name] && name !== current) goView(name);
     },
+    note(id) {
+      tourStop();
+      if (player || mission) return activeNote(id);
+      return showNote(id, false);
+    },
+    inset,
     mark(id) {
       if (!player && !mission) activeNote(id);
     },

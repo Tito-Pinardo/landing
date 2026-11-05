@@ -25,7 +25,17 @@
   };
 
   // ------------------------------------------------------------ utilidades
-  const scrollTo = (el, block = "start") => el?.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block });
+  // En el modo sala no hay página por la que bajar: ir a una zona es abrir
+  // su hoja encima de la sala (y, dentro de ella, bajar hasta `el`).
+  const scrollTo = (el, block = "start") => {
+    if (!el) return;
+    if (doc.classList.contains("room-mode")) {
+      if (el.closest("[data-stage]")) return;
+      const z = el.closest(".zone");
+      if (z) return openSheet(z.id, el);
+    }
+    el.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block });
+  };
   const fill = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : `{${k}}`));
 
   // Escribe el texto letra a letra (o de golpe con movimiento reducido).
@@ -312,24 +322,114 @@
   $$("[data-lang-switch]").forEach((a) => a.addEventListener("click", () => store.set("pendingPolyglot", true)));
   $$("[data-cv]").forEach((a) => a.addEventListener("click", () => { unlock("recruiter"); hermesSay(H.cv); }));
 
+  // ------------------------------------------------------------ modo sala
+  // Con WebGL, la portada es la sala 3D a pantalla completa y cada zona
+  // (las notas del tablero, el laboratorio, el contacto…) se abre como una
+  // hoja encima, sin repetir nada fuera. Sin WebGL, o en «leer como página»
+  // (la vista rápida), la página de siempre.
+  const stage = $("[data-stage]");
+  let roomOk = !!stage?.dataset.src && "WebGL2RenderingContext" in window;
+  function roomMode(on) {
+    doc.classList.toggle("room-mode", !!on);
+    if (on) measure();
+  }
+  function measure() {
+    doc.style.setProperty("--hdr", Math.round($(".topbar")?.getBoundingClientRect().height || 64) + "px");
+    doc.style.setProperty("--r3-ctrl", Math.round($(".stage-controls")?.getBoundingClientRect().height || 96) + "px");
+  }
+  addEventListener("resize", () => {
+    if (!doc.classList.contains("room-mode")) return;
+    measure();
+    if (sheet) insetFor(sheet);
+  });
+  let sheet = null;
+  const narrow = () => matchMedia("(max-width: 759px)").matches;
+  // Lo que tapa la hoja, para correr el encuadre del 3D a la parte libre.
+  function insetFor(z) {
+    const r = z.getBoundingClientRect();
+    r3((c) => (narrow() ? c.inset(0, Math.round(r.height / 2)) : c.inset(Math.round((r.width + 12) / 2), 0)));
+  }
+  function openSheet(id, target) {
+    const z = document.getElementById(id);
+    if (!z || !doc.classList.contains("room-mode")) return;
+    if (sheet && sheet !== z) sheet.classList.remove("is-sheet");
+    const fresh = sheet !== z;
+    sheet = z;
+    z.classList.add("is-sheet");
+    doc.classList.add("has-sheet");
+    if (!$(".sheet-x", z)) {
+      const x = document.createElement("button");
+      x.type = "button";
+      x.className = "sheet-x";
+      x.setAttribute("aria-label", T.rack.sheet_close);
+      x.textContent = "×";
+      x.addEventListener("click", () => closeSheet());
+      z.prepend(x);
+    }
+    if (fresh) {
+      z.scrollTop = 0;
+      const h = $("h2", z);
+      if (h) {
+        h.tabIndex = -1;
+        h.focus({ preventScroll: true });
+      }
+      window.tpSound?.play("hop");
+    }
+    if (target && target !== z) target.scrollIntoView({ block: "start", behavior: reduceMotion() || fresh ? "auto" : "smooth" });
+    r3((c) => {
+      if (!c.note(id)) c.view(id === "contact" ? "desk" : "room");
+      insetFor(z);
+    });
+    window.history.replaceState(null, "", "#" + id);
+  }
+  function closeSheet() {
+    if (!sheet) return;
+    sheet.classList.remove("is-sheet");
+    sheet = null;
+    doc.classList.remove("has-sheet");
+    r3((c) => c.inset(0, 0));
+    window.history.replaceState(null, "", location.pathname + location.search);
+  }
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape" && sheet && !$("dialog[open]")) closeSheet();
+  });
+  // Los enlaces a una zona (menú de arriba, «Contactar»…) abren su hoja.
+  document.addEventListener("click", (ev) => {
+    if (!doc.classList.contains("room-mode")) return;
+    const a = ev.target.closest('a[href^="#"]');
+    if (!a || a.hasAttribute("data-flow")) return;
+    const el = document.getElementById(decodeURIComponent(a.hash.slice(1)));
+    const z = el?.closest(".zone");
+    if (!z || (sheet === z && el !== z)) return;
+    ev.preventDefault();
+    openSheet(z.id, el);
+  });
+  {
+    const q = store.get("quick", 0);
+    roomMode(roomOk && !(typeof q === "number" && q > 0 && Date.now() - q < 30 * 60 * 1000));
+  }
+
   // ------------------------------------------------------------ vista rápida
-  const quickBtn = $("[data-quick-toggle]");
+  const quickBtns = $$("[data-quick-toggle]");
   // Se recuerda solo 30 min: volver otro día a la página y verla "rota"
   // por una vista rápida olvidada confundía (visto en Firefox el 04-10).
   function setQuick(on) {
     doc.classList.toggle("quick-mode", on);
-    quickBtn?.setAttribute("aria-pressed", String(on));
+    quickBtns.forEach((b) => b.setAttribute("aria-pressed", String(on)));
+    if (on) closeSheet();
+    roomMode(!on && roomOk);
     $("[data-quick-banner]").hidden = !on;
     store.set("quick", on ? Date.now() : 0);
   }
   const quickSince = store.get("quick", 0);
   setQuick(typeof quickSince === "number" && quickSince > 0 && Date.now() - quickSince < 30 * 60 * 1000);
   $$("[data-quick-exit]").forEach((b) => b.addEventListener("click", () => setQuick(false)));
-  quickBtn?.addEventListener("click", () => {
+  quickBtns.forEach((b) => b.addEventListener("click", () => {
     const on = !doc.classList.contains("quick-mode");
     setQuick(on);
     if (on) $("#quick").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
-  });
+    else scrollTo(stage, "start");
+  }));
 
   // ------------------------------------------------------------ zonas descubiertas
   const zoneIds = T.zones.map((z) => z.id);
@@ -468,7 +568,6 @@
   // al acercarse a él. Si no hay WebGL o falla, se queda la lista de
   // siempre. Las notas del tablero lo mueven: cada zona tiene su vista y
   // cada misión con unidad, su botón «Ver en el rack».
-  const stage = $("[data-stage]");
   let rack3d = null;
   const r3wait = [];
   const r3 = (fn) => (rack3d ? fn(rack3d) : r3wait.push(fn));
@@ -483,6 +582,10 @@
           tour: ["landing", "forgejo", "openbao", "traefik", "backup", "battlepros", "hermes", "proxmox"],
           // La sala: notas del tablero (las zonas de la página), recorridos
           // del laboratorio y la misión.
+          hour: (() => {
+            const h = parseFloat(new URLSearchParams(location.search).get("hora"));
+            return h >= 0 && h < 24 ? h : undefined;
+          })(),
           labels: { ...T.rack, name: $("#hero-title")?.textContent.trim() || "", role: $(".hero .role")?.textContent.trim() || "" },
           zones: $$(".world-tile").map((a) => ({ id: a.dataset.tile, title: $("strong", a)?.textContent.trim() || "", sub: $(".muted", a)?.textContent.trim() || "" })),
           flows: T.flows,
@@ -499,19 +602,26 @@
         });
         if (!rack3d) throw new Error("sin WebGL");
         r3wait.splice(0).forEach((fn) => fn(rack3d));
+        measure();
+        // Entrar con #contact (o cualquier zona) abre su hoja.
+        const z = location.hash && document.getElementById(location.hash.slice(1))?.closest(".zone");
+        if (z) openSheet(z.id);
       }).catch((e) => {
         console.warn("rack 3D:", e);
         stage.classList.add("no-3d");
+        roomOk = false;
+        roomMode(false);
       });
     };
-    if ("IntersectionObserver" in window) {
+    if (doc.classList.contains("room-mode") || !("IntersectionObserver" in window)) load();
+    else {
       const io = new IntersectionObserver((es) => {
         if (!es.some((e) => e.isIntersecting)) return;
         io.disconnect();
         load();
       }, { rootMargin: "600px 0px" });
       io.observe(stage);
-    } else load();
+    }
     stage.addEventListener("rack3d:inspected", (ev) => {
       store.set("r3", ev.detail.ids);
       if (ev.detail.n >= 6) unlock("technician");
@@ -532,11 +642,23 @@
     stage.addEventListener("rack3d:note", (ev) => {
       r3picked = Date.now();
       const z = document.getElementById(ev.detail.id);
-      if (z) scrollTo(z);
+      if (!z) return;
+      if (doc.classList.contains("room-mode")) openSheet(z.id);
+      else scrollTo(z);
     });
     stage.addEventListener("rack3d:cv", () => $("[data-cv]")?.click());
     stage.addEventListener("rack3d:terminal", () => $("[data-terminal-open]")?.click());
     stage.addEventListener("rack3d:contact", () => scrollTo($("#contact")));
+    // En la sala, los recorridos del laboratorio se ven en 3D (salvo al
+    // comparar dos, que es cosa del mapa).
+    document.addEventListener("click", (ev) => {
+      const b = ev.target.closest("[data-flow]");
+      if (!b || !doc.classList.contains("room-mode") || $("[data-compare-toggle]")?.getAttribute("aria-pressed") === "true") return;
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      closeSheet();
+      r3((c) => c.play(b.dataset.flow));
+    }, true);
     stage.addEventListener("rack3d:flow", (ev) => {
       r3picked = Date.now();
       flowsDone.add(ev.detail.id);

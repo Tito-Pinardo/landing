@@ -138,6 +138,12 @@
       <p class="kicker">{{ c.t.rack["stage_kicker"] }}</p>
       <h2 id="rack-title">{{ c.t.rack["stage_title"] }}</h2>
     </div>
+    <!-- En el modo sala, la portada es la sala: quién soy va aquí arriba. -->
+    <div class="stage-id js-only">
+      <p class="stage-name">{{ c.t.hero.name }}</p>
+      <p class="stage-role">{{ c.t.hero.role }}</p>
+      <p class="stage-cta"><a class="btn btn-sm btn-primary" href="{{ c.cv_url }}" download data-cv>{{ c.ui("download_cv") }}</a> <a class="btn btn-sm" href="#contact">{{ c.ui("contact") }}</a></p>
+    </div>
     <p class="stage-count js-only" title="{{ c.t.rack["inspected"] }}"><span class="stage-count-ring" aria-hidden="true"></span><strong data-r3-count>0/{{ rack.len() }}</strong> <span>{{ c.t.rack["inspected"] }}</span></p>
   </div>
   <div class="stage-view js-only" data-r3-view>
@@ -191,10 +197,9 @@
     <button type="button" class="btn btn-sm btn-icon" data-r3-zoom="in" aria-label="{{ c.t.rack["zoom_in"] }}">+</button>
     <button type="button" class="btn btn-sm btn-icon" data-r3-zoom="out" aria-label="{{ c.t.rack["zoom_out"] }}">−</button>
     <span class="stage-row" aria-hidden="true"></span>
-    <button type="button" class="btn btn-sm btn-flows" data-r3-flows aria-expanded="false" aria-haspopup="true"><span aria-hidden="true">⇄</span> {{ c.t.rack["flows"] }}</button>
+    <button type="button" class="btn btn-sm btn-flows" data-r3-flows><span aria-hidden="true">⇄</span> {{ c.t.rack["flows"] }}</button>
     <button type="button" class="btn btn-sm btn-mission" data-r3-mission-start><span aria-hidden="true">★</span> {{ c.t.rack["mission"] }}</button>
     <button type="button" class="btn btn-sm btn-tour" data-r3-tour aria-pressed="false"><span aria-hidden="true">▶</span> {{ c.t.rack["tour"] }}</button>
-    <div class="r3-menu" data-r3-flows-menu role="group" aria-label="{{ c.t.rack["flows_label"] }}" hidden></div>
   </div>
   <div class="rack" data-rack-list>
     <div class="rack-head">

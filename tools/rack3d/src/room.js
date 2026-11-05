@@ -15,6 +15,7 @@ import {
   CylinderGeometry,
   Group,
   Mesh,
+  AdditiveBlending,
   MeshBasicMaterial,
   MeshLambertMaterial,
   MeshStandardMaterial,
@@ -174,32 +175,99 @@ function screenTexture(lines) {
   return tex(c);
 }
 
-function skyTexture(labels) {
-  const c = canvas(512, 352);
-  const g = c.getContext("2d");
-  const grad = g.createLinearGradient(0, 0, 0, 352);
-  grad.addColorStop(0, "#0b1430");
-  grad.addColorStop(0.7, "#1f2b5c");
-  grad.addColorStop(1, "#3b2f63");
+// ---- la luz del día: la hora de casa decide el cielo y la luz
+// Fotogramas clave del día (hora → colores e intensidades).
+const DAY = [
+  { h: 0, top: "#050914", bot: "#1a1f45", stars: 1, city: 0.75, sun: 0, sunCol: "#ffffff", hemi: 0.4, lamp: 2.4 },
+  { h: 5.5, top: "#070c1c", bot: "#232a55", stars: 0.9, city: 0.7, sun: 0, sunCol: "#ffffff", hemi: 0.42, lamp: 2.4 },
+  { h: 7, top: "#3a4f8f", bot: "#f6a26b", stars: 0.15, city: 0.35, sun: 1.3, sunCol: "#ffb27a", hemi: 0.85, lamp: 1.2 },
+  { h: 9, top: "#3b82d6", bot: "#a9d4f5", stars: 0, city: 0.05, sun: 2.4, sunCol: "#fff4dc", hemi: 1.55, lamp: 0 },
+  { h: 17.5, top: "#3478cc", bot: "#b7dcf6", stars: 0, city: 0.05, sun: 2.3, sunCol: "#fff1d0", hemi: 1.5, lamp: 0 },
+  { h: 19.5, top: "#4b3f86", bot: "#ff8a4c", stars: 0.1, city: 0.4, sun: 1.4, sunCol: "#ff9a5c", hemi: 0.85, lamp: 1.4 },
+  { h: 21.5, top: "#0a1024", bot: "#2b2a5e", stars: 0.8, city: 0.75, sun: 0, sunCol: "#ffffff", hemi: 0.42, lamp: 2.4 },
+  { h: 24, top: "#050914", bot: "#1a1f45", stars: 1, city: 0.75, sun: 0, sunCol: "#ffffff", hemi: 0.4, lamp: 2.4 },
+];
+const mixCol = (a, b, t) => "#" + new Color(a).lerp(new Color(b), t).getHexString();
+// Mezcla los dos fotogramas que rodean la hora `h` (0-24).
+export function dayAt(h) {
+  h = ((h % 24) + 24) % 24;
+  let k = 0;
+  while (DAY[k + 1].h <= h) k++;
+  const a = DAY[k];
+  const b = DAY[k + 1];
+  const t = (h - a.h) / (b.h - a.h);
+  const n = (x) => a[x] + (b[x] - a[x]) * t;
+  return { h, top: mixCol(a.top, b.top, t), bot: mixCol(a.bot, b.bot, t), stars: n("stars"), city: n("city"), sun: n("sun"), sunCol: mixCol(a.sunCol, b.sunCol, t), hemi: n("hemi"), lamp: n("lamp") };
+}
+
+// Aleatorio con semilla: al repintar cada minuto, la ciudad no cambia.
+function seeded(seed) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function drawSky(g, d, labels) {
+  const W = 512;
+  const H = 352;
+  const grad = g.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, d.top);
+  grad.addColorStop(1, d.bot);
   g.fillStyle = grad;
-  g.fillRect(0, 0, 512, 352);
-  for (let i = 0; i < 70; i++) {
-    g.fillStyle = `rgba(255,255,255,${0.3 + Math.random() * 0.6})`;
-    g.fillRect(Math.random() * 512, Math.random() * 220, 1.6, 1.6);
+  g.fillRect(0, 0, W, H);
+  let rnd = seeded(7);
+  if (d.stars > 0.02) {
+    for (let i = 0; i < 70; i++) {
+      g.fillStyle = `rgba(255,255,255,${(0.3 + rnd() * 0.6) * d.stars})`;
+      g.fillRect(rnd() * W, rnd() * 220, 1.6, 1.6);
+    }
   }
-  // Ciudad
-  g.fillStyle = "#070b18";
-  let x = 0;
-  while (x < 512) {
-    const w = 24 + Math.random() * 40;
-    const h = 40 + Math.random() * 90;
-    g.fillRect(x, 352 - h, w, h);
-    g.fillStyle = "rgba(251,191,36,.6)";
-    for (let k = 0; k < 6; k++) if (Math.random() < 0.5) g.fillRect(x + 4 + Math.random() * (w - 10), 352 - h + 8 + Math.random() * (h - 16), 3, 4);
-    g.fillStyle = "#070b18";
-    x += w + 2;
+  // Sol de 7 a 21 h; luna el resto, por un arco de lado a lado
+  const day = d.h >= 6.5 && d.h <= 21;
+  const p = day ? (d.h - 6.5) / 14.5 : ((d.h + 24 - 21) % 24) / 9.5;
+  const x = 30 + p * (W - 60);
+  const y = 300 - Math.sin(Math.PI * p) * 230;
+  if (day) {
+    const glow = g.createRadialGradient(x, y, 4, x, y, 60);
+    glow.addColorStop(0, "rgba(255,240,200,.95)");
+    glow.addColorStop(1, "rgba(255,200,120,0)");
+    g.fillStyle = glow;
+    g.fillRect(x - 60, y - 60, 120, 120);
+    g.fillStyle = "#fff6d8";
+  } else g.fillStyle = "#e5e7eb";
+  g.beginPath();
+  g.arc(x, y, day ? 18 : 14, 0, Math.PI * 2);
+  g.fill();
+  if (!day) {
+    g.fillStyle = d.top;
+    g.beginPath();
+    g.arc(x + 6, y - 4, 12, 0, Math.PI * 2);
+    g.fill();
   }
-  // Nube (Cloudflare) y el planeta (Internet)
+  // Ciudad: siluetas y ventanas encendidas según la hora
+  rnd = seeded(42);
+  const sil = mixCol("#070b18", "#4a5a78", Math.max(0, 1 - d.city * 1.6));
+  let bx = 0;
+  while (bx < W) {
+    const w = 24 + rnd() * 40;
+    const h = 40 + rnd() * 90;
+    g.fillStyle = sil;
+    g.fillRect(bx, H - h, w, h);
+    for (let k = 0; k < 6; k++) {
+      const on = rnd() < d.city;
+      const wx = bx + 4 + rnd() * (w - 10);
+      const wy = H - h + 8 + rnd() * (h - 16);
+      if (on) {
+        g.fillStyle = "rgba(251,191,36,.75)";
+        g.fillRect(wx, wy, 3, 4);
+      }
+    }
+    bx += w + 2;
+  }
+  // Nube (Cloudflare) y el planeta (Internet): por ahí entran los recorridos
   g.fillStyle = "rgba(249,115,22,.9)";
   for (const [cx, cy, r] of [[150, 96, 34], [190, 80, 42], [232, 98, 30], [190, 110, 30]]) {
     g.beginPath();
@@ -207,8 +275,11 @@ function skyTexture(labels) {
     g.fill();
   }
   g.fillStyle = "#fff";
+  g.strokeStyle = "rgba(0,0,0,.45)";
+  g.lineWidth = 4;
   g.font = `700 20px ${SANS}`;
   g.textAlign = "center";
+  g.strokeText(labels.cloud, 190, 160);
   g.fillText(labels.cloud, 190, 160);
   g.strokeStyle = "#7dd3fc";
   g.lineWidth = 4;
@@ -220,8 +291,40 @@ function skyTexture(labels) {
   g.moveTo(356, 92);
   g.lineTo(444, 92);
   g.stroke();
+  g.strokeStyle = "rgba(0,0,0,.45)";
+  g.strokeText(labels.internet, 400, 162);
   g.fillText(labels.internet, 400, 162);
+}
+
+// La forma de la ventana proyectada en el suelo, con bordes suaves.
+function sunPatchTexture() {
+  const c = canvas(256, 160);
+  const g = c.getContext("2d");
+  g.filter = "blur(10px)";
+  g.fillStyle = "#fff";
+  g.fillRect(28, 26, 92, 108);
+  g.fillRect(136, 26, 92, 108);
   return tex(c);
+}
+
+function drawClock(g, text, sub) {
+  g.clearRect(0, 0, 256, 112);
+  g.fillStyle = "#05080f";
+  g.fillRect(0, 0, 256, 112);
+  g.strokeStyle = "#334155";
+  g.lineWidth = 6;
+  g.strokeRect(3, 3, 250, 106);
+  g.fillStyle = "#f87171";
+  g.shadowColor = "#f87171";
+  g.shadowBlur = 12;
+  g.font = `700 58px ${MONO}`;
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.fillText(text, 128, 48);
+  g.shadowBlur = 0;
+  g.fillStyle = "#94a3b8";
+  g.font = `600 18px ${SANS}`;
+  g.fillText(sub, 128, 92);
 }
 
 function signTexture(text, color = "#2dd4bf") {
@@ -347,7 +450,9 @@ export function buildRoom(scene, opts) {
   win.position.set(ROOM.left + 0.03, 2.8, 0.95);
   win.rotation.y = Math.PI / 2;
   walls.left.add(win);
-  const sky = new Mesh(new PlaneGeometry(1.6, 1.1), new MeshBasicMaterial({ map: skyTexture({ cloud: "Cloudflare", internet: "Internet" }) }));
+  const skyCanvas = canvas(512, 352);
+  const skyTex = tex(skyCanvas);
+  const sky = new Mesh(new PlaneGeometry(1.6, 1.1), new MeshBasicMaterial({ map: skyTex }));
   sky.position.z = 0.01;
   win.add(sky);
   // El cielo es MeshBasicMaterial (no tiene emissive): brilla el marco.
@@ -359,6 +464,20 @@ export function buildRoom(scene, opts) {
     win.add(b);
   }
   anchors.internet = win.localToWorld(new Vector3(0.33, 0.25, 0.1));
+  anchors.sunFrom = win.localToWorld(new Vector3(0, 3.5, 3));
+  // La luz de la ventana en el suelo (barata: un plano aditivo)
+  const patch = new Mesh(new PlaneGeometry(2.6, 1.7), new MeshBasicMaterial({ map: sunPatchTexture(), color: 0xfff1d0, transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending }));
+  patch.rotation.x = -Math.PI / 2;
+  patch.position.set(ROOM.left + 2.4, 0.01, 0.95);
+  scene.add(patch);
+
+  // Reloj de pared con la hora de casa, encima del rack
+  const clockCanvas = canvas(256, 112);
+  const clockTex = tex(clockCanvas);
+  const clock = new Mesh(new PlaneGeometry(0.62, 0.27), new MeshBasicMaterial({ map: clockTex }));
+  clock.position.set(-0.55, 3.5, ROOM.back + 0.02);
+  walls.back.add(clock);
+  obj(clock, { kind: "clock", label: L.clock || "" }, []);
   anchors.cloudflare = win.localToWorld(new Vector3(-0.15, 0.24, 0.1));
 
   // ---- mesa: pantalla con la terminal, teclado, teléfono, PC y una planta
@@ -468,7 +587,23 @@ export function buildRoom(scene, opts) {
   doorObj.openTo = 0;
   anchors.door = doorG.localToWorld(new Vector3(0.4, 1.3, 0));
 
+  let lastClock = "";
   return {
+    // Repinta el cielo y el reloj para la hora `h` (decimal) y devuelve la
+    // luz que toca.
+    setTime(h, clockText) {
+      const d = dayAt(h);
+      patch.material.opacity = (d.sun / 2.4) * 0.3;
+      patch.material.color.set(d.sunCol);
+      drawSky(skyCanvas.getContext("2d"), d, { cloud: "Cloudflare", internet: "Internet" });
+      skyTex.needsUpdate = true;
+      if (clockText !== lastClock) {
+        lastClock = clockText;
+        drawClock(clockCanvas.getContext("2d"), clockText, L.clock_sub || "");
+        clockTex.needsUpdate = true;
+      }
+      return d;
+    },
     objects,
     anchors,
     notes,

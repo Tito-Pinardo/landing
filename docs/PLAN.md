@@ -78,3 +78,8 @@ Visitante ─▶ Cloudflare (caché en el borde, Turnstile) ─▶ Traefik (su p
    - Los recorridos del laboratorio se ven en la sala: un paquete de luz salta de la ventana al rack y de unidad en unidad (sacando cada una) con el paso narrado abajo, pausa y paso a paso.
    - Misión de 1 minuto para RR. HH.: cuatro retos (la unidad de esta web, cómo llega tu visita, dónde van los secretos, quién lo ha montado), con pista y la pieza parpadeando si tardas; al acabar, el CV y el contacto y el logro «Agente de campo».
    - Calidad automática: si los fotogramas tardan (gráfica integrada), baja la resolución y luego quita las sombras. Suelo y paredes con material Lambert, que es lo que más píxeles ocupa.
+4l. **La portada es la sala** ✅ (05-11):
+   - Con WebGL, la sala ocupa la pantalla bajo la barra y nada se repite fuera: ni el héroe (queda para lectores de pantalla), ni el mosaico de zonas, ni el tablero de papel, ni la lista del rack. Cada zona se abre como hoja encima de la sala (la misma sección de la página, no una copia), desde su nota en el tablero 3D, el teléfono, el menú de arriba o cualquier enlace a ella; la cámara se aparta para que lo que enseña quede en la parte libre. Escape o × la cierran; `#contact` al entrar abre su hoja.
+   - Una sola lista de recorridos: la del laboratorio. «Recorridos» abre esa hoja y cada recorrido se ve en la sala (comparar dos sigue en el mapa).
+   - «Vista rápida» es leer como página: sin sala, todo seguido. Sin WebGL, igual.
+   - Luz del día con la hora de casa (Madrid): cielo de la ventana (sol, atardecer, estrellas y luces de la ciudad), sol que entra por la ventana y se ve en el suelo, lámpara de la mesa por la noche y reloj en la pared. `?hora=19` la fuerza para probar.
