@@ -594,6 +594,9 @@
           labels: { ...T.rack, name: $("#hero-title")?.textContent.trim() || "", role: $(".hero .role")?.textContent.trim() || "" },
           zones: $$(".world-tile").map((a) => ({ id: a.dataset.tile, title: $("strong", a)?.textContent.trim() || "", sub: $(".muted", a)?.textContent.trim() || "" })),
           flows: T.flows,
+          // Los enanitos pasean por la sala (los de la página se esconden)
+          gnomes: store.get("gnomesOn", true),
+          gnomeLines: { click: T.gnomes.click, angry: T.gnomes.angry, fed_up: T.gnomes.fed_up },
           flowCats: T.flow_categories || {},
           nodeUnit: Object.fromEntries(T.nodes.filter((n) => n.unit_id).map((n) => [n.id, n.unit_id])),
           nodeTitle: Object.fromEntries(T.nodes.map((n) => [n.id, n.title])),
@@ -1809,8 +1812,14 @@
     g.el.querySelector(".gn-flip").setAttribute("transform", g.dir < 0 ? `translate(${g.el.classList.contains("is-wide") ? 150 : 40} 0) scale(-1 1)` : "");
   }
 
+  stage?.addEventListener("rack3d:gnome", (ev) => {
+    if (ev.detail?.mood && ev.detail.mood !== "click") window.tpSound?.play("oops");
+    else window.tpSound?.gnome();
+    gnomeCount();
+  });
+
   function gnomeSpawn(kind, opts = {}) {
-    if (!gnomesOn || !world || gnomes.length >= 3 || doc.classList.contains("quick-mode") || reduceMotion()) return;
+    if (!gnomesOn || doc.classList.contains("room-mode") || !world || gnomes.length >= 3 || doc.classList.contains("quick-mode") || reduceMotion()) return;
     if (asleep && !opts.awake) return;
     const item = opts.item || pickOne(Object.keys(ITEMS));
     const el = gnomeEl(kind, item);
@@ -1855,6 +1864,10 @@
     g.el.classList.add("is-jump");
     window.tpSound?.gnome();
     gnomeSay(g, pickOne(asleep ? G.night : G.click));
+    gnomeCount();
+  }
+  // Cuenta los toques a enanitos, de la página o de la sala 3D.
+  function gnomeCount() {
     const total = store.get("gnomeClicks", 0) + 1;
     store.set("gnomeClicks", total);
     if (total === 1) setTimeout(() => hermesSay(G.hermes_reveal), 1200);
@@ -1949,6 +1962,7 @@
     doc.classList.toggle("gnomes-off", !on);
     for (const r of gnomeRadios) r.checked = (r.value === "on") === on;
     if (!on) gnomeClear();
+    r3((c) => c.gnomes(on));
     $$(".rail-climber").forEach((c) => { c.hidden = !on || asleep; });
   }
   setGnomes(gnomesOn);

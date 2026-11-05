@@ -314,6 +314,10 @@ pub struct Gnomes {
     pub near: Vec<String>,
     /// De noche en casa los enanitos duermen: lo que dicen si les despiertas.
     pub night: Vec<String>,
+    /// En la sala 3D: lo que grita el que despiertas (se levanta enfadado).
+    pub angry: Vec<String>,
+    /// En la sala 3D: el que se harta de que lo toques de día.
+    pub fed_up: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -524,6 +528,7 @@ const UI_KEYS: &[&str] = &[
     "night_note",
 ];
 const RACK_KEYS: &[&str] = &[
+    "gnome",
     "sheet_close",
     "clock",
     "clock_sub",
@@ -1028,9 +1033,11 @@ impl Content {
             required(code, "personality", PERSONALITY_KEYS, &t.personality)?;
             let g = &t.gnomes;
             ensure!(
-                [&g.click, &g.fall, &g.trip, &g.near]
-                    .iter()
-                    .all(|l| !l.is_empty()),
+                [
+                    &g.click, &g.fall, &g.trip, &g.near, &g.night, &g.angry, &g.fed_up
+                ]
+                .iter()
+                .all(|l| !l.is_empty()),
                 "{code}.toml [gnomes]: ninguna lista de frases puede ir vacía"
             );
             ensure!(

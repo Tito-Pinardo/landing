@@ -1131,6 +1131,8 @@ fall = ["¡Aaaah!", "¡Más despacio con el scroll!", "¡Uy!", "¡Que me caigo!"
 trip = ["¡Ay! ¿Quién ha dejado este cable aquí?", "Ups… paquete perdido. Retransmitiendo…", "Este cable no estaba en el diagrama."]
 near = ["¡Cuidado, que me pisas!", "¡Eh, el ratón!", "¡Que voy cargado!"]
 night = ["Zzz… ¿eh? Vuelve mañana, que el servidor sigue solo.", "Zzz… los avisos de Zabbix me despiertan si hace falta.", "Mmm… cinco minutos más… las copias van a las cuatro.", "Zzz… Tito también duerme. Hermes no."]
+angry = ["¡¿Quién me despierta?! ¡Las copias van a las cuatro y necesito estar fresco!", "¡Grrr! ¡Estaba soñando con un uptime del 100 %!", "¡Eh! Despiértame otra vez y te reinicio el router.", "¡Que son horas de dormir! El servidor va solo, ¿no lo ves?", "¡Fuera de mi vista! ¡Mañana abro una incidencia contigo!"]
+fed_up = ["¡Vale ya! ¡Que estoy trabajando!", "¡Uno más y te pongo en la lista negra de CrowdSec!", "¡Me voy a otro sitio, que aquí no hay quien cablee!", "¡Basta! Esto no es soporte técnico."]
 
 [incident_ui]
 button = "Modo detective"
@@ -1315,6 +1317,7 @@ status_retired = "Retirada"
 status_lab = "Laboratorio"
 
 [rack]
+gnome = "Un enanito del servidor: tócalo"
 sheet_close = "Cerrar y volver a la sala"
 clock = "La hora en mi casa: la luz de la sala es la de allí"
 clock_sub = "hora en casa · Madrid"

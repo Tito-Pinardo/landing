@@ -453,6 +453,8 @@ html[data-motion="off"] .spinner { animation: none; }
 .room-mode .stage-id { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; max-width: min(680px, 70%); padding: 8px 12px; border-radius: 12px; background: rgba(5, 8, 15, .55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .stage-cta { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
 .stage-cta .btn { min-height: 32px; }
+.room-mode .stage-role { display: none; }
+.room-mode .stage-cta { margin: 0; }
 /* El HUD flota sobre la sala */
 .room-mode .stage-hud { position: absolute; z-index: 3; inset: 0 0 auto; padding: 14px 16px; background: linear-gradient(rgba(5, 8, 15, .7), transparent); pointer-events: none; }
 .room-mode .stage-hud > * { pointer-events: auto; }
@@ -499,3 +501,21 @@ html[data-motion="off"] .spinner { animation: none; }
 .quick-mode .stage { display: none; }
 /* En el móvil no hay 3D: fuera lo que solo sirve para moverlo */
 @media (max-width: 759px) { .btn-room, [data-r3-focus] { display: none !important; } }
+
+/* Enanitos: en el modo sala viven en la sala 3D, no por la página */
+.room-mode .gnome-world, .room-mode .rail-climber { display: none !important; }
+.r3-say {
+  position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none;
+  translate: calc(var(--x, 0px) - 50%) calc(var(--y, 0px) - 100% - 8px);
+  max-width: 240px; padding: 7px 11px; border-radius: 12px;
+  font: 600 .82rem/1.35 var(--sans, inherit); color: #1d2433; background: #fffdf6;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .45);
+}
+.r3-say::after {
+  content: ""; position: absolute; left: 50%; bottom: -6px; translate: -50% 0;
+  border: 6px solid transparent; border-bottom: 0; border-top-color: #fffdf6;
+}
+.r3-say.is-angry { color: #fff; background: #be123c; font-weight: 800; animation: say-shake .4s; }
+.r3-say.is-angry::after { border-top-color: #be123c; }
+@keyframes say-shake { 25% { rotate: -4deg; } 75% { rotate: 4deg; } }
+@media (prefers-reduced-motion: reduce) { .r3-say.is-angry { animation: none; } }

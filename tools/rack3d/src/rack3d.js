@@ -51,6 +51,7 @@ import {
   SphereGeometry,
 } from "three";
 import { buildRoom, ROOM } from "./room.js";
+import { buildGnomes } from "./gnomes.js";
 
 const U = 0.1; // 1U
 const W = 1.0; // ancho interior
@@ -508,6 +509,13 @@ export function mount(stage, opts = {}) {
   const L = opts.labels || {};
   const room = buildRoom(scene, { labels: L, zones: opts.zones || [] });
   for (const m of room.objects) pickables.push(m);
+  // Los enanitos de la web viven aquí (si no se han apagado en el panel)
+  const gnomes = buildGnomes(scene);
+  gnomes.visible = opts.gnomes !== false;
+  for (const m of gnomes.meshes) {
+    m.userData.obj.label = L.gnome || "";
+    pickables.push(m);
+  }
 
   // ---- luces
   const hemi = new HemisphereLight(0xbfd7ff, 0x0b0f18, 0.55);
@@ -560,6 +568,7 @@ export function mount(stage, opts = {}) {
       h = hh + mm / 60;
     }
     const d = room.setTime(h, text);
+    gnomes.setAsleep(h >= 23 || h < 7); // como en la página: duermen de 23 a 7
     sun.intensity = d.sun;
     sun.color.set(d.sunCol);
     hemi.intensity = d.hemi;
@@ -951,6 +960,15 @@ export function mount(stage, opts = {}) {
       case "window":
         playFlow("visit");
         break;
+      case "gnome": {
+        // Dormido se despierta enfadado; de día, a la tercera se harta
+        const mood = gnomes.poke(o.gnome);
+        const lines = opts.gnomeLines || {};
+        const pool = { wake: lines.angry, angry: lines.angry, fed_up: lines.fed_up }[mood] || lines.click;
+        if (pool?.length) say(o.gnome, pool[Math.floor(Math.random() * pool.length)], mood !== "click");
+        send("rack3d:gnome", { mood });
+        break;
+      }
       case "door":
         goView("door");
         room.door.openTo = 1;
@@ -958,6 +976,35 @@ export function mount(stage, opts = {}) {
         break;
     }
     missionCheck(o.kind, o.id);
+  }
+
+  // Bocadillo de un enanito, pegado encima de su gorro
+  const bubble = document.createElement("div");
+  bubble.className = "r3-say";
+  bubble.hidden = true;
+  view.append(bubble);
+  let talker = null;
+  let talkUntil = 0;
+  const headV = new Vector3();
+  function say(g, text, angry = false) {
+    talker = g;
+    bubble.textContent = text;
+    bubble.classList.toggle("is-angry", angry);
+    bubble.hidden = false;
+    talkUntil = performance.now() + (angry ? 4500 : 3200);
+    wake();
+  }
+  function sayTick(now) {
+    if (!talker) return false;
+    if (now > talkUntil || !gnomes.visible) {
+      talker = null;
+      bubble.hidden = true;
+      return false;
+    }
+    headV.copy(gnomes.headOf(talker)).project(camera);
+    bubble.style.setProperty("--x", `${((headV.x + 1) / 2) * view.clientWidth}px`);
+    bubble.style.setProperty("--y", `${((1 - headV.y) / 2) * view.clientHeight}px`);
+    return true;
   }
 
   // ---- recorridos: un paquete de luz viaja por la sala paso a paso
@@ -1364,10 +1411,12 @@ export function mount(stage, opts = {}) {
 
     if (playerTick(now, dt, still)) busy = true;
     if (shiftTick(dt)) busy = true;
+    if (gnomes.update(dt, now, still, camera.position)) busy = true;
 
     camera.position.setFromSpherical(sph).add(target);
     camera.lookAt(target);
     if (room.update(camera.position, dt)) busy = true;
+    if (sayTick(now)) busy = true;
 
     // Con todo quieto, se dibuja a 30 fps (los LED no necesitan más).
     const needFull = anim.on || drag || dirty;
@@ -1411,6 +1460,10 @@ export function mount(stage, opts = {}) {
       return showNote(id, false);
     },
     inset,
+    gnomes(on) {
+      gnomes.visible = on;
+      wake();
+    },
     mark(id) {
       if (!player && !mission) activeNote(id);
     },

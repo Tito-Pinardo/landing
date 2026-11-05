@@ -1119,6 +1119,8 @@ fall = ["Aaaah!", "Easy on the scrolling!", "Oops!", "I'm falling!"]
 trip = ["Ouch! Who left this cable here?", "Oops… packet lost. Retransmitting…", "This cable wasn't on the diagram."]
 near = ["Careful, you'll step on me!", "Hey, the mouse!", "I'm carrying stuff here!"]
 night = ["Zzz… huh? Come back tomorrow, the server runs on its own.", "Zzz… Zabbix alerts wake me if needed.", "Mmm… five more minutes… backups run at four.", "Zzz… Tito's asleep too. Hermes isn't."]
+angry = ["Who woke me up?! Backups run at four and I need to be fresh!", "Grrr! I was dreaming of 100% uptime!", "Hey! Wake me again and I'll reboot your router.", "It's bedtime! The server runs on its own, can't you see?", "Out of my sight! I'm opening an incident about you tomorrow!"]
+fed_up = ["That's enough! I'm working here!", "One more and you're on CrowdSec's blocklist!", "I'm off somewhere else, nobody can run cables here!", "Stop it! This isn't tech support."]
 
 [incident_ui]
 button = "Detective mode"
@@ -1303,6 +1305,7 @@ status_retired = "Retired"
 status_lab = "Lab"
 
 [rack]
+gnome = "A server gnome: touch it"
 sheet_close = "Close and go back to the room"
 clock = "The time at my place: the room has its light"
 clock_sub = "home time · Madrid"
