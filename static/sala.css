@@ -213,6 +213,7 @@ html:not(.js) .stage, .stage.no-3d { grid-template-rows: auto auto; }
   --border: #e2dac6; --border-strong: #cbbf9f; --accent: #0f766e; --accent-ink: #fff;
   --accent-soft: rgba(15, 118, 110, .12); --accent-2: #4f46e5; --accent-2-soft: rgba(79, 70, 229, .1);
   --xp: #4d7c0f; --chassis-hi: transparent;
+  --warn: #92400e; --ok: #15803d; /* sobre papel, los amarillos y verdes claros no se leen */
   color: var(--text);
 }
 
@@ -453,7 +454,12 @@ html[data-motion="off"] .spinner { animation: none; }
 .room-mode .stage-id { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; max-width: min(680px, 70%); padding: 8px 12px; border-radius: 12px; background: rgba(5, 8, 15, .55); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .stage-cta { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
 .stage-cta .btn { min-height: 32px; }
-.room-mode .stage-role { display: none; }
+/* Nombre y, debajo, a qué me dedico (lo primero que busca RR. HH.);
+   los botones a la derecha */
+.room-mode .stage-id { display: grid; grid-template-columns: minmax(0, auto) auto; column-gap: 16px; row-gap: 0; }
+.room-mode .stage-name { grid-column: 1; }
+.room-mode .stage-role { grid-column: 1; margin: 2px 0 0; font-size: .8rem; color: #b6c3d6; max-width: 46ch; }
+.room-mode .stage-cta { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 .room-mode .stage-cta { margin: 0; }
 /* El HUD flota sobre la sala */
 .room-mode .stage-hud { position: absolute; z-index: 3; inset: 0 0 auto; padding: 14px 16px; background: linear-gradient(rgba(5, 8, 15, .7), transparent); pointer-events: none; }
@@ -494,7 +500,8 @@ html[data-motion="off"] .spinner { animation: none; }
 .room-mode .is-sheet .zone-head h2:focus { outline: none; }
 /* Lo de la sala se aparta a la parte libre */
 .has-sheet .r3-card, .has-sheet .r3-caption { right: calc(min(620px, 46vw) + 24px); margin-left: 0; }
-.has-sheet .stage-controls { padding-right: calc(min(620px, 46vw) + 24px); }
+.has-sheet .stage-controls { right: calc(min(620px, 46vw) + 24px); }
+.has-sheet .stage-count { display: none; }
 .has-sheet .stage-hint { display: none; }
 @media (prefers-reduced-motion: reduce) { .room-mode .zone.is-sheet { animation: none; } }
 /* En «leer como página» (vista rápida) no hay sala: todo es página */
@@ -562,3 +569,23 @@ html[data-motion="off"] .spinner { animation: none; }
 .btn-case { border-color: #f87171; color: #fecaca; }
 /* fuera de la sala (vista rápida) el detective es el del laboratorio */
 html:not(.room-mode) .btn-case { display: none; }
+
+/* Avisos de logro en la sala: abajo a la derecha, encima de los mandos */
+.room-mode .toasts { bottom: calc(var(--r3-ctrl, 96px) + 12px); right: calc(var(--rails, 30px) + 12px); }
+.has-sheet .toasts { right: calc(min(620px, 46vw) + 36px); }
+.has-sheet .stage-id { max-width: calc(100% - min(620px, 46vw) - 48px); }
+/* El texto de los recorridos, justo encima de los mandos (no debajo) */
+.room-mode .r3-caption { bottom: calc(var(--r3-ctrl-h, 100px) + 10px); left: 12px; right: auto; margin: 0; width: min(400px, calc(100% - 24px)); max-width: none; }
+/* La pista de entrada, encima de los mandos y que se lea */
+.room-mode .stage-hint {
+  bottom: calc(var(--r3-ctrl-h, 100px) + 12px); font-size: .85rem; color: #e6edf7;
+  background: rgba(7, 11, 19, .85); border-color: var(--accent); padding: 8px 16px;
+}
+/* En pantallas anchas, los mandos en una sola fila: más sala a la vista */
+@media (min-width: 1180px) {
+  .room-mode .stage-controls .stage-row, .room-mode .stage-controls .stage-sep { display: none; }
+  .room-mode .stage-controls .btn-flows { margin-left: 14px; }
+  .room-mode .stage-controls [data-r3-zoom] { order: 10; }
+}
+/* Con una hoja abierta queda poco sitio: fuera el zoom y la visita guiada */
+.has-sheet .stage-controls [data-r3-zoom], .has-sheet .stage-controls .btn-tour { display: none; }

@@ -1131,6 +1131,9 @@ export function mount(stage, opts = {}) {
     const p0 = anchorFor(f.path[0]);
     for (let k = 0; k < TRAIL; k++) trailPos.set([p0.x, p0.y, p0.z], k * 3);
     paintPlay();
+    // El texto va en la esquina de abajo a la izquierda: la escena se corre a
+    // la derecha para que lo que se enseña no quede debajo.
+    inset(-Math.round((caption.offsetWidth + 24) / 2), 0);
     stepTo(0);
     send("rack3d:flow", { id });
     missionCheck("flow", id);
@@ -1140,6 +1143,7 @@ export function mount(stage, opts = {}) {
     const id = player.f.id;
     player = null;
     hotOff();
+    inset(0, 0);
     goView(HOME);
     if (caption) caption.hidden = true;
     stage.classList.remove("is-playing");
@@ -1595,6 +1599,20 @@ export function mount(stage, opts = {}) {
     },
     investigate,
     hint: caseHint,
+    // Primera visita: lo que se puede tocar brilla unos segundos
+    attract(ms = 6000) {
+      const kinds = new Set(["note", "photo", "window", "door", "terminal", "phone"]);
+      const objs = room.objects.map((m) => m.userData.obj).filter((o) => kinds.has(o.kind));
+      const some = units.filter((u, i) => i % 5 === 2);
+      objs.forEach((o) => (o.pulse = true));
+      some.forEach((u) => (u.pulse = true));
+      wake();
+      setTimeout(() => {
+        objs.forEach((o) => (o.pulse = false));
+        some.forEach((u) => (u.pulse = false));
+        wake();
+      }, ms);
+    },
     mission() {
       if (caseOn) investigate(null);
       missionStart();

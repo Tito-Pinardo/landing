@@ -341,7 +341,17 @@
   }
   function measure() {
     doc.style.setProperty("--hdr", Math.round($(".topbar")?.getBoundingClientRect().height || 64) + "px");
-    doc.style.setProperty("--r3-ctrl", Math.round($(".stage-controls")?.getBoundingClientRect().height || 96) + "px");
+    // Lo que ocupan los mandos desde abajo de la ventana (incluye el borde
+    // de debajo del escenario), para poner a Hermes justo encima.
+    const ctrl = $(".stage-controls")?.getBoundingClientRect();
+    doc.style.setProperty("--r3-ctrl", Math.round(ctrl?.height ? innerHeight - ctrl.top : 96) + "px");
+    if (ctrl?.height) doc.style.setProperty("--r3-ctrl-h", Math.round(ctrl.height) + "px");
+  }
+  // Los mandos cambian de alto al cargar el 3D o al partirse en dos filas:
+  // se vuelve a medir cada vez (si no, Hermes se queda encima de ellos).
+  if ("ResizeObserver" in window) {
+    const ro = new ResizeObserver(() => doc.classList.contains("room-mode") && measure());
+    for (const el of [$(".stage-controls"), $(".topbar"), $("[data-stage]")]) if (el) ro.observe(el);
   }
   addEventListener("resize", () => {
     if (!doc.classList.contains("room-mode")) return;
@@ -611,6 +621,11 @@
         if (!rack3d) throw new Error("sin WebGL");
         r3wait.splice(0).forEach((fn) => fn(rack3d));
         measure();
+        // Primera visita a la sala: lo que se puede tocar brilla un momento.
+        if (!store.get("attracted", false)) {
+          store.set("attracted", true);
+          setTimeout(() => rack3d?.attract?.(), 1200);
+        }
         // Entrar con #contact (o cualquier zona) abre su hoja.
         const z = location.hash && document.getElementById(location.hash.slice(1))?.closest(".zone");
         if (z) openSheet(z.id);

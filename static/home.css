@@ -16,6 +16,9 @@
   .zone-nav { display: block; }
 }
 @media (min-width: 1240px) and (max-width: 1439px) { .zone-nav a { padding: 6px 7px; gap: 4px; font-size: .82rem; } .zone-nav + .topbar-actions { margin-left: 4px; } }
+/* Hasta 1680 px los números de zona no caben: sin ellos la barra no se sale
+   (antes el cambio de idioma y el sonido quedaban fuera de la pantalla). */
+@media (min-width: 1240px) and (max-width: 1679px) { .zone-nav .zone-n { display: none; } }
 .zone-head { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: baseline; margin-bottom: 24px; }
 .zone-head .zone-n { grid-row: span 2; font-size: .9rem; color: var(--accent); padding: 6px 8px; border: 1px solid var(--accent); border-radius: 8px; align-self: center; }
 .zone-head h2 { margin: 0; }

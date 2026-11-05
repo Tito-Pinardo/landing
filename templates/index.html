@@ -61,7 +61,7 @@
     </div>
   </div>
 
-  <aside class="player-card" aria-label="{{ c.t.zones["skills"].title }}">
+  <div class="player-card" role="group" aria-label="{{ c.t.zones["skills"].title }}">
     <div class="pc-head">
       <div class="pc-avatar" aria-hidden="true">TP</div>
       <div>
@@ -82,7 +82,7 @@
       <svg class="pc-bar" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true"><rect class="pc-bar-bg" width="100" height="6" rx="3"/><rect class="pc-bar-xp" width="0" height="6" rx="3" data-xp-bar/></svg>
       <span class="pc-xp-count"><span data-xp-count>0</span>/{{ zones.len() }} {{ c.ui("zones_found") }}</span>
     </div>
-  </aside>
+  </div>
 
   <ul class="stats">
   {% for s in c.t.hero.stats %}
@@ -260,7 +260,7 @@
     <div class="ba-frame">
       <div class="ba-pane ba-before">
         <p class="ba-label">✗ {{ c.t.before_after.before }}</p>
-        <pre class="ba-code"><code>$ ssh root@servidor
+        <pre class="ba-code" tabindex="0"><code>$ ssh root@servidor
 # apt install ... (¿qué más hacía falta?)
 # nano /etc/app/config.yml
 # systemctl restart app   # ¿funcionará?</code></pre>
@@ -268,7 +268,7 @@
       </div>
       <div class="ba-pane ba-after" data-ba-after>
         <p class="ba-label">✓ {{ c.t.before_after.after }}</p>
-        <pre class="ba-code"><code>resource "proxmox_virtual_environment_container" "landing" {
+        <pre class="ba-code" tabindex="0"><code>resource "proxmox_virtual_environment_container" "landing" {
   vm_id        = 125
   unprivileged = true
 }
@@ -368,14 +368,14 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
       </li>
     {% endfor %}
     </ol>
-    <aside class="side">
+    <div class="side">
       <div class="card">
         <ul class="langs">{% for l in c.t.languages.items %}<li><strong>{{ l.name }}</strong><span>{{ l.level }}</span></li>{% endfor %}</ul>
       </div>
       <div class="card">
         <ul class="chips">{% for i in c.t.interests.items %}<li>{{ i }}</li>{% endfor %}</ul>
       </div>
-    </aside>
+    </div>
   </div>
 </section>
 
@@ -558,13 +558,13 @@ $ ansible-playbook playbooks/landing.yml   →  failed=0</code></pre>
       <button class="btn btn-primary" type="submit" data-send>{{ c.contact("send") }}</button>
       <p class="form-status" role="status" aria-live="polite" data-form-status></p>
     </form>
-    <aside class="side">
+    <div class="side">
       <div class="card">
         <p class="muted">{{ c.contact("elsewhere") }}</p>
         <p class="cta"><a class="btn" href="{{ c.linkedin }}" rel="me noopener" target="_blank">LinkedIn ↗</a> <a class="btn" href="{{ c.github }}" rel="me noopener" target="_blank">GitHub ↗</a></p>
         <p><a class="btn btn-primary" href="{{ c.cv_url }}" download data-cv>{{ c.ui("download_cv") }}</a></p>
       </div>
-    </aside>
+    </div>
   </div>
 </section>
 
