@@ -533,7 +533,37 @@
   const huntedSkills = new Set(store.get("skills", []));
   let activeTech = null;
 
+  // En el móvil, las misiones empiezan con tres: diez proyectos eran seis
+  // pantallas y quien tiene prisa no llegaba al contacto. Filtrar por una
+  // habilidad o llegar con un enlace a uno escondido las enseña todas.
+  const questList = $(".quests");
+  const moreBox = $("[data-quests-more-box]");
+  const SHORT = 3;
+  function questsAll() {
+    if (!questList?.classList.contains("is-short")) return;
+    questList.classList.remove("is-short");
+    moreBox.hidden = true;
+    $("[data-quests-more]").setAttribute("aria-expanded", "true");
+  }
+  if (questList && moreBox && quests.length > SHORT + 1) {
+    const btn = $("[data-quests-more]");
+    btn.textContent = btn.textContent.replace("{n}", quests.length - SHORT);
+    questList.classList.add("is-short");
+    moreBox.hidden = false;
+    btn.addEventListener("click", () => {
+      questsAll();
+      $("a, button", quests[SHORT])?.focus({ preventScroll: true });
+    });
+    const hashQuest = () => {
+      const q = location.hash && document.getElementById(location.hash.slice(1))?.closest(".quest");
+      if (q && quests.indexOf(q) >= SHORT) questsAll();
+    };
+    hashQuest();
+    addEventListener("hashchange", hashQuest);
+  }
+
   function filterBy(tech, name) {
+    if (tech !== null) questsAll();
     activeTech = tech;
     $$(".skill").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tech === tech)));
     for (const q of quests) {
@@ -1045,11 +1075,18 @@
   }
 
   // Pestañas de categorías de recorridos.
-  $$("[data-flow-tab]").forEach((tab) => tab.addEventListener("click", () => {
+  const flowTab = (tab) => {
     const cat = tab.dataset.flowTab;
     $$("[data-flow-tab]").forEach((x) => x.setAttribute("aria-selected", String(x === tab)));
     $$("[data-flow-cat]").forEach((li) => { li.hidden = cat !== "all" && li.dataset.flowCat !== cat; });
-  }));
+  };
+  $$("[data-flow-tab]").forEach((tab) => tab.addEventListener("click", () => flowTab(tab)));
+  // En el móvil, «Todos» eran 29 botones (tres pantallas): se empieza por la
+  // primera categoría y el resto queda a un toque en las pestañas.
+  if (matchMedia("(max-width: 759px)").matches) {
+    const first = $$("[data-flow-tab]").find((t) => t.dataset.flowTab !== "all");
+    if (first) flowTab(first);
+  }
 
   $$("[data-flow]").forEach((b) => b.addEventListener("click", (ev) => {
     ev.preventDefault();

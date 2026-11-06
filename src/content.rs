@@ -487,6 +487,7 @@ const UI_KEYS: &[&str] = &[
     "nav_quick",
     "nav_explore",
     "nav_map",
+    "quests_more",
     "lang_switch",
     "download_cv",
     "contact",

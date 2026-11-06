@@ -462,3 +462,13 @@ html[data-motion="off"] .lab-node.is-broken, html[data-motion="off"] .lab-node.i
   .rack-unit a { grid-template-columns: 34px 30px minmax(0, 1fr) auto; }
   .ru-ear, .ru-text, .ru-vent, .ru-go { display: none; }
 }
+
+/* Móvil: las tres primeras misiones y un botón para el resto */
+@media (max-width: 759px) {
+  .quests.is-short > .quest:nth-child(n+4) { display: none; }
+}
+@media (min-width: 760px) { .quests-more { display: none; } }
+.quests-more { margin: 4px 0 0; text-align: center; }
+/* (no es una nota de papel: solo el botón sobre el corcho) */
+.board .zone > p.quests-more:not([hidden]) { display: block; width: auto; max-width: none; margin: 10px 0 0; padding: 0; background: none; border: 0; box-shadow: none; rotate: none; text-align: center; }
+@media (min-width: 760px) { .board .zone > p.quests-more:not([hidden]) { display: none; } }

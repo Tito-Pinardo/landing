@@ -97,6 +97,14 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
     fila encima; con poco ancho, detective y misión no salen con una hoja
     abierta (la cierran al empezar), y las hojas no llevan ese dibujo.
 
+15. **La página del móvil, más corta.** Medía 29,7 pantallas: solo las
+    misiones (10 proyectos) eran 6 y los recorridos del laboratorio (29
+    botones) 3, y quien llega con prisa no bajaba hasta el contacto. Ahora
+    salen las tres primeras misiones y «Ver los otros 7 proyectos» (se
+    abren solas al filtrar por una habilidad o al llegar con un enlace a una
+    escondida) y el laboratorio empieza en la primera categoría, con las
+    demás a un toque en sus pestañas. 24 pantallas, el resto a 0.
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.
