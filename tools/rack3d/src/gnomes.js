@@ -240,6 +240,15 @@ export function buildGnomes(scene, n = 3) {
       if (!group.visible) return false;
       let moved = false;
       for (const g of list) {
+        // Pegado a la cámara (recorridos de cerca) taparía lo que se enseña
+        // con una cabeza gigante en primer plano: se esconde mientras tanto.
+        if (cam) {
+          const near = Math.hypot(g.root.position.x - cam.x, g.root.position.z - cam.z) < 1.1;
+          if (g.root.visible === near) {
+            g.root.visible = !near;
+            moved = true;
+          }
+        }
         g.annoy = Math.max(0, g.annoy - dt * 0.5);
         // La cara se pone roja al enfadarse y se le pasa poco a poco
         const madTo = g.state === "angry" ? 1 : 0;

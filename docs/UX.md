@@ -81,6 +81,11 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
     comprueba (flechas, Intro abre, Esc vuelve a la sala con el foco) y ya
     ve los anillos pintados en `::after`.
 
+13. **Enanitos en primer plano.** Con la GPU de verdad se vio que, en los
+    recorridos de cerca, un enanito podía quedar pegado a la cámara (una
+    cabeza enorme junto a Hermes). Ahora se esconden mientras la cámara está
+    a menos de 1,1 m de ellos; en la sala se siguen viendo.
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.
