@@ -105,6 +105,26 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
     escondida) y el laboratorio empieza en la primera categoría, con las
     demás a un toque en sus pestañas. 24 pantallas, el resto a 0.
 
+16. **Unidades y blog en el banco.** `dump-site` genera ya las 26 páginas
+    de unidad, el blog, su índice de búsqueda y los 18 artículos, y cuatro
+    visitas nuevas (`unidades`, `unidades_movil`, `blog`, `blog_movil`) las
+    recorren todas de arriba abajo con axe; en el blog, además, busca y
+    filtra. Las unidades salieron limpias salvo el móvil; el blog no:
+    - 15 artículos con bloques de código que no se podían desplazar con el
+      teclado (fallo serio de accesibilidad): ahora se enfocan.
+    - «Lección», «Unidad» y la ficha eran `<aside>` dentro de otra región,
+      igual que el lateral del blog: ahora son bloques normales.
+    - En el móvil, «← Volver al rack» se quedaba en una flecha de 28 px que
+      el lector de pantalla leía como «flecha» (el texto iba con
+      `display: none`); las opciones del detective de cada unidad, la
+      unidad de arriba/abajo y los enlaces de la ficha del artículo medían
+      19-29 px. Todos a 40 px y el texto, solo escondido a la vista.
+    - El mapa de repositorios de BattlePros era una «imagen» con enlaces
+      dentro (no se podían usar con lector de pantalla): ahora es un grupo.
+    - Al buscar en el blog desde el móvil, el recuento salía al final del
+      panel de filtros: ahora va justo debajo del buscador.
+    Resultado: axe de 16 a 0, botones pequeños de 3 a 0, sin errores.
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

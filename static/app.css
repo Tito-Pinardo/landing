@@ -684,7 +684,18 @@ body {
 .crumbs a:hover { color: var(--text); }
 .crumbs [aria-current] { color: var(--accent-2); }
 @media (min-width: 760px) { .crumbs { display: block; } }
-@media (max-width: 520px) { .hide-sm { display: none; } }
+/* Escondido a la vista en el móvil, pero el lector de pantalla lo sigue leyendo
+   (con display: none, «← Volver al rack» se quedaba en «flecha») */
+@media (max-width: 520px) {
+  .hide-sm { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+}
+/* Objetivos táctiles de al menos 40 px en el móvil */
+@media (max-width: 759px) {
+  .topbar-actions .btn { min-width: 40px; justify-content: center; }
+  .inc-opt, .un-prev, .un-next { min-height: 40px; }
+  .un-prev, .un-next { display: inline-flex; flex-direction: column; justify-content: center; }
+  .post-sheet dd a, .post-sources a { display: inline-block; padding: 10px 0; }
+}
 
 .unit { width: 100%; max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 40px var(--gutter) 0; perspective: 1400px; }
 

@@ -53,3 +53,11 @@ Los navegadores automatizados no cuentan en la medida anónima de visitas
 `--lang en` hace las visitas en inglés (textos más largos) y `--tema light`
 con el sistema en tema claro (otros contrastes). La visita `tableta` va en
 vertical (820×1180) y en horizontal, táctil.
+
+## Unidades y blog
+
+`dump-site` escribe también cada unidad, el blog (con `index.json`) y cada
+artículo. Las visitas `unidades`, `unidades_movil`, `blog` y `blog_movil`
+recorren todas esas páginas (la primera con capturas, el resto solo con
+cifras) y pasan axe en cada una; la del blog busca «disco» y filtra por
+averías.

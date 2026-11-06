@@ -321,7 +321,7 @@
   </div>
 
   <figure class="repo-map">
-    <svg viewBox="0 0 920 {{ rv.h }}" role="img" aria-labelledby="repos-title">
+    <svg viewBox="0 0 920 {{ rv.h }}" role="group" aria-labelledby="repos-title">
       {% for (name, x) in rv.layers %}<text class="repo-layer" x="{{ x }}" y="22">{{ name }}</text>{% endfor %}
       {% for e in rv.edges %}<path class="repo-edge{% if e.uses %} is-uses{% endif %}" d="{{ e.d }}" data-from="{{ e.from }}" data-to="{{ e.to }}"/>{% endfor %}
       {% for r in rv.repos %}

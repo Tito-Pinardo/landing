@@ -159,7 +159,7 @@ async function page(browser, name, opts = {}) {
     } catch {}
   });
   const t0 = Date.now();
-  await p.goto(`${URL_BASE}/${LANG}/?hora=13`, { waitUntil: "load" });
+  await p.goto(`${URL_BASE}/${LANG}${opts.path || "/?hora=13"}`, { waitUntil: "load" });
   return { ctx, p, errors, requests, t0 };
 }
 
@@ -183,7 +183,68 @@ const click = (p, sel) => p.evaluate((s) => document.querySelector(s)?.click(), 
 
 // ---- las visitas
 
+// Las páginas de cada unidad y el blog: todas, de arriba abajo, con sus
+// comprobaciones y axe. `mobile` para el móvil.
+async function paginas(b, name, rutas, mobile, extra) {
+  const viewport = mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 };
+  const out = { pasos: [], axe: [], errores: [] };
+  for (const [k, ruta] of rutas.entries()) {
+    const { ctx, p, errors } = await page(b, name, { viewport, mobile, path: ruta });
+    await p.waitForTimeout(SLOW ? 1500 : 500);
+    const etiqueta = ruta.replace(/\/$/, "") || "/";
+    // La primera, con captura; el resto, solo cifras (son muchas)
+    out.pasos.push({ paso: `${etiqueta} arriba`, ...(k === 0 ? { captura: await shot(p, `${name}-1`) } : {}), ...(await checks(p)) });
+    if (extra) out.pasos.push(...(await extra(p, k)));
+    await p.evaluate(() => scrollTo(0, document.body.scrollHeight));
+    await p.waitForTimeout(400);
+    out.pasos.push({ paso: `${etiqueta} abajo`, ...(k === 0 ? { captura: await shot(p, `${name}-2`) } : {}), ...(await checks(p)) });
+    for (const v of await axe(p)) out.axe.push({ ...v, pagina: etiqueta });
+    out.errores.push(...errors.map((e) => `${etiqueta}: ${e}`));
+    await ctx.close();
+  }
+  out.paginas = rutas.length;
+  return out;
+}
+let RUTAS = null;
+async function rutas() {
+  if (RUTAS) return RUTAS;
+  const html = await (await fetch(`${URL_BASE}/${LANG}/`)).text();
+  const units = [...new Set([...html.matchAll(new RegExp(`href="/${LANG}/([a-z0-9-]+)/"`, "g"))].map((m) => m[1]).filter((u) => u !== "blog"))];
+  const blog = await (await fetch(`${URL_BASE}/${LANG}/blog/`)).text();
+  const posts = [...new Set([...blog.matchAll(new RegExp(`href="/${LANG}/blog/([a-z0-9-]+)/"`, "g"))].map((m) => m[1]))];
+  RUTAS = { units: units.map((u) => `/${u}/`), posts: posts.map((x) => `/blog/${x}/`) };
+  return RUTAS;
+}
+// En el índice del blog: buscar (pide index.json) y filtrar por tipo
+async function blogExtra(p, k) {
+  if (k !== 0) return [];
+  const pasos = [];
+  await p.evaluate(() => { const d = document.querySelector("[data-filters-box]"); if (d) d.open = true; });
+  await p.fill("[data-bf-q]", "disco");
+  await p.waitForTimeout(1200);
+  const n = await p.evaluate(() => document.querySelector("[data-bf-count]")?.textContent.trim() || "");
+  pasos.push({ paso: `buscar «disco» (${n})`, captura: await shot(p, "blog-buscar"), busca: n, ...(await checks(p)) });
+  await p.fill("[data-bf-q]", "");
+  await p.check('input[name="kind"][value="incident"]').catch(() => {});
+  await p.waitForTimeout(800);
+  pasos.push({ paso: "filtro: averías", captura: await shot(p, "blog-filtro"), ...(await checks(p)) });
+  return pasos;
+}
+
 const SCENARIOS = {
+  async unidades(b) {
+    return paginas(b, "unidades", (await rutas()).units, false);
+  },
+  async unidades_movil(b) {
+    return paginas(b, "unidades_movil", (await rutas()).units, true);
+  },
+  async blog(b) {
+    return paginas(b, "blog", ["/blog/", ...(await rutas()).posts], false, blogExtra);
+  },
+  async blog_movil(b) {
+    return paginas(b, "blog_movil", ["/blog/", ...(await rutas()).posts], true, blogExtra);
+  },
+
   // Alguien de RR. HH. con un minuto en un portátil normal
   async rrhh(b) {
     const { ctx, p, errors, t0 } = await page(b, "rrhh");
@@ -467,13 +528,13 @@ function score(r) {
   return {
     "paneles que se pisan": all.reduce((n, s) => n + (s.overlaps?.length || 0), 0),
     "textos cortados": all.reduce((n, s) => n + (s.clipped?.length || 0), 0),
-    "botones pequeños (móvil)": v.movil?.pasos?.reduce((n, s) => Math.max(n, s.small?.length || 0), 0) ?? null,
+    "botones pequeños (móvil)": ["movil", "unidades_movil", "blog_movil"].some((k) => v[k]?.pasos) ? ["movil", "unidades_movil", "blog_movil"].reduce((n, k) => n + (v[k]?.pasos?.reduce((m, s) => Math.max(m, s.small?.length || 0), 0) || 0), 0) : null,
     "scroll horizontal": all.filter((s) => s.hscroll).length,
     "elementos cortados a la derecha (sin 3D)": v.sin3d?.cortado_derecha ?? null,
     "mandos en más de 2 filas": all.filter((s) => s.filas_mandos > 2).length,
     // (en la sala siempre deben estar a mano; en la página, solo al entrar)
-    "CV o contacto sin poder pulsar": Object.values(v).flatMap((x) => (x.pasos || []).filter((s, i) => s.sala || i === 0)).filter((s) => s.cv !== "sí" || s.contact !== "sí").length,
-    "fallos de accesibilidad (axe)": [v.rrhh?.axe, v.movil?.axe].reduce((n, a) => n + (a?.reduce((m, x) => m + (x.impact === "serious" || x.impact === "critical" ? 1 : 0), 0) || 0), 0),
+    "CV o contacto sin poder pulsar": Object.entries(v).filter(([k]) => !/^(unidades|blog)/.test(k)).map(([, x]) => x).flatMap((x) => (x.pasos || []).filter((s, i) => s.sala || i === 0)).filter((s) => s.cv !== "sí" || s.contact !== "sí").length,
+    "fallos de accesibilidad (axe)": Object.values(v).map((x) => x.axe).filter(Boolean).reduce((n, a) => n + (a?.reduce((m, x) => m + (x.impact === "serious" || x.impact === "critical" ? 1 : 0), 0) || 0), 0),
     "paradas de teclado invisibles": v.teclado?.invisibles?.length ?? null,
     "foco sin anillo": v.teclado?.sin_anillo?.length ?? null,
     "sala sin teclado": v.teclado?.sala_teclado ? Number(!(v.teclado.sala_teclado.every(Boolean) && v.teclado.sala_intro_abre && v.teclado.sala_esc_vuelve)) : null,
@@ -507,7 +568,7 @@ for (const [name, v] of Object.entries(report.visitas)) {
     if ("centro_tapado_pct" in s) bits.push(`centro tapado ${s.centro_tapado_pct} %`);
     md.push(`- ${s.paso} (${s.captura}): ${bits.join(" | ") || "bien"}`);
   }
-  for (const a of v.axe || []) md.push(`- axe ${a.impact}: ${a.id} ×${a.n} — ${a.help} (${a.ejemplo})${a.por_que ? " — " + a.por_que : ""}`);
+  for (const a of v.axe || []) md.push(`- axe ${a.impact}: ${a.id} ×${a.n} — ${a.help} (${a.pagina ? a.pagina + " · " : ""}${a.ejemplo})${a.por_que ? " — " + a.por_que : ""}`);
   for (const e of v.errores || []) md.push(`- error: ${e}`);
   md.push("");
 }

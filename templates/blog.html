@@ -71,7 +71,7 @@
       <p class="bf-empty muted" data-bf-empty hidden>{{ c.t.blog["no_results"] }}</p>
     </div>
 
-    <aside class="blog-side">
+    <div class="blog-side">
       <details class="blog-filters-box js-only" data-filters-box>
         <summary>{{ c.t.blog["filters"] }}</summary>
         <form class="blog-filters" data-blog-filters role="search" aria-label="{{ c.t.blog["search"] }}">
@@ -85,7 +85,7 @@
           <p class="bf-status" role="status" aria-live="polite"><span data-bf-count data-template="{{ c.t.blog["results"] }}"></span> <button type="reset" class="btn btn-sm btn-ghost" data-bf-clear hidden>{{ c.t.blog["clear"] }}</button></p>
         </form>
       </details>
-    </aside>
+    </div>
   </div>
 </section>
 {% endblock %}

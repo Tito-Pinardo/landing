@@ -55,10 +55,38 @@ async fn main() -> anyhow::Result<()> {
     if std::env::args().nth(1).as_deref() == Some("dump-site") {
         let dir = std::path::PathBuf::from(std::env::args().nth(2).context("falta el directorio")?);
         let c = content::Content::embedded()?;
+        let url = "http://127.0.0.1:8099";
+        let write = |rel: std::path::PathBuf, body: &[u8]| -> anyhow::Result<()> {
+            let path = dir.join(rel);
+            if let Some(p) = path.parent() {
+                std::fs::create_dir_all(p)?;
+            }
+            std::fs::write(path, body)?;
+            Ok(())
+        };
         for (lang, code) in [(content::Lang::Es, "es"), (content::Lang::En, "en")] {
-            let page = render::index(&c, lang, "dev", "http://127.0.0.1:8099", None, "banco")?;
-            std::fs::create_dir_all(dir.join(code))?;
-            std::fs::write(dir.join(code).join("index.html"), &page.body)?;
+            let page = render::index(&c, lang, "dev", url, None, "banco")?;
+            write([code, "index.html"].iter().collect(), &page.body)?;
+            // Unidades, blog (con su índice de búsqueda) y artículos
+            for u in &c.units {
+                let page = render::unit(&c, u, lang, "dev", url)?;
+                write([code, &u.id, "index.html"].iter().collect(), &page.body)?;
+            }
+            write(
+                [code, "blog", "index.html"].iter().collect(),
+                &render::blog(&c, lang, "dev", url)?.body,
+            )?;
+            write(
+                [code, "blog", "index.json"].iter().collect(),
+                &render::blog_index(&c, lang)?,
+            )?;
+            for a in &c.articles {
+                let page = render::article(&c, a, lang, "dev", url)?;
+                write(
+                    [code, "blog", &a.slug, "index.html"].iter().collect(),
+                    &page.body,
+                )?;
+            }
         }
         for (name, body) in app::served_assets() {
             let path = dir.join("static").join(&name);

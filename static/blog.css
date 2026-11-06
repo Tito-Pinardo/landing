@@ -80,3 +80,10 @@
   .blog-lead { padding: 18px 16px 20px 18px; }
 }
 @media (max-width: 600px) { .post-sheet dl { grid-template-columns: 1fr; } }
+/* Una columna (filtros encima de la lista): el recuento va justo debajo del
+   buscador; al final del panel no se veía al escribir en el móvil. */
+@media (max-width: 900px) {
+  .blog-filters > * { order: 2; }
+  .blog-filters > .bf-search { order: 0; }
+  .blog-filters > .bf-status { order: 1; }
+}
