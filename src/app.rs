@@ -229,6 +229,8 @@ pub fn router(state: AppState) -> Router {
         .route("/api/contact", post(contact_json))
         .route("/api/status", get(status))
         .route("/api/flags", get(flag_counts).post(flag_submit))
+        .route("/api/visita", post(visit_step))
+        .route("/api/visitas", get(visit_counts))
         .route("/healthz", get(healthz))
         .route("/static/{*path}", get(asset))
         .route("/robots.txt", get(robots))
@@ -571,6 +573,119 @@ async fn flag_counts(State(st): State<AppState>) -> Response {
         }
         Err(e) => {
             tracing::error!(error = %e, "no se pudieron contar los retos");
+            StatusCode::SERVICE_UNAVAILABLE.into_response()
+        }
+    }
+}
+
+// ---- medida anónima de visitas
+//
+// Solo contadores por día, paso y modo: ninguna fila por visitante, ni IP ni
+// su hash. La página manda cada paso una vez por pestaña y nada si el
+// navegador pide no ser rastreado (DNT/GPC).
+
+/// Pasos del recorrido de una visita que se cuentan.
+pub const VISIT_STEPS: &[&str] = &[
+    "entrada",        // la página lleva unos segundos a la vista
+    "toca",           // primera vez que toca algo de la sala 3D
+    "hoja",           // abre una zona (nota del tablero, laboratorio…)
+    "unidad",         // entra en la página de una unidad del rack
+    "recorrido",      // reproduce un recorrido
+    "detective",      // empieza un caso del modo detective
+    "detective_ok",   // lo resuelve
+    "mision",         // empieza la misión de 1 minuto
+    "mision_ok",      // la termina
+    "visita_guiada",  // la visita guiada
+    "rapida",         // pasa a la vista rápida
+    "cv",             // descarga el CV
+    "contacto",       // abre el contacto
+    "contacto_envia", // envía el formulario
+    "blog",           // va al blog
+];
+const VISIT_MODES: &[&str] = &["sala", "pagina", "movil"];
+
+#[derive(Deserialize)]
+struct VisitStep {
+    step: String,
+    mode: String,
+}
+
+async fn visit_step(State(st): State<AppState>, Json(body): Json<VisitStep>) -> Response {
+    if !VISIT_STEPS.contains(&body.step.as_str()) || !VISIT_MODES.contains(&body.mode.as_str()) {
+        return StatusCode::UNPROCESSABLE_ENTITY.into_response();
+    }
+    // Tope diario por fila: si alguien se pone a inflar la cuenta, no crece
+    // sin fin (y se nota en el salto).
+    let res = sqlx::query(
+        "INSERT INTO visit_steps (step, mode, n) VALUES ($1, $2, 1) \
+         ON CONFLICT (day, step, mode) DO UPDATE SET n = visit_steps.n + 1 \
+         WHERE visit_steps.n < 100000",
+    )
+    .bind(&body.step)
+    .bind(&body.mode)
+    .execute(&st.0.db)
+    .await;
+    match res {
+        Ok(_) => (
+            [(header::CACHE_CONTROL, "no-store")],
+            StatusCode::NO_CONTENT,
+        )
+            .into_response(),
+        Err(e) => {
+            tracing::error!(error = %e, "no se pudo contar la visita");
+            StatusCode::SERVICE_UNAVAILABLE.into_response()
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct VisitQuery {
+    dias: Option<i32>,
+}
+
+/// Lectura de la medida (privada): con la llave cuyo SHA-256 está en
+/// site.toml. Devuelve los contadores de los últimos `dias` (30 por defecto).
+async fn visit_counts(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Query(q): Query<VisitQuery>,
+) -> Response {
+    let key = headers
+        .get(header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .unwrap_or("");
+    let got = hex::encode(Sha256::digest(key.as_bytes()));
+    let want = &st.0.content.site.visits_key_sha256;
+    // Comparación sin atajos (mismo tiempo acierte o no)
+    let same = got.len() == want.len()
+        && got
+            .bytes()
+            .zip(want.to_ascii_lowercase().bytes())
+            .fold(0u8, |acc, (a, b)| acc | (a ^ b))
+            == 0;
+    if key.is_empty() || !same {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let dias = q.dias.unwrap_or(30).clamp(1, 366);
+    let rows: Result<Vec<(String, String, String, i32)>, _> = sqlx::query_as(
+        "SELECT to_char(day, 'YYYY-MM-DD'), step, mode, n FROM visit_steps \
+         WHERE day > current_date - $1 ORDER BY day, step, mode",
+    )
+    .bind(dias)
+    .fetch_all(&st.0.db)
+    .await;
+    match rows {
+        Ok(rows) => (
+            [(header::CACHE_CONTROL, "no-store")],
+            Json(serde_json::json!({
+                "pasos": VISIT_STEPS,
+                "filas": rows.iter().map(|(d, s, m, n)| serde_json::json!([d, s, m, n])).collect::<Vec<_>>(),
+            })),
+        )
+            .into_response(),
+        Err(e) => {
+            tracing::error!(error = %e, "no se pudo leer la medida de visitas");
             StatusCode::SERVICE_UNAVAILABLE.into_response()
         }
     }

@@ -1029,7 +1029,7 @@ ok = "¡Mensaje enviado! Te responderé pronto."
 error = "No se ha podido enviar. Inténtalo de nuevo en unos minutos o escríbeme por LinkedIn."
 rate_limited = "Has enviado varios mensajes seguidos. Espera un poco antes de volver a intentarlo."
 invalid = "Revisa los campos marcados."
-privacy = "Solo uso tus datos para responderte. No los comparto ni los uso para nada más."
+privacy = "Solo uso tus datos para responderte. No los comparto ni los uso para nada más. La web solo cuenta visitas en anónimo: sin cookies ni rastreo."
 elsewhere = "También me encuentras en"
 # Solo para máquinas (ver src/aitrap.rs): la nota no se ve en pantalla y el
 # campo es invisible. {canary} es la palabra clave del servidor.

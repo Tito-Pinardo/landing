@@ -1,6 +1,11 @@
 # Claves sueltas: tienen que ir antes de la primera tabla, si no TOML las
 # mete dentro de la última.
 
+# SHA-256 de la llave para leer la medida anónima de visitas
+# (GET /api/visitas con «Authorization: Bearer <llave>»). La llave no está en
+# el repositorio.
+visits_key_sha256 = "293faec669137ffe4bc03c0885361bc11e492ea7b5687e45edfad3aa9031367e" # gitleaks:allow (hash, no la llave)
+
 # Conexiones fijas del mapa (la "columna vertebral"). Los recorridos dibujan
 # su propio camino encima.
 links = [

@@ -683,3 +683,50 @@ async fn the_matrix_notice_says_it_was_an_ai(db: PgPool) {
         "🤖 Probablemente escrito por una IA: rellenó el campo para asistentes"
     );
 }
+
+fn visit_req(step: &str, mode: &str) -> Request<Body> {
+    Request::post("/api/visita")
+        .header(header::CONTENT_TYPE, "application/json")
+        .body(Body::from(
+            serde_json::json!({ "step": step, "mode": mode }).to_string(),
+        ))
+        .unwrap()
+}
+
+#[sqlx::test]
+async fn visits_are_anonymous_counters(db: PgPool) {
+    let (app, _) = router(db.clone(), config(true));
+    for _ in 0..3 {
+        let (status, _, _) = send(&app, visit_req("entrada", "sala")).await;
+        assert_eq!(status, StatusCode::NO_CONTENT);
+    }
+    let (status, _, _) = send(&app, visit_req("cv", "movil")).await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    for (step, mode) in [("inventado", "sala"), ("cv", "nevera"), ("", "")] {
+        let (status, _, _) = send(&app, visit_req(step, mode)).await;
+        assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{step}/{mode}");
+    }
+    let rows: Vec<(String, String, i32)> =
+        sqlx::query_as("SELECT step, mode, n FROM visit_steps ORDER BY step")
+            .fetch_all(&db)
+            .await
+            .unwrap();
+    assert_eq!(
+        rows,
+        vec![
+            ("cv".into(), "movil".into(), 1),
+            ("entrada".into(), "sala".into(), 3)
+        ],
+        "una fila por día, paso y modo: nada por visitante"
+    );
+    // Leer la medida pide la llave
+    let (status, _, _) = send(&app, get("/api/visitas")).await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    let req = Request::get("/api/visitas")
+        .header(header::AUTHORIZATION, "Bearer no-es-la-llave")
+        .body(Body::empty())
+        .unwrap();
+    let (status, _, body) = send(&app, req).await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert!(!body.contains("entrada"));
+}

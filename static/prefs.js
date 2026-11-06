@@ -229,4 +229,28 @@
       if (!motionOff() && !motionAtLoad) location.reload();
     });
   });
+
+  // Medida anónima de las visitas: solo «alguien llegó a este paso», una
+  // vez por pestaña, sin cookies ni identificadores (el servidor solo suma
+  // contadores por día). Nada si el navegador pide no ser rastreado.
+  const noTrack = navigator.doNotTrack === "1" || navigator.globalPrivacyControl === true;
+  const sent = new Set((() => { try { return JSON.parse(sessionStorage.getItem("tp:pasos")) || []; } catch { return []; } })());
+  window.tpPaso = (step) => {
+    if (noTrack || sent.has(step) || navigator.webdriver) return;
+    sent.add(step);
+    try { sessionStorage.setItem("tp:pasos", JSON.stringify([...sent])); } catch { /* sin almacenamiento */ }
+    const mode = doc.classList.contains("room-mode") ? "sala"
+      : matchMedia("(max-width: 760px), (pointer: coarse)").matches ? "movil" : "pagina";
+    fetch("/api/visita", { method: "POST", keepalive: true, headers: { "content-type": "application/json" }, body: JSON.stringify({ step, mode }) }).catch(() => {});
+  };
+  // Llegar de verdad (unos segundos con la página a la vista, no un robot
+  // que la abre y se va) y las páginas sueltas.
+  addEventListener("DOMContentLoaded", () => {
+    const parts = location.pathname.split("/").filter(Boolean);
+    if (parts.length === 1) {
+      const t = setTimeout(() => window.tpPaso("entrada"), 4000);
+      document.addEventListener("visibilitychange", () => { if (document.hidden) clearTimeout(t); }, { once: true });
+    } else if (parts[1] === "blog") window.tpPaso("blog");
+    else if (parts.length === 2) window.tpPaso("unidad");
+  });
 })();

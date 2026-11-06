@@ -24,6 +24,17 @@
     },
   };
 
+  // Medida anónima de la visita: cada paso una vez por pestaña (prefs.js)
+  const paso = (step) => window.tpPaso?.(step);
+  document.addEventListener("click", (ev) => {
+    const t = ev.target.closest?.("a, button");
+    if (!t) return;
+    if (t.matches("[data-cv]")) paso("cv");
+    else if (t.matches('a[href="#contact"]')) paso("contacto");
+    else if (t.matches("[data-r3-tour], [data-tour60]")) paso("visita_guiada");
+    else if (t.matches("[data-quick-toggle]") && !doc.classList.contains("quick-mode")) paso("rapida");
+  }, true);
+
   // ------------------------------------------------------------ utilidades
   // En el modo sala no hay página por la que bajar: ir a una zona es abrir
   // su hoja encima de la sala (y, dentro de ella, bajar hasta `el`).
@@ -375,6 +386,7 @@
   function openSheet(id, target) {
     const z = document.getElementById(id);
     if (!z || !doc.classList.contains("room-mode")) return;
+    paso("hoja");
     if (sheet && sheet !== z) sheet.classList.remove("is-sheet");
     const fresh = sheet !== z;
     sheet = z;
@@ -669,6 +681,11 @@
       }, { rootMargin: "600px 0px" });
       io.observe(stage);
     }
+    // Pasos de la visita (medida anónima, ver prefs.js)
+    for (const e of ["select", "note", "inspect", "gnome", "terminal"]) stage.addEventListener("rack3d:" + e, () => paso("toca"));
+    stage.addEventListener("rack3d:flow", () => paso("recorrido"));
+    stage.addEventListener("rack3d:contact", () => paso("contacto"));
+    stage.addEventListener("rack3d:mission", (ev) => paso(ev.detail.state === "done" ? "mision_ok" : "mision"));
     stage.addEventListener("rack3d:inspected", (ev) => {
       store.set("r3", ev.detail.ids);
       if (ev.detail.n >= 6) unlock("technician");
@@ -1246,6 +1263,7 @@
   }
   function caseOpen() {
     if (!cs.box) return;
+    paso("detective");
     closeSheet();
     caseReset();
     rc.cur = null;
@@ -1312,6 +1330,7 @@
           return;
         }
         rc.solved = true;
+        paso("detective_ok");
         clearTimeout(rc.timer);
         window.tpSound?.play("ok");
         cs.box.classList.add("is-solved");
@@ -1561,6 +1580,7 @@
         Object.assign(filling, { typed: 0, pasted: false, t0: 0 });
         formStatus.classList.add("is-ok");
         formStatus.textContent = T.contact.ok;
+        paso("contacto_envia");
         unlock("messenger");
       } else {
         formStatus.classList.add("is-error");

@@ -1021,7 +1021,7 @@ ok = "Message sent! I'll get back to you soon."
 error = "The message couldn't be sent. Please try again in a few minutes or reach me on LinkedIn."
 rate_limited = "You've sent several messages in a row. Please wait a bit before trying again."
 invalid = "Please check the highlighted fields."
-privacy = "I only use your details to reply to you. I don't share them or use them for anything else."
+privacy = "I only use your details to reply to you. I don't share them or use them for anything else. The site only counts visits anonymously: no cookies, no tracking."
 elsewhere = "You can also find me on"
 # For machines only (see src/aitrap.rs): the note isn't shown on screen and
 # the field is invisible. {canary} is the server's code word.

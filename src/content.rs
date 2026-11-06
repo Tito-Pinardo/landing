@@ -52,6 +52,8 @@ impl Lang {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Site {
+    /// SHA-256 (hex) de la llave que deja leer la medida de visitas.
+    pub visits_key_sha256: String,
     pub links: Vec<[String; 2]>,
     pub achievements: Vec<String>,
     pub flags: Vec<Flag>,
@@ -828,6 +830,11 @@ impl Content {
     }
 
     fn validate_units(&self) -> Result<()> {
+        let k = &self.site.visits_key_sha256;
+        ensure!(
+            k.len() == 64 && k.bytes().all(|b| b.is_ascii_hexdigit()),
+            "visits_key_sha256 no válido"
+        );
         for f in &self.site.flags {
             ensure!(
                 f.sha256.len() == 64 && f.sha256.bytes().all(|b| b.is_ascii_hexdigit()),
