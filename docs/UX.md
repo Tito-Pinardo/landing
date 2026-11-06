@@ -125,6 +125,13 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
       panel de filtros: ahora va justo debajo del buscador.
     Resultado: axe de 16 a 0, botones pequeños de 3 a 0, sin errores.
 
+17. **El banco en el CI.** Versión rápida sin 3D en cada push con el
+    Chromium de Debian (infra-tf #157 lo instala en el runner); para el
+    despliegue si alguna cifra pasa de 0. Al prepararla salió un fallo que
+    nadie había visto: en la tableta sin 3D, la etiqueta «antes» del
+    deslizador era rojo claro sobre papel (contraste 2,53:1). En el papel
+    el rojo es ahora oscuro, como ya lo eran el verde y el ámbar.
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

@@ -214,7 +214,7 @@ html:not(.js) .stage, .stage.no-3d { grid-template-rows: auto auto; }
   --border: #e2dac6; --border-strong: #cbbf9f; --accent: #0f766e; --accent-ink: #fff;
   --accent-soft: rgba(15, 118, 110, .12); --accent-2: #4f46e5; --accent-2-soft: rgba(79, 70, 229, .1);
   --xp: #4d7c0f; --chassis-hi: transparent;
-  --warn: #92400e; --ok: #15803d; /* sobre papel, los amarillos y verdes claros no se leen */
+  --warn: #92400e; --ok: #15803d; --danger: #b91c1c; /* sobre papel, los amarillos, verdes y rojos claros no se leen */
   color: var(--text);
 }
 

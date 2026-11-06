@@ -35,6 +35,8 @@ const GPU = typeof args.gpu === "string" ? args.gpu : null;
 const LANG = args.lang === "en" ? "en" : "es";
 const TEMA = args.tema === "light" ? "light" : "dark";
 const SLOW = args.slow !== "no" && !GPU;
+// Chromium del sistema (el CI usa el de Debian, sin descargar navegadores)
+const CHROMIUM = typeof args.chromium === "string" ? { executablePath: args.chromium } : {};
 const WAIT_3D = SLOW ? 30000 : 6000;
 
 const launch = () =>
@@ -42,7 +44,7 @@ const launch = () =>
     GPU
       ? { executablePath: GPU, headless: true, args: ["--headless=new", "--enable-gpu", "--ignore-gpu-blocklist", "--use-angle=vulkan", "--enable-features=Vulkan"] }
       : BROWSER === chromium
-      ? { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox", "--disable-dev-shm-usage"] }
+      ? { ...CHROMIUM, args: args["sin-webgl"] ? ["--disable-webgl", "--disable-webgl2", "--no-sandbox", "--disable-dev-shm-usage"] : ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox", "--disable-dev-shm-usage"] }
       : // El sandbox de Firefox solo lee fuentes de las carpetas del
         // sistema: sin esto, con fuentes en otra ruta, todo sale en cajas.
         { firefoxUserPrefs: { "security.sandbox.content.level": 0 } },
@@ -293,7 +295,7 @@ const SCENARIOS = {
   // Sin WebGL (o apagado): la página de siempre en un ordenador
   async sin3d(b) {
     if (BROWSER !== chromium) return { omitida: "solo en Chromium" };
-    const nb = await chromium.launch({ args: ["--disable-webgl", "--disable-webgl2", "--no-sandbox"] });
+    const nb = await chromium.launch({ ...CHROMIUM, args: ["--disable-webgl", "--disable-webgl2", "--no-sandbox", "--disable-dev-shm-usage"] });
     try {
       const { ctx, p, errors } = await page(nb, "sin3d");
       await p.waitForTimeout(4000);
@@ -575,3 +577,11 @@ for (const [name, v] of Object.entries(report.visitas)) {
 writeFileSync(`${OUT}/informe.md`, md.join("\n"));
 console.log(md.slice(0, 4 + Object.keys(report.cifras).length).join("\n"));
 console.log(`\ninforme: ${OUT}/informe.md`);
+// En el CI: cualquier cifra por encima de 0 para el despliegue
+if (args.fallar) {
+  const malas = Object.entries(report.cifras).filter(([, n]) => typeof n === "number" && n > 0);
+  if (malas.length) {
+    console.error(`\nNo pasa: ${malas.map(([k, n]) => `${k} = ${n}`).join(", ")}`);
+    process.exit(1);
+  }
+}

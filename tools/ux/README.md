@@ -61,3 +61,12 @@ artículo. Las visitas `unidades`, `unidades_movil`, `blog` y `blog_movil`
 recorren todas esas páginas (la primera con capturas, el resto solo con
 cifras) y pasan axe en cada una; la del blog busca «disco» y filtra por
 averías.
+
+## En el CI
+
+Cada push pasa una versión rápida y sin 3D (no hay GPU en el runner), unos 6
+minutos: `--chromium /usr/bin/chromium` (el de Debian, sin descargar
+navegadores), `--sin-webgl`, `--slow no` y `--fallar`, que termina con error
+si alguna cifra pasa de 0. Visitas: `movil`, `tableta`, `sin3d`, `unidades`,
+`unidades_movil`, `blog` y `blog_movil`. Si falla, el registro del CI enseña
+el informe entero. La sala 3D, Firefox y el teclado siguen siendo a mano.

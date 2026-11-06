@@ -50,6 +50,27 @@ jobs:
           # El rack 3D ya viene minificado por esbuild y es un módulo ES.
           cp static/rack3d.min.js "$min/rack3d.mjs" && node --check "$min/rack3d.mjs"
           rm -rf "$min"
+      # Banco de experiencia (tools/ux) sin 3D, con el Chromium de Debian:
+      # unidades, blog y portada en móvil, tableta y sin WebGL. Cualquier cifra
+      # por encima de 0 (solapes, scroll lateral, axe, errores…) lo pone en rojo.
+      # El runner lo recibe con infra-tf (PR #157); hasta entonces, solo avisa.
+      - name: Banco de experiencia
+        run: |
+          if [ ! -x /usr/bin/chromium ] || ! command -v npm >/dev/null; then
+            echo "::warning::El runner aún no tiene Chromium/npm (infra-tf #157): banco omitido"
+            exit 0
+          fi
+          sitio="$(mktemp -d)"
+          "$CARGO_TARGET_DIR/release/landing" dump-site "$sitio" >/dev/null
+          python3 tools/ux/servir.py "$sitio" &
+          servidor=$!
+          trap 'kill $servidor; rm -rf "$sitio"' EXIT
+          cd tools/ux
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --no-audit --no-fund --loglevel=error
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8099/es/ && break; sleep 1; done
+          node banco.mjs --chromium /usr/bin/chromium --sin-webgl --slow no --fallar \
+            --solo movil,tableta,sin3d,unidades,unidades_movil,blog,blog_movil \
+            --out "$sitio/informe" || { cat "$sitio/informe/informe.md"; exit 1; }
       - name: Pruebas del resumen semanal (Python, sin red)
         run: python3 -m unittest tools/digest/test_digest.py
       # Todo el historial: lo que se borró en un commit posterior sigue en el repo.
