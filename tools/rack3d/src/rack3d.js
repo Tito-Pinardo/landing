@@ -830,13 +830,16 @@ export function mount(stage, opts = {}) {
     drag = null;
     stage.classList.remove("is-dragging");
     if (moved || ev.target !== el) return;
-    const u = pick(ev);
+    activate(pick(ev));
+  });
+  // Un clic (o Intro con el teclado) sobre algo de la sala
+  function activate(u) {
     if (caseOn && u && caseHit(u)) return;
     if (caseOn && !u) return goView("overview"); // tocar el vacío: el rack entero
     if (u?.kind) act(u);
     else if (u) select(u === selected ? null : u);
     else if (selected) select(null);
-  });
+  }
   el.addEventListener("pointerleave", () => {
     if (hovered) hovered.hover = false;
     hovered = null;
@@ -878,13 +881,92 @@ export function mount(stage, opts = {}) {
   // La lista sigue siendo la forma de llegar con el teclado: al enfocar una
   // fila, su unidad sale en el armario.
   units.forEach((u) => u.a?.addEventListener("focus", () => select(u, true)));
+  // La sala con el teclado: Tab enfoca la vista, las flechas van de una cosa
+  // a otra (brilla, sale su nombre y el lector de pantalla lo dice) e Intro
+  // la abre como un clic; también para jugar al detective.
+  view.tabIndex = 0;
+  view.setAttribute("role", "application");
+  view.setAttribute("aria-label", L.kbd || "");
+  const kbdHelp = document.createElement("p");
+  kbdHelp.className = "r3-kbd";
+  kbdHelp.setAttribute("aria-hidden", "true");
+  kbdHelp.textContent = L.kbd || "";
+  const kbdSay = document.createElement("p");
+  kbdSay.className = "r3-sr";
+  kbdSay.setAttribute("aria-live", "polite");
+  view.append(kbdHelp, kbdSay);
+  const KBD_ORDER = ["note", "photo", "cv", "terminal", "phone", "pc", "window", "door"];
+  let kbdOn = null;
+  function kbdTargets() {
+    const seen = new Set();
+    const objs = room.objects
+      .filter((m) => KBD_ORDER.includes(m.userData.obj?.kind) && isShown(m))
+      .sort((a, b) => KBD_ORDER.indexOf(a.userData.obj.kind) - KBD_ORDER.indexOf(b.userData.obj.kind))
+      .filter((m) => !seen.has(m.userData.obj) && seen.add(m.userData.obj))
+      .map((m) => ({ m, t: m.userData.obj }));
+    return [...objs, ...units.map((u) => ({ m: u.mesh, t: u }))];
+  }
+  function kbdShow(m, t, again = false) {
+    if (again && hovered === t) hovered.hover = false;
+    if (hovered) hovered.hover = false;
+    hovered = kbdOn = t;
+    if (!t) {
+      if (tip) tip.hidden = true;
+      return wake();
+    }
+    t.hover = true;
+    if (!again) sound("tick");
+    const label = t.kind ? t.label : t.slot + (t.title ? " — " + t.title : "");
+    kbdSay.textContent = label;
+    const p = m.getWorldPosition(new Vector3()).project(camera);
+    // Fuera de la vista (o detrás): la cámara vuelve a la sala y la etiqueta
+    // se coloca cuando llega.
+    if (Math.abs(p.x) > 0.92 || Math.abs(p.y) > 0.92 || p.z > 1) {
+      if (tip) tip.hidden = true;
+      if (current !== HOME) {
+        goView(HOME);
+        setTimeout(() => kbdOn === t && kbdShow(m, t, true), reduce() ? 0 : 1000);
+      }
+      return wake();
+    }
+    if (tip) {
+      const vr = view.getBoundingClientRect();
+      const sr = stage.getBoundingClientRect();
+      const y = ((1 - p.y) / 2) * vr.height;
+      tip.textContent = label;
+      tip.hidden = false;
+      // Arriba del todo la taparía la tarjeta del nombre: va debajo
+      tip.classList.toggle("is-below", y < 190);
+      tip.style.setProperty("--x", `${vr.left - sr.left + ((p.x + 1) / 2) * vr.width}px`);
+      tip.style.setProperty("--y", `${vr.top - sr.top + y}px`);
+    }
+    wake();
+  }
+  function kbdMove(d) {
+    const list = kbdTargets();
+    const i = list.findIndex((x) => x.t === kbdOn);
+    const n = list.length;
+    const next = list[d === "first" ? 0 : d === "last" ? n - 1 : i < 0 ? (d > 0 ? 0 : n - 1) : (i + d + n) % n];
+    lastInput = performance.now();
+    tourStop();
+    kbdShow(next.m, next.t);
+  }
+  view.addEventListener("blur", () => kbdOn && kbdShow(null, null));
   stage.addEventListener("keydown", (ev) => {
     if (ev.target.closest("input, textarea")) return;
-    if (ev.key === "Escape" && (selected || current !== HOME)) {
-      goView(HOME);
+    const onView = ev.target === view;
+    const keys = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1, Home: "first", End: "last" };
+    if (onView && ev.key in keys) {
+      kbdMove(keys[ev.key]);
       ev.preventDefault();
-    } else if ((ev.key === "ArrowDown" || ev.key === "ArrowUp") && ev.target === el.parentElement) {
-      step(ev.key === "ArrowDown" ? 1 : -1);
+    } else if (onView && (ev.key === "Enter" || ev.key === " ") && kbdOn) {
+      const t = kbdOn;
+      activate(t);
+      // Tras moverse la cámara, la etiqueta vuelve a su sitio
+      setTimeout(() => kbdOn === t && document.activeElement === view && kbdShow(t.kind ? room.objects.find((m) => m.userData.obj === t) : t.mesh, t), reduce() ? 0 : 1000);
+      ev.preventDefault();
+    } else if (ev.key === "Escape" && (selected || current !== HOME)) {
+      goView(HOME);
       ev.preventDefault();
     }
   });

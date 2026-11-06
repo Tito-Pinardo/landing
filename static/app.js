@@ -383,6 +383,7 @@
     const r = z.getBoundingClientRect();
     r3((c) => c.inset(Math.round((r.width + 12) / 2), 0));
   }
+  let sheetOpener = null;
   function openSheet(id, target) {
     const z = document.getElementById(id);
     if (!z || !doc.classList.contains("room-mode")) return;
@@ -402,6 +403,8 @@
       z.prepend(x);
     }
     if (fresh) {
+      // Al cerrar, el foco vuelve a quien la abrió (la sala, un botón…)
+      if (!sheet.contains(document.activeElement)) sheetOpener = document.activeElement;
       z.scrollTop = 0;
       const h = $("h2", z);
       if (h) {
@@ -419,6 +422,9 @@
   }
   function closeSheet() {
     if (!sheet) return;
+    const inside = sheet.contains(document.activeElement);
+    if (inside && sheetOpener?.isConnected && sheetOpener !== document.body) sheetOpener.focus({ preventScroll: true });
+    sheetOpener = null;
     sheet.classList.remove("is-sheet");
     sheet = null;
     doc.classList.remove("has-sheet");

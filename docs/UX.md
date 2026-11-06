@@ -68,7 +68,19 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
 11. **Medida anónima de visitas** puesta: a partir de aquí las vueltas se
     guían por dónde se va la gente de verdad (`tools/visitas.sh`).
 
+12. **La sala con el teclado.** Antes, con teclado solo se llegaba a la
+    sala por el menú y la lista escondida del rack: el modo detective y los
+    objetos de la sala no se podían usar. Ahora la vista es una parada de
+    Tab con anillo y una ayuda abajo («flechas para elegir, Intro para
+    abrir, Esc para volver»); las flechas recorren notas, foto, CV, mesa,
+    teléfono, PC, ventana, puerta y unidades (brillan, sale su nombre y el
+    lector de pantalla lo dice) e Intro hace lo mismo que un clic, también
+    en el detective. Si lo elegido no se ve, la cámara vuelve a la sala; si
+    está arriba, la etiqueta sale debajo para no quedar bajo la tarjeta del
+    nombre. Al cerrar una hoja, el foco vuelve a quien la abrió. El banco lo
+    comprueba (flechas, Intro abre, Esc vuelve a la sala con el foco) y ya
+    ve los anillos pintados en `::after`.
+
 ## Pendiente para próximas vueltas
 
-- El 3D no se recorre con teclado (todo su contenido sí, por el menú de arriba).
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

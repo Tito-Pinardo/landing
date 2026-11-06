@@ -532,6 +532,7 @@ const UI_KEYS: &[&str] = &[
 ];
 const RACK_KEYS: &[&str] = &[
     "gnome",
+    "kbd",
     "sheet_close",
     "clock",
     "clock_sub",

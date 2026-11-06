@@ -1321,6 +1321,7 @@ status_retired = "Retirada"
 status_lab = "Laboratorio"
 
 [rack]
+kbd = "Sala 3D: flechas para elegir qué tocar, Intro para abrirlo y Esc para volver"
 gnome = "Un enanito del servidor: tócalo"
 sheet_close = "Cerrar y volver a la sala"
 clock = "La hora en mi casa: la luz de la sala es la de allí"

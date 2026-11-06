@@ -590,3 +590,25 @@ html:not(.room-mode) .btn-case { display: none; }
 }
 /* Con una hoja abierta queda poco sitio: fuera el zoom y la visita guiada */
 .has-sheet .stage-controls [data-r3-zoom], .has-sheet .stage-controls .btn-tour { display: none; }
+
+/* La sala con el teclado: anillo en la vista y la ayuda arriba mientras
+   está enfocada; el nombre de lo elegido sale en la etiqueta de siempre. */
+/* (el anillo va en una capa encima: el lienzo tapa el contorno de la vista) */
+.stage-view:focus-visible::after {
+  content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  box-shadow: inset 0 0 0 3px var(--accent); border-radius: 4px;
+}
+.r3-tip.is-below { translate: calc(var(--x, 0px) - 50%) calc(var(--y, 0px) + 22px); }
+.r3-kbd {
+  position: absolute; z-index: 4; bottom: 12px; left: 50%; translate: -50% 0; margin: 0;
+  max-width: calc(100% - 24px); padding: 6px 12px; border-radius: 8px; pointer-events: none;
+  font: 600 .8rem/1.35 var(--sans, system-ui); color: #e6edf7; text-align: center;
+  background: rgba(7, 11, 19, .88); border: 1px solid var(--accent);
+  opacity: 0; transition: opacity .2s;
+}
+.stage-view:focus-visible .r3-kbd { opacity: 1; }
+.stage-view:focus-visible .stage-hint { display: none; }
+.r3-sr {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}

@@ -1309,6 +1309,7 @@ status_retired = "Retired"
 status_lab = "Lab"
 
 [rack]
+kbd = "3D room: arrow keys to choose what to touch, Enter to open it, Esc to go back"
 gnome = "A server gnome: touch it"
 sheet_close = "Close and go back to the room"
 clock = "The time at my place: the room has its light"

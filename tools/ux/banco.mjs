@@ -282,7 +282,8 @@ const SCENARIOS = {
           // ¿Se nota el foco? Se compara su aspecto con foco y sin él
           const look = () => {
             const s = getComputedStyle(el);
-            return [s.outlineStyle + s.outlineWidth + s.outlineColor, s.borderColor, s.boxShadow, s.backgroundColor, s.color].join("|");
+            const after = getComputedStyle(el, "::after"); // anillo en una capa encima
+            return [s.outlineStyle + s.outlineWidth + s.outlineColor, s.borderColor, s.boxShadow, s.backgroundColor, s.color, after.content + after.boxShadow].join("|");
           };
           const on = look();
           el.blur();
@@ -309,6 +310,23 @@ const SCENARIOS = {
     };
     await p.keyboard.press("Tab");
     out.captura = await shot(p, "teclado-foco");
+    // Dentro de la sala: enfocar la vista, ir con las flechas y abrir con Intro
+    await p.focus("[data-r3-view]");
+    const dichos = [];
+    for (let i = 0; i < 3; i++) {
+      await p.keyboard.press("ArrowRight");
+      await p.waitForTimeout(SLOW ? 1500 : 300);
+      dichos.push(await p.evaluate(() => document.querySelector(".r3-sr")?.textContent || ""));
+    }
+    out.sala_teclado = dichos;
+    out.captura_sala = await shot(p, "teclado-sala");
+    await p.keyboard.press("Enter");
+    await p.waitForTimeout(SLOW ? 6000 : 1500);
+    out.sala_intro_abre = await p.evaluate(() => document.documentElement.classList.contains("has-sheet"));
+    out.captura_intro = await shot(p, "teclado-intro");
+    await p.keyboard.press("Escape");
+    await p.waitForTimeout(SLOW ? 3000 : 600);
+    out.sala_esc_vuelve = await p.evaluate(() => !document.documentElement.classList.contains("has-sheet") && document.activeElement === document.querySelector("[data-r3-view]"));
     out.errores = errors;
     await ctx.close();
     return out;
@@ -425,6 +443,7 @@ function score(r) {
     "fallos de accesibilidad (axe)": [v.rrhh?.axe, v.movil?.axe].reduce((n, a) => n + (a?.reduce((m, x) => m + (x.impact === "serious" || x.impact === "critical" ? 1 : 0), 0) || 0), 0),
     "paradas de teclado invisibles": v.teclado?.invisibles?.length ?? null,
     "foco sin anillo": v.teclado?.sin_anillo?.length ?? null,
+    "sala sin teclado": v.teclado?.sala_teclado ? Number(!(v.teclado.sala_teclado.every(Boolean) && v.teclado.sala_intro_abre && v.teclado.sala_esc_vuelve)) : null,
     "centro tapado en recorridos (% medio)": v.recorrido?.pasos ? Math.round(v.recorrido.pasos.reduce((n, s) => n + s.centro_tapado_pct, 0) / v.recorrido.pasos.length) : null,
     "errores JS": Object.values(v).reduce((n, x) => n + (x.errores?.length || 0), 0),
     "visitas que fallan": Object.values(v).filter((x) => x.fallo).length,
@@ -441,7 +460,7 @@ md.push("", "## Detalle", "");
 for (const [name, v] of Object.entries(report.visitas)) {
   md.push(`### ${name}`);
   if (v.fallo) md.push(`- **falló:** ${v.fallo}`);
-  for (const k of ["gpu", "fps", "frame_p95_ms", "cortado_derecha", "omitida", "sala_ms", "tocables", "descarga_3d", "lienzo", "alto_pagina", "paradas", "llega_cv", "llega_contacto", "llega_3d"]) if (k in v) md.push(`- ${k}: ${v[k]}`);
+  for (const k of ["sala_teclado", "sala_intro_abre", "sala_esc_vuelve", "gpu", "fps", "frame_p95_ms", "cortado_derecha", "omitida", "sala_ms", "tocables", "descarga_3d", "lienzo", "alto_pagina", "paradas", "llega_cv", "llega_contacto", "llega_3d"]) if (k in v) md.push(`- ${k}: ${v[k]}`);
   for (const k of ["invisibles", "sin_anillo"]) if (v[k]?.length) md.push(`- ${k}: ${v[k].join(" · ")}`);
   for (const s of v.pasos || []) {
     const bits = [];
