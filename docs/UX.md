@@ -86,6 +86,17 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
     cabeza enorme junto a Hermes). Ahora se esconden mientras la cámara está
     a menos de 1,1 m de ellos; en la sala se siguen viendo.
 
+14. **Inglés, tema claro y tableta** (nuevas opciones `--lang en` y
+    `--tema light`, y visita `tableta` en vertical y horizontal). Inglés y
+    tema claro, a 0 (contraste incluido). La tableta sí tenía fallos: con
+    una hoja abierta la pantalla se partía en dos y a la sala le quedaba una
+    columna en la que el nombre salía palabra a palabra, el botón del CV
+    pisaba la profesión y los mandos ocupaban 4 filas; el dibujo de la
+    cabecera del laboratorio tapaba el subtítulo. Ahora, por debajo de
+    1100 px, la hoja ocupa la sala con el nombre, el CV y el contacto en una
+    fila encima; con poco ancho, detective y misión no salen con una hoja
+    abierta (la cierran al empezar), y las hojas no llevan ese dibujo.
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

@@ -30,6 +30,10 @@ const axeSrc = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe
 // Con WebGL por software (sin GPU) cada fotograma tarda ~1 s: se espera más
 // y sin animaciones para que las capturas sean estables.
 const GPU = typeof args.gpu === "string" ? args.gpu : null;
+// Idioma y tema del sistema: los textos en inglés son más largos y el tema
+// claro tiene sus propios contrastes.
+const LANG = args.lang === "en" ? "en" : "es";
+const TEMA = args.tema === "light" ? "light" : "dark";
 const SLOW = args.slow !== "no" && !GPU;
 const WAIT_3D = SLOW ? 30000 : 6000;
 
@@ -132,12 +136,12 @@ async function axe(p) {
 async function page(browser, name, opts = {}) {
   const ctx = await browser.newContext({
     viewport: opts.viewport || { width: 1440, height: 900 },
-    colorScheme: "dark",
+    colorScheme: TEMA,
     reducedMotion: SLOW ? "reduce" : "no-preference",
     // (Firefox no tiene modo móvil: allí basta con el tamaño)
     ...(BROWSER === chromium ? { isMobile: !!opts.mobile } : {}),
     hasTouch: !!opts.mobile,
-    locale: "es-ES",
+    locale: LANG === "en" ? "en-GB" : "es-ES",
   });
   const p = await ctx.newPage();
   p.setDefaultTimeout(180000);
@@ -155,7 +159,7 @@ async function page(browser, name, opts = {}) {
     } catch {}
   });
   const t0 = Date.now();
-  await p.goto(`${URL_BASE}/es/?hora=13`, { waitUntil: "load" });
+  await p.goto(`${URL_BASE}/${LANG}/?hora=13`, { waitUntil: "load" });
   return { ctx, p, errors, requests, t0 };
 }
 
@@ -268,6 +272,35 @@ const SCENARIOS = {
     return out;
   },
 
+  // Tableta en vertical y luego en horizontal (táctil)
+  async tableta(b) {
+    const out = { pasos: [] };
+    const errores = [];
+    for (const [nombre, viewport] of [["vertical", { width: 820, height: 1180 }], ["horizontal", { width: 1180, height: 820 }]]) {
+      const { ctx, p, errors, requests } = await page(b, "tableta", { viewport, mobile: true });
+      await p.waitForTimeout(SLOW ? 20000 : 4000);
+      out[`descarga_3d_${nombre}`] = requests.some((u) => u.includes("rack3d"));
+      out.pasos.push({ paso: nombre, captura: await shot(p, `tableta-${nombre}-1`), ...(await checks(p)) });
+      // En la sala (la tableta tiene 3D) no se baja: se abre una hoja con el
+      // dedo; sin sala, se baja por la página como en el móvil.
+      const sala = await p.evaluate(() => document.documentElement.classList.contains("room-mode"));
+      out[`sala_${nombre}`] = sala;
+      if (sala) {
+        await p.tap("[data-r3-flows]");
+        await p.waitForTimeout(SLOW ? 6000 : 1500);
+      } else {
+        await p.evaluate(() => scrollTo(0, document.body.scrollHeight / 2));
+        await p.waitForTimeout(800);
+      }
+      out.pasos.push({ paso: `${nombre} ${sala ? "con una hoja" : "a la mitad"}`, captura: await shot(p, `tableta-${nombre}-2`), ...(await checks(p)) });
+      if (nombre === "vertical") out.axe = await axe(p);
+      errores.push(...errors);
+      await ctx.close();
+    }
+    out.errores = errores;
+    return out;
+  },
+
   // Solo con teclado: ¿se llega a todo y se ve dónde está el foco?
   async teclado(b) {
     const { ctx, p, errors, t0 } = await page(b, "teclado");
@@ -306,7 +339,7 @@ const SCENARIOS = {
       sin_anillo: f.filter((x) => x.visible && !x.anillo).map((x) => x.txt),
       llega_cv: f.findIndex((x) => /CV/i.test(x.txt)),
       llega_contacto: f.findIndex((x) => /Contact/i.test(x.txt)),
-      llega_3d: f.findIndex((x) => /sala|rack|3D/i.test(x.txt)),
+      llega_3d: f.findIndex((x) => /sala|room|rack|3D/i.test(x.txt)),
     };
     await p.keyboard.press("Tab");
     out.captura = await shot(p, "teclado-foco");
@@ -460,7 +493,7 @@ md.push("", "## Detalle", "");
 for (const [name, v] of Object.entries(report.visitas)) {
   md.push(`### ${name}`);
   if (v.fallo) md.push(`- **falló:** ${v.fallo}`);
-  for (const k of ["sala_teclado", "sala_intro_abre", "sala_esc_vuelve", "gpu", "fps", "frame_p95_ms", "cortado_derecha", "omitida", "sala_ms", "tocables", "descarga_3d", "lienzo", "alto_pagina", "paradas", "llega_cv", "llega_contacto", "llega_3d"]) if (k in v) md.push(`- ${k}: ${v[k]}`);
+  for (const k of ["sala_vertical", "sala_horizontal", "sala_teclado", "sala_intro_abre", "sala_esc_vuelve", "gpu", "fps", "frame_p95_ms", "cortado_derecha", "omitida", "sala_ms", "tocables", "descarga_3d", "lienzo", "alto_pagina", "paradas", "llega_cv", "llega_contacto", "llega_3d"]) if (k in v) md.push(`- ${k}: ${v[k]}`);
   for (const k of ["invisibles", "sin_anillo"]) if (v[k]?.length) md.push(`- ${k}: ${v[k].join(" · ")}`);
   for (const s of v.pasos || []) {
     const bits = [];

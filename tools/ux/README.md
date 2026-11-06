@@ -47,3 +47,9 @@ En una máquina con gráfica (aquí no hay: WebGL va por software a ~1 fps):
 
 Los navegadores automatizados no cuentan en la medida anónima de visitas
 (`navigator.webdriver`).
+
+## Idioma y tema
+
+`--lang en` hace las visitas en inglés (textos más largos) y `--tema light`
+con el sistema en tema claro (otros contrastes). La visita `tableta` va en
+vertical (820×1180) y en horizontal, táctil.

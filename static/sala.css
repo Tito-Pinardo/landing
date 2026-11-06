@@ -612,3 +612,25 @@ html:not(.room-mode) .btn-case { display: none; }
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
   clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
 }
+
+/* Tableta y ventanas estrechas: partir la pantalla dejaba a la sala una
+   columna en la que el nombre salía palabra a palabra y los mandos en 4
+   filas. Por debajo de 1100 px la hoja ocupa la sala entera (entre los
+   raíles) y lo que quedaría debajo no se pinta. */
+@media (max-width: 1099px) {
+  /* El nombre, el CV y el contacto siguen a mano: en una fila, encima */
+  .room-mode .zone.is-sheet { left: calc(var(--rails) + 12px); width: auto; top: calc(var(--hdr, 64px) + 72px); }
+  .has-sheet .stage-id { display: flex; align-items: center; gap: 10px; max-width: none; }
+  .has-sheet .stage-role { display: none; }
+  .has-sheet .stage-name { font-size: 1.05rem; }
+  .has-sheet .stage-controls, .has-sheet .r3-card,
+  .has-sheet .r3-caption, .has-sheet .hermes { visibility: hidden; }
+  .has-sheet .toasts { right: calc(var(--rails) + 24px); }
+}
+/* Con una hoja abierta y poco ancho, los mandos en dos filas: detective y
+   misión cierran la hoja al empezar, así que no hace falta tenerlos ahí. */
+@media (max-width: 1399px) {
+  .has-sheet .stage-controls .btn-mission, .has-sheet .stage-controls .btn-case { display: none; }
+}
+/* En las hojas, esa esquina es del botón de cerrar */
+.is-sheet .chassis-leds, .is-sheet .chassis-vent { display: none; }
