@@ -34,7 +34,9 @@ const launch = () =>
   BROWSER.launch(
     BROWSER === chromium
       ? { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox", "--disable-dev-shm-usage"] }
-      : { firefoxUserPrefs: { "webgl.force-enabled": true } },
+      : // El sandbox de Firefox solo lee fuentes de las carpetas del
+        // sistema: sin esto, con fuentes en otra ruta, todo sale en cajas.
+        { firefoxUserPrefs: { "security.sandbox.content.level": 0 } },
   );
 
 // ---- comprobaciones que se repiten en cada paso
@@ -100,6 +102,7 @@ async function checks(p) {
     // Filas que ocupan los mandos de la sala (más de 2 = se ve desordenado)
     const tops = new Set([...document.querySelectorAll(".stage-controls .btn")].filter(vis).map((b) => Math.round(b.getBoundingClientRect().top / 8)));
     return {
+      sala: document.documentElement.classList.contains("room-mode"),
       filas_mandos: tops.size,
       overlaps,
       clipped,
@@ -126,7 +129,8 @@ async function page(browser, name, opts = {}) {
     viewport: opts.viewport || { width: 1440, height: 900 },
     colorScheme: "dark",
     reducedMotion: SLOW ? "reduce" : "no-preference",
-    isMobile: !!opts.mobile,
+    // (Firefox no tiene modo móvil: allí basta con el tamaño)
+    ...(BROWSER === chromium ? { isMobile: !!opts.mobile } : {}),
     hasTouch: !!opts.mobile,
     locale: "es-ES",
   });
@@ -214,6 +218,31 @@ const SCENARIOS = {
     out.errores = errors;
     await ctx.close();
     return out;
+  },
+
+  // Sin WebGL (o apagado): la página de siempre en un ordenador
+  async sin3d(b) {
+    if (BROWSER !== chromium) return { omitida: "solo en Chromium" };
+    const nb = await chromium.launch({ args: ["--disable-webgl", "--disable-webgl2", "--no-sandbox"] });
+    try {
+      const { ctx, p, errors } = await page(nb, "sin3d");
+      await p.waitForTimeout(4000);
+      const out = { pasos: [] };
+      out.pasos.push({ paso: "entrada", captura: await shot(p, "sin3d-1-entrada"), ...(await checks(p)) });
+      await p.evaluate(() => document.querySelector("[data-stage]")?.scrollIntoView());
+      await p.waitForTimeout(800);
+      out.pasos.push({ paso: "la sala (lista)", captura: await shot(p, "sin3d-2-sala"), ...(await checks(p)) });
+      // Lo que se sale por la derecha aunque no haya scroll (queda cortado)
+      out.cortado_derecha = await p.evaluate(() => [...document.querySelectorAll("main *")].filter((e) => {
+        const r = e.getBoundingClientRect();
+        return r.width > 0 && r.right > innerWidth + 1 && getComputedStyle(e).position !== "fixed";
+      }).length);
+      out.errores = errors.filter((e) => !/WebGL/.test(e));
+      await ctx.close();
+      return out;
+    } finally {
+      await nb.close();
+    }
   },
 
   // Móvil: sin 3D, página de siempre
@@ -367,8 +396,10 @@ function score(r) {
     "textos cortados": all.reduce((n, s) => n + (s.clipped?.length || 0), 0),
     "botones pequeños (móvil)": v.movil?.pasos?.reduce((n, s) => Math.max(n, s.small?.length || 0), 0) ?? null,
     "scroll horizontal": all.filter((s) => s.hscroll).length,
+    "elementos cortados a la derecha (sin 3D)": v.sin3d?.cortado_derecha ?? null,
     "mandos en más de 2 filas": all.filter((s) => s.filas_mandos > 2).length,
-    "CV o contacto sin poder pulsar": Object.entries(v).flatMap(([n, x]) => (x.pasos || []).filter((s, i) => n !== "movil" || i === 0)).filter((s) => s.cv !== "sí" || s.contact !== "sí").length,
+    // (en la sala siempre deben estar a mano; en la página, solo al entrar)
+    "CV o contacto sin poder pulsar": Object.values(v).flatMap((x) => (x.pasos || []).filter((s, i) => s.sala || i === 0)).filter((s) => s.cv !== "sí" || s.contact !== "sí").length,
     "fallos de accesibilidad (axe)": [v.rrhh?.axe, v.movil?.axe].reduce((n, a) => n + (a?.reduce((m, x) => m + (x.impact === "serious" || x.impact === "critical" ? 1 : 0), 0) || 0), 0),
     "paradas de teclado invisibles": v.teclado?.invisibles?.length ?? null,
     "foco sin anillo": v.teclado?.sin_anillo?.length ?? null,
@@ -388,7 +419,7 @@ md.push("", "## Detalle", "");
 for (const [name, v] of Object.entries(report.visitas)) {
   md.push(`### ${name}`);
   if (v.fallo) md.push(`- **falló:** ${v.fallo}`);
-  for (const k of ["sala_ms", "tocables", "descarga_3d", "lienzo", "alto_pagina", "paradas", "llega_cv", "llega_contacto", "llega_3d"]) if (k in v) md.push(`- ${k}: ${v[k]}`);
+  for (const k of ["cortado_derecha", "omitida", "sala_ms", "tocables", "descarga_3d", "lienzo", "alto_pagina", "paradas", "llega_cv", "llega_contacto", "llega_3d"]) if (k in v) md.push(`- ${k}: ${v[k]}`);
   for (const k of ["invisibles", "sin_anillo"]) if (v[k]?.length) md.push(`- ${k}: ${v[k].join(" · ")}`);
   for (const s of v.pasos || []) {
     const bits = [];

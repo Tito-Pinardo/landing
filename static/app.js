@@ -332,7 +332,15 @@
   // interfaz. Ahí la web es la página de siempre y el rack, su lista (ni se
   // descarga el 3D).
   const mobile = matchMedia("(max-width: 759px)");
-  let webgl = !!stage?.dataset.src && "WebGL2RenderingContext" in window;
+  // WebGL de verdad (que exista la API no basta: sin GPU ni driver falla al
+  // crear el contexto) antes de bajar los 600 KB del 3D.
+  let webgl = !!stage?.dataset.src && (() => {
+    try {
+      return !!document.createElement("canvas").getContext("webgl2");
+    } catch {
+      return false;
+    }
+  })();
   let roomOk = webgl && !mobile.matches;
   const quickOn = () => doc.classList.contains("quick-mode");
   function roomMode(on) {

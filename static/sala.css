@@ -29,6 +29,7 @@
   --room-muted: #93a1b8;
   position: relative;
   display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr); /* sin 3D, la lista no se sale de la columna */
   border-radius: 18px; overflow: hidden;
   background:
     radial-gradient(120% 70% at 50% 100%, rgba(45, 212, 191, .16), transparent 60%),
@@ -46,8 +47,8 @@
 html:not(.js) .stage, .stage.no-3d { grid-template-rows: auto auto; }
 
 .stage-hud {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-  padding: 16px 18px 6px; position: relative; z-index: 2;
+  display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 16px 18px 6px; position: relative; z-index: 2; min-width: 0;
 }
 .stage-title .kicker { margin: 0 0 4px; font-size: .78rem; }
 .stage-title h2 { margin: 0; font-size: clamp(1.25rem, 1rem + 1vw, 1.7rem); }

@@ -455,3 +455,10 @@ html[data-motion="off"] .lab-node.is-broken, html[data-motion="off"] .lab-node.i
 .w-zzz text:nth-child(2) { animation-delay: .8s; }
 .w-zzz text:nth-child(3) { animation-delay: 1.6s; }
 .rack-unit.fx-dock { position: relative; z-index: 5; animation: fx-dock .65s cubic-bezier(.3, .7, .2, 1); }
+/* La lista del rack va también en columnas estrechas (sin 3D, junto al
+   tablero): se compacta según su propio ancho, no el de la ventana. */
+.rack { container-type: inline-size; min-width: 0; }
+@container (max-width: 760px) {
+  .rack-unit a { grid-template-columns: 34px 30px minmax(0, 1fr) auto; }
+  .ru-ear, .ru-text, .ru-vent, .ru-go { display: none; }
+}

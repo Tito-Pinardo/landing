@@ -1,21 +1,22 @@
 # Experiencia: registro de vueltas
 
-Cada vuelta: banco de pruebas (`tools/ux`) → mirar capturas e informe →
+Cada vuelta: banco de pruebas (`tools/ux`, Chromium y Firefox) → mirar capturas e informe →
 arreglar lo peor → volver a pasar el banco. Las cifras son de la visita
 completa (6 visitas, Chromium, 1440×900 / 1280×720 / 390×844).
 
 ## Cifras
 
-| Cifra | Base (05-11) | Vuelta 6 |
-|---|---|---|
-| Paneles que se pisan | 14 | 0 |
-| Scroll horizontal | 11 pasos | 0 |
-| CV o «Contactar» sin poder pulsar | 12 pasos* | 0 |
-| Fallos serios de accesibilidad (axe) | 2 | 0 |
-| Foco de teclado sin anillo | 8* | 0 |
-| Mandos en más de 2 filas | — | 0 |
-| Centro de la escena tapado en recorridos | 2–36 % | 0 % |
-| Errores de JavaScript | 0 | 0 |
+| Cifra | Base (05-11) | Vuelta 6 | Vuelta 9 |
+|---|---|---|---|
+| Paneles que se pisan | 14 | 0 | 0 |
+| Scroll horizontal | 11 pasos | 0 | 0 |
+| CV o «Contactar» sin poder pulsar | 12 pasos* | 0 | 0 |
+| Fallos serios de accesibilidad (axe) | 2 | 0 | 0 |
+| Foco de teclado sin anillo | 8* | 0 | 0 |
+| Mandos en más de 2 filas | — | 0 | 0 |
+| Centro de la escena tapado en recorridos | 2–36 % | 0 % | 0 % |
+| Errores de JavaScript | 0 | 0 | 0 |
+| Elementos cortados a la derecha sin WebGL | 78 (medido en la vuelta 7) | — | 0 |
 
 \* Falsos positivos del propio banco, corregidos en la vuelta 1 (cogía el botón
 de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde).
@@ -44,8 +45,22 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
 6. **Con hoja abierta** los mandos se partían en 3 filas: fuera el zoom y la
    visita guiada mientras hay hoja (y el banco ya lo vigila).
 
+7. **Sin WebGL** (nueva visita `sin3d`, y Firefox aquí, que no tiene GPU):
+   la lista del rack se salía de su columna y quedaba cortada (78 elementos
+   fuera de la pantalla). La lista ahora se compacta según su propio ancho
+   (container query) y la columna no crece con el contenido; etiqueta única
+   para el mapa de zonas.
+8. **Firefox en el banco.** Necesita sus propias librerías delante y sin
+   sandbox de contenido para leer las fuentes (si no, todo sale en cajas y
+   las medidas son falsas). Con eso: 0 en todo salvo los avisos de WebGL.
+9. **WebGL de verdad antes de bajar el 3D.** Antes bastaba con que existiera
+   la API; sin GPU se bajaban 600 KB del 3D para fallar. Ahora se crea un
+   contexto de prueba primero. El banco ya solo exige el CV y el contacto a
+   mano dentro de la sala o al entrar (bajando por la página es normal no
+   verlos).
+
 ## Pendiente para próximas vueltas
 
-- Probar el banco en Firefox (el navegador del dueño) y con GPU real (fps).
+- Firefox con WebGL (aquí no hay GPU ni Mesa): probar la sala 3D en el Firefox de verdad del dueño.
 - El 3D no se recorre con teclado (todo su contenido sí, por el menú de arriba).
 - Medir con visitas reales de forma anónima (entrar, tocar, CV, contacto).
