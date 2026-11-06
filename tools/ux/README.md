@@ -33,3 +33,17 @@ node banco.mjs --out informes/1 --antes informes/0/informe.json
   capturas sean estables. Con GPU, `--slow no` lo acelera.
 - La portada se genera con `landing dump-site <dir>` (sin Postgres): los
   formularios no funcionan ahí.
+
+## Con GPU de verdad
+
+En una máquina con gráfica (aquí no hay: WebGL va por software a ~1 fps):
+
+- **Chrome del sistema**: `node banco.mjs --gpu /usr/bin/google-chrome-stable --url <web>`
+  usa la GPU por Vulkan (ANGLE), quita las esperas largas y mide los
+  fotogramas del recorrido (`fps`, `frame_p95_ms`).
+- **Firefox del sistema**: `firefox-gpu.mjs` lo maneja por WebDriver BiDi.
+  En headless Firefox no tiene GL; dentro de un `kwin_wayland --virtual` sí
+  (instrucciones en la cabecera del script), sin abrir nada en el escritorio.
+
+Los navegadores automatizados no cuentan en la medida anónima de visitas
+(`navigator.webdriver`).

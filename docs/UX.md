@@ -59,8 +59,16 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
    mano dentro de la sala o al entrar (bajando por la página es normal no
    verlos).
 
+10. **Con GPU de verdad** (RTX, Chrome y Firefox 159 del sistema). Chrome:
+    todo a 0, la sala en 1 s y el recorrido a 60 fps (p95 16,8 ms).
+    Firefox: sala en 1,1 s, 60 fps (p95 17 ms), 0 violaciones de CSP y 0
+    errores. Encontró un fallo: sin WebGL, en la página, el 3D se seguía
+    bajando al acercarse al rack (el arreglo de la vuelta 9 solo cubría la
+    sala). Ahora sin WebGL no se pide (0 peticiones, comprobado en Firefox).
+11. **Medida anónima de visitas** puesta: a partir de aquí las vueltas se
+    guían por dónde se va la gente de verdad (`tools/visitas.sh`).
+
 ## Pendiente para próximas vueltas
 
-- Firefox con WebGL (aquí no hay GPU ni Mesa): probar la sala 3D en el Firefox de verdad del dueño.
 - El 3D no se recorre con teclado (todo su contenido sí, por el menú de arriba).
-- Medir con visitas reales de forma anónima (entrar, tocar, CV, contacto).
+- Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

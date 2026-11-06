@@ -607,7 +607,10 @@
   const r3wait = [];
   const r3 = (fn) => (rack3d ? fn(rack3d) : r3wait.push(fn));
   let r3picked = 0; // cuándo se eligió algo a mano (para no pisarlo al bajar)
-  if (stage && stage.dataset.src) {
+  // Sin WebGL de verdad ni se baja: la lista se queda (antes, en la página,
+  // se bajaba igual al acercarse al rack y fallaba; visto en Firefox sin GL).
+  if (stage && !webgl) stage.classList.add("no-3d");
+  if (stage && webgl) {
     const load = () => {
       import(stage.dataset.src).then((m) => {
         rack3d = m.mount(stage, {

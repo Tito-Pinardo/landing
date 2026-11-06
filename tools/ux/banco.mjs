@@ -7,6 +7,8 @@
 // pisan, textos cortados, botones pequeños, accesibilidad (axe) y errores.
 //
 //   node banco.mjs [--url http://127.0.0.1:8099] [--browser chromium|firefox]
+//   node banco.mjs --gpu /usr/bin/google-chrome-stable   (Chrome del sistema
+//     con la GPU de verdad: sin esperas largas y con fotogramas medidos)
 //                  [--solo rrhh,movil] [--antes informes/<fecha>/informe.json]
 //
 // Deja en informes/<fecha>/ el informe (json y md) y las capturas. Con
@@ -27,12 +29,15 @@ mkdirSync(OUT, { recursive: true });
 const axeSrc = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 // Con WebGL por software (sin GPU) cada fotograma tarda ~1 s: se espera más
 // y sin animaciones para que las capturas sean estables.
-const SLOW = args.slow !== "no";
+const GPU = typeof args.gpu === "string" ? args.gpu : null;
+const SLOW = args.slow !== "no" && !GPU;
 const WAIT_3D = SLOW ? 30000 : 6000;
 
 const launch = () =>
   BROWSER.launch(
-    BROWSER === chromium
+    GPU
+      ? { executablePath: GPU, headless: true, args: ["--headless=new", "--enable-gpu", "--ignore-gpu-blocklist", "--use-angle=vulkan", "--enable-features=Vulkan"] }
+      : BROWSER === chromium
       ? { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox", "--disable-dev-shm-usage"] }
       : // El sandbox de Firefox solo lee fuentes de las carpetas del
         // sistema: sin esto, con fuentes en otra ruta, todo sale en cajas.
@@ -317,6 +322,23 @@ const SCENARIOS = {
     await p.waitForTimeout(3000);
     await click(p, '[data-flow="visit"]');
     const out = { pasos: [] };
+    // Fluidez con la cámara siguiendo al paquete: fotogramas en 4 s y el
+    // percentil 95 del tiempo entre ellos (con SwiftShader no significa nada).
+    if (!SLOW) {
+      Object.assign(out, await p.evaluate(() => new Promise((ok) => {
+        const t = [];
+        const f = (now) => { t.push(now); if (now - t[0] < 4000) requestAnimationFrame(f); else {
+          const d = t.slice(1).map((x, i) => x - t[i]).sort((a, b) => a - b);
+          ok({ fps: Math.round((1000 * d.length) / (t.at(-1) - t[0])), frame_p95_ms: Math.round(d[Math.floor(d.length * 0.95)] * 10) / 10 });
+        } };
+        requestAnimationFrame(f);
+      })));
+      out.gpu = await p.evaluate(() => {
+        const gl = document.createElement("canvas").getContext("webgl2");
+        const e = gl?.getExtension("WEBGL_debug_renderer_info");
+        return e ? gl.getParameter(e.UNMASKED_RENDERER_WEBGL) : "?";
+      });
+    }
     for (let k = 0; k < 5; k++) {
       await p.evaluate(() => {
         const c = document.querySelector("[data-r3-cap-play]");
@@ -419,7 +441,7 @@ md.push("", "## Detalle", "");
 for (const [name, v] of Object.entries(report.visitas)) {
   md.push(`### ${name}`);
   if (v.fallo) md.push(`- **falló:** ${v.fallo}`);
-  for (const k of ["cortado_derecha", "omitida", "sala_ms", "tocables", "descarga_3d", "lienzo", "alto_pagina", "paradas", "llega_cv", "llega_contacto", "llega_3d"]) if (k in v) md.push(`- ${k}: ${v[k]}`);
+  for (const k of ["gpu", "fps", "frame_p95_ms", "cortado_derecha", "omitida", "sala_ms", "tocables", "descarga_3d", "lienzo", "alto_pagina", "paradas", "llega_cv", "llega_contacto", "llega_3d"]) if (k in v) md.push(`- ${k}: ${v[k]}`);
   for (const k of ["invisibles", "sin_anillo"]) if (v[k]?.length) md.push(`- ${k}: ${v[k].join(" · ")}`);
   for (const s of v.pasos || []) {
     const bits = [];
