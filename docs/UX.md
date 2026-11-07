@@ -167,6 +167,15 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
     los 279 KB de HTML de la portada son 60 KB comprimidos y en el móvil
     no se descarga el 3D. No hace falta aligerar nada.
 
+20. **El banco ve el texto que se sale de un contenedor que recorta.**
+    «Textos cortados» solo miraba si un botón o un título se desbordaba a
+    sí mismo; el contador de Safari no se desbordaba, se salía de la sala
+    (`overflow: hidden`). Ahora se mira cada trozo de texto visible contra
+    su primer contenedor que no sea `visible`: si recorta y el texto se
+    sale, cuenta; si se desplaza (bloques de código), no. Comprobado
+    poniendo el CSS antiguo: lo marca («unidades inspeccionadas, se sale
+    de stage»).
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

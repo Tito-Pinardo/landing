@@ -88,6 +88,28 @@ async function checks(p) {
       const s = getComputedStyle(el);
       if ((s.overflow === "hidden" || s.textOverflow === "ellipsis" || s.whiteSpace === "nowrap") && el.scrollWidth > el.clientWidth + 2) clipped.push((el.textContent || "").trim().slice(0, 40));
     }
+    // Texto que se sale por un lado de un contenedor que recorta (overflow
+    // hidden/clip): no se desborda a sí mismo, pero no se lee entero. Así se
+    // cortaba «inspeccionadas» en Safari. Los contenedores de 1-2 px son
+    // los de solo lectores de pantalla.
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    for (let n = walker.nextNode(); n && clipped.length < 20; n = walker.nextNode()) {
+      const txt = n.textContent.trim();
+      if (!txt || !n.parentElement || !vis(n.parentElement)) continue;
+      range.selectNodeContents(n);
+      const r = range.getBoundingClientRect();
+      if (r.width < 1 || r.bottom < 0 || r.top > innerHeight) continue;
+      for (let a = n.parentElement.parentElement; a && a !== document.body; a = a.parentElement) {
+        const ox = getComputedStyle(a).overflowX;
+        if (ox === "visible") continue;
+        // El primer contenedor que no es «visible» manda: si se desplaza
+        // (auto/scroll, como los bloques de código), el texto se puede leer.
+        const ar = a.getBoundingClientRect();
+        if ((ox === "hidden" || ox === "clip") && ar.width > 2 && (r.right > ar.right + 2 || r.left < ar.left - 2)) clipped.push(`${txt.slice(0, 30)} (se sale de ${a.className.toString().split(" ")[0] || a.tagName.toLowerCase()})`);
+        break;
+      }
+    }
     // Objetivos táctiles pequeños (menos de 32 px de alto o ancho)
     const small = [];
     for (const el of document.querySelectorAll("a, button, [role=button], input, select")) {
