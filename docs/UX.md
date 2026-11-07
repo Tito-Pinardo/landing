@@ -132,6 +132,25 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
     deslizador era rojo claro sobre papel (contraste 2,53:1). En el papel
     el rojo es ahora oscuro, como ya lo eran el verde y el ámbar.
 
+18. **Safari (WebKit).** Primera pasada del banco con el motor de Safari
+    (`--browser webkit`). Lo que solo salía ahí:
+    - El nombre de la portada (y el título de cada unidad) salía sin la
+      parte de arriba de las letras: con `background-clip: text`, WebKit
+      pinta el degradado solo dentro de la caja y las mayúsculas y tildes
+      de la primera línea se salen. Hueco arriba y abajo, compensado con
+      margen negativo.
+    - En un iPhone (390 px), «English» se salía 4 px por la derecha: la
+      barra compacta empezaba en 380 px. Ahora en 400 (sin encoger el
+      logo, que se quedaba en 30 px: eso sigue solo para 340 o menos).
+    - El contador «0/26 unidades inspeccionadas» se cortaba por la
+      derecha: `max-width: 12ch` con una palabra de 14 letras. Ahora
+      `width: min-content` (una palabra por línea, sin cortar).
+    - Errores sin capturar al arrancar el sonido si el dispositivo de
+      audio no está libre: `resume()`/`suspend()` con `.catch`.
+    WebKit 2215 con 3D por software, banco entero antes: scroll lateral 2 y
+    40 errores (los de audio y el ruido de las capturas); después, móvil,
+    portátil, unidades y blog en móvil a 0. Chromium (CI) sigue a 0.
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

@@ -204,7 +204,10 @@ main { display: block; }
 }
 .kicker { font: 700 .9rem/1 var(--mono); color: var(--accent); margin-bottom: 12px; }
 .kicker::before { content: "> "; opacity: .6; }
-.hero h1 { margin-bottom: .2em; background: linear-gradient(100deg, var(--text) 40%, var(--accent) 110%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero h1 { margin-bottom: .2em; background: linear-gradient(100deg, var(--text) 40%, var(--accent) 110%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  /* Safari solo pinta el degradado dentro de la caja: sin este hueco, las
+     mayúsculas y tildes de la primera línea salen cortadas por arriba. */
+  padding-block: .12em; margin-block: -.12em .08em; }
 .role { font: 600 1rem/1.4 var(--mono); color: var(--muted); margin-bottom: 18px; }
 /* El latido: un anillo que crece y se apaga (transform y opacity, que la
    GPU anima sin repintar; box-shadow obligaba a repintar en cada frame). */
@@ -891,14 +894,15 @@ html[data-night] body { background-color: color-mix(in srgb, var(--bg) 82%, #000
 html[data-night] .lab-node .node-led { filter: drop-shadow(0 0 4px var(--ok)); }
 html[data-night] .lab-link { filter: drop-shadow(0 0 3px var(--accent-soft)); }
 
-/* Teléfonos estrechos (360 px o menos): la barra entera tiene que caber. */
-@media (max-width: 380px) {
+/* Teléfonos estrechos (hasta los 390-393 px de los iPhone): la barra entera
+   tiene que caber; Safari pinta el texto unos píxeles más ancho. */
+@media (max-width: 400px) {
   .topbar-actions .btn { padding: 0 5px; }
   .btn-prefs, .btn-sound { min-width: 30px; }
   .topbar [data-quick-toggle] { padding: 0 6px; font-size: .8rem; }
-  .brand-mark { width: 30px; height: 30px; }
 }
 @media (max-width: 340px) {
+  .brand-mark { width: 30px; height: 30px; }
   .topbar [data-quick-toggle] { font-size: .74rem; letter-spacing: -.01em; }
   .topbar-actions .btn { padding: 0 3px; font-size: .8rem; }
 }

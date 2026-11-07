@@ -229,7 +229,7 @@
       return;
     }
     if (!enabled || !ctx || !sounds[name]) return;
-    if (ctx.state === "suspended") ctx.resume();
+    if (ctx.state === "suspended") ctx.resume().catch(() => {}); // sin dispositivo de audio: en silencio
     const t = ctx.currentTime + 0.01;
     if (name === "tick") {
       if (t - lastTick < 0.05) return;
@@ -252,7 +252,7 @@
     write(on ? "on" : "off");
     if (on) boot();
     if (master) master.gain.setTargetAtTime(enabled ? 1 : 0, ctx.currentTime, 0.08);
-    if (on && ctx?.state === "suspended") ctx.resume();
+    if (on && ctx?.state === "suspended") ctx.resume().catch(() => {}); // sin dispositivo de audio: en silencio
     paint();
     if (on) play("beep");
   }
@@ -273,7 +273,7 @@
   const wake = () => {
     if (!enabled) return;
     boot();
-    if (ctx.state === "suspended") ctx.resume();
+    if (ctx.state === "suspended") ctx.resume().catch(() => {}); // sin dispositivo de audio: en silencio
     if (pending && Date.now() - pending.at < 2500) play(pending.name);
     pending = null;
   };
@@ -286,8 +286,8 @@
   // Pestaña en segundo plano: se paran los ventiladores.
   document.addEventListener("visibilitychange", () => {
     if (!ctx) return;
-    if (document.hidden) ctx.suspend();
-    else if (enabled) ctx.resume();
+    if (document.hidden) ctx.suspend().catch(() => {}); // sin dispositivo de audio: en silencio
+    else if (enabled) ctx.resume().catch(() => {}); // sin dispositivo de audio: en silencio
   });
 
   document.addEventListener("DOMContentLoaded", () => {

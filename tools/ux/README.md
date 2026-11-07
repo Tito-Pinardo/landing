@@ -25,7 +25,7 @@ cd tools/ux && npm ci
 node banco.mjs --out informes/1 --antes informes/0/informe.json
 ```
 
-- `--solo rrhh,movil` pasa solo esas visitas; `--browser firefox` usa Firefox.
+- `--solo rrhh,movil` pasa solo esas visitas; `--browser firefox` usa Firefox y `--browser webkit`, WebKit.
 - Deja en `informes/<nombre>/` `informe.md`, `informe.json` y las capturas
   (`informes/` no va al repositorio).
 - Sin GPU, Chromium dibuja el 3D por software (SwiftShader) a ~1 fotograma por
@@ -44,6 +44,15 @@ En una máquina con gráfica (aquí no hay: WebGL va por software a ~1 fps):
 - **Firefox del sistema**: `firefox-gpu.mjs` lo maneja por WebDriver BiDi.
   En headless Firefox no tiene GL; dentro de un `kwin_wayland --virtual` sí
   (instrucciones en la cabecera del script), sin abrir nada en el escritorio.
+- **WebKit (Safari)**: `--browser webkit` usa el WebKit de Playwright
+  (`npx playwright install webkit`), lo más cerca de un iPhone o un Mac sin
+  tenerlos. Sin root y sin sus librerías del sistema, se sacan los `.deb` de
+  Debian a una carpeta y se le pasa un envoltorio con `--webkit <script>`
+  que copia el de `minibrowser-wpe/MiniBrowser` añadiendo esa carpeta a
+  `LD_LIBRARY_PATH` y, para el 3D por software, Mesa (`libegl-mesa0`,
+  `mesa-libgallium`) con `__EGL_VENDOR_LIBRARY_DIRS`. Así no tiene TLS: se
+  prueba el sitio local. En WebKit, Playwright mete un `<style>` en cada
+  captura y la CSP lo rechaza; el banco ignora ese aviso.
 
 Los navegadores automatizados no cuentan en la medida anónima de visitas
 (`navigator.webdriver`).

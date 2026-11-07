@@ -57,7 +57,7 @@ html:not(.js) .stage, .stage.no-3d { grid-template-rows: auto auto; }
   margin: 0; font: 600 .75rem/1.2 var(--mono); color: var(--muted); text-align: right;
 }
 .stage-count strong { font-size: 1rem; color: var(--xp); }
-.stage-count > span:last-child { grid-column: 1 / -1; max-width: 12ch; justify-self: end; }
+.stage-count > span:last-child { grid-column: 1 / -1; width: min-content; justify-self: end; /* una palabra por línea, sin cortar la más larga */ }
 .stage-count-ring {
   width: 22px; height: 22px; border-radius: 50%; grid-row: span 1;
   background: conic-gradient(var(--xp) calc(var(--r3-progress, 0) * 360deg), rgba(148, 163, 184, .2) 0);

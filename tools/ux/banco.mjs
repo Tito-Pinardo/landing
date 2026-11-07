@@ -6,7 +6,7 @@
 // sala, si el CV y el contacto se ven y se pueden pulsar, qué paneles se
 // pisan, textos cortados, botones pequeños, accesibilidad (axe) y errores.
 //
-//   node banco.mjs [--url http://127.0.0.1:8099] [--browser chromium|firefox]
+//   node banco.mjs [--url http://127.0.0.1:8099] [--browser chromium|firefox|webkit] [--webkit <envoltorio>]
 //   node banco.mjs --gpu /usr/bin/google-chrome-stable   (Chrome del sistema
 //     con la GPU de verdad: sin esperas largas y con fotogramas medidos)
 //                  [--solo rrhh,movil] [--antes informes/<fecha>/informe.json]
@@ -14,7 +14,7 @@
 // Deja en informes/<fecha>/ el informe (json y md) y las capturas. Con
 // --antes compara las cifras con un informe anterior.
 
-import { chromium, firefox } from "playwright";
+import { chromium, firefox, webkit } from "playwright";
 import { readFileSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
 
@@ -22,9 +22,10 @@ const args = Object.fromEntries(
   process.argv.slice(2).reduce((acc, a, i, all) => (a.startsWith("--") ? [...acc, [a.slice(2), all[i + 1]?.startsWith("--") ? true : all[i + 1] ?? true]] : acc), []),
 );
 const URL_BASE = (args.url || "http://127.0.0.1:8099").replace(/\/$/, "");
-const BROWSER = args.browser === "firefox" ? firefox : chromium;
+// WebKit es el motor de Safari: lo más cerca de un iPhone o un Mac sin tenerlos.
+const BROWSER = { firefox, webkit }[args.browser] || chromium;
 const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
-const OUT = args.out || `informes/${stamp}${args.browser === "firefox" ? "-firefox" : ""}`;
+const OUT = args.out || `informes/${stamp}${BROWSER !== chromium ? "-" + args.browser : ""}`;
 mkdirSync(OUT, { recursive: true });
 const axeSrc = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
 // Con WebGL por software (sin GPU) cada fotograma tarda ~1 s: se espera más
@@ -45,6 +46,9 @@ const launch = () =>
       ? { executablePath: GPU, headless: true, args: ["--headless=new", "--enable-gpu", "--ignore-gpu-blocklist", "--use-angle=vulkan", "--enable-features=Vulkan"] }
       : BROWSER === chromium
       ? { ...CHROMIUM, args: args["sin-webgl"] ? ["--disable-webgl", "--disable-webgl2", "--no-sandbox", "--disable-dev-shm-usage"] : ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox", "--disable-dev-shm-usage"] }
+      : BROWSER === webkit
+      ? // Envoltorio propio cuando faltan librerías del sistema (ver README)
+        typeof args.webkit === "string" ? { executablePath: args.webkit } : {}
       : // El sandbox de Firefox solo lee fuentes de las carpetas del
         // sistema: sin esto, con fuentes en otra ruta, todo sale en cajas.
         { firefoxUserPrefs: { "security.sandbox.content.level": 0 } },
@@ -141,7 +145,7 @@ async function page(browser, name, opts = {}) {
     colorScheme: TEMA,
     reducedMotion: SLOW ? "reduce" : "no-preference",
     // (Firefox no tiene modo móvil: allí basta con el tamaño)
-    ...(BROWSER === chromium ? { isMobile: !!opts.mobile } : {}),
+    ...(BROWSER !== firefox ? { isMobile: !!opts.mobile } : {}),
     hasTouch: !!opts.mobile,
     locale: LANG === "en" ? "en-GB" : "es-ES",
   });
@@ -150,7 +154,10 @@ async function page(browser, name, opts = {}) {
   const errors = [];
   p.on("pageerror", (e) => errors.push("js: " + e.message.slice(0, 160)));
   p.on("console", (m) => {
-    if (m.type() === "error" && !/favicon|404/.test(m.text())) errors.push("consola: " + m.text().slice(0, 160));
+    // En WebKit, Playwright mete su propio <style> en cada captura y la CSP
+    // (bien) lo rechaza: ese aviso es del banco, no de la web.
+    const ruido = BROWSER === webkit && /Refused to apply a stylesheet/.test(m.text());
+    if (m.type() === "error" && !ruido && !/favicon|404/.test(m.text())) errors.push("consola: " + m.text().slice(0, 160));
   });
   const requests = [];
   p.on("request", (r) => requests.push(r.url()));
