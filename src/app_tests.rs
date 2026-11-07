@@ -730,3 +730,39 @@ async fn visits_are_anonymous_counters(db: PgPool) {
     assert_eq!(status, StatusCode::UNAUTHORIZED);
     assert!(!body.contains("entrada"));
 }
+
+#[sqlx::test]
+async fn each_unit_and_article_has_its_share_image(db: PgPool) {
+    let (app, _) = router(db, config(false));
+
+    let (_, _, body) = send(&app, get("/es/amp/")).await;
+    assert!(
+        body.contains("/og/es/unit/amp.png\""),
+        "la unidad enlaza su imagen"
+    );
+    let (_, _, body) = send(&app, get("/en/blog/nat-hsts/")).await;
+    assert!(
+        body.contains("/og/en/blog/nat-hsts.png\""),
+        "el artículo enlaza la suya"
+    );
+
+    for uri in ["/og/es/unit/amp.png", "/og/en/blog/nat-hsts.png"] {
+        let (status, h, body) = send(&app, get(uri)).await;
+        assert_eq!(status, StatusCode::OK, "{uri}");
+        assert_eq!(h[header::CONTENT_TYPE], "image/png");
+        assert!(
+            body.starts_with("\u{FFFD}PNG"),
+            "{uri}: firma PNG (0x89 sale como U+FFFD)"
+        );
+    }
+    // Solo lo que existe: ni ids inventados, ni otros tipos, ni otro idioma.
+    for uri in [
+        "/og/es/unit/no-existe.png",
+        "/og/es/otra/amp.png",
+        "/og/fr/unit/amp.png",
+        "/og/es/unit/amp.jpg",
+    ] {
+        let (status, _, _) = send(&app, get(uri)).await;
+        assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
+    }
+}

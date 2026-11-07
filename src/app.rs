@@ -104,6 +104,9 @@ struct Inner {
     http: reqwest::Client,
     live: Live,
     wake_notifier: Arc<Notify>,
+    /// Imágenes para compartir: se dibujan al pedirlas y se quedan aquí.
+    og: crate::og::Og,
+    og_cache: crate::og::Cache,
 }
 
 impl AppState {
@@ -188,6 +191,8 @@ impl AppState {
             http,
             live,
             wake_notifier,
+            og: crate::og::Og::new(),
+            og_cache: Default::default(),
         })))
     }
 
@@ -233,6 +238,7 @@ pub fn router(state: AppState) -> Router {
         .route("/api/visitas", get(visit_counts))
         .route("/healthz", get(healthz))
         .route("/static/{*path}", get(asset))
+        .route("/og/{lang}/{kind}/{file}", get(og_image))
         .route("/robots.txt", get(robots))
         .route("/sitemap.xml", get(sitemap))
         .fallback(not_found)
@@ -488,6 +494,55 @@ async fn asset(
     res.headers_mut()
         .insert(header::CACHE_CONTROL, HeaderValue::from_static(cache));
     res
+}
+
+/// Imagen para compartir de una unidad o un artículo (`/og/es/unit/amp.png`).
+/// Solo existen las del contenido: lo demás es 404 y no entra en la caché.
+async fn og_image(
+    Path((lang, kind, file)): Path<(String, String, String)>,
+    headers: HeaderMap,
+    State(st): State<AppState>,
+) -> Response {
+    let card = Lang::from_code(&lang)
+        .zip(file.strip_suffix(".png"))
+        .and_then(|(l, id)| crate::og::Card::of(&st.0.content, l, &kind, id));
+    let Some(card) = card else {
+        return not_found(State(st), headers).await;
+    };
+    let key = format!("{lang}/{kind}/{file}");
+    let cached = st.0.og_cache.lock().ok().and_then(|c| c.get(&key).cloned());
+    let png = match cached {
+        Some(png) => png,
+        None => {
+            let st2 = st.clone();
+            // Dibujar cuesta unos milisegundos de CPU: fuera del bucle de tokio.
+            match tokio::task::spawn_blocking(move || st2.0.og.png(&card)).await {
+                Ok(Ok(png)) => {
+                    let png = Bytes::from(png);
+                    if let Ok(mut c) = st.0.og_cache.lock() {
+                        c.insert(key, png.clone());
+                    }
+                    png
+                }
+                other => {
+                    tracing::error!(?other, "imagen para compartir");
+                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                }
+            }
+        }
+    };
+    (
+        [
+            (header::CONTENT_TYPE, HeaderValue::from_static("image/png")),
+            // Cambia cuando cambia el texto (cada despliegue): un día basta.
+            (
+                header::CACHE_CONTROL,
+                HeaderValue::from_static("public, max-age=86400"),
+            ),
+        ],
+        Body::from(png),
+    )
+        .into_response()
 }
 
 async fn robots(State(st): State<AppState>) -> impl IntoResponse {

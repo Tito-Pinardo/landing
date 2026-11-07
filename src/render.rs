@@ -1434,7 +1434,7 @@ pub fn article(
                 "inLanguage": lang.code(),
                 "url": url,
                 "mainEntityOfPage": url,
-                "image": format!("{public_url}/static/og.png"),
+                "image": format!("{public_url}/og/{}/blog/{}.png", lang.code(), a.slug),
                 "author": author(content, public_url),
                 "keywords": tech,
             },

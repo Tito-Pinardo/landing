@@ -11,6 +11,7 @@ mod content;
 mod live;
 mod minify;
 mod notify;
+mod og;
 mod render;
 mod security;
 mod unit;
@@ -94,6 +95,25 @@ async fn main() -> anyhow::Result<()> {
                 std::fs::create_dir_all(p)?;
             }
             std::fs::write(path, &body)?;
+        }
+        println!("escrito en {}", dir.display());
+        return Ok(());
+    }
+    // `landing dump-og <dir>` escribe la imagen para compartir de cada unidad
+    // y artículo, para verlas todas de un vistazo.
+    if std::env::args().nth(1).as_deref() == Some("dump-og") {
+        let dir = std::path::PathBuf::from(std::env::args().nth(2).context("falta el directorio")?);
+        let c = content::Content::embedded()?;
+        let og = og::Og::new();
+        for lang in content::Lang::ALL {
+            let ids = c.units.iter().map(|u| ("unit", u.id.as_str()));
+            let slugs = c.articles.iter().map(|a| ("blog", a.slug.as_str()));
+            for (kind, id) in ids.chain(slugs) {
+                let card = og::Card::of(&c, lang, kind, id).context("tarjeta")?;
+                let path = dir.join(lang.code()).join(kind).join(format!("{id}.png"));
+                std::fs::create_dir_all(path.parent().context("ruta")?)?;
+                std::fs::write(path, og.png(&card)?)?;
+            }
         }
         println!("escrito en {}", dir.display());
         return Ok(());

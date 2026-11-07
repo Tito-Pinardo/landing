@@ -35,6 +35,7 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 | `tools/rack3d/` | Fuente de la sala 3D (`src/rack3d.js`: rack, cámara, recorridos y misión; `src/room.js`: paredes, tablero, mesa, ventana y puerta; `src/drawer.js`: lo de dentro de los cajones; `src/gnomes.js`: los enanitos) y su empaquetado: `npm ci && npm run build` escribe `static/rack3d.min.js`, que se versiona (el servidor no necesita Node). Three.js y esbuild van fijados en `package.json` |
 | `tools/ux/` | Banco de pruebas de experiencia: visitas típicas con Playwright que sacan capturas y cifras (paneles que se pisan, scroll lateral, accesibilidad con axe…) sobre la portada generada con `landing dump-site`. Uso y visitas en `tools/ux/README.md`; registro de vueltas en `docs/UX.md` |
 | `tools/visitas.sh` | Embudo de la medida anónima de visitas (`tools/visitas.sh [días]`): cuántas pestañas llegan a cada paso, por modo, y qué porcentaje de las que entran. Lee la llave de `~/.config/landing/visitas.token` |
+| `assets/og/` | Fuentes (Inter Display y JetBrains Mono, recortadas a alfabeto latino; licencia OFL en `OFL.txt`) de las imágenes para compartir: cada unidad y artículo tiene la suya en `/og/{es,en}/{unit,blog}/<id>.png` (`src/og.rs`: SVG pasado a PNG con resvg la primera vez que se pide y guardado en memoria). `landing dump-og <dir>` las escribe todas para verlas |
 | `migrations/` | Esquema de PostgreSQL |
 | `src/` | Servidor |
 | `.forgejo/workflows/` | CI/CD en Forgejo (comprobar y desplegar); `.github/workflows/`, el CI de la copia pública |
