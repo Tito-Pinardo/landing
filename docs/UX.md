@@ -151,6 +151,22 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
     40 errores (los de audio y el ruido de las capturas); después, móvil,
     portátil, unidades y blog en móvil a 0. Chromium (CI) sigue a 0.
 
+19. **Carga en un móvil con 4G lento** (`tools/ux/carga.mjs`: 150 ms de
+    ida y vuelta, 1,6 Mbit/s, CPU ×4, caché vacía, mediana de 3, 07-11
+    contra producción desde casa, así que el TTFB real desde fuera será
+    algo mayor):
+
+    | Página | FCP | LCP | Todo cargado | Descarga | Peticiones |
+    |---|---|---|---|---|---|
+    | portada | 992 ms | 992 ms | 2214 ms | 122 KB | 8 |
+    | unidad (AMP) | 936 ms | 936 ms | 1259 ms | 50 KB | 7 |
+    | blog | 892 ms | 892 ms | 1017 ms | 30 KB | 6 |
+    | artículo | 660 ms | 660 ms | 673 ms | 23 KB | 5 |
+
+    Todo por debajo del segundo en LCP (Google da por bueno hasta 2,5 s):
+    los 279 KB de HTML de la portada son 60 KB comprimidos y en el móvil
+    no se descarga el 3D. No hace falta aligerar nada.
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

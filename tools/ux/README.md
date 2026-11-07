@@ -79,3 +79,9 @@ navegadores), `--sin-webgl`, `--slow no` y `--fallar`, que termina con error
 si alguna cifra pasa de 0. Visitas: `movil`, `tableta`, `sin3d`, `unidades`,
 `unidades_movil`, `blog` y `blog_movil`. Si falla, el registro del CI enseña
 el informe entero. La sala 3D, Firefox y el teclado siguen siendo a mano.
+
+## Carga con red lenta
+
+`node carga.mjs [--url <web>] [--veces 3] [--rutas /es/,/es/amp/]` mide en un
+móvil con el «4G lento» de Lighthouse (red y CPU frenadas por CDP, caché vacía)
+FCP, LCP, cuándo está todo cargado, cuánto se descarga y cuántas peticiones.
