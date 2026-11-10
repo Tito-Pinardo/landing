@@ -65,6 +65,9 @@ pub struct Site {
     pub nodes: Vec<Node>,
     pub flows: Vec<Flow>,
     pub incidents: Vec<Incident>,
+    /// Repos de la página /repos/ (ver `forge`).
+    #[serde(default)]
+    pub forge: Vec<crate::forge::Forge>,
 }
 
 impl Site {
@@ -222,6 +225,8 @@ pub struct Texts {
     pub rack: BTreeMap<String, String>,
     /// Artículos (índice, página de cada uno y bloque de la portada).
     pub blog: BTreeMap<String, String>,
+    /// Página de repos y «Lo último que he subido».
+    pub forge: crate::forge::ForgeTexts,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -782,6 +787,7 @@ impl Content {
             .map(|src| Unit::parse(src))
             .collect::<Result<_>>()?;
         content.validate_units()?;
+        content.validate_forge()?;
         content.articles = article::embedded()?;
         content.validate_articles()?;
         Ok(content)
@@ -831,6 +837,53 @@ impl Content {
         Ok(())
     }
 
+    /// Repos de /repos/: grupo, unidad y textos en los dos idiomas (de
+    /// `[forge.items]` o del mapa de repos de su unidad).
+    fn validate_forge(&self) -> Result<()> {
+        let mut seen = HashSet::new();
+        for f in &self.site.forge {
+            ensure!(seen.insert(f.id.as_str()), "repo repetido {}", f.id);
+            ensure!(
+                crate::forge::GROUPS.contains(&f.group.as_str()),
+                "repo {}: grupo desconocido {}",
+                f.id,
+                f.group
+            );
+            ensure!(
+                f.public
+                    .as_deref()
+                    .is_none_or(|u| u.starts_with("https://")),
+                "repo {}: la copia pública va por https",
+                f.id
+            );
+            let unit = match &f.unit {
+                Some(u) => Some(
+                    self.unit(u)
+                        .with_context(|| format!("repo {}: unidad {u}", f.id))?,
+                ),
+                None => None,
+            };
+            for lang in Lang::ALL {
+                let mapped = unit.is_some_and(|u| {
+                    u.repos.iter().any(|r| {
+                        r.name == f.id
+                            && u.texts(lang)
+                                .repos
+                                .as_ref()
+                                .is_some_and(|t| t.items.contains_key(&r.id))
+                    })
+                });
+                ensure!(
+                    mapped || self.texts(lang).forge.items.contains_key(&f.id),
+                    "repo {}: sin texto en {} (ni en [forge.items] ni en el mapa de su unidad)",
+                    f.id,
+                    lang.code()
+                );
+            }
+        }
+        Ok(())
+    }
+
     fn validate_units(&self) -> Result<()> {
         let k = &self.site.visits_key_sha256;
         ensure!(
@@ -854,7 +907,7 @@ impl Content {
         for u in &self.units {
             ensure!(ids.insert(u.id.as_str()), "unidad repetida {}", u.id);
             ensure!(
-                !["contact", "static", "api", "blog"].contains(&u.id.as_str()),
+                !["contact", "static", "api", "blog", "repos"].contains(&u.id.as_str()),
                 "unidad {}: el id choca con una ruta",
                 u.id
             );
@@ -1027,6 +1080,13 @@ impl Content {
             required(code, "unit_ui", unit::COMMON_KEYS, &t.unit_ui)?;
             required(code, "rack", RACK_KEYS, &t.rack)?;
             required(code, "blog", BLOG_KEYS, &t.blog)?;
+            required(code, "forge", crate::forge::KEYS, &t.forge.ui)?;
+            for id in t.forge.items.keys() {
+                ensure!(
+                    site.forge.iter().any(|f| f.id == *id),
+                    "{code}.toml [forge.items.{id}]: no está en [[forge]]"
+                );
+            }
             required(code, "hermes", HERMES_KEYS, &t.hermes.text)?;
             ensure!(
                 t.terminal

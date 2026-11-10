@@ -149,6 +149,7 @@
 .activity a { font-weight: 600; overflow-wrap: anywhere; }
 .activity .detail { grid-column: 2 / -1; color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
 .activity time { font: .78rem var(--mono); color: var(--muted); white-space: nowrap; }
+.activity-more { margin: 12px 0 0; font-weight: 600; font-size: .92rem; }
 .contact-grid { display: grid; gap: 24px; }
 @media (min-width: 900px) { .contact-grid { grid-template-columns: 1.6fr 1fr; gap: 40px; } }
 .contact-form { display: grid; gap: 14px; }

@@ -281,7 +281,7 @@ let RUTAS = null;
 async function rutas() {
   if (RUTAS) return RUTAS;
   const html = await (await fetch(`${URL_BASE}/${LANG}/`)).text();
-  const units = [...new Set([...html.matchAll(new RegExp(`href="/${LANG}/([a-z0-9-]+)/"`, "g"))].map((m) => m[1]).filter((u) => u !== "blog"))];
+  const units = [...new Set([...html.matchAll(new RegExp(`href="/${LANG}/([a-z0-9-]+)/"`, "g"))].map((m) => m[1]).filter((u) => u !== "blog" && u !== "repos"))];
   const blog = await (await fetch(`${URL_BASE}/${LANG}/blog/`)).text();
   const posts = [...new Set([...blog.matchAll(new RegExp(`href="/${LANG}/blog/([a-z0-9-]+)/"`, "g"))].map((m) => m[1]))];
   RUTAS = { units: units.map((u) => `/${u}/`), posts: posts.map((x) => `/blog/${x}/`) };
@@ -311,10 +311,10 @@ const SCENARIOS = {
     return paginas(b, "unidades_movil", (await rutas()).units, true);
   },
   async blog(b) {
-    return paginas(b, "blog", ["/blog/", ...(await rutas()).posts], false, blogExtra);
+    return paginas(b, "blog", ["/blog/", "/repos/", ...(await rutas()).posts], false, blogExtra);
   },
   async blog_movil(b) {
-    return paginas(b, "blog_movil", ["/blog/", ...(await rutas()).posts], true, blogExtra);
+    return paginas(b, "blog_movil", ["/blog/", "/repos/", ...(await rutas()).posts], true, blogExtra);
   },
 
   // Alguien de RR. HH. con un minuto en un portátil normal

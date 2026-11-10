@@ -71,6 +71,11 @@ recorren todas esas páginas (la primera con capturas, el resto solo con
 cifras) y pasan axe en cada una; la del blog busca «disco» y filtra por
 averías.
 
+`/repos/` va con el blog. `sitio.sh` la pinta con la muestra de actividad
+`forja-ejemplo.json` (`FORJA_JSON=` vacío la deja sin datos, como cuando el
+host no ha publicado nada); para refrescar la muestra, la salida de
+`publish_landing_forja.py --solo-mostrar` en el host.
+
 ## En el CI
 
 Cada push pasa una versión rápida y sin 3D (no hay GPU en el runner), unos 6

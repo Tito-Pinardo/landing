@@ -6,6 +6,8 @@ Cada pieza del servidor tiene su propia **unidad del rack**: una página a la qu
 
 Los postmortems más útiles del homelab están además como **artículos** (`/es/blog/`): síntoma, diagnóstico paso a paso, causa, arreglo y lección, cada uno con su fecha, datos estructurados (TechArticle) y enlace a la unidad donde pasó. La portada enseña los tres últimos y cada unidad enlaza los suyos. Cada artículo tiene un **tipo** (avería, casi, mejora medida, montaje, resumen semanal o cambios del mes) y los postmortems llevan una **ficha** con impacto, cómo se detectó, tiempo caído y lección. El índice se filtra por tipo, tecnología y unidad, y se busca en el texto entero con `/{lang}/blog/index.json`, que se pide al empezar a escribir. Los filtros viajan en la URL. Cada lunes sale un **resumen semanal** con las versiones, vulnerabilidades y noticias de fuera que afectan al homelab, escrito por `tools/digest` y publicado solo si lo apruebo en Matrix (ver [docs/digest.md](docs/digest.md)).
 
+La página de **repos** (`/es/repos/`) enseña los repositorios de mi Forgejo, que son privados: para qué sirve cada uno, con qué está hecho, sus commits (en total, en 30 días y por semana) y los últimos cambios, que también salen en «Ahora mismo». Qué repos salen y su texto están en el contenido (`[[forge]]` de `site.toml`; los de BattlePros reutilizan el mapa de repos de su unidad). La actividad la escribe el host cada 15 minutos en `forja.json`, junto al estado del homelab (`publish_landing_forja.py` en infra-tf), así que la web no tiene credenciales ni red hacia Forgejo. Los mensajes se filtran dos veces, allí y en `src/forge.rs`: nada de direcciones, nombres internos, números de CT, secretos ni temas de seguridad; infra-tf sale solo con cifras y enlaza a su copia pública. Si `forja.json` falta o tiene más de 6 horas, la página dice para qué sirve cada repo, sin cifras.
+
 ## Cómo está hecha
 
 - **Rust + Axum.** Las páginas se renderizan una vez al arrancar (plantillas `askama` compiladas) y se sirven desde memoria con ETag. Detrás de Cloudflare casi ninguna visita llega al servidor.
@@ -26,14 +28,14 @@ Los postmortems más útiles del homelab están además como **artículos** (`/e
 
 | Ruta | Qué hay |
 |---|---|
-| `content/site.toml` | Datos que no dependen del idioma: tecnologías, proyectos, piezas y grupos del servidor y recorridos |
+| `content/site.toml` | Datos que no dependen del idioma: tecnologías, proyectos, piezas y grupos del servidor, recorridos y los repos de `/repos/` (`[[forge]]`) |
 | `content/es.toml`, `content/en.toml` | Textos, con las mismas claves (el servidor no arranca si falta alguna) |
 | `content/articles/*.toml` | Artículos: fecha, unidad, tecnologías, `kind` y textos ES/EN por secciones (con `impact`/`detected`/`downtime` en los postmortems y `links` a fuentes de fuera); se descubren solos (basta con añadir el fichero, con el slug como nombre) y se ordenan por fecha |
 | `content/units/*.toml` | Unidades del rack (una por pieza del servidor): mapa, recorridos, averías y textos ES/EN; se validan contra `site.toml` y el orden del rack está en `src/unit.rs` |
 | `templates/` | Plantillas HTML (y el avatar de Hermes en SVG) |
-| `static/` | CSS (`app.css` común; `home.css`, `unit.css` y `blog.css`, solo en sus páginas; se minifica al arrancar), JS (`app.js` para la portada, `unit.js` para las unidades, `sound.js` para el sonido, `prefs.js` para el panel de vista: tema, animaciones, enanitos y la noche en casa), imágenes y CV (se compilan dentro del binario) |
+| `static/` | CSS (`app.css` común; `home.css`, `unit.css`, `blog.css` y `repos.css`, solo en sus páginas; se minifica al arrancar), JS (`app.js` para la portada, `unit.js` para las unidades, `sound.js` para el sonido, `prefs.js` para el panel de vista: tema, animaciones, enanitos y la noche en casa; `repos.js` pasa las fechas de `/repos/` a «hace 3 horas»), imágenes y CV (se compilan dentro del binario) |
 | `tools/rack3d/` | Fuente de la sala 3D (`src/rack3d.js`: rack, cámara, recorridos y misión; `src/room.js`: paredes, tablero, mesa, ventana y puerta; `src/drawer.js`: lo de dentro de los cajones; `src/gnomes.js`: los enanitos) y su empaquetado: `npm ci && npm run build` escribe `static/rack3d.min.js`, que se versiona (el servidor no necesita Node). Three.js y esbuild van fijados en `package.json` |
-| `tools/ux/` | Banco de pruebas de experiencia: visitas típicas con Playwright que sacan capturas y cifras (paneles que se pisan, scroll lateral, accesibilidad con axe…) sobre la portada generada con `landing dump-site`. Uso y visitas en `tools/ux/README.md`; registro de vueltas en `docs/UX.md` |
+| `tools/ux/` | Banco de pruebas de experiencia: visitas típicas con Playwright que sacan capturas y cifras (paneles que se pisan, scroll lateral, accesibilidad con axe…) sobre la portada generada con `landing dump-site` (`/repos/` con la muestra `tools/ux/forja-ejemplo.json`). Uso y visitas en `tools/ux/README.md`; registro de vueltas en `docs/UX.md` |
 | `tools/visitas.sh` | Embudo de la medida anónima de visitas (`tools/visitas.sh [días]`): cuántas pestañas llegan a cada paso, por modo, y qué porcentaje de las que entran. Lee la llave de `~/.config/landing/visitas.token` |
 | `assets/og/` | Fuentes (Inter Display y JetBrains Mono, recortadas a alfabeto latino; licencia OFL en `OFL.txt`) de las imágenes para compartir: cada unidad y artículo tiene la suya en `/og/{es,en}/{unit,blog}/<id>.png` (`src/og.rs`: SVG pasado a PNG con resvg la primera vez que se pide y guardado en memoria). `landing dump-og <dir>` las escribe todas para verlas |
 | `migrations/` | Esquema de PostgreSQL |
@@ -69,6 +71,6 @@ cargo sqlx prepare -- --all-targets   # al cambiar alguna consulta
 | `MATRIX_HOMESERVER`, `MATRIX_ACCESS_TOKEN`, `MATRIX_ROOM_ID` | no (juntas) | Aviso de mensajes nuevos |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET` | no (juntas) | Captcha de Cloudflare |
 | `GITHUB_USER` | no | Actividad pública reciente en "Ahora mismo" |
-| `HOMELAB_STATUS_FILE` | no | JSON con `services_up`, `services_total`, `uptime_30d`, `updated_at` |
+| `HOMELAB_STATUS_FILE` | no | JSON con `services_up`, `services_total`, `uptime_30d`, `updated_at`. En la misma carpeta se lee `forja.json`, la actividad de Forgejo de `/repos/` |
 
 `landing check` valida el contenido sin arrancar el servidor.

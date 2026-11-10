@@ -8,6 +8,7 @@ mod article;
 mod config;
 mod contact;
 mod content;
+mod forge;
 mod live;
 mod minify;
 mod notify;
@@ -65,7 +66,23 @@ async fn main() -> anyhow::Result<()> {
             std::fs::write(path, body)?;
             Ok(())
         };
+        // Actividad de ejemplo para /repos/ (FORJA_JSON=fichero); sin él, la
+        // página como queda cuando el host no ha publicado nada.
+        let list: Vec<(String, bool)> =
+            c.site.forge.iter().map(|f| (f.id.clone(), f.log)).collect();
+        let forja = match std::env::var("FORJA_JSON") {
+            Ok(p) if !p.is_empty() => Some(forge::parse(
+                &std::fs::read(&p).with_context(|| p.clone())?,
+                &list,
+            )?),
+            _ => None,
+        };
+        let now = forja
+            .as_ref()
+            .map_or_else(time::OffsetDateTime::now_utc, |f| f.updated_at);
         for (lang, code) in [(content::Lang::Es, "es"), (content::Lang::En, "en")] {
+            let page = render::repos(&c, lang, "dev", url, forja.as_ref(), now)?;
+            write([code, "repos", "index.html"].iter().collect(), &page.body)?;
             let page = render::index(&c, lang, "dev", url, None, "banco")?;
             write([code, "index.html"].iter().collect(), &page.body)?;
             // Unidades, blog (con su índice de búsqueda) y artículos

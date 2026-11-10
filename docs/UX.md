@@ -186,6 +186,18 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
     montados» (menos de 3 px entre dos botones con caja visible). Con el
     HTML de antes: 2 en `sin3d` y `movil`; ahora, 0.
 
+22. **Página de repos** (`/repos/`, nueva). El banco la visita en `blog` y
+    `blog_movil` con la muestra `tools/ux/forja-ejemplo.json` (el CI
+    también). Primera pasada: 2 fallos de contraste (la tarjeta «retirado»
+    iba con opacidad .78, que dejaba sus chips en 3,7:1; la etiqueta `docs`
+    en 4,4:1) y 3 botones pequeños en el móvil (el nombre del repo de cada
+    cambio, 16 px de alto). Ahora la tarjeta retirada va con borde
+    discontinuo, las etiquetas mezclan menos color y cada cambio de «Lo
+    último» es entero el enlace a su tarjeta. En el móvil esa columna va
+    al final: cada tarjeta ya trae sus cambios. Los grupos de un solo repo
+    (la web y el homelab) van de dos en dos para no dejar media fila
+    vacía. Todo a 0.
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

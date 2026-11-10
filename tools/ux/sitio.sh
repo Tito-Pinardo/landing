@@ -6,5 +6,6 @@ export PATH="$HOME/.cargo/bin:$PATH"
 cd "$(dirname "$0")/../.."
 DIR=${1:-tools/ux/informes/sitio}
 (cd tools/rack3d && npm run build >/dev/null)
-SQLX_OFFLINE=true cargo run -q -- dump-site "$DIR" >/dev/null
+# /repos/ con una muestra de actividad (FORJA_JSON= vacío: sin ella)
+FORJA_JSON=${FORJA_JSON-tools/ux/forja-ejemplo.json} SQLX_OFFLINE=true cargo run -q -- dump-site "$DIR" >/dev/null
 exec python3 tools/ux/servir.py "$DIR"

@@ -80,6 +80,9 @@ pub fn minified_assets() -> Vec<(String, Bytes, String)> {
         .collect()
 }
 
+/// (fecha de la actividad con la que se pintó, página).
+type ReposCached = (Option<time::OffsetDateTime>, Page);
+
 #[derive(Clone)]
 pub struct AppState(Arc<Inner>);
 
@@ -107,6 +110,9 @@ struct Inner {
     /// Imágenes para compartir: se dibujan al pedirlas y se quedan aquí.
     og: crate::og::Og,
     og_cache: crate::og::Cache,
+    /// Página /repos/ de cada idioma con la fecha de la actividad con la que
+    /// se pintó: se repinta cuando el host publica otra.
+    repos: std::sync::RwLock<[Option<ReposCached>; 2]>,
 }
 
 impl AppState {
@@ -118,6 +124,16 @@ impl AppState {
         wake_notifier: Arc<Notify>,
     ) -> anyhow::Result<Self> {
         let content = Content::embedded()?;
+        // La actividad de Forgejo la deja el host junto al estado del homelab.
+        if let Some(path) = &cfg.homelab_status_file {
+            let list = content
+                .site
+                .forge
+                .iter()
+                .map(|f| (f.id.clone(), f.log))
+                .collect();
+            live.spawn_forja(path.with_file_name("forja.json"), list);
+        }
         let asset_v = asset_version();
         let site_key = cfg.turnstile.as_ref().map(|t| t.site_key.as_str());
         let canary = aitrap::canary(&cfg.ip_hash_salt);
@@ -180,6 +196,7 @@ impl AppState {
             units,
             blog,
             blog_index,
+            repos: std::sync::RwLock::new([None, None]),
             min_assets: minified_assets()
                 .into_iter()
                 .map(|(name, body, etag)| (name, (body, etag)))
@@ -229,6 +246,8 @@ pub fn router(state: AppState) -> Router {
         .route("/{lang}/blog/index.json", get(blog_index))
         .route("/{lang}/blog/{slug}", get(article_no_slash))
         .route("/{lang}/blog/{slug}/", get(article_page))
+        .route("/{lang}/repos", get(repos_no_slash))
+        .route("/{lang}/repos/", get(repos_page))
         .route("/{lang}/{unit}", get(unit_no_slash))
         .route("/{lang}/{unit}/", get(unit_page))
         .route("/api/contact", post(contact_json))
@@ -413,6 +432,54 @@ async fn unit_no_slash(
     }
 }
 
+async fn repos_no_slash(
+    State(st): State<AppState>,
+    Path(lang): Path<String>,
+    headers: HeaderMap,
+) -> Response {
+    match Lang::from_code(&lang) {
+        Some(l) => Redirect::permanent(&format!("/{}/repos/", l.code())).into_response(),
+        None => not_found(State(st), headers).await,
+    }
+}
+
+async fn repos_page(
+    State(st): State<AppState>,
+    Path(lang): Path<String>,
+    headers: HeaderMap,
+) -> Response {
+    let Some(l) = Lang::from_code(&lang) else {
+        return not_found(State(st), headers).await;
+    };
+    let forja = st.0.live.forja();
+    let stamp = forja.as_ref().map(|f| f.updated_at);
+    {
+        let cache = st.0.repos.read().expect("lock");
+        if let Some((s, page)) = &cache[l as usize]
+            && *s == stamp
+        {
+            return serve_page(page, &headers, "public, max-age=120, s-maxage=300");
+        }
+    }
+    let page = match render::repos(
+        &st.0.content,
+        l,
+        &st.0.asset_v,
+        &st.0.cfg.public_url,
+        forja.as_ref(),
+        time::OffsetDateTime::now_utc(),
+    ) {
+        Ok(p) => p,
+        Err(e) => {
+            tracing::error!(error = %e, "pintando /repos/");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+    };
+    let res = serve_page(&page, &headers, "public, max-age=120, s-maxage=300");
+    st.0.repos.write().expect("lock")[l as usize] = Some((stamp, page));
+    res
+}
+
 fn serve_page(page: &Page, req: &HeaderMap, cache: &'static str) -> Response {
     let etag = HeaderValue::from_str(&page.etag).expect("etag válido");
     let mut res = if req.get(header::IF_NONE_MATCH) == Some(&etag) {
@@ -568,6 +635,7 @@ async fn sitemap(State(st): State<AppState>) -> impl IntoResponse {
     let paths = std::iter::once((String::new(), None))
         .chain(st.0.units.iter().map(|(id, _)| (format!("{id}/"), None)))
         .chain(std::iter::once(("blog/".to_owned(), newest)))
+        .chain(std::iter::once(("repos/".to_owned(), None)))
         .chain(
             st.0.articles
                 .iter()
@@ -656,6 +724,7 @@ pub const VISIT_STEPS: &[&str] = &[
     "contacto",       // abre el contacto
     "contacto_envia", // envía el formulario
     "blog",           // va al blog
+    "repos",          // va a la página de repos
 ];
 const VISIT_MODES: &[&str] = &["sala", "pagina", "movil"];
 

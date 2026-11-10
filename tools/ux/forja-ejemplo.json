@@ -1,0 +1,544 @@
+{
+ "updated_at": "2026-11-10T20:04:37Z",
+ "repos": [
+  {
+   "id": "landing",
+   "commits": 88,
+   "since": "2026-10-04",
+   "last_at": "2026-11-10T19:49:29Z",
+   "commits_30d": 73,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    14,
+    1,
+    44,
+    0,
+    4,
+    24,
+    1
+   ],
+   "recent": [
+    {
+     "at": "2026-11-10T19:49:29Z",
+     "msg": "fix(web): CV, LinkedIn y GitHub ya no se pegan en la hoja de contacto"
+    },
+    {
+     "at": "2026-11-07T00:13:18Z",
+     "msg": "test(ux): el banco ve el texto que se sale de un contenedor que recorta"
+    },
+    {
+     "at": "2026-11-07T00:02:54Z",
+     "msg": "test(ux): medir la carga en un móvil con 4G lento"
+    },
+    {
+     "at": "2026-11-07T00:01:36Z",
+     "msg": "feat(web): cada unidad y artículo con su propia imagen al compartir"
+    },
+    {
+     "at": "2026-11-07T00:01:26Z",
+     "msg": "fix(web): lo que salía mal en Safari (WebKit)"
+    },
+    {
+     "at": "2026-11-06T23:11:40Z",
+     "msg": "feat(ci): el banco de experiencia en cada push"
+    }
+   ]
+  },
+  {
+   "id": "infra-tf",
+   "commits": 556,
+   "since": "2026-09-16",
+   "last_at": "2026-11-10T01:14:50Z",
+   "commits_30d": 379,
+   "weeks": [
+    0,
+    0,
+    0,
+    42,
+    100,
+    18,
+    17,
+    179,
+    113,
+    31,
+    46,
+    10
+   ],
+   "recent": []
+  },
+  {
+   "id": "battlepros",
+   "commits": 219,
+   "since": "2026-10-18",
+   "last_at": "2026-10-30T19:05:47Z",
+   "commits_30d": 219,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    17,
+    132,
+    70,
+    0,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-10-30T19:05:47Z",
+     "msg": "fix(entregas): sin aviso en el chat por lo cogido de un spawner"
+    },
+    {
+     "at": "2026-10-30T18:42:01Z",
+     "msg": "feat(spawners): vuelve «Vender todo» al almacén del spawner"
+    },
+    {
+     "at": "2026-10-30T17:36:52Z",
+     "msg": "fix(sincronizacion): guardar sin cargar el chunk de la cama"
+    },
+    {
+     "at": "2026-10-30T15:53:03Z",
+     "msg": "feat(generadores): los spawners solo producen con su chunk cargado"
+    },
+    {
+     "at": "2026-10-30T02:36:40Z",
+     "msg": "fix(reinicio): sin dos avisos seguidos al pedirlo poco antes de uno fijo"
+    },
+    {
+     "at": "2026-10-30T02:35:43Z",
+     "msg": "fix(sincronizacion): guardar a todos al apagar, antes que el mundo"
+    }
+   ]
+  },
+  {
+   "id": "battlepros-entrada",
+   "commits": 265,
+   "since": "2026-10-19",
+   "last_at": "2026-11-02T15:46:36Z",
+   "commits_30d": 265,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    152,
+    112,
+    1,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-11-02T15:46:36Z",
+     "msg": "test(traductores): la prueba enciende y apaga la ViaProxy de los robots"
+    },
+    {
+     "at": "2026-10-30T19:17:16Z",
+     "msg": "test(bateria): spawners sin aviso de entrega al coger pilas ni al romperlo"
+    },
+    {
+     "at": "2026-10-30T18:53:00Z",
+     "msg": "test(bateria): estocada con Lunge sin speed y «Vender todo» en los spawners"
+    },
+    {
+     "at": "2026-10-30T16:41:44Z",
+     "msg": "test(bedrock): prueba con robots del mundo corrido"
+    },
+    {
+     "at": "2026-10-30T16:14:14Z",
+     "msg": "feat(bedrock): coordenadas corridas para que Bedrock juegue lejos del 0"
+    },
+    {
+     "at": "2026-10-30T14:36:03Z",
+     "msg": "fix(traductores): la cuenta de los clientes viejos se comprueba en la entrada"
+    }
+   ]
+  },
+  {
+   "id": "battlepros-mando",
+   "commits": 87,
+   "since": "2026-10-19",
+   "last_at": "2026-11-02T15:26:41Z",
+   "commits_30d": 87,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    66,
+    20,
+    1,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-11-02T15:26:41Z",
+     "msg": "feat(provision): la ViaProxy de los robots solo cuando se pide"
+    },
+    {
+     "at": "2026-10-30T17:09:12Z",
+     "msg": "fix(versiones): lista de releases también sin release estable"
+    },
+    {
+     "at": "2026-10-30T16:46:41Z",
+     "msg": "fix(lock): solo mando y mando-api pasan a 0.3.35"
+    },
+    {
+     "at": "2026-10-30T16:46:21Z",
+     "msg": "feat(versiones): lista de versiones para elegir en el panel"
+    },
+    {
+     "at": "2026-10-30T13:43:29Z",
+     "msg": "fix(mando): admitir versiones con compilación (-bN) para Geyser"
+    },
+    {
+     "at": "2026-10-30T13:17:52Z",
+     "msg": "feat(provision): ViaProxy y Geyser junto a la entrada"
+    }
+   ]
+  },
+  {
+   "id": "battlepros-agente",
+   "commits": 82,
+   "since": "2026-10-19",
+   "last_at": "2026-11-02T15:27:23Z",
+   "commits_30d": 82,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    57,
+    24,
+    1,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-10-30T13:19:45Z",
+     "msg": "feat(servicios): ViaProxy y Geyser, jars junto a la entrada"
+    },
+    {
+     "at": "2026-10-30T01:29:41Z",
+     "msg": "feat: MOTD e icono de la lista de servidores a la entrada (red.json) (0.3.33)"
+    },
+    {
+     "at": "2026-10-29T17:12:25Z",
+     "msg": "feat: las plazas de la red a la entrada (red.json) (0.3.32)"
+    },
+    {
+     "at": "2026-10-28T17:17:44Z",
+     "msg": "feat(jvm): páginas grandes para el montón por fragmento para medirlas"
+    },
+    {
+     "at": "2026-10-28T16:28:06Z",
+     "msg": "feat(jvm): cabeceras de objeto compactas por fragmento para medirlas"
+    },
+    {
+     "at": "2026-10-28T15:40:44Z",
+     "msg": "feat(regiones): grid-exponent de Folia por fragmento para medirlo"
+    }
+   ]
+  },
+  {
+   "id": "battlepros-comun",
+   "commits": 81,
+   "since": "2026-10-18",
+   "last_at": "2026-10-30T15:40:25Z",
+   "commits_30d": 81,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    13,
+    42,
+    26,
+    0,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-10-30T15:40:25Z",
+     "msg": "feat(generadores): los spawners solo producen con el chunk cargado"
+    },
+    {
+     "at": "2026-10-30T00:16:09Z",
+     "msg": "feat(equipos): tag del grupo (2-4 letras o números, sin repetir)"
+    },
+    {
+     "at": "2026-10-29T20:33:46Z",
+     "msg": "feat(mercado): lo vendido al servidor queda a la venta"
+    },
+    {
+     "at": "2026-10-29T13:48:40Z",
+     "msg": "feat(mercado): compra rápida de cada jugador y comprar parte de una pila"
+    },
+    {
+     "at": "2026-10-29T07:47:59Z",
+     "msg": "perf(subastas): contar y poner a la venta en una sentencia"
+    },
+    {
+     "at": "2026-10-29T07:35:57Z",
+     "msg": "perf(duelos,liga): retar por nombre en una sentencia"
+    }
+   ]
+  },
+  {
+   "id": "battlepros-mundo",
+   "commits": 25,
+   "since": "2026-10-19",
+   "last_at": "2026-10-29T15:06:29Z",
+   "commits_30d": 25,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    24,
+    1,
+    0,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-10-29T15:06:29Z",
+     "msg": "fix(servidor): sin HOLA, peticiones de 1 KiB como mucho y 10 s"
+    },
+    {
+     "at": "2026-10-22T13:12:43Z",
+     "msg": "feat(herramientas): prueba de generación con pumpkin-world (paridad y carga en Folia)"
+    },
+    {
+     "at": "2026-10-22T00:52:32Z",
+     "msg": "feat(herramientas): muestras y comparación para entrenar el diccionario zstd"
+    },
+    {
+     "at": "2026-10-22T00:20:27Z",
+     "msg": "feat(almacen): lado de la celda configurable (celda_bloques)"
+    },
+    {
+     "at": "2026-10-21T20:53:53Z",
+     "msg": "feat(mundo): VERSIONES, la versión de muchos chunks de una vez"
+    },
+    {
+     "at": "2026-10-21T15:38:55Z",
+     "msg": "fix(mundo): lo terminado entra en la muestra al escribirse"
+    }
+   ]
+  },
+  {
+   "id": "battlepros-generador",
+   "commits": 12,
+   "since": "2026-10-23",
+   "last_at": "2026-10-23T17:36:01Z",
+   "commits_30d": 12,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    12,
+    0,
+    0,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-10-23T17:36:01Z",
+     "msg": "feat: motor «nivel» (planificador de chunks de Pumpkin) y teselas a la vez configurables"
+    },
+    {
+     "at": "2026-10-23T15:55:49Z",
+     "msg": "feat: cuenta los chunks pedidos otra vez (con un ejemplo de coordenada)"
+    },
+    {
+     "at": "2026-10-23T15:50:58Z",
+     "msg": "fix: los chunks entregados se quedan en memoria"
+    },
+    {
+     "at": "2026-10-23T15:12:33Z",
+     "msg": "fix: el registro a nivel info por defecto (sin RUST_LOG no salía nada)"
+    },
+    {
+     "at": "2026-10-23T14:48:37Z",
+     "msg": "feat: cuentas en el registro cada 30 s (peticiones, teselas, rehechos) y medir desde cualquier tesela"
+    },
+    {
+     "at": "2026-10-23T14:02:16Z",
+     "msg": "feat: las estructuras solo las coloca Folia"
+    }
+   ]
+  },
+  {
+   "id": "battlepros-folia",
+   "commits": 518,
+   "since": "2021-06-12",
+   "last_at": "2026-10-28T23:16:06Z",
+   "commits_30d": 25,
+   "weeks": [
+    1,
+    0,
+    0,
+    2,
+    1,
+    0,
+    0,
+    6,
+    10,
+    9,
+    0,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-10-28T23:16:06Z",
+     "msg": "perf: AcquirePoi busca solo en lo cargado"
+    },
+    {
+     "at": "2026-10-28T20:11:21Z",
+     "msg": "perf: el rayo busca pararrayos solo en lo cargado"
+    },
+    {
+     "at": "2026-10-28T14:45:28Z",
+     "msg": "BattlePros: RemoveBlockGoal mira antes las paletas (parche 0024)"
+    },
+    {
+     "at": "2026-10-28T14:25:36Z",
+     "msg": "BattlePros: corrientes y rangos de despawn sin trabajo de más (parche 0023)"
+    },
+    {
+     "at": "2026-10-28T13:52:30Z",
+     "msg": "BattlePros: MoveThroughVillageGoal sin malus fuera de la aldea (parche 0022)"
+    },
+    {
+     "at": "2026-10-28T13:24:17Z",
+     "msg": "BattlePros: los bloques en los que está una entidad, más baratos (parche 0021)"
+    }
+   ]
+  },
+  {
+   "id": "battlepros-administracion",
+   "commits": 40,
+   "since": "2026-10-19",
+   "last_at": "2026-10-30T17:15:57Z",
+   "commits_30d": 40,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    32,
+    8,
+    0,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-10-30T17:15:57Z",
+     "msg": "fix(versiones): de prueba solo las que llevan sufijo"
+    },
+    {
+     "at": "2026-10-30T16:44:29Z",
+     "msg": "feat(versiones): elegir la versión de una lista en vez de escribirla"
+    },
+    {
+     "at": "2026-10-30T13:18:28Z",
+     "msg": "feat(servidores): ViaProxy y Geyser como servicios del nodo"
+    },
+    {
+     "at": "2026-10-30T02:24:48Z",
+     "msg": "feat(red): botones para actualizar toda la red a la vez"
+    },
+    {
+     "at": "2026-10-30T01:32:11Z",
+     "msg": "feat: MOTD e icono de la lista de servidores en el panel (0.3.11)"
+    },
+    {
+     "at": "2026-10-29T17:26:10Z",
+     "msg": "feat(web): panel nuevo con menú lateral, resumen y vistas por pantalla"
+    }
+   ]
+  },
+  {
+   "id": "battleproxy",
+   "commits": 16,
+   "since": "2026-10-18",
+   "last_at": "2026-10-23T00:21:48Z",
+   "commits_30d": 16,
+   "weeks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    11,
+    5,
+    0,
+    0,
+    0
+   ],
+   "recent": [
+    {
+     "at": "2026-10-22T20:33:57Z",
+     "msg": "docs: por qué battleproxy sigue en el registro de tito"
+    },
+    {
+     "at": "2026-10-19T04:05:35Z",
+     "msg": "fix: el proxy ya no migra la base; traslado al mismo servidor, nada"
+    },
+    {
+     "at": "2026-10-19T00:53:50Z",
+     "msg": "feat: quien se fue desde el survival vuelve al survival"
+    },
+    {
+     "at": "2026-10-18T18:29:59Z",
+     "msg": "test: la integración borra su carpeta al terminar bien"
+    },
+    {
+     "at": "2026-10-18T16:13:50Z",
+     "msg": "feat: traslados pedidos por los servidores y /server solo para admins"
+    },
+    {
+     "at": "2026-10-18T15:21:50Z",
+     "msg": "feat: traslados coordinados entre servidores de la red"
+    }
+   ]
+  }
+ ]
+}

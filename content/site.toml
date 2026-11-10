@@ -999,3 +999,93 @@ answer = 2
 id = "backup"
 clues = ["obsidian", "github", "backup", "hermes"]
 answer = 2
+
+# ---------------------------------------------------------------- repos
+# Página /repos/: los repos de mi Forgejo, en este orden. La actividad
+# (commits, semanas, mensajes) la publica el host en forja.json
+# (publish_landing_forja.py de infra-tf); aquí, qué se enseña de cada uno.
+# - id: nombre del repo en Forgejo
+# - group: web | infra | battlepros
+# - unit: unidad del rack donde se cuenta por dentro
+# - public: copia pública, si la hay
+# - stack: con qué está hecho
+# - log = false: solo cifras, sin mensajes (los de infra-tf nombran piezas
+#   internas)
+# Los de BattlePros toman su papel, resumen y cifras del mapa de repos de
+# su unidad (content/units/battlepros.toml); el resto, de [forge.items].
+
+[[forge]]
+id = "landing"
+group = "web"
+unit = "landing"
+public = "https://github.com/Tito-Pinardo/landing"
+stack = ["Rust", "Axum", "PostgreSQL", "Three.js", "Playwright"]
+
+[[forge]]
+id = "infra-tf"
+group = "infra"
+unit = "iac"
+public = "https://github.com/Tito-Pinardo/homelab-infra"
+stack = ["Terraform", "Ansible", "Python", "Forgejo Actions"]
+log = false
+
+[[forge]]
+id = "battlepros"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Java", "Folia", "PostgreSQL"]
+
+[[forge]]
+id = "battlepros-entrada"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Rust", "Tokio"]
+
+[[forge]]
+id = "battlepros-mando"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Rust", "Axum", "mTLS"]
+
+[[forge]]
+id = "battlepros-agente"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Rust", "systemd"]
+
+[[forge]]
+id = "battlepros-comun"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Java", "PostgreSQL"]
+
+[[forge]]
+id = "battlepros-mundo"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Rust", "zstd"]
+
+[[forge]]
+id = "battlepros-generador"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Rust", "pumpkin-world"]
+
+[[forge]]
+id = "battlepros-folia"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Java", "Folia"]
+fork = true
+
+[[forge]]
+id = "battlepros-administracion"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Svelte", "TypeScript"]
+
+[[forge]]
+id = "battleproxy"
+group = "battlepros"
+unit = "battlepros"
+stack = ["Java", "Velocity"]

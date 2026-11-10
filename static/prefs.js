@@ -251,6 +251,7 @@
       const t = setTimeout(() => window.tpPaso("entrada"), 4000);
       document.addEventListener("visibilitychange", () => { if (document.hidden) clearTimeout(t); }, { once: true });
     } else if (parts[1] === "blog") window.tpPaso("blog");
+    else if (parts[1] === "repos") window.tpPaso("repos");
     else if (parts.length === 2) window.tpPaso("unidad");
   });
 })();

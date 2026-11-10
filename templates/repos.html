@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}{{ f["meta_title"] }}{% endblock %}
+{% block description %}{{ f["meta_description"] }}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/repos.css?v={{ c.asset_v }}">
+<link rel="canonical" href="{{ url }}">
+<link rel="alternate" hreflang="es" href="{{ c.public_url }}/es/repos/">
+<link rel="alternate" hreflang="en" href="{{ c.public_url }}/en/repos/">
+<link rel="alternate" hreflang="x-default" href="{{ c.public_url }}/es/repos/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ f["meta_title"] }}">
+<meta property="og:description" content="{{ f["meta_description"] }}">
+<meta property="og:url" content="{{ url }}">
+<meta property="og:image" content="{{ c.public_url }}/static/og.png">
+<meta property="og:locale" content="{% if c.lang == "es" %}es_ES{% else %}en_GB{% endif %}">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{{ jsonld|safe }}</script>
+{% endblock %}
+
+{% block nav %}
+<nav class="crumbs" aria-label="breadcrumb">
+  <ol>
+    <li><a href="/{{ c.lang }}/">{{ c.t.unit_ui["crumb_rack"] }}</a></li>
+    <li aria-current="page">{{ f["crumb"] }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block main %}
+<section class="section repos-page">
+  <header class="repos-head">
+    <p class="kicker">{{ f["kicker"] }}</p>
+    <h1>{{ f["title"] }}</h1>
+    <p class="lead">{{ f["intro"] }}</p>
+    {% if let Some(s) = stats %}
+    <dl class="repos-stats">
+      <div><dt>{{ f["stat_repos"] }}</dt><dd>{{ s.repos }}</dd></div>
+      <div><dt>{{ f["stat_commits_30d"] }}</dt><dd>{{ s.commits_30d }}</dd></div>
+      <div><dt>{{ f["stat_commits"] }}</dt><dd>{{ s.commits }}</dd></div>
+      <div><dt>{{ f["stat_last"] }}</dt><dd><time datetime="{{ s.last_iso }}" data-ago>{{ s.last_label }}</time></dd></div>
+    </dl>
+    {% else %}
+    <p class="repos-nodata muted small">{{ f["no_data"] }}</p>
+    {% endif %}
+  </header>
+
+  <div class="repos-layout">
+    <div class="repos-main">
+      {% for g in groups %}
+      <section class="repo-group" aria-labelledby="g-{{ g.id }}">
+        <h2 id="g-{{ g.id }}" class="repo-group-title"><span class="arch-led" aria-hidden="true"></span>{{ g.title }}</h2>
+        <ol class="repo-grid">
+        {% for r in g.repos %}
+          <li class="repo-card{% if r.retired %} is-retired{% endif %}" id="repo-{{ r.id }}">
+            <header class="repo-top">
+              <h3><code>{{ r.id }}</code></h3>
+              {% if r.fork %}<span class="repo-badge">{{ f["fork"] }}</span>{% endif %}
+              {% if r.retired %}<span class="repo-badge is-off">{{ f["retired"] }}</span>{% endif %}
+              {% if let Some(v) = r.version %}<span class="repo-ver">v{{ v }}</span>{% endif %}
+            </header>
+            <p class="repo-role">{{ r.role }}</p>
+            <p class="repo-summary">{{ r.summary }}</p>
+            <ul class="chips repo-stack">{% for s in r.stack %}<li>{{ s }}</li>{% endfor %}</ul>
+            {% if let Some(a) = r.act %}
+            <div class="repo-act">
+              <svg class="repo-weeks" viewBox="0 0 118 28" preserveAspectRatio="none" role="img" aria-label="{{ a.bars_label }}">{% for b in a.bars %}{% if b.h == 0 %}<rect class="z" x="{{ b.x }}" y="26" width="8" height="2"></rect>{% else %}<rect x="{{ b.x }}" y="{{ b.y }}" width="8" height="{{ b.h }}"><title>{{ b.n }}</title></rect>{% endif %}{% endfor %}</svg>
+              <p class="repo-nums"><span><strong>{{ a.commits }}</strong> {{ f["commits"] }}</span><span><strong>{{ a.commits_30d }}</strong> {{ f["commits_30d"] }}</span><span>{{ f["since"] }} {{ a.since }}</span>{% if !a.last_iso.is_empty() %}<span><time datetime="{{ a.last_iso }}" data-ago>{{ a.last_label }}</time></span>{% endif %}</p>
+            </div>
+            {% if r.log %}
+            {% if a.recent.is_empty() %}
+            <p class="muted small">{{ f["no_recent"] }}</p>
+            {% else %}
+            <h4 class="repo-sub">{{ f["recent"] }}</h4>
+            <ol class="commits">
+              {% for x in a.recent %}
+              <li>{% if !x.kind.is_empty() %}<span class="ck ck-{{ x.kind }}">{{ x.kind }}</span>{% endif %}{% if !x.scope.is_empty() %}<span class="cs">{{ x.scope }}</span>{% endif %}<span class="ct">{{ x.text }}</span> <time datetime="{{ x.iso }}" data-ago>{{ x.label }}</time></li>
+              {% endfor %}
+            </ol>
+            {% endif %}
+            {% endif %}
+            {% endif %}
+            {% if !r.log %}<p class="repo-private small">{{ f["private_log"] }}</p>{% endif %}
+            {% if let Some(l) = r.loc %}<p class="repo-size small muted">{{ l }} {{ f["loc"] }}{% if let Some(n) = r.tests %} · {{ n }} {{ f["tests"] }}{% endif %}</p>{% endif %}
+            {% if r.unit_url.is_some() || r.public.is_some() %}
+            <p class="repo-links">{% if let Some(u) = r.unit_url %}<a href="{{ u }}">{{ f["unit_link"] }} →</a>{% endif %}{% if let Some(p) = r.public %}<a href="{{ p }}" rel="noopener" target="_blank">{{ f["public_copy"] }} ↗</a>{% endif %}</p>
+            {% endif %}
+          </li>
+        {% endfor %}
+        </ol>
+      </section>
+      {% endfor %}
+    </div>
+
+    {% if !feed.is_empty() %}
+    <div class="repos-side">
+      <section class="card repo-feed" aria-labelledby="feed-title">
+        <h2 id="feed-title">{{ f["latest"] }}</h2>
+        <ol class="commits feed">
+          {% for x in feed %}
+          <li><a class="feed-item" href="#repo-{{ x.repo }}"><span class="cr">{{ x.repo }}</span>{% if !x.kind.is_empty() %}<span class="ck ck-{{ x.kind }}">{{ x.kind }}</span>{% endif %}<span class="ct">{{ x.text }}</span> <time datetime="{{ x.iso }}" data-ago>{{ x.label }}</time></a></li>
+          {% endfor %}
+        </ol>
+        {% if !f["lang_note"].is_empty() %}<p class="muted small">{{ f["lang_note"] }}</p>{% endif %}
+        {% if let Some(s) = stats %}<p class="muted small">{{ f["updated"] }} <time datetime="{{ s.updated_iso }}" data-ago>{{ s.updated_label }}</time></p>{% endif %}
+      </section>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/repos.js?v={{ c.asset_v }}" defer></script>
+{% endblock %}

@@ -1522,9 +1522,34 @@
     return liveLoading;
   }
 
+  // Lo último de mi Forgejo (/repos/): «feat · repo · hace 2 h» y el mensaje.
+  function forgeItem(it) {
+    const li = document.createElement("li");
+    const m = /^([a-z]+)(?:\(([^)]*)\))?!?: (.+)$/.exec(it.msg);
+    const kind = document.createElement("span");
+    kind.className = "kind";
+    kind.textContent = m ? m[1] : "commit";
+    const a = document.createElement("a");
+    a.href = "/" + T.lang + "/repos/#repo-" + encodeURIComponent(it.repo);
+    a.textContent = it.repo;
+    const time = document.createElement("time");
+    time.dateTime = it.at;
+    time.textContent = ago(it.at);
+    const d = document.createElement("span");
+    d.className = "detail";
+    d.textContent = m ? (m[2] ? m[2] + " · " : "") + m[3] : it.msg;
+    li.append(kind, a, time, d);
+    return li;
+  }
+
   function renderLive(data) {
     const list = $("[data-activity]");
-    if (Array.isArray(data.github) && data.github.length) {
+    const forge = data.forja?.items;
+    if (Array.isArray(forge) && forge.length) {
+      const title = $("[data-activity-title]");
+      if (title) title.textContent = T.forge.latest;
+      list.replaceChildren(...forge.map(forgeItem));
+    } else if (Array.isArray(data.github) && data.github.length) {
       list.replaceChildren(...data.github.map((ev) => {
         const li = document.createElement("li");
         const kind = document.createElement("span");

@@ -58,6 +58,7 @@ struct State {
     github: Vec<Activity>,
     github_etag: Option<String>,
     homelab: Option<Homelab>,
+    forja: Option<crate::forge::Forja>,
 }
 
 #[derive(Clone)]
@@ -88,15 +89,18 @@ impl Live {
         struct Out<'a> {
             github: &'a [Activity],
             homelab: Option<&'a Homelab>,
+            forja: Option<crate::forge::Feed>,
         }
         let state = self.state.read().expect("lock");
         let homelab = state
             .homelab
             .as_ref()
             .filter(|h| OffsetDateTime::now_utc() - h.updated_at < HOMELAB_STALE);
+        let forja = fresh_forja(state.forja.as_ref()).map(|f| crate::forge::feed(f, 6));
         let body = serde_json::to_vec(&Out {
             github: &state.github,
             homelab,
+            forja,
         })
         .expect("serializable");
         *self.json.write().expect("lock") = Bytes::from(body);
@@ -161,6 +165,44 @@ impl Live {
             }
         });
     }
+}
+
+impl Live {
+    /// Actividad de Forgejo (la que escribe el host en `forja.json`), si no
+    /// está vieja.
+    pub fn forja(&self) -> Option<crate::forge::Forja> {
+        fresh_forja(self.state.read().expect("lock").forja.as_ref()).cloned()
+    }
+
+    /// Relee `forja.json` cada minuto. `list`: (id, con mensajes) de los
+    /// repos que se pueden enseñar.
+    pub fn spawn_forja(&self, path: PathBuf, list: Vec<(String, bool)>) {
+        let live = self.clone();
+        tokio::spawn(async move {
+            loop {
+                match tokio::fs::read(&path)
+                    .await
+                    .map_err(anyhow::Error::from)
+                    .and_then(|raw| crate::forge::parse(&raw, &list))
+                {
+                    Ok(f) => live.state.write().expect("lock").forja = Some(f),
+                    Err(e) => tracing::debug!(error = %e, "actividad de Forgejo no disponible"),
+                }
+                live.publish();
+                tokio::time::sleep(HOMELAB_EVERY).await;
+            }
+        });
+    }
+
+    #[cfg(test)]
+    pub fn set_forja(&self, f: crate::forge::Forja) {
+        self.state.write().expect("lock").forja = Some(f);
+        self.publish();
+    }
+}
+
+fn fresh_forja(f: Option<&crate::forge::Forja>) -> Option<&crate::forge::Forja> {
+    f.filter(|f| OffsetDateTime::now_utc() - f.updated_at < crate::forge::STALE)
 }
 
 async fn read_homelab(path: &PathBuf) -> anyhow::Result<Homelab> {

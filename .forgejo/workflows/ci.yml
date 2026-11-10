@@ -61,7 +61,7 @@ jobs:
             exit 0
           fi
           sitio="$(mktemp -d)"
-          "$CARGO_TARGET_DIR/release/landing" dump-site "$sitio" >/dev/null
+          FORJA_JSON=tools/ux/forja-ejemplo.json "$CARGO_TARGET_DIR/release/landing" dump-site "$sitio" >/dev/null
           python3 tools/ux/servir.py "$sitio" &
           servidor=$!
           trap 'kill $servidor; rm -rf "$sitio"' EXIT

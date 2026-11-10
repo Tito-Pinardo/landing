@@ -766,3 +766,72 @@ async fn each_unit_and_article_has_its_share_image(db: PgPool) {
         assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
     }
 }
+
+/// /repos/: sin actividad dice para qué sirve cada repo; con ella, cifras y
+/// mensajes, menos los de infra-tf y los que no deben salir. Y /api/status
+/// lleva lo último para «Ahora mismo».
+#[sqlx::test]
+async fn repos_page_with_and_without_activity(db: PgPool) {
+    let wake = Arc::new(Notify::new());
+    let live = Live::default();
+    let state = AppState::new(
+        config(false),
+        db,
+        reqwest::Client::new(),
+        live.clone(),
+        wake,
+    )
+    .unwrap();
+    let app =
+        app::router(state).layer(MockConnectInfo(SocketAddr::from(([198, 51, 100, 1], 1234))));
+
+    let (status, _, body) = send(&app, get("/es/repos/")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(body.contains("id=\"repo-battlepros-mando\""));
+    assert!(
+        body.contains("El plano de control"),
+        "papel del mapa de repos de la unidad"
+    );
+    assert!(body.contains("id=\"repo-infra-tf\""));
+    assert!(body.contains("repos-nodata"));
+    assert!(!body.contains("repo-act"));
+    let (status, h, _) = send(&app, get("/en/repos")).await;
+    assert_eq!(status, StatusCode::PERMANENT_REDIRECT);
+    assert_eq!(h[header::LOCATION], "/en/repos/");
+
+    let now = time::OffsetDateTime::now_utc();
+    let at = |mins: i64| {
+        (now - time::Duration::minutes(mins))
+            .format(&time::format_description::well_known::Rfc3339)
+            .unwrap()
+    };
+    let raw = serde_json::json!({
+        "updated_at": at(1),
+        "repos": [
+            {"id": "landing", "commits": 88, "since": "2026-10-04", "last_at": at(5), "commits_30d": 73,
+             "weeks": [0,0,0,0,0,14,1,44,0,4,24,1],
+             "recent": [{"at": at(5), "msg": "fix(web): botones que se pegaban"}, {"at": at(9), "msg": "fix: ruta al CT 125"}]},
+            {"id": "infra-tf", "commits": 556, "since": "2026-09-16", "last_at": at(60), "commits_30d": 379,
+             "weeks": [0,0,0,42,100,18,17,179,113,31,46,10],
+             "recent": [{"at": at(60), "msg": "feat(traefik): algo interno"}]}
+        ]
+    });
+    let list = vec![("landing".to_owned(), true), ("infra-tf".to_owned(), false)];
+    live.set_forja(crate::forge::parse(raw.to_string().as_bytes(), &list).unwrap());
+
+    let (_, _, body) = send(&app, get("/es/repos/")).await;
+    assert!(body.contains("repos-stats"));
+    assert!(body.contains("botones que se pegaban"));
+    assert!(!body.contains("CT 125"));
+    assert!(!body.contains("algo interno"), "infra-tf va sin mensajes");
+    assert!(body.contains(">644<"), "commits en total");
+
+    let (_, _, body) = send(&app, get("/api/status")).await;
+    let v: serde_json::Value = serde_json::from_str(&body).unwrap();
+    assert_eq!(v["forja"]["items"][0]["repo"], "landing");
+    assert_eq!(v["forja"]["commits_30d"], 452);
+    assert_eq!(v["forja"]["items"].as_array().unwrap().len(), 1);
+
+    let (_, _, body) = send(&app, get("/sitemap.xml")).await;
+    assert!(body.contains("<loc>https://example.org/es/repos/</loc>"));
+}

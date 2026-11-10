@@ -1488,6 +1488,7 @@ fn i18n(content: &Content, lang: Lang) -> serde_json::Value {
                 .collect::<Vec<_>>(),
         })).collect::<Vec<_>>(),
         "now": t.now,
+        "forge": { "latest": t.forge.ui["latest"] },
         "contact": t.contact,
         "lab": t.lab,
         "hermes": t.hermes,
@@ -1683,4 +1684,290 @@ mod tests {
             );
         }
     }
+}
+
+// ------------------------------------------------------------ repos
+
+#[derive(Template)]
+#[template(path = "repos.html")]
+pub struct ReposTpl<'a> {
+    pub c: Ctx<'a>,
+    pub f: &'a BTreeMap<String, String>,
+    pub url: String,
+    pub groups: Vec<RepoGroupView>,
+    pub stats: Option<RepoStats>,
+    pub feed: Vec<CommitView>,
+    pub jsonld: String,
+}
+
+pub struct RepoGroupView {
+    pub id: &'static str,
+    pub title: String,
+    pub repos: Vec<RepoCard>,
+}
+
+pub struct RepoCard {
+    pub id: String,
+    pub role: String,
+    pub summary: String,
+    pub stack: Vec<String>,
+    pub fork: bool,
+    pub retired: bool,
+    /// Del mapa de repos de la unidad: líneas, pruebas y versión.
+    pub loc: Option<String>,
+    pub tests: Option<u32>,
+    pub version: Option<String>,
+    pub unit_url: Option<String>,
+    pub public: Option<String>,
+    pub log: bool,
+    pub act: Option<ActView>,
+}
+
+pub struct ActView {
+    pub commits: String,
+    pub since: String,
+    pub last_iso: String,
+    pub last_label: String,
+    pub commits_30d: u32,
+    pub bars: Vec<Bar>,
+    pub bars_label: String,
+    pub recent: Vec<CommitView>,
+}
+
+pub struct Bar {
+    pub x: u32,
+    pub y: u32,
+    pub h: u32,
+    pub n: u32,
+}
+
+pub struct CommitView {
+    pub repo: String,
+    pub iso: String,
+    pub label: String,
+    pub kind: String,
+    pub scope: String,
+    pub text: String,
+}
+
+pub struct RepoStats {
+    pub repos: usize,
+    pub commits: String,
+    pub commits_30d: String,
+    pub last_iso: String,
+    pub last_label: String,
+    pub updated_iso: String,
+    pub updated_label: String,
+}
+
+const MESES: [[&str; 12]; 2] = [
+    [
+        "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic",
+    ],
+    [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ],
+];
+
+/// «10 nov» (con el año si no es el de ahora); en inglés «10 Nov».
+fn short_date(t: time::OffsetDateTime, now: time::OffsetDateTime, lang: Lang) -> String {
+    let m = MESES[lang as usize][usize::from(u8::from(t.month())) - 1];
+    if t.year() == now.year() {
+        format!("{} {m}", t.day())
+    } else {
+        format!("{} {m} {}", t.day(), t.year())
+    }
+}
+
+/// «2026-10-04» → «oct 2026».
+fn month_year(date: &str, lang: Lang) -> String {
+    let mut it = date.split('-');
+    let (Some(y), Some(m)) = (it.next(), it.next().and_then(|m| m.parse::<usize>().ok())) else {
+        return date.to_owned();
+    };
+    match MESES[lang as usize].get(m.wrapping_sub(1)) {
+        Some(mes) => format!("{mes} {y}"),
+        None => date.to_owned(),
+    }
+}
+
+fn iso(t: time::OffsetDateTime) -> String {
+    t.format(&time::format_description::well_known::Rfc3339)
+        .unwrap_or_default()
+}
+
+fn commit_view(
+    repo: &str,
+    at: time::OffsetDateTime,
+    msg: &str,
+    now: time::OffsetDateTime,
+    lang: Lang,
+) -> CommitView {
+    let (kind, scope, text) = crate::forge::split_message(msg);
+    CommitView {
+        repo: repo.to_owned(),
+        iso: iso(at),
+        label: short_date(at, now, lang),
+        kind: kind.unwrap_or("").to_owned(),
+        scope: scope.unwrap_or("").to_owned(),
+        text: text.to_owned(),
+    }
+}
+
+/// Página /repos/: para qué sirve cada repo (del contenido) y, si el host ha
+/// publicado `forja.json` hace poco, su actividad.
+pub fn repos(
+    content: &Content,
+    lang: Lang,
+    asset_v: &str,
+    public_url: &str,
+    forja: Option<&crate::forge::Forja>,
+    now: time::OffsetDateTime,
+) -> anyhow::Result<Page> {
+    let mut c = ctx(content, lang, asset_v, public_url);
+    c.path = "repos/".into();
+    let t = content.texts(lang);
+    let f = &t.forge.ui;
+    let url = format!("{public_url}/{}/repos/", lang.code());
+    let act_of = |id: &str| forja.and_then(|x| x.repos.iter().find(|r| r.id == id));
+
+    let mut groups: Vec<RepoGroupView> = crate::forge::GROUPS
+        .iter()
+        .map(|g| RepoGroupView {
+            id: g,
+            title: f.get(&format!("group_{g}")).cloned().unwrap_or_default(),
+            repos: Vec::new(),
+        })
+        .collect();
+    for repo in &content.site.forge {
+        let unit = repo.unit.as_deref().and_then(|u| content.unit(u));
+        // Papel y resumen: del mapa de repos de la unidad o de [forge.items].
+        let mapped = unit.and_then(|u| {
+            let r = u.repos.iter().find(|r| r.name == repo.id)?;
+            let rt = u.texts(lang).repos.as_ref()?.items.get(&r.id)?;
+            Some((r, rt))
+        });
+        let (role, summary) = match (mapped, t.forge.items.get(&repo.id)) {
+            (Some((_, rt)), _) => (rt.role.clone(), rt.summary.clone()),
+            (None, Some(it)) => (it.role.clone(), it.summary.clone()),
+            (None, None) => continue,
+        };
+        let act = act_of(&repo.id).map(|a| {
+            let max = a.weeks.iter().copied().max().unwrap_or(0).max(1);
+            ActView {
+                commits: miles(a.commits, lang),
+                since: month_year(&a.since, lang),
+                last_iso: a.last_at.map(iso).unwrap_or_default(),
+                last_label: a
+                    .last_at
+                    .map(|t| short_date(t, now, lang))
+                    .unwrap_or_default(),
+                commits_30d: a.commits_30d,
+                bars: a
+                    .weeks
+                    .iter()
+                    .enumerate()
+                    .map(|(i, &n)| {
+                        let h = if n == 0 { 0 } else { (n * 26 / max).max(3) };
+                        Bar {
+                            x: i as u32 * 10,
+                            y: 28 - h,
+                            h,
+                            n,
+                        }
+                    })
+                    .collect(),
+                bars_label: format!(
+                    "{}: {}",
+                    f["weeks"],
+                    a.weeks
+                        .iter()
+                        .map(u32::to_string)
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
+                recent: a
+                    .recent
+                    .iter()
+                    .take(4)
+                    .map(|x| commit_view(&repo.id, x.at, &x.msg, now, lang))
+                    .collect(),
+            }
+        });
+        let card = RepoCard {
+            id: repo.id.clone(),
+            role,
+            summary,
+            stack: repo.stack.clone(),
+            fork: repo.fork,
+            retired: mapped.is_some_and(|(r, _)| r.retired),
+            loc: mapped.map(|(r, _)| miles(r.loc, lang)),
+            tests: mapped.map(|(r, _)| r.tests).filter(|n| *n > 0),
+            version: mapped.map(|(r, _)| r.version.clone()),
+            unit_url: unit.map(|u| format!("/{}/{}/", lang.code(), u.id)),
+            public: repo.public.clone(),
+            log: repo.log,
+            act,
+        };
+        if let Some(g) = groups.iter_mut().find(|g| g.id == repo.group) {
+            g.repos.push(card);
+        }
+    }
+    groups.retain(|g| !g.repos.is_empty());
+
+    let stats = forja.map(|x| {
+        let last = x.repos.iter().filter_map(|r| r.last_at).max();
+        RepoStats {
+            repos: x.repos.len(),
+            commits: miles(x.repos.iter().map(|r| r.commits).sum(), lang),
+            commits_30d: miles(x.repos.iter().map(|r| r.commits_30d).sum(), lang),
+            last_iso: last.map(iso).unwrap_or_default(),
+            last_label: last.map(|t| short_date(t, now, lang)).unwrap_or_default(),
+            updated_iso: iso(x.updated_at),
+            updated_label: short_date(x.updated_at, now, lang),
+        }
+    });
+    let feed = forja
+        .map(|x| {
+            crate::forge::feed(x, 8)
+                .items
+                .iter()
+                .map(|i| commit_view(&i.repo, i.at, &i.msg, now, lang))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let jsonld = serde_json::json!({
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "CollectionPage",
+                "name": f["title"],
+                "description": f["meta_description"],
+                "url": url,
+                "inLanguage": lang.code(),
+                "author": author(content, public_url),
+                "hasPart": content.site.forge.iter().map(|r| serde_json::json!({
+                    "@type": "SoftwareSourceCode",
+                    "name": r.id,
+                    "programmingLanguage": r.stack.first(),
+                    "codeRepository": r.public,
+                })).collect::<Vec<_>>(),
+            },
+            crumbs(&[
+                (&t.unit_ui["crumb_rack"], format!("{public_url}/{}/", lang.code())),
+                (&f["crumb"], url.clone()),
+            ]),
+        ],
+    });
+    let tpl = ReposTpl {
+        jsonld: script_json(&jsonld)?,
+        c,
+        f,
+        url,
+        groups,
+        stats,
+        feed,
+    };
+    Ok(Page::new(tpl.render()?))
 }
