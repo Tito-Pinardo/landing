@@ -176,6 +176,16 @@ de CV oculto de la portada clásica y no veía el anillo de foco hecho con borde
     poniendo el CSS antiguo: lo marca («unidades inspeccionadas, se sale
     de stage»).
 
+21. **Botones pegados en la hoja de contacto** (lo vio el usuario). En la
+    tarjeta lateral, «Descargar CV» iba en un párrafo aparte justo debajo
+    de LinkedIn y GitHub, y `.cta` tiene `margin: 0`: 0 px entre bordes y,
+    al pasar el ratón (sube 1 px), montados. Ahora los tres van en el mismo
+    grupo con hueco, el CV primero. El banco no lo vio porque ninguna
+    visita abría la hoja de contacto: ahora `rrhh`, `sin3d` y `movil`
+    pulsan «Contactar», y hay una cifra nueva, «botones pegados o
+    montados» (menos de 3 px entre dos botones con caja visible). Con el
+    HTML de antes: 2 en `sin3d` y `movil`; ahora, 0.
+
 ## Pendiente para próximas vueltas
 
 - Mirar el embudo de visitas reales dentro de una o dos semanas y atacar el paso donde más gente se va.

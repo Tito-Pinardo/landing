@@ -110,6 +110,30 @@ async function checks(p) {
         break;
       }
     }
+    // Botones pegados o montados: menos de 3 px entre dos botones que se
+    // solapan en el otro eje (el CV pegado a GitHub en la hoja de contacto).
+    const pegados = [];
+    // Solo los que tienen caja que se ve (borde o fondo): dos iconos sin
+    // caja a 2 px no se ven pegados.
+    const caja = (el) => {
+      const st = getComputedStyle(el);
+      const clear = (c) => c === "transparent" || /rgba\(.*,\s*0\)$/.test(c);
+      return !clear(st.backgroundColor) || (parseFloat(st.borderTopWidth) > 0 && !clear(st.borderTopColor));
+    };
+    const btns = [...document.querySelectorAll(".btn")].filter((el) => vis(el) && caja(el)).map((el) => ({ el, r: el.getBoundingClientRect() }));
+    for (let i = 0; i < btns.length; i++)
+      for (let j = i + 1; j < btns.length; j++) {
+        const a = btns[i].r, b = btns[j].r;
+        if (btns[i].el.contains(btns[j].el) || btns[j].el.contains(btns[i].el)) continue;
+        const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        const gapY = Math.max(a.top, b.top) - Math.min(a.bottom, b.bottom);
+        const gapX = Math.max(a.left, b.left) - Math.min(a.right, b.right);
+        if ((ox > 4 && gapY < 3) || (oy > 4 && gapX < 3)) {
+          const t = (e) => (e.textContent || e.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 20);
+          pegados.push(`${t(btns[i].el)} ↔ ${t(btns[j].el)}`);
+        }
+      }
     // Objetivos táctiles pequeños (menos de 32 px de alto o ancho)
     const small = [];
     for (const el of document.querySelectorAll("a, button, [role=button], input, select")) {
@@ -143,6 +167,7 @@ async function checks(p) {
       filas_mandos: tops.size,
       overlaps,
       clipped,
+      pegados,
       small: [...new Set(small)],
       hscroll,
       cv: reachable("[data-cv]"),
@@ -211,6 +236,22 @@ const shot = async (p, file) => {
   return `${file}.png`;
 };
 const click = (p, sel) => p.evaluate((s) => document.querySelector(s)?.click(), sel);
+
+// Pulsar «Contactar» (el que se ve) y mirar la hoja con la tarjeta lateral
+// (CV, LinkedIn, GitHub) a la vista: ahí se pegaban los botones.
+async function contacto(p, name) {
+  await p.evaluate(() => {
+    const vis = [...document.querySelectorAll('a[href="#contact"]')].find((e) => {
+      const r = e.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== "hidden";
+    });
+    (vis || document.querySelector('a[href="#contact"]'))?.click();
+  });
+  await p.waitForTimeout(1500);
+  await p.evaluate(() => document.querySelector("#contact .side .card")?.scrollIntoView({ block: "center" }));
+  await p.waitForTimeout(800);
+  return { paso: "contacto", captura: await shot(p, `${name}-contacto`), ...(await checks(p)) };
+}
 
 // ---- las visitas
 
@@ -301,6 +342,8 @@ const SCENARIOS = {
     await click(p, "[data-r3-mission-start]");
     await p.waitForTimeout(3000);
     out.pasos.push({ paso: "misión", captura: await shot(p, "rrhh-2-mision"), ...(await checks(p)) });
+    await p.keyboard.press("Escape");
+    out.pasos.push(await contacto(p, "rrhh"));
     out.axe = await axe(p);
     out.errores = errors;
     await ctx.close();
@@ -338,6 +381,7 @@ const SCENARIOS = {
         const r = e.getBoundingClientRect();
         return r.width > 0 && r.right > innerWidth + 1 && getComputedStyle(e).position !== "fixed";
       }).length);
+      out.pasos.push(await contacto(p, "sin3d"));
       out.errores = errors.filter((e) => !/WebGL/.test(e));
       await ctx.close();
       return out;
@@ -358,6 +402,7 @@ const SCENARIOS = {
     await p.waitForTimeout(800);
     out.pasos.push({ paso: "a un tercio", captura: await shot(p, "movil-2-tercio"), ...(await checks(p)) });
     out.alto_pagina = await p.evaluate(() => Math.round(document.documentElement.scrollHeight / innerHeight));
+    out.pasos.push(await contacto(p, "movil"));
     out.axe = await axe(p);
     out.errores = errors;
     await ctx.close();
@@ -558,6 +603,7 @@ function score(r) {
   const all = Object.values(v).flatMap((x) => x.pasos || []);
   return {
     "paneles que se pisan": all.reduce((n, s) => n + (s.overlaps?.length || 0), 0),
+    "botones pegados o montados": all.reduce((n, s) => n + (s.pegados?.length || 0), 0),
     "textos cortados": all.reduce((n, s) => n + (s.clipped?.length || 0), 0),
     "botones pequeños (móvil)": ["movil", "unidades_movil", "blog_movil"].some((k) => v[k]?.pasos) ? ["movil", "unidades_movil", "blog_movil"].reduce((n, k) => n + (v[k]?.pasos?.reduce((m, s) => Math.max(m, s.small?.length || 0), 0) || 0), 0) : null,
     "scroll horizontal": all.filter((s) => s.hscroll).length,
@@ -590,6 +636,7 @@ for (const [name, v] of Object.entries(report.visitas)) {
   for (const s of v.pasos || []) {
     const bits = [];
     if (s.overlaps?.length) bits.push(`se pisan: ${s.overlaps.join("; ")}`);
+    if (s.pegados?.length) bits.push(`pegados: ${s.pegados.join(" · ")}`);
     if (s.clipped?.length) bits.push(`cortados: ${s.clipped.join(" · ")}`);
     if (s.small?.length && name === "movil") bits.push(`pequeños: ${s.small.slice(0, 12).join(" · ")}`);
     if (s.hscroll) bits.push("scroll horizontal");
