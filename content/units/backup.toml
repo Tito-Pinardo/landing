@@ -335,8 +335,8 @@ title = "Mi portátil"
 text = "Edito el repositorio desde aquí o desde el nodo de control."
 
 [text.es.pods.central]
-short = "Forgejo"
-title = "Forgejo, el origen"
+short = "GitLab"
+title = "GitLab, el origen"
 text = "Donde se trabaja: el origen del repositorio, con CI. Tiene su unidad."
 
 [text.es.pods.github]
@@ -481,7 +481,7 @@ steps = [
 title = "Hago un commit"
 steps = [
   "Cambio algo en la infraestructura.",
-  "Commit, y push a Forgejo, el origen.",
+  "Commit, y push a GitLab, el origen.",
   "El hook se dispara solo.",
   "Empuja al repositorio de respaldo, en otro disco.",
   "Con un usuario que solo puede hacer Git.",
@@ -732,8 +732,8 @@ title = "My laptop"
 text = "I edit the repository from here or from the control node."
 
 [text.en.pods.central]
-short = "Forgejo"
-title = "Forgejo, the origin"
+short = "GitLab"
+title = "GitLab, the origin"
 text = "Where the work happens: the repository's origin, with CI. It has its own unit."
 
 [text.en.pods.github]
@@ -878,7 +878,7 @@ steps = [
 title = "I make a commit"
 steps = [
   "I change something in the infrastructure.",
-  "Commit, and push to Forgejo, the origin.",
+  "Commit, and push to GitLab, the origin.",
   "The hook fires on its own.",
   "It pushes to the backup repository, on another disk.",
   "With a user that can only do Git.",

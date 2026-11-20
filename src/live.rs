@@ -168,7 +168,7 @@ impl Live {
 }
 
 impl Live {
-    /// Actividad de Forgejo (la que escribe el host en `forja.json`), si no
+    /// Actividad de los repos de GitLab (la que escribe el host en `forja.json`), si no
     /// está vieja.
     pub fn forja(&self) -> Option<crate::forge::Forja> {
         fresh_forja(self.state.read().expect("lock").forja.as_ref()).cloned()
@@ -186,7 +186,7 @@ impl Live {
                     .and_then(|raw| crate::forge::parse(&raw, &list))
                 {
                     Ok(f) => live.state.write().expect("lock").forja = Some(f),
-                    Err(e) => tracing::debug!(error = %e, "actividad de Forgejo no disponible"),
+                    Err(e) => tracing::debug!(error = %e, "actividad de GitLab no disponible"),
                 }
                 live.publish();
                 tokio::time::sleep(HOMELAB_EVERY).await;

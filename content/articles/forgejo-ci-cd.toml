@@ -1,6 +1,6 @@
 slug = "forgejo-ci-cd"
 date = "2026-10-14"
-unit = "forgejo"
+unit = "gitlab"
 tech = ["forgejo", "git", "terraform", "ansible", "rust"]
 kind = "build"
 
@@ -70,6 +70,12 @@ links = [
   { title = "gitleaks", url = "https://github.com/gitleaks/gitleaks", source = "GitHub" },
 ]
 
+[[text.es.sections]]
+heading = "Actualización (20-11-2026): ahora en GitLab"
+paragraphs = [
+  "Forgejo me sirvió un mes y lo cambié por GitLab CE cuando quise que una issue o un hito pusieran a trabajar a agentes IA que parten la tarea, abren su MR y esperan a que yo la revise. Lo de este artículo sigue igual con otros nombres: los mismos dos runners, el plan como nota de la MR, ▶ para aplicar y esta web publicada sola. Cómo es ahora, en su unidad del rack.",
+]
+
 [text.en]
 impact = "None in production: a day of building, with four stumbles and two red commits along the way."
 detected = "CI itself uncovered every stumble, starting from a machine with no secrets."
@@ -134,4 +140,10 @@ links = [
   { title = "Forgejo", url = "https://forgejo.org/", source = "Forgejo" },
   { title = "Forgejo Actions", url = "https://forgejo.org/docs/latest/user/actions/", source = "Forgejo docs" },
   { title = "gitleaks", url = "https://github.com/gitleaks/gitleaks", source = "GitHub" },
+]
+
+[[text.en.sections]]
+heading = "Update (20-11-2026): now on GitLab"
+paragraphs = [
+  "Forgejo served me for a month and I swapped it for GitLab CE when I wanted an issue or a milestone to put AI agents to work that split the task, open their MR and wait for me to review it. What this article describes still holds under other names: the same two runners, the plan as a note on the MR, ▶ to apply and this site publishing itself. How it looks now, in its rack unit.",
 ]

@@ -15,7 +15,7 @@ links = [
   ["router", "entrada"],
   ["entrada", "mojang"],
   ["admin", "authelia"],
-  ["forgejo", "mando"],
+  ["gitlab", "mando"],
   ["otro", "mando"],
 ]
 
@@ -198,12 +198,12 @@ group = ""
 tech = []
 
 [[pods]]
-id = "forgejo"
+id = "gitlab"
 x = 100
 y = 530
 kind = "control"
 group = ""
-tech = ["forgejo", "git"]
+tech = ["gitlab", "git"]
 
 [[pods]]
 id = "otro"
@@ -363,7 +363,7 @@ path = ["admin", "authelia", "panel", "mando", "postgres", "mando", "agente", "e
 
 [[flows]]
 id = "release"
-path = ["forgejo", "mando", "agente", "eu1", "agente", "eu2", "agente", "coliseo", "mando"]
+path = ["gitlab", "mando", "agente", "eu1", "agente", "eu2", "agente", "coliseo", "mando"]
 
 [[flows]]
 id = "crash"
@@ -596,9 +596,9 @@ short = "Yo (admin)"
 title = "Administrador"
 text = "Yo desde el navegador: el panel está detrás de Authelia y solo se ve desde casa."
 
-[text.es.pods.forgejo]
-short = "Forgejo CI"
-title = "Forgejo (CI y releases)"
+[text.es.pods.gitlab]
+short = "GitLab CI"
+title = "GitLab (CI y releases)"
 text = "Cada pieza tiene su repositorio: en cada push se compila y se prueba, y con una etiqueta sale una release con su suma SHA-256."
 
 [text.es.pods.otro]
@@ -755,7 +755,7 @@ steps = [
 [text.es.flows.release]
 title = "Sale una versión nueva"
 steps = [
-  "Una etiqueta en Forgejo compila, prueba y publica la release con su suma.",
+  "Una etiqueta en GitLab compila, prueba y publica la release con su suma.",
   "Fijo la versión en el panel: el mando la baja y comprueba la suma.",
   "Los agentes ven que su versión ya no es la deseada.",
   "eu-1 avisa en el juego, se para, se actualiza y vuelve…",
@@ -979,8 +979,8 @@ linux = "Contenedores Debian con systemd de usuario; el agente se instala en cua
 proxmox = "Los dos contenedores viven en el Proxmox de casa, junto al resto del homelab."
 lxc = "El mando y los fragmentos en un contenedor; la entrada, en otro aislado en la DMZ."
 terraform = "Los contenedores, su red y su DNS, declarados en Terraform."
-ansible = "Roles para el contenedor de desarrollo y para la entrada de la DMZ, desplegados desde Forgejo."
-forgejo = "Un repositorio por pieza con CI y releases firmadas por su suma."
+ansible = "Roles para el contenedor de desarrollo y para la entrada de la DMZ, desplegados desde GitLab."
+gitlab = "Un repositorio por pieza con CI y releases firmadas por su suma."
 git = "Ramas por cambio, etiquetas por versión y la wiki de resultados versionada."
 vlan = "La entrada pública en la VLAN de la DMZ, sin acceso al resto de casa."
 mikrotik = "Reenvío del puerto del juego y la voz, y reglas de la DMZ hacia los puertos justos."
@@ -1093,9 +1093,9 @@ short = "Me (admin)"
 title = "Administrator"
 text = "Me in the browser: the panel sits behind Authelia and is only reachable from home."
 
-[text.en.pods.forgejo]
-short = "Forgejo CI"
-title = "Forgejo (CI and releases)"
+[text.en.pods.gitlab]
+short = "GitLab CI"
+title = "GitLab (CI and releases)"
 text = "Each part has its own repository: every push is built and tested, and a tag publishes a release with its SHA-256 checksum."
 
 [text.en.pods.otro]
@@ -1252,7 +1252,7 @@ steps = [
 [text.en.flows.release]
 title = "A new version ships"
 steps = [
-  "A tag in Forgejo builds, tests and publishes the release with its checksum.",
+  "A tag in GitLab builds, tests and publishes the release with its checksum.",
   "I pin the version in the panel: the controller downloads it and checks the checksum.",
   "The agents see their version is no longer the desired one.",
   "eu-1 warns in game, stops, updates and comes back…",
@@ -1476,8 +1476,8 @@ linux = "Debian containers with user-level systemd; the agent installs on any Li
 proxmox = "Both containers live on the home Proxmox, next to the rest of the homelab."
 lxc = "Controller and shards in one container; the gateway in another, isolated in the DMZ."
 terraform = "The containers, their network and their DNS, declared in Terraform."
-ansible = "Roles for the development container and the DMZ gateway, deployed from Forgejo."
-forgejo = "One repository per part with CI and checksummed releases."
+ansible = "Roles for the development container and the DMZ gateway, deployed from GitLab."
+gitlab = "One repository per part with CI and checksummed releases."
 git = "A branch per change, a tag per version and a versioned results wiki."
 vlan = "The public gateway in the DMZ VLAN, with no access to the rest of the house."
 mikrotik = "Forwarding for the game and voice ports, and DMZ rules to just the right ports."
@@ -1528,7 +1528,7 @@ tree = [
   ["0014 E/S en paralelo", "varias lecturas del almacén a la vez en vez de una cola"],
   ["0016 terreno de Pumpkin", "pide el terreno nuevo a battlepros-generador en hilos propios"],
   ["0017–0026 rendimiento", "IA de mobs, aparición y búsquedas solo en lo cargado (medido antes y después)"],
-  [".forgejo/workflows", "CI: aplica los parches, compila el jar y lo publica por etiqueta"],
+  [".gitlab-ci.yml", "CI: aplica los parches, compila el jar y lo publica por etiqueta"],
 ]
 
 [text.es.repos.items.plugin]
@@ -1655,7 +1655,7 @@ tree = [
   ["0014 parallel I/O", "several store reads at once instead of a queue"],
   ["0016 Pumpkin terrain", "asks battlepros-generador for new terrain on its own threads"],
   ["0017–0026 performance", "mob AI, spawning and lookups only in loaded chunks (measured before and after)"],
-  [".forgejo/workflows", "CI: applies the patches, builds the jar and releases it on tag"],
+  [".gitlab-ci.yml", "CI: applies the patches, builds the jar and releases it on tag"],
 ]
 
 [text.en.repos.items.plugin]

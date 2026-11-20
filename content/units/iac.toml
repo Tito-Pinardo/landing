@@ -57,7 +57,7 @@ x = 100
 y = 420
 kind = "control"
 group = ""
-tech = ["git", "forgejo"]
+tech = ["git", "gitlab"]
 
 [[pods]]
 id = "backup"
@@ -314,9 +314,9 @@ title = "Mi portátil"
 text = "Desde casa o la VPN, abro el panel de terminales."
 
 [text.es.pods.repo]
-short = "Forgejo"
-title = "Repositorio en Forgejo"
-text = "Toda la infraestructura: Terraform, inventario, roles, playbooks, scripts y documentación. Los cambios entran por PR con CI y su plan a la vista. Tiene su propia unidad."
+short = "GitLab"
+title = "Repositorio en GitLab"
+text = "Toda la infraestructura: Terraform, inventario, roles, playbooks, scripts y documentación. Los cambios entran por MR con CI y su plan a la vista. Tiene su propia unidad."
 
 [text.es.pods.backup]
 short = "Respaldo"
@@ -411,7 +411,7 @@ text = "SSH solo con clave y desde orígenes concretos, servicios sobrantes fuer
 [text.es.pods.updates]
 short = "Actualizar"
 title = "Actualizaciones"
-text = "Los paquetes de toda la flota, solos cada miércoles de madrugada; las imágenes Docker y lo demás, con un botón en Forgejo. Ninguno se reinicia solo."
+text = "Los paquetes de toda la flota, solos cada miércoles de madrugada; las imágenes Docker y lo demás, con un botón en GitLab. Ninguno se reinicia solo."
 
 [text.es.pods.storage]
 short = "ZFS"
@@ -439,14 +439,14 @@ steps = [
   "Añado el servicio a la lista común.",
   "Y su DNS se crea solo si es público.",
   "Commit.",
-  "A Forgejo, donde pasa el CI.",
+  "A GitLab, donde pasa el CI.",
   "Y al de respaldo, en segundo plano.",
 ]
 
 [text.es.flows.update]
 title = "Actualizo la flota"
 steps = [
-  "Cada miércoles de madrugada se actualizan solos los paquetes; para el resto, un botón en Forgejo: qué (paquetes, contenedores o todo) y en qué equipos.",
+  "Cada miércoles de madrugada se actualizan solos los paquetes; para el resto, un botón en GitLab: qué (paquetes, contenedores o todo) y en qué equipos.",
   "Primero, una simulación por equipo.",
   "Se rechazan cambios de kernel, drivers o servicios críticos.",
   "Se aplica equipo a equipo.",
@@ -592,7 +592,7 @@ proxmox = "Terraform habla con su API con un token de permisos justos; el nodo d
 lxc = "Un contenedor por servicio, casi todos sin privilegios."
 zfs = "Los datos de cada servicio viven en ZFS y se montan; los roles no los tocan."
 git = "Todo versionado, con hook que empuja a dos remotos y una copia pública saneada."
-forgejo = "El origen del repositorio: rama principal protegida, CI sin secretos, plan del PR y despliegue con un clic."
+gitlab = "El origen del repositorio: rama principal protegida, CI sin secretos, plan de la MR y despliegue con un clic."
 renovate = "Un PR por cada versión fijada que tiene versión nueva, con su suma oficial; se aplica con el mismo plan y el mismo clic."
 openbao = "Todos los secretos y las credenciales de Terraform salen de OpenBao, no del repositorio ni del disco del nodo de control."
 crowdsec = "Su rol instala el motor, sus fuentes y el resumen diario; la IP real detrás de Cloudflare y el plugin, en el de Traefik."
@@ -672,9 +672,9 @@ title = "My laptop"
 text = "From home or the VPN, I open the terminals panel."
 
 [text.en.pods.repo]
-short = "Forgejo"
-title = "Repository on Forgejo"
-text = "All the infrastructure: Terraform, inventory, roles, playbooks, scripts and docs. Changes come in by PR with CI and their plan in view. It has its own unit."
+short = "GitLab"
+title = "Repository on GitLab"
+text = "All the infrastructure: Terraform, inventory, roles, playbooks, scripts and docs. Changes come in by MR with CI and their plan in view. It has its own unit."
 
 [text.en.pods.backup]
 short = "Backup"
@@ -769,7 +769,7 @@ text = "Key-only SSH from specific sources, spare services removed and monitorin
 [text.en.pods.updates]
 short = "Update"
 title = "Updates"
-text = "Packages across the fleet, on their own every Wednesday before dawn; Docker images and the rest, with a button in Forgejo. Nothing restarts on its own."
+text = "Packages across the fleet, on their own every Wednesday before dawn; Docker images and the rest, with a button in GitLab. Nothing restarts on its own."
 
 [text.en.pods.storage]
 short = "ZFS"
@@ -797,14 +797,14 @@ steps = [
   "I add the service to the common list.",
   "And its DNS is created only if it's public.",
   "Commit.",
-  "To Forgejo, where CI runs.",
+  "To GitLab, where CI runs.",
   "And to the backup, in the background.",
 ]
 
 [text.en.flows.update]
 title = "I update the fleet"
 steps = [
-  "Every Wednesday before dawn, packages update on their own; for the rest, a button in Forgejo: what (packages, containers or everything) and on which machines.",
+  "Every Wednesday before dawn, packages update on their own; for the rest, a button in GitLab: what (packages, containers or everything) and on which machines.",
   "First, a simulation per machine.",
   "Kernel, driver or critical-service changes are rejected.",
   "It's applied machine by machine.",
@@ -950,7 +950,7 @@ proxmox = "Terraform talks to its API with a least-privilege token; the control 
 lxc = "One container per service, almost all unprivileged."
 zfs = "Each service's data lives on ZFS and is mounted; roles don't touch it."
 git = "Everything versioned, with a hook pushing to two remotes and a cleaned public copy."
-forgejo = "The repository's origin: protected main branch, CI with no secrets, the PR's plan and one-click deploys."
+gitlab = "The repository's origin: protected main branch, CI with no secrets, the MR's plan and one-click deploys."
 renovate = "One PR for every pinned version with a new release, with its official checksum; applied with the same plan and the same click."
 openbao = "Every secret and the Terraform credentials come from OpenBao, not from the repository or the control node's disk."
 crowdsec = "Its role installs the engine, its sources and the daily summary; the real IP behind Cloudflare and the plugin, in Traefik's."

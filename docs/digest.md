@@ -63,7 +63,7 @@ landing check-article borrador.toml                  # valida un borrador con la
 ## Configuración
 
 Por entorno (el despliegue lo deja en un fichero `0600`): `DIGEST_REMOTE` (el origen
-del repositorio, en Forgejo), `MATRIX_HOMESERVER`,
+del repositorio, en GitLab), `MATRIX_HOMESERVER`,
 `MATRIX_ACCESS_TOKEN`, `MATRIX_ROOM_ID`, `DIGEST_OWNER`, `OLLAMA_URL`,
 `OLLAMA_MODEL` y `GEMINI_MODEL` (lista separada por comas: si un modelo está saturado, se pasa al siguiente). La clave de Gemini se lee de
 `~/.config/landing-digest/gemini.key` y no pasa por ningún entorno.

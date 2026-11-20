@@ -80,7 +80,7 @@ x = 100
 y = 420
 kind = "control"
 group = ""
-tech = ["git", "forgejo"]
+tech = ["git", "gitlab"]
 
 [[pods]]
 id = "ci"
@@ -88,7 +88,7 @@ x = 290
 y = 420
 kind = "control"
 group = ""
-tech = ["forgejo", "gitlab-ci"]
+tech = ["gitlab", "gitlab-ci"]
 
 [[pods]]
 id = "matrix"
@@ -340,8 +340,8 @@ title = "Mi móvil"
 text = "Donde me llegan los mensajes del formulario."
 
 [text.es.pods.github]
-short = "Forgejo"
-title = "Repositorio en mi Forgejo"
+short = "GitLab"
+title = "Repositorio en mi GitLab"
 text = "El origen del código, en casa. El código es público en GitHub, pero esa copia solo recibe lo que ya está desplegado y ha pasado el control de fugas."
 
 [text.es.pods.ci]
@@ -474,7 +474,7 @@ steps = [
 [text.es.flows.release]
 title = "Publico una versión"
 steps = [
-  "Hago push a mi Forgejo. Antes, un hook local busca secretos y nombres internos.",
+  "Hago push a mi GitLab. Antes, un hook local busca secretos y nombres internos.",
   "El CI pasa formato, clippy, todas las pruebas y gitleaks.",
   "En verde, el runner de despliegue repite el control de fugas y compila la versión.",
   "Ansible copia el binario nuevo al contenedor.",
@@ -616,7 +616,7 @@ traefik = "La única entrada: certificado, cabeceras y una ruta generada desde l
 terraform = "Crea el contenedor de la web, sus recursos y su cortafuegos."
 ansible = "El rol que instala PostgreSQL, despliega el binario, comprueba el contenido y espera al healthz."
 git = "Repositorio público con historial saneado, un hook que bloquea secretos antes de cada push y el mismo control antes de cada publicación."
-forgejo = "El origen del repositorio y su CI/CD: comprobar en un runner sin secretos, desplegar solo en verde y publicar la copia en GitHub después."
+gitlab = "El origen del repositorio y su CI/CD: comprobar en un runner sin secretos, desplegar solo en verde y publicar la copia en GitHub después."
 gitlab-ci = "GitHub Actions repite formato, clippy y todas las pruebas sobre la copia pública."
 
 [text.es.close]
@@ -704,8 +704,8 @@ title = "My phone"
 text = "Where the contact form messages reach me."
 
 [text.en.pods.github]
-short = "Forgejo"
-title = "Repository on my Forgejo"
+short = "GitLab"
+title = "Repository on my GitLab"
 text = "Where the code starts, at home. The code is public on GitHub, but that copy only gets what's already deployed and has passed the leak check."
 
 [text.en.pods.ci]
@@ -838,7 +838,7 @@ steps = [
 [text.en.flows.release]
 title = "I ship a version"
 steps = [
-  "I push to my Forgejo. First, a local hook looks for secrets and internal names.",
+  "I push to my GitLab. First, a local hook looks for secrets and internal names.",
   "CI runs formatting, clippy, every test and gitleaks.",
   "On green, the deploy runner repeats the leak check and builds the release.",
   "Ansible copies the new binary to the container.",
@@ -980,7 +980,7 @@ traefik = "The only way in: certificate, headers and a route generated from the 
 terraform = "Creates the site's container, its resources and its firewall."
 ansible = "The role that installs PostgreSQL, deploys the binary, checks the content and waits for healthz."
 git = "A public repo with cleaned history, a hook that blocks secrets before every push and the same check before every release."
-forgejo = "The repository's origin and its CI/CD: checks on a runner with no secrets, deploys only on green and publishes the GitHub copy afterwards."
+gitlab = "The repository's origin and its CI/CD: checks on a runner with no secrets, deploys only on green and publishes the GitHub copy afterwards."
 gitlab-ci = "GitHub Actions repeats formatting, clippy and every test on the public copy."
 
 [text.en.close]

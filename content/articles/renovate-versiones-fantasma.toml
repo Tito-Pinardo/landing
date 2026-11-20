@@ -1,6 +1,6 @@
 slug = "renovate-versiones-fantasma"
 date = "2026-10-15"
-unit = "forgejo"
+unit = "gitlab"
 tech = ["renovate", "ansible", "forgejo"]
 kind = "near_miss"
 
@@ -55,6 +55,12 @@ links = [
   { title = "Mi propio CI/CD con Forgejo", url = "https://titopinardogutierrez.com/es/blog/forgejo-ci-cd/", source = "Este blog" },
 ]
 
+[[text.es.sections]]
+heading = "Actualización (20-11-2026)"
+paragraphs = [
+  "El repositorio pasó de Forgejo a GitLab: Renovate sigue igual cada lunes, ahora con merge requests en vez de pull requests.",
+]
+
 [text.en]
 impact = "No outage. Three pieces stayed on the old version every time theirs was «bumped», with nothing saying so."
 detected = "Renovate's first Monday: the plan of a new-version PR said it wouldn't change a single task."
@@ -104,4 +110,10 @@ paragraphs = [
 links = [
   { title = "Renovate", url = "https://docs.renovatebot.com/", source = "Renovate docs" },
   { title = "My own CI/CD with Forgejo", url = "https://titopinardogutierrez.com/en/blog/forgejo-ci-cd/", source = "This blog" },
+]
+
+[[text.en.sections]]
+heading = "Update (20-11-2026)"
+paragraphs = [
+  "The repository moved from Forgejo to GitLab: Renovate runs the same every Monday, now opening merge requests instead of pull requests.",
 ]

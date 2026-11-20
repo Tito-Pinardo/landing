@@ -653,7 +653,7 @@
           reduce: reduceMotion,
           inspected: store.get("r3", []),
           focus: returning ? location.hash.slice(4) : null,
-          tour: ["landing", "forgejo", "openbao", "traefik", "backup", "battlepros", "hermes", "proxmox"],
+          tour: ["landing", "gitlab", "openbao", "traefik", "backup", "battlepros", "hermes", "proxmox"],
           // La sala: notas del tablero (las zonas de la página), recorridos
           // del laboratorio y la misión.
           hour: (() => {
@@ -1522,7 +1522,7 @@
     return liveLoading;
   }
 
-  // Lo último de mi Forgejo (/repos/): «feat · repo · hace 2 h» y el mensaje.
+  // Lo último de mi GitLab (/repos/): «feat · repo · hace 2 h» y el mensaje.
   function forgeItem(it) {
     const li = document.createElement("li");
     const m = /^([a-z]+)(?:\(([^)]*)\))?!?: (.+)$/.exec(it.msg);

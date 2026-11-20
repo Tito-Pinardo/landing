@@ -153,6 +153,12 @@ branch = "containers"
 level = 2
 
 [[tech]]
+id = "gitlab"
+name = "GitLab CE · CI"
+branch = "containers"
+level = 2
+
+[[tech]]
 id = "forgejo"
 name = "Forgejo · Actions"
 branch = "containers"
@@ -334,14 +340,14 @@ level = 2
 id = "homelab-iac"
 status = "ongoing"
 featured = true
-tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "forgejo", "renovate", "linux", "traefik", "dns", "hardening", "openbao", "crowdsec", "pbs"]
+tech = ["terraform", "ansible", "proxmox", "lxc", "zfs", "git", "gitlab", "renovate", "linux", "traefik", "dns", "hardening", "openbao", "crowdsec", "pbs"]
 repo = "https://github.com/Tito-Pinardo/homelab-infra"
 
 [[projects]]
 id = "battlepros"
 status = "ongoing"
 featured = true
-tech = ["rust", "java", "postgresql", "typescript", "linux", "proxmox", "lxc", "terraform", "ansible", "forgejo", "git", "vlan", "mikrotik", "dns", "hardening", "pbs"]
+tech = ["rust", "java", "postgresql", "typescript", "linux", "proxmox", "lxc", "terraform", "ansible", "gitlab", "git", "vlan", "mikrotik", "dns", "hardening", "pbs"]
 
 [[projects]]
 id = "hermes"
@@ -383,7 +389,7 @@ tech = ["python", "docker"]
 [[projects]]
 id = "landing"
 status = "live"
-tech = ["rust", "postgresql", "traefik", "terraform", "ansible", "git", "forgejo", "gitlab-ci"]
+tech = ["rust", "postgresql", "traefik", "terraform", "ansible", "git", "gitlab", "gitlab-ci"]
 repo = "https://github.com/Tito-Pinardo/landing"
 
 # ---------------------------------------------------------------------------
@@ -759,13 +765,13 @@ unit = "backup"
 # Entrega y secretos: el origen de los repositorios, su CI, quien
 # despliega y de dónde saca las llaves.
 [[nodes]]
-id = "forgejo"
+id = "gitlab"
 x = 515
 y = 780
 kind = "control"
 group = "delivery"
-tech = ["git", "forgejo"]
-unit = "forgejo"
+tech = ["git", "gitlab"]
+unit = "gitlab"
 
 [[nodes]]
 id = "ci"
@@ -773,8 +779,8 @@ x = 700
 y = 780
 kind = "observability"
 group = "delivery"
-tech = ["forgejo", "terraform", "ansible", "rust"]
-unit = "forgejo"
+tech = ["gitlab", "terraform", "ansible", "rust"]
+unit = "gitlab"
 
 [[nodes]]
 id = "deployer"
@@ -782,8 +788,8 @@ x = 885
 y = 780
 kind = "control"
 group = "delivery"
-tech = ["forgejo", "terraform", "ansible", "renovate"]
-unit = "forgejo"
+tech = ["gitlab", "terraform", "ansible", "renovate"]
+unit = "gitlab"
 
 [[nodes]]
 id = "openbao"
@@ -842,17 +848,17 @@ path = ["internet", "cloudflare", "router", "traefik", "landing", "postgres", "l
 [[flows]]
 id = "deploy"
 category = "ops"
-path = ["forgejo", "ci", "deployer", "movil", "deployer", "proxmox", "landing", "zabbix", "wazuh", "backup"]
+path = ["gitlab", "ci", "deployer", "movil", "deployer", "proxmox", "landing", "zabbix", "wazuh", "backup"]
 
 [[flows]]
 id = "renovate"
 category = "ops"
-path = ["deployer", "forgejo", "ci", "deployer", "movil", "deployer", "traefik"]
+path = ["deployer", "gitlab", "ci", "deployer", "movil", "deployer", "traefik"]
 
 [[flows]]
 id = "webcd"
 category = "visitors"
-path = ["pc", "forgejo", "ci", "deployer", "landing", "github", "matrix", "movil"]
+path = ["pc", "gitlab", "ci", "deployer", "landing", "github", "matrix", "movil"]
 
 [[flows]]
 id = "update"
@@ -877,7 +883,7 @@ path = ["iac", "obsidian", "qdrant", "hermes"]
 [[flows]]
 id = "okd"
 category = "ops"
-path = ["forgejo", "iac", "okd", "dns", "casa"]
+path = ["gitlab", "iac", "okd", "dns", "casa"]
 
 [[flows]]
 id = "intrusion"
@@ -978,7 +984,7 @@ path = ["homepage", "proxmox", "backup", "proxmox", "homepage", "matrix"]
 id = "runner"
 category = "break"
 broken = "ci"
-path = ["pc", "forgejo", "ci", "forgejo", "landing", "ci", "forgejo", "deployer"]
+path = ["pc", "gitlab", "ci", "gitlab", "landing", "ci", "gitlab", "deployer"]
 
 # ---------------------------------------------------------------------------
 # Modo detective: averías reales. `clues` son las piezas con pista (el texto
@@ -1001,10 +1007,10 @@ clues = ["obsidian", "github", "backup", "hermes"]
 answer = 2
 
 # ---------------------------------------------------------------- repos
-# Página /repos/: los repos de mi Forgejo, en este orden. La actividad
+# Página /repos/: los repos de mi GitLab, en este orden. La actividad
 # (commits, semanas, mensajes) la publica el host en forja.json
 # (publish_landing_forja.py de infra-tf); aquí, qué se enseña de cada uno.
-# - id: nombre del repo en Forgejo
+# - id: nombre del repo en GitLab
 # - group: web | infra | battlepros
 # - unit: unidad del rack donde se cuenta por dentro
 # - public: copia pública, si la hay
@@ -1026,7 +1032,7 @@ id = "infra-tf"
 group = "infra"
 unit = "iac"
 public = "https://github.com/Tito-Pinardo/homelab-infra"
-stack = ["Terraform", "Ansible", "Python", "Forgejo Actions"]
+stack = ["Terraform", "Ansible", "Python", "GitLab CI"]
 log = false
 
 [[forge]]

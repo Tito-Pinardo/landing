@@ -1,11 +1,11 @@
-//! Los repos de mi Forgejo en la web: la página `/repos/` y el resumen de
+//! Los repos de mi GitLab en la web: la página `/repos/` y el resumen de
 //! «Ahora mismo».
 //!
 //! Qué repos salen y para qué sirve cada uno está en el contenido
 //! (`[[forge]]` de `site.toml` y `[forge]` de cada idioma; los de BattlePros
 //! toman sus textos del mapa de repos de su unidad). La actividad la escribe
 //! el host en `forja.json` (`publish_landing_forja.py` de infra-tf) junto al
-//! estado del homelab: la web no tiene credenciales ni red hacia Forgejo.
+//! estado del homelab: la web no tiene credenciales ni red hacia GitLab.
 //!
 //! Los repos son privados y la web es pública, así que los mensajes se
 //! filtran dos veces: en el host y aquí ([`publishable`]). Lo que no pasa se
@@ -28,7 +28,7 @@ pub const STALE: time::Duration = time::Duration::hours(6);
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Forge {
-    /// Nombre del repo en Forgejo.
+    /// Nombre del repo en GitLab.
     pub id: String,
     /// Uno de [`GROUPS`].
     pub group: String,

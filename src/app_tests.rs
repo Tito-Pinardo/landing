@@ -241,7 +241,19 @@ async fn articles_have_their_own_pages(db: PgPool) {
         assert_eq!(status, StatusCode::PERMANENT_REDIRECT, "{uri}");
         assert_eq!(h[header::LOCATION], to);
     }
-    for uri in ["/es/blog/no-existe/", "/fr/blog/"] {
+    // Forgejo pasó a GitLab: la URL vieja de la unidad sigue llevando a ella.
+    for (uri, to) in [
+        ("/es/forgejo/", "/es/gitlab/"),
+        ("/en/forgejo", "/en/gitlab/"),
+    ] {
+        let (status, h, _) = send(&app, get(uri)).await;
+        assert_eq!(status, StatusCode::PERMANENT_REDIRECT, "{uri}");
+        assert_eq!(h[header::LOCATION], to);
+    }
+    let (status, _, body) = send(&app, get("/es/gitlab/")).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(body.contains("Agentes IA"), "pieza nueva de la unidad");
+    for uri in ["/es/blog/no-existe/", "/fr/blog/", "/fr/forgejo/"] {
         let (status, _, _) = send(&app, get(uri)).await;
         assert_eq!(status, StatusCode::NOT_FOUND, "{uri}");
     }

@@ -17,6 +17,10 @@ use crate::content::{Fact, FlowText, Group, Lang, Node, NodeText, Site, Stat};
 macro_rules! units {
     ($($id:literal),* $(,)?) => { &[$(include_str!(concat!("../content/units/", $id, ".toml"))),*] };
 }
+/// Unidades que cambiaron de id: su URL vieja redirige a la nueva para no
+/// romper enlaces ya compartidos (Forgejo pasó a GitLab el 20-11-2026).
+pub const RENAMED: &[(&str, &str)] = &[("forgejo", "gitlab")];
+
 pub const EMBEDDED: &[&str] = units![
     "router",
     "traefik",
@@ -37,7 +41,7 @@ pub const EMBEDDED: &[&str] = units![
     "zabbix",
     "wazuh",
     "iac",
-    "forgejo",
+    "gitlab",
     "openbao",
     "backup",
     "okd",

@@ -536,10 +536,10 @@ short = "XPIFY · K3s"
 title = "XPIFY (unidad 1U)"
 text = "Aquí vivió mi proyecto final: una VM con un clúster K3s entero (frontend, API, Keycloak, PostgreSQL, Redis, Argo CD y observabilidad). Hoy está retirada, pero puedes entrar en su unidad y verla por dentro."
 
-[nodes.forgejo]
-short = "Forgejo"
-title = "Forgejo (unidad 1U)"
-text = "Mi servidor Git, dentro de casa: el origen de la infraestructura y de esta web. Cambios por PR, CI en cada push y avisos del resultado en Element."
+[nodes.gitlab]
+short = "GitLab"
+title = "GitLab (unidad 1U)"
+text = "Mi servidor Git, dentro de casa: el origen de la infraestructura y de esta web. Cambios por MR, CI en cada push, agentes IA que trabajan desde las issues y avisos del resultado en Element."
 
 [nodes.ci]
 short = "Runner CI"
@@ -549,7 +549,7 @@ text = "Comprueba cada push sin un solo secreto: Terraform, ansible-lint, gitlea
 [nodes.deployer]
 short = "Despliegue"
 title = "Runner de despliegue"
-text = "Vive en el nodo de control. Calcula el plan de cada cambio y, con mi aprobación, aplica ese plan exacto. Esta web la despliega sola cuando su CI sale en verde. Cada lunes, Renovate abre aquí los PR de versiones nuevas."
+text = "Vive en el nodo de control. Calcula el plan de cada cambio y, con mi aprobación, aplica ese plan exacto. Esta web la despliega sola cuando su CI sale en verde. Cada lunes, Renovate abre aquí las MR de versiones nuevas."
 
 [nodes.bpborde]
 short = "Entrada MC"
@@ -660,7 +660,7 @@ verdict = "Caída: los minutos de restaurar. Perdido: como mucho, lo cambiado de
 title = "Se cae el runner del CI"
 steps = [
   "Empujo un cambio de esta web.",
-  "Forgejo lo recibe y pone en cola su CI.",
+  "GitLab lo recibe y pone en cola su CI.",
   "Pero el runner del CI no responde: el trabajo se queda esperando.",
   "Sin CI en verde no se despliega nada: el cambio espera.",
   "La web sigue sirviendo la última versión desplegada. Quien entra no nota nada.",
@@ -872,7 +872,7 @@ steps = [
 [flows.deploy]
 title = "Despliego un servicio"
 steps = [
-  "Todo empieza con un PR en mi Forgejo: el servicio nuevo, descrito como código.",
+  "Todo empieza con una MR en mi GitLab: el servicio nuevo, descrito como código.",
   "El CI lo comprueba sin secretos: formato de Terraform, ansible-lint y gitleaks. Sin verde no se fusiona.",
   "El runner de despliegue calcula el plan: qué se crea, qué cambia, qué se recrearía y qué no se toca.",
   "El resumen me llega al móvil. Lo leo y apruebo con un clic.",
@@ -888,7 +888,7 @@ steps = [
 title = "Llega una versión nueva"
 steps = [
   "Cada lunes, Renovate revisa todas las versiones fijadas de la infraestructura.",
-  "Traefik tiene una nueva: abre un PR con la versión y su suma SHA-256 sacada del fichero oficial de la release.",
+  "Traefik tiene una nueva: abre una MR con la versión y su suma SHA-256 sacada del fichero oficial de la release.",
   "El CI lo comprueba como cualquier otro cambio.",
   "El runner de despliegue calcula el plan: qué playbook se lanzaría y qué tareas cambiarían.",
   "Lo leo en el móvil, fusiono y apruebo con un clic.",
@@ -900,7 +900,7 @@ steps = [
 title = "Esta web se publica sola"
 steps = [
   "Cambio algo de esta web y lo empujo.",
-  "Llega a mi Forgejo, el origen del repositorio.",
+  "Llega a mi GitLab, el origen del repositorio.",
   "El CI lo comprueba en un runner sin secretos: formato, clippy, pruebas contra PostgreSQL, contenido válido y gitleaks.",
   "En verde, el runner de despliegue revisa lo que aún no es público: ni secretos, ni direcciones, ni nombres internos.",
   "Compila, despliega con Ansible y espera a que la web responda.",
@@ -1447,8 +1447,8 @@ crumb = "Repos"
 kicker = "Forja"
 title = "Lo que estoy construyendo"
 meta_title = "Repositorios · Tito Pinardo Gutiérrez"
-meta_description = "Los repositorios de mi Forgejo: para qué sirve cada uno, con qué está hecho y lo que se va subiendo, actualizado cada 15 minutos."
-intro = "Todo mi código vive en un Forgejo propio, en casa, con CI y despliegue continuo. Los repositorios son privados, pero aquí está para qué sirve cada uno, con qué está hecho y lo que se va subiendo. Se actualiza solo cada 15 minutos."
+meta_description = "Los repositorios de mi GitLab: para qué sirve cada uno, con qué está hecho y lo que se va subiendo, actualizado cada 15 minutos."
+intro = "Todo mi código vive en un GitLab propio, en casa, con CI y despliegue continuo. Los repositorios son privados, pero aquí está para qué sirve cada uno, con qué está hecho y lo que se va subiendo. Se actualiza solo cada 15 minutos."
 group_web = "Esta web"
 group_infra = "El homelab, como código"
 group_battlepros = "BattlePros: una red de Minecraft hecha a medida"
@@ -1481,4 +1481,4 @@ summary = "Axum con plantillas compiladas, contenido en TOML que se valida al ar
 
 [forge.items.infra-tf]
 role = "El homelab entero, como código"
-summary = "Terraform crea los contenedores de Proxmox y Ansible los configura: red, DNS, proxy inverso, copias, monitorización, secretos y CI/CD. Los cambios entran por pull request con el plan a la vista y se aplican con un clic."
+summary = "Terraform crea los contenedores de Proxmox y Ansible los configura: red, DNS, proxy inverso, copias, monitorización, secretos y CI/CD. Los cambios entran por merge request con el plan a la vista y se aplican con un clic."

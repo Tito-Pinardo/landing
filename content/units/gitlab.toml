@@ -1,10 +1,12 @@
-# Unidad 1U del rack: Forgejo, el CI y quien despliega.
+# Unidad 1U del rack: GitLab (antes Forgejo), el CI, quien despliega y los
+# agentes IA que se lanzan desde las issues.
 #
 # Fuente: Obsidian «Forgejo y CI de infra-tf» y «Despliegue de infra-tf por
-# PR» (14-10-2026) y el CI/CD de esta web. Sin direcciones, puertos, nombres
+# PR» (14-10-2026), «GitLab y agentes por tareas» (20-11-2026) y el CI/CD de
+# esta web. Sin direcciones, puertos, nombres
 # de contenedores ni rutas internas.
 
-id = "forgejo"
+id = "gitlab"
 status = "live"
 host_tech = ["lxc", "linux"]
 links = [
@@ -75,6 +77,14 @@ group = ""
 tech = ["rust"]
 
 [[pods]]
+id = "agentes"
+x = 100
+y = 400
+kind = "compute"
+group = ""
+tech = []
+
+[[pods]]
 id = "github"
 x = 100
 y = 540
@@ -88,7 +98,7 @@ x = 515
 y = 140
 kind = "control"
 group = "server"
-tech = ["git", "forgejo"]
+tech = ["git", "gitlab"]
 
 [[pods]]
 id = "webui"
@@ -104,7 +114,7 @@ x = 885
 y = 140
 kind = "control"
 group = "server"
-tech = ["forgejo"]
+tech = ["gitlab"]
 
 [[pods]]
 id = "hooks"
@@ -112,7 +122,7 @@ x = 1070
 y = 140
 kind = "observability"
 group = "server"
-tech = ["forgejo"]
+tech = ["gitlab"]
 
 [[pods]]
 id = "runner"
@@ -120,7 +130,7 @@ x = 515
 y = 266
 kind = "compute"
 group = "ci"
-tech = ["forgejo", "lxc"]
+tech = ["gitlab", "lxc"]
 
 [[pods]]
 id = "iaclint"
@@ -160,7 +170,7 @@ x = 700
 y = 392
 kind = "control"
 group = "deploy"
-tech = ["forgejo"]
+tech = ["gitlab"]
 
 [[pods]]
 id = "saved"
@@ -227,6 +237,10 @@ id = "renovate"
 path = ["renovate", "pr", "runner", "iaclint", "plan", "click", "saved", "avisos", "element"]
 
 [[flows]]
+id = "agente"
+path = ["laptop", "hooks", "agentes", "git", "pr", "runner", "rust", "agentes", "avisos", "relay", "element"]
+
+[[flows]]
 id = "drift"
 path = ["saved", "plan", "avisos", "element"]
 
@@ -267,17 +281,17 @@ answer = 1
 # ===========================================================================
 
 [text.es.meta]
-title = "Forgejo, el CI y el despliegue por dentro · Tito Pinardo Gutiérrez"
-description = "Mi servidor Git en casa: cambios por PR, CI sin secretos, plan antes de fusionar, despliegue con un clic y esta web publicada sola cuando su CI sale en verde."
+title = "GitLab, el CI y el despliegue por dentro · Tito Pinardo Gutiérrez"
+description = "Mi servidor Git en casa: cambios por MR, CI sin secretos, plan antes de fusionar, despliegue con un clic, agentes IA que trabajan desde las issues y esta web publicada sola cuando su CI sale en verde."
 
 [text.es.ui]
 slot = "1U · GIT"
-face_specs = "Forgejo · CI · despliegue"
+face_specs = "GitLab · CI · agentes"
 state = "En producción"
 map_silk = "GIT"
 map_title = "El origen del código por dentro"
 map_intro = "Por aquí entra cada cambio de la infraestructura y de esta web, y aquí se decide si sale. Elige un recorrido."
-vm_title = "Forgejo y sus runners · contenedores en Proxmox"
+vm_title = "GitLab y sus runners · contenedores en Proxmox"
 vm_specs = "el servidor Git, un runner sin secretos y uno que despliega"
 outside = "Fuera"
 disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, puertos ni nombres internos."
@@ -285,7 +299,7 @@ disclaimer = "Reconstrucción a partir de mi documentación: sin direcciones, pu
 [text.es.hero]
 kicker = "Unidad 1U · Código y entrega"
 title = "Mi propio Git, con CI y despliegue"
-tagline = "La infraestructura vivía en un repositorio sin interfaz y nadie revisaba nada antes de que entrara: un fichero mal formateado o un secreto en claro se copiaban tal cual. Ahora todo pasa por Forgejo. Cada push lo comprueba un runner sin secretos, cada cambio de infraestructura entra por PR con su plan a la vista, y esta web se despliega sola cuando su CI sale en verde."
+tagline = "La infraestructura vivía en un repositorio sin interfaz y nadie revisaba nada antes de que entrara: un fichero mal formateado o un secreto en claro se copiaban tal cual. Ahora todo pasa por mi propio GitLab (empezó en Forgejo). Cada push lo comprueba un runner sin secretos, cada cambio de infraestructura entra por MR con su plan a la vista, esta web se despliega sola cuando su CI sale en verde, y una issue puede poner a trabajar a un agente IA que entrega su MR."
 grade = "De push a la web: sin tocar nada"
 facts = [
   { label = "Dónde vive el código", value = "En casa. GitHub queda como escaparate: la copia saneada de la infraestructura y esta web, que solo recibe lo que ya está desplegado." },
@@ -302,15 +316,15 @@ value = "1 clic"
 label = "para aplicar un cambio de infraestructura, con su plan"
 
 [[text.es.stats]]
-value = "8 de 8"
-label = "avisos entregados en Element el primer día"
+value = "4"
+label = "agentes IA a la vez, cada uno desde una issue y sin poder fusionar"
 
 [[text.es.stats]]
 value = "~1,3 GB"
 label = "de memoria al compilar esta web en el CI"
 
 [text.es.groups]
-server = "Forgejo"
+server = "GitLab"
 ci = "Runner del CI: comprueba"
 deploy = "Runner de despliegue: aplica"
 around = "Alrededor"
@@ -335,6 +349,11 @@ short = "Esta web"
 title = "Esta web"
 text = "Un binario de Rust: lo que despliega el runner cuando todo sale en verde."
 
+[text.es.pods.agentes]
+short = "Agentes IA"
+title = "Agentes IA, desde las issues"
+text = "Una issue con su etiqueta arranca un agente en su propio contenedor, sin llaves de la casa, con el perfil de esa tarea: reglas, permisos y pruebas. Puede partir un hito en subtareas y abrir MR; fusionar, desplegar o publicar, no."
+
 [text.es.pods.github]
 short = "GitHub"
 title = "GitHub, la copia pública"
@@ -348,17 +367,17 @@ text = "Un puerto propio para Git, separado del SSH de administración. Solo ent
 [text.es.pods.webui]
 short = "Web con 2FA"
 title = "Interfaz web"
-text = "Solo desde casa o la VPN, detrás de la puerta interna con doble factor y luego el login de Forgejo."
+text = "Solo desde casa o la VPN, con el inicio de sesión único de la casa y doble factor."
 
 [text.es.pods.pr]
-short = "PR y ramas"
-title = "PR y rama protegida"
-text = "La rama principal de la infraestructura no admite pushes: solo PR con el CI en verde."
+short = "MR y ramas"
+title = "MR y rama protegida"
+text = "La rama principal de la infraestructura no admite pushes: solo MR con el CI en verde, y las fusiona una persona."
 
 [text.es.pods.hooks]
 short = "Webhooks"
 title = "Webhooks"
-text = "Al terminar cada ejecución, Forgejo avisa con una petición firmada."
+text = "Al terminar cada ejecución, o cuando una issue pide un agente, GitLab avisa con una petición que lleva su secreto."
 
 [text.es.pods.runner]
 short = "Runner CI"
@@ -381,14 +400,14 @@ title = "gitleaks"
 text = "Sobre todo el historial, no solo el último commit: lo borrado sigue en el repositorio."
 
 [text.es.pods.plan]
-short = "Plan del PR"
-title = "Plan del PR"
-text = "Terraform plan y los playbooks afectados en modo ensayo. Queda como comentario del PR, antes de fusionar."
+short = "Plan de la MR"
+title = "Plan de la MR"
+text = "Terraform plan y los playbooks afectados en modo ensayo. Queda como nota de la MR, antes de fusionar."
 
 [text.es.pods.click]
 short = "Un clic"
 title = "Aprobar con un clic"
-text = "Fusionar no aplica nada: sale el plan de la rama principal y lo apruebo yo."
+text = "Fusionar no aplica nada: sale el plan de la rama principal y lo apruebo yo con ▶."
 
 [text.es.pods.saved]
 short = "Plan guardado"
@@ -403,7 +422,7 @@ text = "Antes de que nada salga de casa: gitleaks, solo mi identidad pública co
 [text.es.pods.avisos]
 short = "Avisos"
 title = "Receptor de avisos"
-text = "Comprueba la firma del webhook y resume la ejecución: repositorio, rama, commit, duración y enlace."
+text = "Comprueba el secreto del webhook y resume la ejecución: repositorio, rama, commit, duración y enlace."
 
 [text.es.pods.relay]
 short = "Relay cifrado"
@@ -413,24 +432,24 @@ text = "Publica el aviso cifrado de extremo a extremo en la sala del CI/CD."
 [text.es.pods.renovate]
 short = "Renovate"
 title = "Renovate"
-text = "Cada lunes busca versiones nuevas de todo lo que está fijado y abre un PR por cada una, con su suma SHA-256 oficial."
+text = "Cada lunes busca versiones nuevas de todo lo que está fijado y abre una MR por cada una, con su suma SHA-256 oficial."
 
 [text.es.pods.copia]
 short = "Copia diaria"
 title = "Copia diaria"
-text = "El contenedor de Forgejo, cada noche a un disco aparte: siete diarias y cuatro semanales."
+text = "El contenedor de GitLab, cada noche a un disco aparte y cifrado. Restaurarlo está probado."
 
 [text.es.flows.pr]
-title = "Un cambio de infraestructura, por PR"
+title = "Un cambio de infraestructura, por MR"
 steps = [
   "Desde cualquiera de mis equipos creo una rama: la principal no admite pushes directos.",
-  "La empujo a Forgejo por SSH.",
-  "Abro el PR.",
+  "La empujo a GitLab por SSH.",
+  "Abro la MR.",
   "El runner del CI lo recoge: no tiene ni un secreto ni acceso al homelab.",
   "Formato y validación de Terraform, y ansible-lint.",
   "gitleaks sobre todo el historial y comprobación de que cada vault está cifrado.",
   "Mientras, el runner de despliegue calcula el plan: qué toca Terraform y qué playbooks, en ensayo.",
-  "El plan queda como comentario del PR: veo qué se toca antes de fusionar.",
+  "El plan queda como nota de la MR: veo qué se toca antes de fusionar.",
   "Fusiono. Sale el plan de la rama principal y lo apruebo con un clic.",
   "Se aplica ese plan guardado. Si algo cambió entretanto, Terraform se niega.",
   "El resultado sale por el webhook.",
@@ -442,7 +461,7 @@ steps = [
 title = "Esta web, de un push a internet"
 steps = [
   "Empujo un cambio de esta web.",
-  "Llega a Forgejo, el origen del repositorio.",
+  "Llega a GitLab, el origen del repositorio.",
   "El runner del CI lo recoge.",
   "Formato, clippy, pruebas contra PostgreSQL, compilación, contenido válido y JS minificado válido.",
   "Y gitleaks sobre todo el historial.",
@@ -471,14 +490,30 @@ steps = [
 title = "Las versiones se suben solas, pero no se aplican solas"
 steps = [
   "Lunes por la mañana: Renovate encuentra una versión nueva de Traefik.",
-  "Abre un PR con el número nuevo y su suma SHA-256, sacada del fichero de sumas oficial. Si la release no la publica, no hay PR.",
+  "Abre una MR con el número nuevo y su suma SHA-256, sacada del fichero de sumas oficial. Si la release no la publica, no hay MR.",
   "El CI lo comprueba como cualquier otro.",
   "Formato, lint y secretos.",
-  "El plan del PR dice qué playbook se lanzaría y cuántas tareas cambiarían.",
+  "El plan de la MR dice qué playbook se lanzaría y cuántas tareas cambiarían.",
   "Fusiono y apruebo con un clic.",
   "Se aplica ese plan.",
   "El resultado sale por el webhook.",
-  "Y llega a Element. Las de versión mayor esperan a que las apruebe en un issue antes de abrir siquiera el PR.",
+  "Y llega a Element. Las de versión mayor esperan a que las apruebe en una issue antes de abrir siquiera la MR.",
+]
+
+[text.es.flows.agente]
+title = "Una issue que se hace sola (y la reviso yo)"
+steps = [
+  "Abro una issue, explico qué quiero y le pongo la etiqueta de la cola de agentes.",
+  "GitLab avisa al lanzador con un webhook.",
+  "El lanzador arranca un agente con el perfil de esa tarea, en su contenedor aislado. Como mucho cuatro a la vez.",
+  "Trabaja en su propia rama y la empuja con el token de un bot que no puede fusionar ni desplegar.",
+  "Abre la MR, que cerrará la issue al fusionarse.",
+  "El CI la recoge como cualquier otra.",
+  "Formato, lint y pruebas: las mismas que para un cambio mío.",
+  "Otro agente, de solo lectura, revisa la MR y deja su veredicto.",
+  "Sale el aviso de MR entregada.",
+  "Cifrado, hacia la sala del CI/CD.",
+  "Y la reviso yo: la fusión siempre la hace una persona. Si falta algo, se lo pido con un comentario y corrige en la misma rama.",
 ]
 
 [text.es.flows.drift]
@@ -493,7 +528,7 @@ steps = [
 [text.es.flows.rebuild]
 title = "Qué se copia y qué se recrea"
 steps = [
-  "Los repositorios y su historial viven en Forgejo.",
+  "Los repositorios, su historial, las issues y los paquetes viven en GitLab.",
   "Cada noche, copia del contenedor a un disco aparte.",
   "El runner del CI no se copia: no guarda nada.",
   "Se recrea con su playbook, con las herramientas en versiones fijadas y sus sumas comprobadas.",
@@ -653,6 +688,17 @@ items = [
   "Un runner propio para los plugins de la red de juegos, con sus pruebas contra servidores de verdad.",
 ]
 
+[[text.es.timeline]]
+title = "El paso a GitLab"
+period = "19 y 20-11-2026"
+items = [
+  "GitLab CE en su contenedor, con inicio de sesión único y copia diaria, restaurada a prueba.",
+  "Los workflows, traducidos a pipelines: los mismos trabajos, el plan como nota de la MR y ▶ para aplicar.",
+  "Paquetes y releases de la red de juegos en el registro de GitLab, sin un solo secreto en el CI.",
+  "Agentes IA lanzados desde issues e hitos, cada uno con su perfil; probado con diez issues a la vez y matando uno a mitad.",
+  "Forgejo, en solo lectura hasta apagarlo.",
+]
+
 [[text.es.decisions]]
 title = "Dónde vive el código"
 choice = "En casa; GitHub como escaparate"
@@ -660,8 +706,13 @@ why = "Lo interno no tiene por qué salir. GitHub enseña lo que quiero enseñar
 
 [[text.es.decisions]]
 title = "Qué servidor Git"
-choice = "Forgejo"
-why = "Un binario y SQLite: arranca con un gigabyte de memoria. Un GitLab completo pide varios para lo mismo, y aquí la memoria tiene otros usos."
+choice = "GitLab CE (empezó en Forgejo)"
+why = "Forgejo, un binario y SQLite, arrancaba con un gigabyte y me sirvió un mes. Cambié cuando quise que una issue o un hito pusieran a trabajar a agentes IA: GitLab trae etiquetas con estados, hitos, registro de paquetes y una API más completa, y en este servidor sus 8 GB ya no pesan."
+
+[[text.es.decisions]]
+title = "Agentes IA"
+choice = "Un lanzador propio, aislado"
+why = "Los agentes de GitLab son de pago y no usan mi suscripción. Un servicio pequeño atiende los webhooks y arranca cada agente en un contenedor sin llaves de la casa: puede abrir MR, pero no fusionar, desplegar ni publicar releases."
 
 [[text.es.decisions]]
 title = "Los runners"
@@ -675,7 +726,7 @@ why = "Un plan que recrea un contenedor con datos se lee antes. Cuando haya conf
 
 [[text.es.decisions]]
 title = "Las versiones"
-choice = "PR automáticos, aplicar con un clic"
+choice = "MR automáticas, aplicar con un clic"
 why = "Renovate quita el trabajo de buscar y de calcular sumas, pero cada subida pasa por el mismo plan y la misma aprobación que un cambio mío. Las versiones mayores esperan a que las apruebe, y las bases de datos se quedan fuera: subirlas exige migrar datos."
 
 [[text.es.decisions]]
@@ -684,16 +735,16 @@ choice = "Despliegue continuo"
 why = "Si algo sale mal, se vuelve al commit anterior en minutos y no hay datos en juego. El control de fugas va antes de desplegar, no después."
 
 [text.es.tech_notes]
-forgejo = "Servidor Git con PR, ramas protegidas, Actions y webhooks; runners en modo host, cada uno con lo justo, y actualizaciones de la flota con un botón."
+gitlab = "Servidor Git con MR, ramas protegidas, pipelines, registro de paquetes y webhooks; runners de shell, cada uno con lo justo, y agentes IA lanzados desde las issues."
 git = "Origen en casa, respaldo en cada commit, central de antes en solo lectura y GitHub como copia pública."
-terraform = "Formato y validación en el CI sin estado; plan del PR y plan guardado que se aplica tal cual."
+terraform = "Formato y validación en el CI sin estado; plan de la MR y plan guardado que se aplica tal cual."
 ansible = "ansible-lint con línea base, playbooks afectados en ensayo y despliegue de esta web con su rol."
 rust = "El CI de esta web: formato, clippy, pruebas y compilación con caché entre ejecuciones."
 postgresql = "Un PostgreSQL solo por socket en el runner: cada prueba crea su propia base."
 hardening = "Runner sin secretos, gitleaks en todo el historial y control de fugas antes de publicar."
-lxc = "Forgejo y el runner, cada uno en su contenedor sin privilegios; el runner se recrea desde cero."
+lxc = "GitLab, los runners y los agentes, cada uno en su contenedor sin privilegios; el runner se recrea desde cero."
 linux = "Contenedores Debian con versiones fijadas y sumas comprobadas de cada binario."
-renovate = "PR semanales de versiones nuevas con su suma oficial, agrupadas cuando tienen que ir juntas y las mayores con aprobación previa."
+renovate = "MR semanales de versiones nuevas con su suma oficial, agrupadas cuando tienen que ir juntas y las mayores con aprobación previa."
 
 [text.es.close]
 lessons = [
@@ -704,7 +755,7 @@ lessons = [
 next = [
   "Que los planes que solo actualizan se apliquen solos.",
   "Renovate también para las dependencias de esta web.",
-  "Copias de verdad para todo el servidor, no solo para Forgejo.",
+  "Apagar Forgejo cuando GitLab lleve unas semanas sin echarlo de menos.",
 ]
 
 # ===========================================================================
@@ -712,17 +763,17 @@ next = [
 # ===========================================================================
 
 [text.en.meta]
-title = "Forgejo, CI and deployment, inside · Tito Pinardo Gutiérrez"
-description = "My own Git server at home: changes by PR, CI with no secrets, the plan before merging, one-click deploys and this site published on its own when its CI goes green."
+title = "GitLab, CI and deployment, inside · Tito Pinardo Gutiérrez"
+description = "My own Git server at home: changes by MR, CI with no secrets, the plan before merging, one-click deploys, AI agents working from issues and this site published on its own when its CI goes green."
 
 [text.en.ui]
 slot = "1U · GIT"
-face_specs = "Forgejo · CI · deploy"
+face_specs = "GitLab · CI · agents"
 state = "In production"
 map_silk = "GIT"
 map_title = "Where the code starts, inside"
 map_intro = "Every change to the infrastructure and to this site comes in here, and here it's decided whether it goes out. Pick a walkthrough."
-vm_title = "Forgejo and its runners · containers on Proxmox"
+vm_title = "GitLab and its runners · containers on Proxmox"
 vm_specs = "the Git server, a runner with no secrets and one that deploys"
 outside = "Outside"
 disclaimer = "Rebuilt from my own documentation: no addresses, ports or internal names."
@@ -730,7 +781,7 @@ disclaimer = "Rebuilt from my own documentation: no addresses, ports or internal
 [text.en.hero]
 kicker = "1U unit · Code & delivery"
 title = "My own Git, with CI and deployment"
-tagline = "The infrastructure lived in a repository with no interface and nobody reviewed anything before it went in: a badly formatted file or a plain-text secret was copied as it was. Now everything goes through Forgejo. A runner with no secrets checks every push, every infrastructure change comes in by PR with its plan in view, and this site deploys itself when its CI goes green."
+tagline = "The infrastructure lived in a repository with no interface and nobody reviewed anything before it went in: a badly formatted file or a plain-text secret was copied as it was. Now everything goes through my own GitLab (it started on Forgejo). A runner with no secrets checks every push, every infrastructure change comes in by MR with its plan in view, this site deploys itself when its CI goes green, and an issue can put an AI agent to work that delivers its MR."
 grade = "From push to the site: hands off"
 facts = [
   { label = "Where the code lives", value = "At home. GitHub is the shop window: the sanitised copy of the infrastructure and this site, which only gets what's already deployed." },
@@ -747,15 +798,15 @@ value = "1 click"
 label = "to apply an infrastructure change, with its plan"
 
 [[text.en.stats]]
-value = "8 of 8"
-label = "alerts delivered to Element on day one"
+value = "4"
+label = "AI agents at once, each from an issue and none able to merge"
 
 [[text.en.stats]]
 value = "~1.3 GB"
 label = "of memory to build this site in CI"
 
 [text.en.groups]
-server = "Forgejo"
+server = "GitLab"
 ci = "CI runner: checks"
 deploy = "Deploy runner: applies"
 around = "Around it"
@@ -780,6 +831,11 @@ short = "This site"
 title = "This site"
 text = "A Rust binary: what the runner deploys when everything goes green."
 
+[text.en.pods.agentes]
+short = "AI agents"
+title = "AI agents, from issues"
+text = "An issue with its label starts an agent in its own container, with no home keys, using that task's profile: rules, permissions and tests. It can split a milestone into subtasks and open MRs; merging, deploying or publishing, no."
+
 [text.en.pods.github]
 short = "GitHub"
 title = "GitHub, the public copy"
@@ -793,17 +849,17 @@ text = "Its own port for Git, separate from the admin SSH. Only registered keys 
 [text.en.pods.webui]
 short = "Web with 2FA"
 title = "Web interface"
-text = "Only from home or the VPN, behind the internal gate with two-factor and then the Forgejo login."
+text = "Only from home or the VPN, with the home single sign-on and two-factor."
 
 [text.en.pods.pr]
-short = "PRs, branches"
-title = "PRs and a protected branch"
-text = "The infrastructure's main branch takes no pushes: only PRs with green CI."
+short = "MRs, branches"
+title = "MRs and a protected branch"
+text = "The infrastructure's main branch takes no pushes: only MRs with green CI, merged by a person."
 
 [text.en.pods.hooks]
 short = "Webhooks"
 title = "Webhooks"
-text = "When each run ends, Forgejo calls out with a signed request."
+text = "When each run ends, or when an issue asks for an agent, GitLab calls out with a request carrying its secret."
 
 [text.en.pods.runner]
 short = "CI runner"
@@ -826,14 +882,14 @@ title = "gitleaks"
 text = "Over the whole history, not just the last commit: what was deleted is still in the repository."
 
 [text.en.pods.plan]
-short = "PR plan"
-title = "The PR's plan"
-text = "Terraform plan and the affected playbooks in dry-run. It's posted as a PR comment, before merging."
+short = "MR plan"
+title = "The MR's plan"
+text = "Terraform plan and the affected playbooks in dry-run. It's posted as a note on the MR, before merging."
 
 [text.en.pods.click]
 short = "One click"
 title = "Approve with one click"
-text = "Merging applies nothing: the main branch's plan comes out and I approve it."
+text = "Merging applies nothing: the main branch's plan comes out and I approve it with ▶."
 
 [text.en.pods.saved]
 short = "Saved plan"
@@ -848,7 +904,7 @@ text = "Before anything leaves home: gitleaks, only my public identity as author
 [text.en.pods.avisos]
 short = "Alerts"
 title = "Alert receiver"
-text = "Checks the webhook's signature and sums up the run: repository, branch, commit, duration and link."
+text = "Checks the webhook's secret and sums up the run: repository, branch, commit, duration and link."
 
 [text.en.pods.relay]
 short = "Encrypted relay"
@@ -858,24 +914,24 @@ text = "Posts the alert end-to-end encrypted to the CI/CD room."
 [text.en.pods.renovate]
 short = "Renovate"
 title = "Renovate"
-text = "Every Monday it looks for new versions of everything pinned and opens one PR for each, with its official SHA-256."
+text = "Every Monday it looks for new versions of everything pinned and opens one MR for each, with its official SHA-256."
 
 [text.en.pods.copia]
 short = "Daily copy"
 title = "Daily copy"
-text = "The Forgejo container, every night to a separate disk: seven dailies and four weeklies."
+text = "The GitLab container, every night to a separate disk, encrypted. Restoring it has been tested."
 
 [text.en.flows.pr]
-title = "An infrastructure change, by PR"
+title = "An infrastructure change, by MR"
 steps = [
   "From any of my machines I create a branch: the main one takes no direct pushes.",
-  "I push it to Forgejo over SSH.",
-  "I open the PR.",
+  "I push it to GitLab over SSH.",
+  "I open the MR.",
   "The CI runner picks it up: it has no secrets and no access to the homelab.",
   "Terraform formatting and validation, and ansible-lint.",
   "gitleaks over the whole history and a check that every vault is encrypted.",
   "Meanwhile, the deploy runner works out the plan: what Terraform touches and which playbooks, in dry-run.",
-  "The plan is posted as a PR comment: I see what's touched before merging.",
+  "The plan is posted as a note on the MR: I see what's touched before merging.",
   "I merge. The main branch's plan comes out and I approve it with one click.",
   "That saved plan is applied. If anything changed in between, Terraform refuses.",
   "The result goes out through the webhook.",
@@ -887,7 +943,7 @@ steps = [
 title = "This site, from a push to the internet"
 steps = [
   "I push a change to this site.",
-  "It lands on Forgejo, the repository's origin.",
+  "It lands on GitLab, the repository's origin.",
   "The CI runner picks it up.",
   "Formatting, clippy, tests against PostgreSQL, the build, valid content and valid minified JS.",
   "And gitleaks over the whole history.",
@@ -916,14 +972,30 @@ steps = [
 title = "Versions bump themselves, but don't apply themselves"
 steps = [
   "Monday morning: Renovate finds a new Traefik version.",
-  "It opens a PR with the new number and its SHA-256, taken from the official checksum file. If the release doesn't publish one, there's no PR.",
+  "It opens an MR with the new number and its SHA-256, taken from the official checksum file. If the release doesn't publish one, there's no MR.",
   "CI checks it like any other.",
   "Formatting, lint and secrets.",
-  "The PR's plan says which playbook would run and how many tasks would change.",
+  "The MR's plan says which playbook would run and how many tasks would change.",
   "I merge and approve with one click.",
   "That plan is applied.",
   "The result goes out through the webhook.",
-  "And reaches Element. Major versions wait for my approval in an issue before a PR is even opened.",
+  "And reaches Element. Major versions wait for my approval in an issue before an MR is even opened.",
+]
+
+[text.en.flows.agente]
+title = "An issue that does itself (and I review it)"
+steps = [
+  "I open an issue, explain what I want and give it the agent queue label.",
+  "GitLab tells the launcher with a webhook.",
+  "The launcher starts an agent with that task's profile, in its isolated container. Four at a time at most.",
+  "It works on its own branch and pushes it with the token of a bot that can't merge or deploy.",
+  "It opens the MR, which will close the issue when merged.",
+  "CI picks it up like any other.",
+  "Formatting, lint and tests: the same as for a change of mine.",
+  "Another agent, read-only, reviews the MR and leaves its verdict.",
+  "The «MR delivered» alert goes out.",
+  "Encrypted, to the CI/CD room.",
+  "And I review it: a person always does the merge. If something's missing, I ask in a comment and it fixes it on the same branch.",
 ]
 
 [text.en.flows.drift]
@@ -938,7 +1010,7 @@ steps = [
 [text.en.flows.rebuild]
 title = "What's copied and what's rebuilt"
 steps = [
-  "The repositories and their history live in Forgejo.",
+  "The repositories, their history, the issues and the packages live in GitLab.",
   "Every night, a copy of the container to a separate disk.",
   "The CI runner isn't copied: it keeps nothing.",
   "It's rebuilt with its playbook, tools at pinned versions with checked checksums.",
@@ -1098,6 +1170,17 @@ items = [
   "A runner of its own for the game network's plugins, with tests against real servers.",
 ]
 
+[[text.en.timeline]]
+title = "Moving to GitLab"
+period = "19 and 20-11-2026"
+items = [
+  "GitLab CE in its own container, with single sign-on and a daily backup, test-restored.",
+  "The workflows, translated to pipelines: the same jobs, the plan as a note on the MR and ▶ to apply.",
+  "The game network's packages and releases in GitLab's registry, without a single secret in CI.",
+  "AI agents launched from issues and milestones, each with its profile; tested with ten issues at once and by killing one halfway.",
+  "Forgejo, read-only until it's switched off.",
+]
+
 [[text.en.decisions]]
 title = "Where the code lives"
 choice = "At home; GitHub as the shop window"
@@ -1105,8 +1188,13 @@ why = "Internal things have no reason to leave. GitHub shows what I want to show
 
 [[text.en.decisions]]
 title = "Which Git server"
-choice = "Forgejo"
-why = "One binary and SQLite: it runs in a gigabyte of memory. A full GitLab needs several for the same job, and memory here has other uses."
+choice = "GitLab CE (it started on Forgejo)"
+why = "Forgejo, one binary and SQLite, ran in a gigabyte and served me for a month. I switched when I wanted an issue or a milestone to put AI agents to work: GitLab brings scoped labels, milestones, a package registry and a fuller API, and on this server its 8 GB no longer weigh."
+
+[[text.en.decisions]]
+title = "AI agents"
+choice = "My own launcher, isolated"
+why = "GitLab's agents are paid and don't use my subscription. A small service handles the webhooks and starts each agent in a container with no home keys: it can open MRs, but not merge, deploy or publish releases."
 
 [[text.en.decisions]]
 title = "The runners"
@@ -1120,7 +1208,7 @@ why = "A plan that recreates a container with data gets read first. Once there's
 
 [[text.en.decisions]]
 title = "Versions"
-choice = "Automatic PRs, one-click apply"
+choice = "Automatic MRs, one-click apply"
 why = "Renovate takes away the searching and the checksums, but every bump goes through the same plan and approval as one of my changes. Major versions wait for my approval, and databases stay out: upgrading them means migrating data."
 
 [[text.en.decisions]]
@@ -1129,16 +1217,16 @@ choice = "Continuous deployment"
 why = "If something goes wrong, it's back to the previous commit in minutes and no data is at stake. The leak check runs before deploying, not after."
 
 [text.en.tech_notes]
-forgejo = "Git server with PRs, protected branches, Actions and webhooks; runners in host mode, each with just what it needs, and fleet updates at the press of a button."
+gitlab = "Git server with MRs, protected branches, pipelines, a package registry and webhooks; shell runners, each with just what it needs, and AI agents launched from issues."
 git = "Origin at home, a backup on every commit, the old central read-only and GitHub as the public copy."
-terraform = "Formatting and validation in CI with no state; the PR's plan and a saved plan applied as is."
+terraform = "Formatting and validation in CI with no state; the MR's plan and a saved plan applied as is."
 ansible = "ansible-lint with a baseline, affected playbooks in dry-run and this site deployed with its role."
 rust = "This site's CI: formatting, clippy, tests and the build, cached between runs."
 postgresql = "A socket-only PostgreSQL on the runner: each test creates its own database."
 hardening = "A runner with no secrets, gitleaks over the whole history and a leak check before publishing."
-lxc = "Forgejo and the runner, each in its own unprivileged container; the runner is rebuilt from scratch."
+lxc = "GitLab, the runners and the agents, each in its own unprivileged container; the runner is rebuilt from scratch."
 linux = "Debian containers with pinned versions and checked checksums for every binary."
-renovate = "Weekly PRs for new versions with their official checksum, grouped when they must go together and majors with prior approval."
+renovate = "Weekly MRs for new versions with their official checksum, grouped when they must go together and majors with prior approval."
 
 [text.en.close]
 lessons = [
@@ -1149,5 +1237,5 @@ lessons = [
 next = [
   "Let update-only plans apply on their own.",
   "Renovate for this site's dependencies too.",
-  "Real backups for the whole server, not just Forgejo.",
+  "Switch Forgejo off once GitLab has gone a few weeks without missing it.",
 ]

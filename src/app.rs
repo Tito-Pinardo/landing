@@ -124,7 +124,7 @@ impl AppState {
         wake_notifier: Arc<Notify>,
     ) -> anyhow::Result<Self> {
         let content = Content::embedded()?;
-        // La actividad de Forgejo la deja el host junto al estado del homelab.
+        // La actividad de los repos de GitLab la deja el host junto al estado del homelab.
         if let Some(path) = &cfg.homelab_status_file {
             let list = content
                 .site
@@ -347,8 +347,19 @@ async fn unit_page(
 ) -> Response {
     match Lang::from_code(&lang).and_then(|l| st.unit(&unit, l)) {
         Some(page) => serve_page(page, &headers, "public, max-age=300, s-maxage=600"),
-        None => not_found(State(st), headers).await,
+        None => match renamed_unit(&lang, &unit) {
+            Some(r) => r,
+            None => not_found(State(st), headers).await,
+        },
     }
+}
+
+/// La URL de una unidad que cambió de id ([`crate::unit::RENAMED`]) lleva
+/// a la nueva, con o sin barra final.
+fn renamed_unit(lang: &str, unit: &str) -> Option<Response> {
+    let l = Lang::from_code(lang)?;
+    let (_, new) = crate::unit::RENAMED.iter().find(|(old, _)| *old == unit)?;
+    Some(Redirect::permanent(&format!("/{}/{new}/", l.code())).into_response())
 }
 
 async fn blog_no_slash(
@@ -428,7 +439,10 @@ async fn unit_no_slash(
 ) -> Response {
     match Lang::from_code(&lang).filter(|l| st.unit(&unit, *l).is_some()) {
         Some(l) => Redirect::permanent(&format!("/{}/{unit}/", l.code())).into_response(),
-        None => not_found(State(st), headers).await,
+        None => match renamed_unit(&lang, &unit) {
+            Some(r) => r,
+            None => not_found(State(st), headers).await,
+        },
     }
 }
 
