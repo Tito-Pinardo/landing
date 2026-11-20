@@ -3,7 +3,7 @@
 [meta]
 lang = "es"
 title = "Tito Pinardo Gutiérrez · Sistemas, Infraestructura como Código y DevOps"
-description = "Administrador de sistemas junior especializado en Linux, Infraestructura como Código y DevOps. Terraform, Ansible, Proxmox, Kubernetes. Proyectos reales en producción."
+description = "Administración de sistemas Linux, Infraestructura como Código y DevOps. Terraform, Ansible, Proxmox, Kubernetes. Proyectos reales en producción."
 og_image_alt = "Tito Pinardo Gutiérrez, administración de sistemas y DevOps"
 
 [ui]
@@ -60,7 +60,6 @@ kicker = "Hola, soy"
 name = "Tito Pinardo Gutiérrez"
 role = "Administración de Sistemas · Infraestructura como Código · DevOps"
 pitch = "Técnico Superior en ASIR + DAW. Gestiono infraestructura real con Terraform y Ansible, despliego con Kubernetes y GitOps, y me obsesiona entender por qué falla algo antes de arreglarlo."
-looking = "Busco mi primer puesto como administrador de sistemas, DevOps o SRE junior."
 location = "Alcalá de Henares, Madrid"
 stats = [
   { value = "152", label = "commits de infraestructura como código" },
@@ -118,10 +117,9 @@ values = [
 
 [quick]
 title = "Vista rápida"
-intro = "Lo esencial para una primera criba, en un minuto."
+intro = "Lo esencial, en un minuto."
 summary = "Técnico Superior en ASIR + DAW (2026), orientado a sistemas Linux, redes y DevOps. Experiencia en prácticas desarrollando software interno en un centro universitario y como técnico informático en Malta, trabajando íntegramente en inglés. Mantengo un homelab de producción gestionado como código con Terraform, Ansible y Proxmox."
 facts = [
-  { label = "Puesto que busco", value = "Administrador de sistemas, DevOps o SRE junior" },
   { label = "Ubicación", value = "Alcalá de Henares, Madrid" },
   { label = "Formación", value = "CFGS ASIR + DAW (2023–2026) · CFGM SMR (2021–2023)" },
   { label = "Idiomas", value = "Español nativo · Inglés C1 comprensión, B2 expresión" },
@@ -961,7 +959,7 @@ idle = [
   "Los logros se guardan solo en tu navegador. Nada de cookies.",
 ]
 tour60 = [
-  { target = "#hero-title", text = "Te lo resumo en un minuto. Tito Pinardo es técnico superior en ASIR + DAW y busca su primer puesto de administrador de sistemas, DevOps o SRE junior." },
+  { target = "#hero-title", text = "Te lo resumo en un minuto. Tito Pinardo es técnico superior en ASIR + DAW y se dedica a la administración de sistemas, la infraestructura como código y DevOps." },
   { target = "#quick", text = "Lo esencial está aquí: formación, inglés de trabajo (prácticas en Malta, todo en inglés), ubicación y el CV para descargar." },
   { target = "#skills", text = "Su árbol de habilidades: lo más fuerte es la infraestructura como código y Linux. Pulsar una habilidad enseña dónde la ha usado." },
   { target = "#quest-xpify", text = "Las misiones son proyectos reales: el proyecto final, con un 10, y los servicios web de la universidad en sus prácticas." },
@@ -996,7 +994,7 @@ contact = "Si escribes aquí, el mensaje se guarda primero y luego se lo llevo y
 [now]
 intro = "Lo que estoy haciendo estos días, con datos en vivo."
 focus = [
-  "Buscando mi primer puesto como administrador de sistemas o DevOps.",
+  "Llevando todo mi código a GitLab, con agentes IA que trabajan desde las issues y MR que reviso yo.",
   "Mejorando Hermes, mi asistente de IA local, con evaluaciones medidas.",
   "Ampliando el homelab como código: actualizaciones vigiladas de contenedores y monitorización.",
   "Aprendiendo Rust construyendo esta web.",
@@ -1073,7 +1071,7 @@ help = [
   ["clear", "limpia la pantalla"],
   ["exit", "cierra la terminal"],
 ]
-whoami = "Tito Pinardo Gutiérrez — sistemas, IaC y DevOps. Busco mi primer puesto."
+whoami = "Tito Pinardo Gutiérrez — sistemas, IaC y DevOps."
 sudo = "Buen intento. Aquí el único root soy yo."
 challenge = "Hay cuatro banderas escondidas en este servidor de mentira, con el formato flag{...}. Escribe 'challenge' para ver las pistas y tu progreso, y 'submit flag{...}' para entregar una."
 motd = ["Bienvenido a tito-homelab (Debian 13).", "Recuerda: los logs de Hermes están en /var/log/."]

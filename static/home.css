@@ -23,9 +23,6 @@
 .zone-head .zone-n { grid-row: span 2; font-size: .9rem; color: var(--accent); padding: 6px 8px; border: 1px solid var(--accent); border-radius: 8px; align-self: center; }
 .zone-head h2 { margin: 0; }
 .zone-head p { margin: 0; color: var(--muted); }
-.looking { display: flex; align-items: center; gap: 10px; font-weight: 600; margin-bottom: 22px; }
-.pulse { position: relative; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--ok); }
-.pulse::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: color-mix(in srgb, var(--ok) 60%, transparent); animation: pulse 2.4s infinite; }
 .player-card {
   position: relative; padding: 22px; border-radius: 18px;
   background: linear-gradient(160deg, var(--surface-2), var(--surface));

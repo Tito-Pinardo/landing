@@ -245,7 +245,6 @@ pub struct Hero {
     pub name: String,
     pub role: String,
     pub pitch: String,
-    pub looking: String,
     pub location: String,
     pub stats: Vec<Stat>,
 }

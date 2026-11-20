@@ -3,7 +3,7 @@
 [meta]
 lang = "en"
 title = "Tito Pinardo Gutiérrez · Systems, Infrastructure as Code and DevOps"
-description = "Junior systems administrator focused on Linux, Infrastructure as Code and DevOps. Terraform, Ansible, Proxmox, Kubernetes. Real projects running in production."
+description = "Linux systems administration, Infrastructure as Code and DevOps. Terraform, Ansible, Proxmox, Kubernetes. Real projects running in production."
 og_image_alt = "Tito Pinardo Gutiérrez, systems administration and DevOps"
 
 [ui]
@@ -60,7 +60,6 @@ kicker = "Hi, I'm"
 name = "Tito Pinardo Gutiérrez"
 role = "Systems Administration · Infrastructure as Code · DevOps"
 pitch = "ASIR + DAW graduate. I run real infrastructure with Terraform and Ansible, deploy with Kubernetes and GitOps, and I care about understanding why something fails before fixing it."
-looking = "Looking for my first role as a junior systems administrator, DevOps or SRE engineer."
 location = "Alcalá de Henares, Madrid, Spain"
 stats = [
   { value = "152", label = "infrastructure-as-code commits" },
@@ -116,10 +115,9 @@ values = [
 
 [quick]
 title = "Quick view"
-intro = "The essentials for a first screening, in one minute."
+intro = "The essentials, in one minute."
 summary = "Higher Vocational Qualification in ASIR + DAW (2026), focused on Linux systems, networking and DevOps. Internship experience building internal software at a university centre and as an IT technician in Malta, working entirely in English. I run a production homelab managed as code with Terraform, Ansible and Proxmox."
 facts = [
-  { label = "Looking for", value = "Junior systems administrator, DevOps or SRE role" },
   { label = "Location", value = "Alcalá de Henares, Madrid, Spain" },
   { label = "Education", value = "ASIR + DAW (2023–2026) · Microcomputer Systems & Networks (2021–2023)" },
   { label = "Languages", value = "Spanish native · English C1 listening/reading, B2 speaking/writing" },
@@ -957,7 +955,7 @@ idle = [
   "Achievements are only stored in your browser. No cookies.",
 ]
 tour60 = [
-  { target = "#hero-title", text = "Here's the one-minute version. Tito Pinardo has a higher diploma in sysadmin and web development (ASIR + DAW) and is looking for his first junior sysadmin, DevOps or SRE role." },
+  { target = "#hero-title", text = "Here's the one-minute version. Tito Pinardo has a higher diploma in sysadmin and web development (ASIR + DAW) and works on systems administration, infrastructure as code and DevOps." },
   { target = "#quick", text = "The essentials are here: education, working English (an internship in Malta, entirely in English), location and the CV to download." },
   { target = "#skills", text = "His skill tree: strongest in infrastructure as code and Linux. Click a skill to see where he has used it." },
   { target = "#quest-xpify", text = "The quests are real projects: his final-year project, graded 10/10, and the university web services from his internship." },
@@ -990,7 +988,7 @@ contact = "If you write here, the message is stored first and then I carry it to
 [now]
 intro = "What I'm up to these days, with live data."
 focus = [
-  "Looking for my first role in systems administration or DevOps.",
+  "Moving all my code to GitLab, with AI agents working from issues and MRs I review myself.",
   "Improving Hermes, my local AI assistant, with measured evaluations.",
   "Growing the homelab as code: watched container updates and monitoring.",
   "Learning Rust by building this website.",
@@ -1063,7 +1061,7 @@ help = [
   ["clear", "clear the screen"],
   ["exit", "close the terminal"],
 ]
-whoami = "Tito Pinardo Gutiérrez — systems, IaC and DevOps. Looking for my first role."
+whoami = "Tito Pinardo Gutiérrez — systems, IaC and DevOps."
 sudo = "Nice try. The only root around here is me."
 challenge = "There are four flags hidden in this fake server, formatted flag{...}. Type 'challenge' to see the hints and your progress, and 'submit flag{...}' to hand one in."
 motd = ["Welcome to tito-homelab (Debian 13).", "Remember: Hermes's logs live in /var/log/."]
