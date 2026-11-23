@@ -1,0 +1,87 @@
+slug = "resumen-2026-11-23"
+date = "2026-11-23"
+unit = "hermes"
+tech = ["llm", "traefik", "docker", "openshift", "kubernetes"]
+kind = "digest"
+
+[text.es]
+title = "Resumen del lunes 23 de noviembre: Vulnerabilidad SSRF en one-hub y fallos en FlowIntel"
+description = "Novedades de la semana para mi homelab: Ollama, Traefik, Dispatcharr, Radarr, Sonarr, OKD."
+summary = "Esta semana destacan las actualizaciones en herramientas multimedia como Sonarr y Radarr, que añaden integración mejorada con Ntfy y soporte para virtiofs. Además, se han publicado avisos de seguridad que afectan a componentes de red y herramientas de IA como Traefik y one-hub."
+lesson = "Adoptar estándares abiertos de notificación y almacenamiento mejora de forma sustancial la interoperabilidad en el homelab."
+
+[[text.es.sections]]
+heading = "Seguridad · Vulnerabilidad SSRF en one-hub y fallos en FlowIntel"
+paragraphs = ["Se han detectado fallos de seguridad en FlowIntel y una vulnerabilidad SSRF en una herramienta de gestión de IA (one-hub hasta la versión 0.14.27) al procesar parámetros image_url en peticiones de chat con visión.", "Por qué importa: Un atacante con un token de API estándar podría enviar peticiones manipuladas a través de proveedores como Ollama para alcanzar servicios internos no expuestos dentro de la red local."]
+links = [{ title = "2 vulnerabilidades en Ollama (CVE-2026-133631, CVE-2026-133875)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-133631", source = "Ollama" }]
+
+[[text.es.sections]]
+heading = "Seguridad · Vulnerabilidad de fuga de recursos en Traefik (CVE-2026-130732)"
+paragraphs = ["Se ha publicado un fallo de fuga de recursos en Traefik (versiones 2.11.58 a 2.11.60) al recibir cabeceras de autorización con esquemas NTLM o Negotiate.", "Por qué importa: Un atacante no autenticado puede agotar la memoria, los descriptores de archivo y las conexiones de salida del proxy inverso expuesto a internet abriendo múltiples conexiones cortas."]
+list = ["Idea: Lo corrige la versión 2.11.61 de Traefik."]
+links = [{ title = "2 vulnerabilidades en Traefik (CVE-2026-130732, CVE-2026-129315)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-130732", source = "Traefik" }]
+
+[[text.es.sections]]
+heading = "Dispatcharr 0.34.1 corrige fallos de red y borrado de archivos en plugins"
+paragraphs = ["Se ha publicado Dispatcharr v0.34.1, una versión centrada en corregir errores de los plugins. Evita que los archivos subidos a los plugins se borren al actualizar, conserva sus datos al cambiar de estado de gestión y arregla fallos en conexiones de red.", "En mi servidor: Afecta directamente a los complementos del contenedor de Dispatcharr con el que gestiono la TV en directo, asegurando que los plugins con funciones de red o archivos locales funcionen correctamente."]
+list = ["Idea: Revisar las notas de la versión y volver a subir los archivos de plugins que se hayan podido perder en actualizaciones anteriores."]
+links = [{ title = "Release v0.34.1", url = "https://github.com/Dispatcharr/Dispatcharr/releases/tag/v0.34.1", source = "Dispatcharr" }]
+
+[[text.es.sections]]
+heading = "Radarr 7.0.3: soporte para Ntfy, Transmission y mejoras de rendimiento"
+paragraphs = ["Se ha publicado Radarr 7.0.3.10918, que añade soporte completo para etiquetas de Transmission, cabeceras personalizadas en Ntfy.sh y optimizaciones en la deserialización de datos JSON y HTTP.", "En mi servidor: Esta versión optimiza el procesamiento de datos del gestor de películas y amplía las opciones de notificación. Además, recuerda que en despliegues con Docker las actualizaciones deben hacerse recreando la imagen del contenedor."]
+list = ["Idea: Actualizar la imagen del contenedor Docker siguiendo el procedimiento habitual en lugar de usar el actualizador interno de la aplicación."]
+links = [{ title = "7.0.3.10918", url = "https://github.com/Radarr/Radarr/releases/tag/v7.0.3.10918", source = "Radarr" }]
+
+[[text.es.sections]]
+heading = "Sonarr 5.0.0.3041 añade soporte para virtiofs en espacio en disco e icono en ntfy"
+paragraphs = ["Sonarr se actualiza a la versión 5.0.0.3041 introduciendo compatibilidad con puntos de montaje virtiofs para la lectura de espacio en disco, icono personalizado en notificaciones de ntfy y cierre de sesión por canal secundario en OIDC.", "En mi servidor: Resulta interesante en entornos virtualizados donde se comparten carpetas mediante virtiofs entre el hipervisor y los contenedores o máquinas virtuales, además de pulir la integración con servicios de notificaciones y autenticación."]
+list = ["Idea: Revisar que la lectura de espacio en disco funcione bien tras la actualización si utilizo montajes virtiofs para mis mapas de almacenamiento."]
+links = [{ title = "5.0.0.3041", url = "https://github.com/Sonarr/Sonarr/releases/tag/v5.0.0.3041", source = "Sonarr" }]
+
+[[text.es.sections]]
+heading = "Publicada la versión 5.0.0-okd-scos.8 de OKD"
+paragraphs = ["Se ha lanzado la versión 5.0.0-okd-scos.8 de OKD sobre CentOS Stream CoreOS 10, que incluye Kubernetes 1.36.6 y kubectl 1.36.5.", "En mi servidor: Para quien opera un clúster OKD sobre máquinas virtuales, esta versión actualiza los componentes principales de Kubernetes y la imagen base del sistema operativo."]
+list = ["Idea: Revisar las rutas de actualización compatibles desde versiones 4.x o 5.x previas antes de actualizar."]
+links = [{ title = "5.0.0-okd-scos.8", url = "https://github.com/okd-project/okd/releases/tag/5.0.0-okd-scos.8", source = "OKD" }]
+
+[text.en]
+title = "Monday digest, 23 November: SSRF vulnerability in one-hub and security flaws in FlowIntel"
+description = "This week's news for my homelab: Ollama, Traefik, Dispatcharr, Radarr, Sonarr, OKD."
+summary = "This week highlights updates to media automation tools such as Sonarr and Radarr, introducing improved Ntfy integration and virtiofs storage support. Additionally, security advisories were published affecting networking and AI tools like Traefik and one-hub."
+lesson = "Adopting open standards for notifications and storage drivers significantly improves interoperability within a homelab environment."
+
+[[text.en.sections]]
+heading = "Security · SSRF vulnerability in one-hub and security flaws in FlowIntel"
+paragraphs = ["Security flaws have been identified in FlowIntel alongside an SSRF vulnerability in one-hub up to version 0.14.27 when processing image_url parameters in vision chat requests.", "Why it matters: An attacker with a standard API token could send crafted requests via providers such as Ollama to reach unexposed internal services on the local network."]
+links = [{ title = "2 vulnerabilidades en Ollama (CVE-2026-133631, CVE-2026-133875)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-133631", source = "Ollama" }]
+
+[[text.en.sections]]
+heading = "Security · Resource leak vulnerability in Traefik (CVE-2026-130732)"
+paragraphs = ["A resource leak flaw has been disclosed in Traefik (versions 2.11.58 up to 2.11.60) when handling authorization headers with NTLM or Negotiate schemes.", "Why it matters: An unauthenticated attacker can exhaust memory, file descriptors, and backend connections on an internet-facing reverse proxy by opening multiple short-lived connections."]
+list = ["Idea: Fixed in Traefik version 2.11.61."]
+links = [{ title = "2 vulnerabilidades en Traefik (CVE-2026-130732, CVE-2026-129315)", url = "https://nvd.nist.gov/vuln/detail/CVE-2026-130732", source = "Traefik" }]
+
+[[text.en.sections]]
+heading = "Dispatcharr 0.34.1 fixes plugin file deletion and network issues"
+paragraphs = ["Dispatcharr v0.34.1 has been released with bug fixes for plugins. It prevents uploaded plugin files from being deleted during updates, preserves plugin data when changing management status, and resolves network connectivity issues.", "On my server: This affects the plugins running inside the Dispatcharr container used for live TV, ensuring extensions relying on local files or network connections function as expected."]
+list = ["Idea: Read the release notes and re-upload any plugin files that may have been deleted in previous updates."]
+links = [{ title = "Release v0.34.1", url = "https://github.com/Dispatcharr/Dispatcharr/releases/tag/v0.34.1", source = "Dispatcharr" }]
+
+[[text.en.sections]]
+heading = "Radarr 7.0.3: Ntfy and Transmission support plus performance tweaks"
+paragraphs = ["Radarr 7.0.3.10918 has been released, adding full Transmission label support, custom headers for Ntfy.sh, and performance improvements in JSON and HTTP deserialisation.", "On my server: This update optimizes resource handling in the movie management stack and expands notification capabilities. It also highlights that Docker deployments must be updated via container image replacement rather than the internal app updater."]
+list = ["Idea: Pull the new Docker container image to update instead of using the built-in update mechanism within the app."]
+links = [{ title = "7.0.3.10918", url = "https://github.com/Radarr/Radarr/releases/tag/v7.0.3.10918", source = "Radarr" }]
+
+[[text.en.sections]]
+heading = "Sonarr 5.0.0.3041 adds virtiofs support for disk space and ntfy icons"
+paragraphs = ["Sonarr update 5.0.0.3041 introduces support for virtiofs mount points when checking free disk space, adds an icon to ntfy notifications, and adds OIDC back-channel logout.", "On my server: It is particularly useful in virtualised environments where storage is shared using virtiofs between hypervisors and containers or VMs, as well as refining notification and authentication integration."]
+list = ["Idea: Check that free disk space displays correctly after updating if virtiofs mounts are used for media storage."]
+links = [{ title = "5.0.0.3041", url = "https://github.com/Sonarr/Sonarr/releases/tag/v5.0.0.3041", source = "Sonarr" }]
+
+[[text.en.sections]]
+heading = "OKD release 5.0.0-okd-scos.8 published"
+paragraphs = ["Version 5.0.0-okd-scos.8 of OKD on CentOS Stream CoreOS 10 has been released, featuring Kubernetes 1.36.6 and kubectl 1.36.5.", "On my server: For anyone running an OKD cluster on virtual machines, this release updates core Kubernetes components and the underlying operating system image."]
+list = ["Idea: Check the supported upgrade paths from previous 4.x or 5.x releases prior to updating."]
+links = [{ title = "5.0.0-okd-scos.8", url = "https://github.com/okd-project/okd/releases/tag/5.0.0-okd-scos.8", source = "OKD" }]
