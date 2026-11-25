@@ -40,7 +40,7 @@ La página de **repos** (`/es/repos/`) enseña los repositorios de mi GitLab, qu
 | `assets/og/` | Fuentes (Inter Display y JetBrains Mono, recortadas a alfabeto latino; licencia OFL en `OFL.txt`) de las imágenes para compartir: cada unidad y artículo tiene la suya en `/og/{es,en}/{unit,blog}/<id>.png` (`src/og.rs`: SVG pasado a PNG con resvg la primera vez que se pide y guardado en memoria). `landing dump-og <dir>` las escribe todas para verlas |
 | `migrations/` | Esquema de PostgreSQL |
 | `src/` | Servidor |
-| `.gitlab-ci.yml` | CI/CD en GitLab (comprobar y desplegar); `.forgejo/workflows/`, el de Forgejo hasta apagarlo; `.github/workflows/`, el CI de la copia pública |
+| `.gitlab-ci.yml` | CI/CD en GitLab (comprobar y desplegar); `.github/workflows/`, el CI de la copia pública |
 | `docs/PLAN.md` | Plan, decisiones y fases |
 
 ## Desarrollo

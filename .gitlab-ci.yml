@@ -1,5 +1,5 @@
-# CI/CD de la web en GitLab, el origen del repositorio. Traducción de
-# .forgejo/workflows/ci.yml (que sigue valiendo en Forgejo hasta el corte):
+# CI/CD de la web en GitLab, el origen del repositorio (antes, workflow de
+# Forgejo, retirado el 25-11-2026):
 #
 # - comprobar (runner del CI, sin secretos): lo mismo que el CI de GitHub
 #   más gitleaks sobre todo el historial.
