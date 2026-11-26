@@ -696,7 +696,7 @@ items = [
   "Los workflows, traducidos a pipelines: los mismos trabajos, el plan como nota de la MR y ▶ para aplicar.",
   "Paquetes y releases de la red de juegos en el registro de GitLab, sin un solo secreto en el CI.",
   "Agentes IA lanzados desde issues e hitos, cada uno con su perfil; probado con diez issues a la vez y matando uno a mitad.",
-  "Forgejo, en solo lectura hasta apagarlo.",
+  "Forgejo, en solo lectura hasta apagarlo el 25-11: fuera de Terraform sin destruirlo y con su copia guardada; su runner pasa a llamarse ci-runner.",
 ]
 
 [[text.es.decisions]]
@@ -755,7 +755,6 @@ lessons = [
 next = [
   "Que los planes que solo actualizan se apliquen solos.",
   "Renovate también para las dependencias de esta web.",
-  "Apagar Forgejo cuando GitLab lleve unas semanas sin echarlo de menos.",
 ]
 
 # ===========================================================================
@@ -1178,7 +1177,7 @@ items = [
   "The workflows, translated to pipelines: the same jobs, the plan as a note on the MR and ▶ to apply.",
   "The game network's packages and releases in GitLab's registry, without a single secret in CI.",
   "AI agents launched from issues and milestones, each with its profile; tested with ten issues at once and by killing one halfway.",
-  "Forgejo, read-only until it's switched off.",
+  "Forgejo, read-only until it was switched off on 25-11: out of Terraform without destroying it and with its backup kept; its runner is now called ci-runner.",
 ]
 
 [[text.en.decisions]]
@@ -1237,5 +1236,4 @@ lessons = [
 next = [
   "Let update-only plans apply on their own.",
   "Renovate for this site's dependencies too.",
-  "Switch Forgejo off once GitLab has gone a few weeks without missing it.",
 ]
